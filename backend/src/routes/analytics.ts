@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { getPool } from '../database';
 import { AGGREGATION_WINDOW_MINUTES } from '../jobs/aggregator';
 import { verifyAnalyticsApiKey } from '../utils/security';
+import { QueryBuilder, generateCursor, parseCursor } from '../utils/pagination';
 
 const aggregatesQuerySchema = z.object({
   from: z.string().datetime().optional(),
@@ -24,55 +25,43 @@ const deviceStatsQuerySchema = z.object({
   cursor: z.string().optional(),
 });
 
+/**
+ * Convert Postgres numeric types to JS numbers (bigint, numeric → number)
+ */
+function numOrNull(value: any): number | null {
+  return value !== null && value !== undefined ? Number(value) : null;
+}
+
 export async function analyticsRoutes(fastify: FastifyInstance) {
   const pool = getPool();
 
   fastify.get('/analytics/aggregates', { preHandler: verifyAnalyticsApiKey }, async (request) => {
     const query = aggregatesQuerySchema.parse(request.query);
     const table = query.bucket === 'day' ? 'sensor_aggregates_daily' : 'sensor_aggregates_5m';
+    const timeColumn = query.bucket === 'day' ? 'day' : 'window_start';
 
-    const whereClauses: string[] = [];
-    const params: any[] = [];
-    let paramIndex = 1;
+    const qb = new QueryBuilder();
 
-    if (query.from) {
-      const column = query.bucket === 'day' ? 'day' : 'window_start';
-      whereClauses.push(`${column} >= $${paramIndex++}`);
-      params.push(query.from);
+    qb.whereIf(query.from, `${timeColumn} >= $P`, query.from);
+    qb.whereIf(query.to, `${timeColumn} <= $P`, query.to);
+    qb.whereIf(query.geohash, `geohash LIKE $P`, query.geohash ? `${query.geohash}%` : undefined);
+
+    // Cursor-based pagination
+    const cursorParts = parseCursor(query.cursor, 2);
+    if (cursorParts) {
+      qb.where(`(${timeColumn}, geohash) > ($P, $P)`, cursorParts[0], cursorParts[1]);
     }
 
-    if (query.to) {
-      const column = query.bucket === 'day' ? 'day' : 'window_start';
-      whereClauses.push(`${column} <= $${paramIndex++}`);
-      params.push(query.to);
-    }
-
-    if (query.geohash) {
-      whereClauses.push(`geohash LIKE $${paramIndex++}`);
-      params.push(`${query.geohash}%`);
-    }
-
-    if (query.cursor) {
-      const [cursorTime, cursorGeohash] = query.cursor.split('|');
-      if (cursorTime && cursorGeohash) {
-        params.push(cursorTime);
-        params.push(cursorGeohash);
-        const column = query.bucket === 'day' ? 'day' : 'window_start';
-        whereClauses.push(`(${column}, geohash) > ($${paramIndex++ - 1}, $${paramIndex++ - 1})`);
-      }
-    }
-
-    const whereSql = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
-    const orderColumn = query.bucket === 'day' ? 'day' : 'window_start';
+    const { whereSql, params, nextParamIndex } = qb.build();
+    params.push(query.limit);
 
     const sql = `
       SELECT *
       FROM ${table}
       ${whereSql}
-      ORDER BY ${orderColumn} ASC, geohash ASC
-      LIMIT $${paramIndex}
+      ORDER BY ${timeColumn} ASC, geohash ASC
+      LIMIT $${nextParamIndex}
     `;
-    params.push(query.limit);
 
     const result = await pool.query(sql, params);
 
@@ -80,31 +69,23 @@ export async function analyticsRoutes(fastify: FastifyInstance) {
       ...row,
       samples_count: Number(row.samples_count),
       device_count: Number(row.device_count),
-      avg_light: row.avg_light !== null ? Number(row.avg_light) : null,
-      avg_light_min: row.avg_light_min !== null ? Number(row.avg_light_min) : null,
-      avg_light_max: row.avg_light_max !== null ? Number(row.avg_light_max) : null,
-      avg_accel_rms: row.avg_accel_rms !== null ? Number(row.avg_accel_rms) : null,
-      avg_gyro_rms: row.avg_gyro_rms !== null ? Number(row.avg_gyro_rms) : null,
-      movement_score: row.movement_score !== null ? Number(row.movement_score) : null,
-      battery_avg: row.battery_avg !== null ? Number(row.battery_avg) : null,
-      location_share: row.location_share !== null ? Number(row.location_share) : null,
-      device_hours: row.device_hours !== undefined && row.device_hours !== null ? Number(row.device_hours) : undefined,
-      quality_samples: row.quality_samples !== undefined && row.quality_samples !== null ? Number(row.quality_samples) : undefined,
-      quality_valid_ratio: row.quality_valid_ratio !== null ? Number(row.quality_valid_ratio) : null,
-      quality_pocket_ratio: row.quality_pocket_ratio !== null ? Number(row.quality_pocket_ratio) : null,
+      avg_light: numOrNull(row.avg_light),
+      avg_light_min: numOrNull(row.avg_light_min),
+      avg_light_max: numOrNull(row.avg_light_max),
+      avg_accel_rms: numOrNull(row.avg_accel_rms),
+      avg_gyro_rms: numOrNull(row.avg_gyro_rms),
+      movement_score: numOrNull(row.movement_score),
+      battery_avg: numOrNull(row.battery_avg),
+      location_share: numOrNull(row.location_share),
+      device_hours: numOrNull(row.device_hours),
+      quality_samples: numOrNull(row.quality_samples),
+      quality_valid_ratio: numOrNull(row.quality_valid_ratio),
+      quality_pocket_ratio: numOrNull(row.quality_pocket_ratio),
     }));
 
     const lastItem = items[items.length - 1];
-    let next_cursor: string | null = null;
-    if (lastItem) {
-      const cursorTime =
-        query.bucket === 'day'
-          ? lastItem.day
-          : lastItem.window_start ?? lastItem.window_end;
-      if (cursorTime) {
-        next_cursor = `${cursorTime}|${lastItem.geohash}`;
-      }
-    }
+    const cursorTimeField = query.bucket === 'day' ? 'day' : 'window_start';
+    const next_cursor = generateCursor(lastItem, [cursorTimeField, 'geohash']);
 
     return {
       bucket: query.bucket,
@@ -146,14 +127,14 @@ export async function analyticsRoutes(fastify: FastifyInstance) {
         samples_count: Number(row.samples_count),
         device_events: Number(row.device_events),
         device_hours: Number(row.device_hours),
-        avg_light: row.avg_light !== null ? Number(row.avg_light) : null,
-        avg_accel_rms: row.avg_accel_rms !== null ? Number(row.avg_accel_rms) : null,
-        avg_gyro_rms: row.avg_gyro_rms !== null ? Number(row.avg_gyro_rms) : null,
-        movement_score: row.movement_score !== null ? Number(row.movement_score) : null,
-        location_share: row.location_share !== null ? Number(row.location_share) : null,
-        quality_samples: row.quality_samples !== null ? Number(row.quality_samples) : null,
-        quality_valid_ratio: row.quality_valid_ratio !== null ? Number(row.quality_valid_ratio) : null,
-        quality_pocket_ratio: row.quality_pocket_ratio !== null ? Number(row.quality_pocket_ratio) : null,
+        avg_light: numOrNull(row.avg_light),
+        avg_accel_rms: numOrNull(row.avg_accel_rms),
+        avg_gyro_rms: numOrNull(row.avg_gyro_rms),
+        movement_score: numOrNull(row.movement_score),
+        location_share: numOrNull(row.location_share),
+        quality_samples: numOrNull(row.quality_samples),
+        quality_valid_ratio: numOrNull(row.quality_valid_ratio),
+        quality_pocket_ratio: numOrNull(row.quality_pocket_ratio),
       }))
       .filter((item) => item.device_events >= query.min_devices)
       .sort((a, b) => b.device_events - a.device_events);
@@ -168,29 +149,28 @@ export async function analyticsRoutes(fastify: FastifyInstance) {
   fastify.get('/analytics/device-stats', { preHandler: verifyAnalyticsApiKey }, async (request) => {
     const query = deviceStatsQuerySchema.parse(request.query);
 
-    const clauses: string[] = [];
-    const params: any[] = [];
-    let paramIndex = 1;
+    const qb = new QueryBuilder();
 
-    if (query.cursor) {
-      const [cursorTime, cursorHash] = query.cursor.split('|');
-      if (cursorTime && cursorHash) {
-        clauses.push(`(COALESCE(last_upload_at, '1970-01-01'), device_hash) < ($${paramIndex++}, $${paramIndex++})`);
-        params.push(cursorTime);
-        params.push(cursorHash);
-      }
+    // Cursor-based pagination (descending order)
+    const cursorParts = parseCursor(query.cursor, 2);
+    if (cursorParts) {
+      qb.where(
+        `(COALESCE(last_upload_at, '1970-01-01'), device_hash) < ($P, $P)`,
+        cursorParts[0],
+        cursorParts[1]
+      );
     }
 
-    const whereSql = clauses.length ? `WHERE ${clauses.join(' AND ')}` : '';
+    const { whereSql, params, nextParamIndex } = qb.build();
+    params.push(query.limit);
 
     const sql = `
       SELECT device_hash, samples_count, valid_samples, pocket_samples, uptime_seconds, last_upload_at
       FROM user_stats
       ${whereSql}
       ORDER BY COALESCE(last_upload_at, '1970-01-01') DESC, device_hash DESC
-      LIMIT $${paramIndex}
+      LIMIT $${nextParamIndex}
     `;
-    params.push(query.limit);
 
     const result = await pool.query(sql, params);
 
@@ -204,10 +184,7 @@ export async function analyticsRoutes(fastify: FastifyInstance) {
     }));
 
     const last = items[items.length - 1];
-    let next_cursor: string | null = null;
-    if (last && last.last_upload_at) {
-      next_cursor = `${last.last_upload_at}|${last.device_hash}`;
-    }
+    const next_cursor = generateCursor(last, ['last_upload_at', 'device_hash']);
 
     return {
       items,

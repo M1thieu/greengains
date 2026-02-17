@@ -1,6 +1,6 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { getPool } from '../database';
-import { verifyFirebaseToken } from '../utils/firebase-auth';
+import { requireFirebaseAuth } from '../middleware/auth';
 
 interface DailyPotState {
   user_id: string;
@@ -38,13 +38,9 @@ export async function dailyPotRoutes(fastify: FastifyInstance) {
   const pool = getPool();
 
   // GET /daily-pot - Get current daily pot state
-  fastify.get('/daily-pot', async (request: FastifyRequest, reply: FastifyReply) => {
+  fastify.get('/daily-pot', { preHandler: requireFirebaseAuth }, async (request: FastifyRequest, reply: FastifyReply) => {
     try {
-      // Verify Firebase token
-      const userId = await verifyFirebaseToken(request, reply);
-      if (!userId) {
-        return reply.code(401).send({ error: 'Unauthorized' });
-      }
+      const userId = request.user!.uid;
 
       // Get or create daily pot state
       const result = await pool.query<DailyPotState>(
@@ -81,13 +77,9 @@ export async function dailyPotRoutes(fastify: FastifyInstance) {
   });
 
   // POST /daily-pot/upload - Record successful upload
-  fastify.post('/daily-pot/upload', async (request: FastifyRequest, reply: FastifyReply) => {
+  fastify.post('/daily-pot/upload', { preHandler: requireFirebaseAuth }, async (request: FastifyRequest, reply: FastifyReply) => {
     try {
-      // Verify Firebase token
-      const userId = await verifyFirebaseToken(request, reply);
-      if (!userId) {
-        return reply.code(401).send({ error: 'Unauthorized' });
-      }
+      const userId = request.user!.uid;
 
       // Increment upload count with proper daily reset logic
       const result = await pool.query<DailyPotState>(
@@ -140,13 +132,9 @@ export async function dailyPotRoutes(fastify: FastifyInstance) {
   });
 
   // POST /daily-pot/claim - Claim the daily pot
-  fastify.post('/daily-pot/claim', async (request: FastifyRequest, reply: FastifyReply) => {
+  fastify.post('/daily-pot/claim', { preHandler: requireFirebaseAuth }, async (request: FastifyRequest, reply: FastifyReply) => {
     try {
-      // Verify Firebase token
-      const userId = await verifyFirebaseToken(request, reply);
-      if (!userId) {
-        return reply.code(401).send({ error: 'Unauthorized' });
-      }
+      const userId = request.user!.uid;
 
       // Check if can claim (unlocked and not claimed today)
       const checkResult = await pool.query<DailyPotState>(

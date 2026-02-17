@@ -26,6 +26,8 @@ import { preferencesRoutes } from './routes/preferences';
 import { analyticsRoutes } from './routes/analytics';
 import { dailyPotRoutes } from './routes/daily-pot';
 import { userRoutes } from './routes/user';
+import { authRoutes } from './routes/auth';
+import { dataRoutes } from './routes/data';
 import { startAggregationJob, stopAggregationJob } from './jobs/aggregator';
 import { ErrorCodes, createErrorResponse } from './utils/errors';
 
@@ -134,6 +136,8 @@ fastify.get('/health', async (request, reply) => {
 });
 
 // Register routes
+fastify.register(authRoutes);
+fastify.register(dataRoutes);
 fastify.register(deviceRoutes);
 fastify.register(uploadRoutes);
 fastify.register(preferencesRoutes);

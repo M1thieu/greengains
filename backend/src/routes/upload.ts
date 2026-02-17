@@ -6,20 +6,12 @@ import { verifyFirebaseToken } from '../utils/firebase-auth';
 import { hashDeviceId } from '../utils/security';
 import { getPool } from '../database';
 import { UploadBatchSchema, UploadBatch, SensorReading } from '../models/upload';
-
-interface Summary {
-  count: number;
-  period_start: Date;
-  period_end: Date;
-  light: { avg: number; min: number; max: number };
-  accel_rms: number;
-  gyro_rms: number;
-  pressure?: { avg: number; min: number; max: number };
-}
-
-function vectorMagnitude(vector: number[]): number {
-  return Math.sqrt(vector.reduce((sum, component) => sum + component ** 2, 0));
-}
+import {
+  vectorMagnitude,
+  analyzeQuality,
+  calculateUptimeSeconds,
+  Summary,
+} from '../utils/sensor-analytics';
 
 function summarizeBatch(readings: SensorReading[]): Summary {
   const lights = readings.map(r => r.light);
@@ -95,53 +87,6 @@ function buildStoragePayload(batch: UploadBatch): any {
   }
 
   return payload;
-}
-
-type QualityCounters = {
-  total: number;
-  valid: number;
-  pocketLikely: number;
-};
-
-function analyzeQuality(readings: SensorReading[]): QualityCounters {
-  const counters: QualityCounters = {
-    total: 0,
-    valid: 0,
-    pocketLikely: 0,
-  };
-
-  for (const reading of readings) {
-    const quality = (reading as any)?.quality;
-    if (!quality) continue;
-    counters.total += 1;
-
-    const pocket = String(quality.pocket ?? '').toLowerCase();
-    if (pocket === 'likely') {
-      counters.pocketLikely += 1;
-      continue;
-    }
-
-    const locationQuality = String(quality.location_quality ?? '').toLowerCase();
-    const motionState = String(quality.motion_state ?? '').toLowerCase();
-    const motionConfidence =
-      typeof quality.motion_confidence === 'number' ? quality.motion_confidence : 0;
-
-    const locationOk = ['high', 'medium', 'low'].includes(locationQuality);
-    const motionOk = motionState !== 'unknown' && motionConfidence >= 0.2;
-
-    if (locationOk || motionOk || pocket === 'unlikely') {
-      counters.valid += 1;
-    }
-  }
-
-  return counters;
-}
-
-function calculateUptimeSeconds(summary: Summary): number {
-  const start = summary?.period_start ? summary.period_start.getTime() : 0;
-  const end = summary?.period_end ? summary.period_end.getTime() : start;
-  if (!start || !end) return 0;
-  return Math.max(0, Math.floor((end - start) / 1000));
 }
 
 async function upsertUserStats(

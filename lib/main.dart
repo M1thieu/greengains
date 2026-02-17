@@ -1,24 +1,31 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'firebase_options.dart';
 import 'core/app_preferences.dart';
 import 'core/theme_controller.dart';
 import 'core/language_controller.dart';
 import 'core/themes.dart';
+import 'core/di/service_locator.dart';
 import 'app_shell.dart';
 import 'screens/onboarding_screen.dart';
 import 'l10n/app_localizations.dart';
 import 'services/network/backend_client.dart';
+import 'services/network/upload_queue_manager.dart';
 import 'services/auth/auth_service.dart';
 import 'services/daily_pot_service.dart';
 import 'services/tracking/tracking_session_manager.dart';
 
-// MINIMAL main - start UI immediately
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize dependency injection
+  await setupServiceLocator();
+
   runApp(const MyApp());
 }
 
@@ -41,10 +48,19 @@ class _MyAppState extends State<MyApp> {
   // Background initialization - doesn't block UI
   Future<void> _initializeApp() async {
     try {
-      // Firebase is required for auth
+      // Firebase is required for auth + crashlytics
       await Firebase.initializeApp(
         options: DefaultFirebaseOptions.currentPlatform,
       );
+
+      // Crashlytics: capture Flutter framework errors
+      FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
+
+      // Crashlytics: capture async errors not caught by Flutter
+      PlatformDispatcher.instance.onError = (error, stack) {
+        FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+        return true;
+      };
 
       // Setup auth listener (non-blocking background work)
       _setupAuthTokenSync();
@@ -66,6 +82,9 @@ class _MyAppState extends State<MyApp> {
 
       // Initialize tracking session manager (restore state from database)
       await TrackingSessionManager.instance.initialize();
+
+      // Initialize upload queue (process pending retries)
+      UploadQueueManager.instance.initialize();
 
       // Initialize daily pot service (non-blocking)
       DailyPotService.instance.initialize().catchError((e) {

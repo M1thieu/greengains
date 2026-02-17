@@ -39,6 +39,7 @@ dependencies:
   light: ^4.1.0
   firebase_core: ^4.1.1
   firebase_auth: ^6.1.0
+  firebase_crashlytics: ^4.3.2
   google_sign_in: ^6.3.0
   flutter_svg: ^2.0.9
   url_launcher: ^6.3.0
