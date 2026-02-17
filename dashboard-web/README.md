@@ -1,17 +1,39 @@
-# GreenGains React Dashboard
+# GreenGains Analytics Dashboard
 
-## Build and Deploy
+Modern React dashboard for GreenGains Smart Cities platform.
 
-1. **Run BUILD.bat** - Builds and copies to `business/` folder
-2. **Upload** - Upload entire `greengains/business/` folder to Hostinger
-3. **Done** - Visit `https://yourdomain.com/greengains/business/`
+## 🚀 Deploy to Hostinger
 
-## Backup
+### 1. Build
+Double-click: **`BUILD-FOR-HOSTINGER.bat`**
 
-Old dashboard backed up to: `greengains/tmp/dashboard-backup/`
+### 2. Upload
+Upload everything from `out/` folder to Hostinger:
+- File Manager → `public_html/dashboard/`
+- Or via FTP
 
-## Structure
+### 3. Done!
+Access at: `https://yourdomain.com/dashboard/`
 
-- `app/page.tsx` - Main dashboard
-- `BUILD.bat` - Build script
-- Output goes to `../business/` (replaces old dashboard)
+---
+
+## 📁 Files
+
+```
+dashboard-web/
+├── app/page.tsx       # Main dashboard
+├── lib/api.ts         # API client
+└── out/              # Built files (upload this!)
+```
+
+## 🛠️ Stack
+
+- Next.js 14 + TypeScript
+- Tailwind CSS + shadcn/ui
+- Static export (works on any host)
+
+## 📝 To Update
+
+1. Edit `app/page.tsx`
+2. Run `BUILD-FOR-HOSTINGER.bat`
+3. Re-upload `out/` folder
