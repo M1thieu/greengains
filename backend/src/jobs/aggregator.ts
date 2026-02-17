@@ -1,5 +1,6 @@
 import { PoolClient } from 'pg';
 import { getPool } from '../database';
+import { analyzeQuality, QualityCounters } from '../utils/sensor-analytics';
 
 export const AGGREGATION_WINDOW_MINUTES = 5;
 const WINDOW_MS = AGGREGATION_WINDOW_MINUTES * 60 * 1000;
@@ -46,12 +47,6 @@ interface DayAccumulator {
   pocketLikelySamples: number;
 }
 
-interface QualityCounters {
-  total: number;
-  valid: number;
-  pocketLikely: number;
-}
-
 let aggregationTimer: NodeJS.Timeout | null = null;
 
 export async function startAggregationJob(): Promise<void> {
@@ -84,38 +79,6 @@ function nextWindowStart(date: Date): Date {
 
 function dayStartUtc(date: Date): Date {
   return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
-}
-
-function analyzeQuality(readings: any[]): QualityCounters {
-  const counters: QualityCounters = {
-    total: 0,
-    valid: 0,
-    pocketLikely: 0,
-  };
-  if (!Array.isArray(readings)) return counters;
-
-  for (const reading of readings) {
-    const quality = reading?.quality;
-    if (!quality) continue;
-    counters.total += 1;
-    const pocket = String(quality.pocket ?? '').toLowerCase();
-    const locationQuality = String(quality.location_quality ?? '').toLowerCase();
-    const motionState = String(quality.motion_state ?? '').toLowerCase();
-    const motionConfidence = typeof quality.motion_confidence === 'number' ? quality.motion_confidence : 0;
-
-    if (pocket === 'likely') {
-      counters.pocketLikely += 1;
-      continue;
-    }
-
-    const locationOk = ['high', 'medium', 'low'].includes(locationQuality);
-    const motionOk = motionState !== 'unknown' && motionConfidence >= 0.2;
-
-    if (locationOk || motionOk || pocket === 'unlikely') {
-      counters.valid += 1;
-    }
-  }
-  return counters;
 }
 
 export async function runAggregationJob(): Promise<void> {

@@ -1,0 +1,23 @@
+{
+  "name": "domain-finder",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Domain availability checker with AI-powered name generation",
+  "main": "cli/domain-finder.mjs",
+  "bin": {
+    "domain-finder": "./cli/domain-finder.mjs"
+  },
+  "scripts": {
+    "start": "node cli/domain-finder.mjs",
+    "check": "node check-domains.mjs"
+  },
+  "keywords": ["domain", "whois", "ai", "naming"],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.32.1",
+    "inquirer": "^9.2.12",
+    "chalk": "^5.3.0",
+    "ora": "^7.0.1"
+  }
+}

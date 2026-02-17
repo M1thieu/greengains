@@ -124,7 +124,13 @@
       "Bash(\"C:\\\\Users\\\\mathi\\\\flutter\\\\bin\\\\flutter.bat\" run)",
       "Bash(git commit -m \"$\\(cat <<''EOF''\nAdd launch readiness assessment and Play Store materials\n\n- Fix recenter to maintain current zoom level instead of resetting to 15\n- Document critical issues before beta launch\n- Create Play Store description and asset guidance\n- Identify 5-7 critical fixes needed in next 3-5 days\n\nKey findings: Credits tracked but not displayed, rate limiting missing,\nlegal docs need accuracy updates.\n\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
       "Bash(keytool:*)",
-      "Bash(pwsh:*)"
+      "Bash(pwsh:*)",
+      "Bash(npm run build:*)",
+      "Bash(taskkill:*)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nAdd production-ready error tracking and monitoring\n\n- Add Sentry integration for automatic error tracking\n- Improve health check endpoint \\(tests database connectivity\\)\n- Add standardized error codes \\(Stripe-style API errors\\)\n- Add request IDs for tracing \\(UUID per request\\)\n- Create error utility with proper HTTP status mapping\n\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(npm install:*)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nFix: Add Sentry dependencies to package.json\n\nAdds @sentry/node and @sentry/profiling-node to dependencies to fix\nRender build failure. These packages were imported in index.ts but\nmissing from package.json.\n\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(python -m json.tool:*)"
     ],
     "deny": [],
     "ask": []

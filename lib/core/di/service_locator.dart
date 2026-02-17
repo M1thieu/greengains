@@ -2,6 +2,8 @@ import 'package:get_it/get_it.dart';
 import '../../data/local/database_helper.dart';
 import '../../data/repositories/contribution_repository.dart';
 import '../../services/location/foreground_location_service.dart';
+import '../../services/sensors/sensor_manager.dart';
+import '../../services/network/upload_queue_manager.dart';
 import '../../services/daily_pot_service.dart';
 import '../../services/tracking/tracking_session_manager.dart';
 import '../../core/events/app_events.dart';
@@ -47,6 +49,14 @@ Future<void> setupServiceLocator() async {
     ForegroundLocationService.instance,
   );
   print('[ServiceLocator] ✅ ForegroundLocationService registered');
+
+  /// Unified sensor manager (wraps ForegroundLocationService)
+  getIt.registerSingleton<SensorManager>(SensorManager.instance);
+  print('[ServiceLocator] ✅ SensorManager registered');
+
+  /// Upload queue manager (retry failed uploads)
+  getIt.registerSingleton<UploadQueueManager>(UploadQueueManager.instance);
+  print('[ServiceLocator] ✅ UploadQueueManager registered');
 
   /// Daily pot reward service
   getIt.registerSingleton<DailyPotService>(
