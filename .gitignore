@@ -118,4 +118,8 @@ nul
 # Archive folders
 .archive/
 docs/archive/
-dashboard-web/
+
+# Dashboard build artifacts (source files tracked, not build output)
+dashboard-web/.next/
+dashboard-web/out/
+dashboard-web/node_modules/
