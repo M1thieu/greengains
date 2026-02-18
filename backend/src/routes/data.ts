@@ -125,7 +125,7 @@ export async function dataRoutes(fastify: FastifyInstance) {
         const sql = `
           SELECT
             window_start, window_end, day,
-            geohash, h3_index,
+            geohash,
             samples_count, device_count,
             avg_light, avg_light_min, avg_light_max,
             avg_accel_rms, avg_gyro_rms, movement_score,
@@ -144,7 +144,6 @@ export async function dataRoutes(fastify: FastifyInstance) {
         const items = result.rows.slice(0, query.limit).map((row) => ({
           timestamp: row.window_start || row.day,
           geohash: row.geohash,
-          h3_index: row.h3_index,
           samples_count: Number(row.samples_count),
           device_count: Number(row.device_count),
           avg_light: numOrNull(row.avg_light),
@@ -233,7 +232,7 @@ export async function dataRoutes(fastify: FastifyInstance) {
 
         const sql = `
           SELECT
-            window_start, geohash, h3_index,
+            window_start, geohash,
             samples_count, device_count,
             avg_light, avg_light_min, avg_light_max,
             avg_accel_rms, avg_gyro_rms, movement_score,

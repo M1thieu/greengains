@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS organizations (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   deleted_at TIMESTAMPTZ,  -- Soft delete
 
-  CONSTRAINT organizations_unique_active_slug UNIQUE (slug) WHERE deleted_at IS NULL
+  UNIQUE (slug)
 );
 
 CREATE INDEX idx_organizations_created_by ON organizations(created_by);
