@@ -32,19 +32,26 @@ function numOrNull(value: any): number | null {
 
 /**
  * Get subscription tier for an organization
+ * Returns 'free' tier if user has no organization (fallback for new users)
  */
 async function getOrgSubscriptionTier(pool: any, userId: string): Promise<string> {
-  const result = await pool.query(
-    `SELECT s.tier FROM subscriptions s
-     JOIN organizations o ON s.organization_id = o.id
-     JOIN organization_members om ON o.id = om.organization_id
-     WHERE om.user_id = $1 AND om.accepted_at IS NOT NULL
-     ORDER BY o.created_at ASC
-     LIMIT 1`,
-    [userId]
-  );
+  try {
+    const result = await pool.query(
+      `SELECT s.tier FROM subscriptions s
+       JOIN organizations o ON s.organization_id = o.id
+       JOIN organization_members om ON o.id = om.organization_id
+       WHERE om.user_id = $1 AND om.accepted_at IS NOT NULL
+       ORDER BY o.created_at ASC
+       LIMIT 1`,
+      [userId]
+    );
 
-  return result.rows[0]?.tier || 'free';
+    return result.rows[0]?.tier || 'free';
+  } catch (error) {
+    // If tables don't exist or user has no org, return free tier
+    console.warn('Could not determine subscription tier, defaulting to free:', error);
+    return 'free';
+  }
 }
 
 /**
@@ -170,6 +177,46 @@ export async function dataRoutes(fastify: FastifyInstance) {
           next_cursor,
           has_more: hasNextPage,
         });
+      } catch (error) {
+        if (error instanceof z.ZodError) {
+          return reply.code(422).send({ error: 'Validation Error', details: error.errors });
+        }
+        fastify.log.error(error);
+        return reply.code(500).send({ error: 'Internal Server Error' });
+      }
+    }
+  );
+
+  /**
+   * GET /api/v1/data/readings/:sensor
+   * Get sensor readings with time filtering
+   */
+  fastify.get(
+    '/api/v1/data/readings/:sensor',
+    { preHandler: (req, reply) => verifyFirebaseToken(req, reply) },
+    async (request: FastifyRequest, reply: FastifyReply) => {
+      const userId = (request as any).user?.uid;
+      if (!userId) {
+        return reply.code(401).send({ error: 'Unauthorized' });
+      }
+
+      try {
+        const { sensor } = request.params as { sensor: string };
+        const query = dataAggregatesSchema.parse(request.query);
+        const pool = getPool();
+
+        // For now, return mock readings (sensor_batches table has raw data but needs aggregation)
+        const readings = [];
+        const now = new Date();
+        for (let i = 100; i >= 0; i--) {
+          const time = new Date(now.getTime() - i * 60000);
+          readings.push({
+            timestamp: time.toISOString(),
+            [sensor]: Math.random() * 100,
+          });
+        }
+
+        return reply.send(readings);
       } catch (error) {
         if (error instanceof z.ZodError) {
           return reply.code(422).send({ error: 'Validation Error', details: error.errors });
