@@ -141,9 +141,7 @@ export async function dataRoutes(fastify: FastifyInstance) {
           avg_accel_rms, avg_gyro_rms, movement_score,
           battery_avg, location_share,
           ${query.bucket === 'day' ? 'device_hours' : 'NULL::DOUBLE PRECISION as device_hours'},
-          NULL::DOUBLE PRECISION as precision_score,
-          NULL::BIGINT as sensor_count,
-          NULL::DOUBLE PRECISION as coverage_hours
+          quality_samples, quality_valid_ratio, quality_pocket_ratio
         `;
 
         const sql = `
@@ -177,9 +175,9 @@ export async function dataRoutes(fastify: FastifyInstance) {
           battery_avg: numOrNull(row.battery_avg),
           location_share: numOrNull(row.location_share),
           device_hours: numOrNull(row.device_hours),
-          precision_score: numOrNull(row.precision_score),
-          sensor_count: numOrNull(row.sensor_count),
-          coverage_hours: numOrNull(row.coverage_hours),
+          quality_samples: numOrNull(row.quality_samples),
+          quality_valid_ratio: numOrNull(row.quality_valid_ratio),
+          quality_pocket_ratio: numOrNull(row.quality_pocket_ratio),
         }));
 
         const lastItem = items[items.length - 1];
@@ -206,7 +204,7 @@ export async function dataRoutes(fastify: FastifyInstance) {
 
   /**
    * GET /api/v1/data/readings/:sensor
-   * Get sensor readings with time filtering
+   * Get time-series sensor readings from 5m aggregates
    */
   fastify.get(
     '/api/v1/data/readings/:sensor',
@@ -222,16 +220,54 @@ export async function dataRoutes(fastify: FastifyInstance) {
         const query = dataAggregatesSchema.parse(request.query);
         const pool = getPool();
 
-        // For now, return mock readings (sensor_batches table has raw data but needs aggregation)
-        const readings = [];
-        const now = new Date();
-        for (let i = 100; i >= 0; i--) {
-          const time = new Date(now.getTime() - i * 60000);
-          readings.push({
-            timestamp: time.toISOString(),
-            [sensor]: Math.random() * 100,
-          });
-        }
+        // Map sensor name to DB column
+        const sensorColumnMap: Record<string, string> = {
+          Light: 'avg_light',
+          Movement: 'movement_score',
+          Pressure: 'avg_gyro_rms',    // best proxy for pressure/orientation
+          Quality: 'quality_valid_ratio',
+          light: 'avg_light',
+          movement: 'movement_score',
+          pressure: 'avg_gyro_rms',
+          quality: 'quality_valid_ratio',
+        };
+
+        const column = sensorColumnMap[sensor] || 'avg_light';  // default to light
+
+        // Get subscription tier to determine max history
+        const tier = await getOrgSubscriptionTier(pool, userId);
+        const historyDays: Record<string, number> = { free: 7, pro: 90, enterprise: 365 };
+        const maxDays = historyDays[tier] || 7;
+
+        // Build query
+        const qb = new QueryBuilder();
+        const fromTime = query.from ? new Date(query.from) : new Date(Date.now() - maxDays * 86400000);
+        const toTime = query.to ? new Date(query.to) : new Date();
+
+        qb.where(`window_start >= $P`, fromTime.toISOString());
+        qb.where(`window_start <= $P`, toTime.toISOString());
+        qb.whereIf(query.geohash, `geohash LIKE $P`, query.geohash ? `${query.geohash}%` : undefined);
+
+        const { whereSql, params, nextParamIndex } = qb.build();
+        params.push(query.limit);
+
+        const sql = `
+          SELECT
+            window_start as timestamp,
+            ${column} as value
+          FROM sensor_aggregates_5m
+          ${whereSql}
+          ORDER BY window_start ASC
+          LIMIT $${nextParamIndex}
+        `;
+
+        const result = await pool.query(sql, params);
+
+        // Return array of { timestamp, value }
+        const readings = result.rows.map((row) => ({
+          timestamp: row.timestamp,
+          value: numOrNull(row.value),
+        }));
 
         return reply.send(readings);
       } catch (error) {
@@ -301,7 +337,7 @@ export async function dataRoutes(fastify: FastifyInstance) {
             avg_light, avg_light_min, avg_light_max,
             avg_accel_rms, avg_gyro_rms, movement_score,
             battery_avg, location_share,
-            precision_score
+            quality_samples, quality_valid_ratio, quality_pocket_ratio
           FROM sensor_aggregates_5m
           ${whereSql}
           ORDER BY window_start DESC, geohash ASC
@@ -357,6 +393,71 @@ export async function dataRoutes(fastify: FastifyInstance) {
             .header('Content-Disposition', `attachment; filename="greengains-export-${Date.now()}.csv"`)
             .send(csv);
         }
+      } catch (error) {
+        if (error instanceof z.ZodError) {
+          return reply.code(422).send({ error: 'Validation Error', details: error.errors });
+        }
+        fastify.log.error(error);
+        return reply.code(500).send({ error: 'Internal Server Error' });
+      }
+    }
+  );
+
+  /**
+   * GET /api/v1/data/coverage
+   * Get per-geohash coverage statistics for the dashboard
+   */
+  fastify.get(
+    '/api/v1/data/coverage',
+    { preHandler: (req, reply) => verifyFirebaseToken(req, reply) },
+    async (request: FastifyRequest, reply: FastifyReply) => {
+      const userId = (request as any).user?.uid;
+      if (!userId) {
+        return reply.code(401).send({ error: 'Unauthorized' });
+      }
+
+      try {
+        const query = z.object({
+          hours: z.coerce.number().int().min(1).max(168).default(24),
+          min_devices: z.coerce.number().int().min(0).default(0),
+        }).parse(request.query);
+
+        const pool = getPool();
+
+        const fromTime = new Date(Date.now() - query.hours * 3600000);
+
+        const sql = `
+          SELECT
+            geohash,
+            SUM(samples_count) as samples_count,
+            SUM(device_count) as device_count,
+            SUM(device_count) * 5 / 60 as device_hours,
+            AVG(avg_light) as avg_light,
+            MAX(quality_valid_ratio) as quality_valid_ratio,
+            MAX(window_start) as last_seen
+          FROM sensor_aggregates_5m
+          WHERE window_start >= $1
+          GROUP BY geohash
+          HAVING MAX(device_count) >= $2
+          ORDER BY device_count DESC
+        `;
+
+        const result = await pool.query(sql, [fromTime.toISOString(), query.min_devices]);
+
+        const items = result.rows.map((row) => ({
+          geohash: row.geohash,
+          samples_count: Number(row.samples_count),
+          device_hours: Math.round(Number(row.device_hours) * 100) / 100,
+          avg_light: numOrNull(row.avg_light),
+          quality_valid_ratio: numOrNull(row.quality_valid_ratio),
+          last_seen: row.last_seen,
+        }));
+
+        return reply.send({
+          hours: query.hours,
+          min_devices: query.min_devices,
+          items,
+        });
       } catch (error) {
         if (error instanceof z.ZodError) {
           return reply.code(422).send({ error: 'Validation Error', details: error.errors });
