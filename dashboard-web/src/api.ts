@@ -305,6 +305,26 @@ export interface CoverageItem {
 }
 
 /**
+ * Get raw aggregated items (for DataTable — no transformation)
+ */
+export async function getAggregatedItems(
+  params?: Record<string, string | number>
+): Promise<Array<{
+  timestamp: string
+  geohash: string
+  samples_count: number
+  device_count: number
+  avg_light: number | null
+  movement_score: number | null
+  quality_valid_ratio: number | null
+  [key: string]: unknown
+}>> {
+  const queryString = params ? `?${new URLSearchParams(Object.entries(params).map(([k, v]) => [k, String(v)])).toString()}` : ''
+  const response = await apiCall<{ items: any[] }>(`/api/v1/data/aggregated${queryString}`)
+  return response.items || []
+}
+
+/**
  * Get coverage data per geohash
  */
 export async function getCoverageData(
