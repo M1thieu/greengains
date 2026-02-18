@@ -134,15 +134,23 @@ export async function dataRoutes(fastify: FastifyInstance) {
           ? 'day'
           : 'window_start, window_end';
 
+        // Build SELECT columns - some only exist in certain tables
+        const dataColumns = `
+          samples_count, device_count,
+          avg_light, avg_light_min, avg_light_max,
+          avg_accel_rms, avg_gyro_rms, movement_score,
+          battery_avg, location_share,
+          ${query.bucket === 'day' ? 'device_hours' : 'NULL::DOUBLE PRECISION as device_hours'},
+          NULL::DOUBLE PRECISION as precision_score,
+          NULL::BIGINT as sensor_count,
+          NULL::DOUBLE PRECISION as coverage_hours
+        `;
+
         const sql = `
           SELECT
             ${timeColumns},
             geohash,
-            samples_count, device_count,
-            avg_light, avg_light_min, avg_light_max,
-            avg_accel_rms, avg_gyro_rms, movement_score,
-            battery_avg, location_share, device_hours,
-            precision_score, sensor_count, coverage_hours
+            ${dataColumns}
           FROM ${table}
           ${whereSql}
           ORDER BY ${timeColumn} ASC, geohash ASC
