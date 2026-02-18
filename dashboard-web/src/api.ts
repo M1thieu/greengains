@@ -189,11 +189,7 @@ export interface AggregatedData {
 
 export interface SensorReading {
   timestamp: string
-  Light?: number
-  Movement?: number
-  Pressure?: number
-  Quality?: number
-  [key: string]: unknown
+  value: number | null
 }
 
 export interface ExportData {
@@ -219,9 +215,17 @@ export async function getAggregatedData(
       samples_count: number
       device_count: number
       avg_light: number | null
+      avg_light_min: number | null
+      avg_light_max: number | null
       avg_accel_rms: number | null
       avg_gyro_rms: number | null
       movement_score: number | null
+      battery_avg: number | null
+      location_share: number | null
+      device_hours: number | null
+      quality_samples: number | null
+      quality_valid_ratio: number | null
+      quality_pocket_ratio: number | null
       [key: string]: unknown
     }>
     next_cursor: string | null
@@ -231,19 +235,25 @@ export async function getAggregatedData(
   // Transform backend response to dashboard expected format
   const items = response.items || []
   const totalReadings = items.reduce((sum, item) => sum + (item.samples_count || 0), 0)
-  const uniqueDevices = new Set(items.map(item => item.device_count)).size
+  const maxDevices = items.reduce((max, item) => Math.max(max, item.device_count || 0), 0)
   const avgLight = items.length > 0
     ? items.reduce((sum, item) => sum + (item.avg_light || 0), 0) / items.length
     : 0
   const avgMovement = items.length > 0
     ? items.reduce((sum, item) => sum + (item.movement_score || 0), 0) / items.length
     : 0
+  const avgPressure = items.length > 0
+    ? items.reduce((sum, item) => sum + (item.avg_gyro_rms || 0), 0) / items.length
+    : 0
+  const avgQuality = items.length > 0
+    ? items.reduce((sum, item) => sum + (item.quality_valid_ratio || 0), 0) / items.length
+    : 0
 
   return {
     summary: {
       totalReadings,
-      activeSensors: Math.max(uniqueDevices, 1),
-      averageQuality: Math.min(Math.max((totalReadings / 1000) * 0.1 + 0.7, 0), 1), // Simplified quality metric
+      activeSensors: maxDevices,  // max devices in any window
+      averageQuality: avgQuality,  // real quality ratio from DB
     },
     sensors: [
       {
@@ -261,14 +271,14 @@ export async function getAggregatedData(
       {
         name: 'Pressure',
         type: 'Pressure',
-        readings: items.length,
-        avgValue: 101.2, // Placeholder
+        readings: items.filter(i => i.avg_gyro_rms !== null).length,
+        avgValue: avgPressure,
       },
       {
         name: 'Quality',
         type: 'Quality',
-        readings: items.length,
-        avgValue: 0.87, // Placeholder
+        readings: items.filter(i => i.quality_valid_ratio !== null).length,
+        avgValue: avgQuality,
       },
     ],
   }
@@ -285,13 +295,37 @@ export async function getSensorReadings(
   return apiCall<SensorReading[]>(`/api/v1/data/readings/${sensor}${queryString}`)
 }
 
+export interface CoverageItem {
+  geohash: string
+  samples_count: number
+  device_hours: number
+  avg_light: number | null
+  quality_valid_ratio: number | null
+  last_seen: string
+}
+
+/**
+ * Get coverage data per geohash
+ */
+export async function getCoverageData(
+  params?: Record<string, string | number>
+): Promise<CoverageItem[]> {
+  const queryString = params ? `?${new URLSearchParams(Object.entries(params).map(([k, v]) => [k, String(v)])).toString()}` : ''
+  const response = await apiCall<{
+    hours: number
+    min_devices: number
+    items: CoverageItem[]
+  }>(`/api/v1/data/coverage${queryString}`)
+  return response.items || []
+}
+
 /**
  * Export data as CSV
  */
 export async function exportData(
   params?: Record<string, string | number>
 ): Promise<Blob> {
-  const queryString = params ? `?${new URLSearchParams(String(Object.entries(params).map(([k, v]) => [k, String(v)]).flat())).toString()}` : ''
+  const queryString = params ? `?${new URLSearchParams(Object.entries(params).map(([k, v]) => [k, String(v)])).toString()}` : ''
   const token = await getAuthToken()
 
   const response = await fetch(`${API_BASE_URL}/api/v1/data/export${queryString}`, {
