@@ -144,7 +144,9 @@ export async function dataRoutes(fastify: FastifyInstance) {
           LIMIT $${nextParamIndex}
         `;
 
+        console.log(`[DEBUG] Executing query on table=${table}, tier=${tier}, params=${JSON.stringify(params.slice(0, 3))}`);
         const result = await pool.query(sql, params);
+        console.log(`[DEBUG] Query returned ${result.rows.length} rows`);
 
         // Check if there's a next page
         const hasNextPage = result.rows.length > query.limit;
@@ -181,8 +183,10 @@ export async function dataRoutes(fastify: FastifyInstance) {
         if (error instanceof z.ZodError) {
           return reply.code(422).send({ error: 'Validation Error', details: error.errors });
         }
+        const errorMsg = error instanceof Error ? error.message : String(error);
+        console.error(`[ERROR] /api/v1/data/aggregated failed: ${errorMsg}`, error);
         fastify.log.error(error);
-        return reply.code(500).send({ error: 'Internal Server Error' });
+        return reply.code(500).send({ error: 'Internal Server Error', details: errorMsg });
       }
     }
   );
