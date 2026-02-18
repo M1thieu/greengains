@@ -129,9 +129,14 @@ export async function dataRoutes(fastify: FastifyInstance) {
         const { whereSql, params, nextParamIndex } = qb.build();
         params.push(query.limit + 1); // +1 to detect if there's a next page
 
+        // Build SELECT columns based on table - 5m uses window_start/end, daily uses day
+        const timeColumns = query.bucket === 'day'
+          ? 'day'
+          : 'window_start, window_end';
+
         const sql = `
           SELECT
-            window_start, window_end, day,
+            ${timeColumns},
             geohash,
             samples_count, device_count,
             avg_light, avg_light_min, avg_light_max,
@@ -151,7 +156,7 @@ export async function dataRoutes(fastify: FastifyInstance) {
         // Check if there's a next page
         const hasNextPage = result.rows.length > query.limit;
         const items = result.rows.slice(0, query.limit).map((row) => ({
-          timestamp: row.window_start || row.day,
+          timestamp: row.window_start || row.day,  // window_start for 5m, day for daily
           geohash: row.geohash,
           samples_count: Number(row.samples_count),
           device_count: Number(row.device_count),
