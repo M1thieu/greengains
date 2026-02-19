@@ -87,9 +87,9 @@ class _SensorDataCardState extends State<SensorDataCard>
           borderRadius: BorderRadius.circular(AppTheme.radiusMd),
           border: Border.all(
             color: isActive
-                ? AppColors.primary.withValues(alpha: 0.3)
+                ? AppColors.primary.withValues(alpha: 0.2)
                 : AppColors.border(isDark),
-            width: isActive ? 1.5 : 1,
+            width: 1,
           ),
           boxShadow: isActive
               ? [

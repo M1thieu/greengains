@@ -2,17 +2,8 @@ import 'package:flutter/material.dart';
 import '../core/themes.dart';
 import '../data/models/contribution_stats.dart';
 
-/// Merged impact + today stats card
-/// Combines coverage metrics with daily contribution stats
-/// Compact design to save vertical space for map visualization
-///
-/// Usage:
-/// ```dart
-/// ImpactSummaryCard(
-///   stats: contributionStats,
-///   tileCoverage: todayTileCoverage,
-/// )
-/// ```
+/// Impact summary card — hero number + secondary metrics
+/// Shows total contributions as the primary number, area + streak below
 class ImpactSummaryCard extends StatelessWidget {
   final ContributionStats? stats;
   final TileCoverageStats? tileCoverage;
@@ -25,29 +16,18 @@ class ImpactSummaryCard extends StatelessWidget {
 
   String _formatCoverageArea() {
     if (tileCoverage == null || tileCoverage!.totalTiles == 0) {
-      return 'No coverage yet';
+      return '—';
     }
     // Each tile is roughly 156m x 156m = ~24,000 m^2 = 0.024 km^2
     final area = (tileCoverage!.totalTiles * 0.024).toStringAsFixed(1);
-    return '$area km² covered';
+    return '$area km²';
   }
 
   String _formatDaysActive() {
-    if (stats == null || stats!.totalUploads == 0) {
-      return 'Start today';
-    }
-    // Use current streak as days active estimate
+    if (stats == null || stats!.totalUploads == 0) return '—';
     final days = stats!.currentStreak;
-    if (days < 1) return '1 day';
-    if (days == 1) return '1 day';
+    if (days <= 1) return '1 day';
     return '$days days';
-  }
-
-  String _formatContributions() {
-    if (stats == null || stats!.totalUploads == 0) {
-      return '0';
-    }
-    return stats!.totalUploads.toString();
   }
 
   @override
@@ -59,16 +39,14 @@ class ImpactSummaryCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(AppTheme.spaceLg),
       decoration: BoxDecoration(
-        gradient: hasData
-            ? AppGradients.surfaceGlow(isDark)
-            : null,
+        gradient: hasData ? AppGradients.surfaceGlow(isDark) : null,
         color: hasData ? null : AppColors.surface(isDark),
         borderRadius: BorderRadius.circular(AppTheme.radiusLg),
         border: Border.all(
           color: hasData
               ? AppColors.primary.withValues(alpha: 0.2)
               : AppColors.border(isDark),
-          width: hasData ? 1.5 : 1,
+          width: 1,
         ),
         boxShadow: hasData
             ? [
@@ -124,43 +102,61 @@ class ImpactSummaryCard extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: AppTheme.spaceLg),
 
-          // Impact metrics
-          Row(
-            children: [
-              Expanded(
-                child: _ImpactMetric(
-                  icon: Icons.map_outlined,
-                  value: _formatCoverageArea(),
-                  label: 'Area Covered',
-                  isDark: isDark,
-                  isActive: hasData,
-                ),
-              ),
-              const SizedBox(width: AppTheme.spaceMd),
-              Expanded(
-                child: _ImpactMetric(
-                  icon: Icons.calendar_today,
-                  value: _formatDaysActive(),
-                  label: 'Days Active',
-                  isDark: isDark,
-                  isActive: hasData,
-                ),
-              ),
-              const SizedBox(width: AppTheme.spaceMd),
-              Expanded(
-                child: _ImpactMetric(
-                  icon: Icons.cloud_upload,
-                  value: _formatContributions(),
-                  label: 'Contributions',
-                  isDark: isDark,
-                  isActive: hasData,
-                ),
-              ),
-            ],
-          ),
+          if (hasData) ...[
+            const SizedBox(height: AppTheme.spaceLg),
 
+            // Hero number — total contributions
+            Center(
+              child: Column(
+                children: [
+                  Text(
+                    '${stats!.totalUploads}',
+                    style: AppTheme.displayNumber(theme).copyWith(
+                      color: AppColors.primary,
+                    ),
+                  ),
+                  const SizedBox(height: AppTheme.spaceXxs),
+                  Text(
+                    'total contributions',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: AppColors.textSecondary(isDark),
+                      letterSpacing: 0.2,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: AppTheme.spaceLg),
+            Container(height: 1, color: AppColors.divider(isDark)),
+            const SizedBox(height: AppTheme.spaceMd),
+
+            // Secondary metrics
+            Row(
+              children: [
+                Expanded(
+                  child: _ImpactMetric(
+                    icon: Icons.map_outlined,
+                    value: _formatCoverageArea(),
+                    label: 'Area Covered',
+                    isDark: isDark,
+                    isActive: hasData,
+                  ),
+                ),
+                const SizedBox(width: AppTheme.spaceMd),
+                Expanded(
+                  child: _ImpactMetric(
+                    icon: Icons.calendar_today,
+                    value: _formatDaysActive(),
+                    label: 'Days Active',
+                    isDark: isDark,
+                    isActive: hasData,
+                  ),
+                ),
+              ],
+            ),
+          ],
         ],
       ),
     );
@@ -200,9 +196,7 @@ class _ImpactMetric extends StatelessWidget {
           child: Icon(
             icon,
             size: 20,
-            color: isActive
-                ? AppColors.primary
-                : AppColors.textTertiary(isDark),
+            color: isActive ? AppColors.primary : AppColors.textTertiary(isDark),
           ),
         ),
         const SizedBox(height: AppTheme.spaceXs),
@@ -235,4 +229,3 @@ class _ImpactMetric extends StatelessWidget {
     );
   }
 }
-

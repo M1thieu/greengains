@@ -392,7 +392,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 onRefresh: _refreshData,
                 color: AppColors.primary,
                 child: ListView(
-                  padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceMd),
+                  padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceLg),
                   children: [
                     // 1. Service Control (Primary Action)
                     const ServiceControlButton(),
@@ -443,7 +443,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                         tipId: 'expand_sensors',
                         icon: Icons.expand_more,
                         title: 'View live data',
-                        message: 'Expand the sensor section below to verify data is streaming correctly',
+                        message: 'Tap below to see what data you\'re contributing right now',
                         onDismiss: () => _dismissTip('expand_sensors'),
                       ),
 

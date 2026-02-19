@@ -278,9 +278,9 @@ class ContributionStatsCardState extends State<ContributionStatsCard>
           borderRadius: BorderRadius.circular(AppTheme.radiusLg),
           border: Border.all(
             color: (isMilestone || isFirstUpload)
-                ? AppColors.primary.withValues(alpha: 0.3)
+                ? AppColors.primary.withValues(alpha: 0.25)
                 : AppColors.border(isDark),
-            width: (isMilestone || isFirstUpload) ? 2 : 1,
+            width: 1,
           ),
           boxShadow: (isMilestone || isFirstUpload)
               ? [
