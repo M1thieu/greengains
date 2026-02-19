@@ -23,8 +23,13 @@ class MotionSensors(private val sensorManager: SensorManager) : SensorEventListe
     private val _gyroscopeFlow = MutableStateFlow<FloatArray?>(null)
     val gyroscopeFlow: StateFlow<FloatArray?> = _gyroscopeFlow
 
+    // Gravity-compensated accelerometer (Android sensor fusion, used for upload payload)
+    private val _linearAccelerationFlow = MutableStateFlow<FloatArray?>(null)
+    val linearAccelerationFlow: StateFlow<FloatArray?> = _linearAccelerationFlow
+
     private var accelerometer: Sensor? = null
     private var gyroscope: Sensor? = null
+    private var linearAccelSensor: Sensor? = null
 
     init {
         accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
@@ -45,6 +50,11 @@ class MotionSensors(private val sensorManager: SensorManager) : SensorEventListe
                 Log.i(tag, "✓ Gyroscope FIFO batching supported")
             }
         } ?: Log.w(tag, "Gyroscope not available")
+
+        linearAccelSensor = sensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION)
+        linearAccelSensor?.let {
+            Log.i(tag, "✓ Linear Acceleration sensor available (gravity-compensated via Android fusion)")
+        } ?: Log.w(tag, "Linear Acceleration not available — will fall back to raw accelerometer for upload")
     }
 
     fun start() {
@@ -65,6 +75,14 @@ class MotionSensors(private val sensorManager: SensorManager) : SensorEventListe
                 FIFO_MAX_REPORT_LATENCY_US
             )
         }
+        linearAccelSensor?.let {
+            sensorManager.registerListener(
+                this,
+                it,
+                SensorManager.SENSOR_DELAY_NORMAL,
+                FIFO_MAX_REPORT_LATENCY_US
+            )
+        }
         Log.d(tag, "Motion listeners registered with FIFO batching (60s)")
     }
 
@@ -73,12 +91,9 @@ class MotionSensors(private val sensorManager: SensorManager) : SensorEventListe
      */
     fun flush() {
         var flushed = 0
-        accelerometer?.let {
-            if (sensorManager.flush(this)) flushed++
-        }
-        gyroscope?.let {
-            if (sensorManager.flush(this)) flushed++
-        }
+        accelerometer?.let { if (sensorManager.flush(this)) flushed++ }
+        gyroscope?.let { if (sensorManager.flush(this)) flushed++ }
+        linearAccelSensor?.let { if (sensorManager.flush(this)) flushed++ }
         Log.d(tag, "FIFO flush: $flushed sensors flushed")
     }
 
@@ -95,6 +110,9 @@ class MotionSensors(private val sensorManager: SensorManager) : SensorEventListe
             }
             Sensor.TYPE_GYROSCOPE -> {
                 _gyroscopeFlow.value = event.values.clone()
+            }
+            Sensor.TYPE_LINEAR_ACCELERATION -> {
+                _linearAccelerationFlow.value = event.values.clone()
             }
         }
     }

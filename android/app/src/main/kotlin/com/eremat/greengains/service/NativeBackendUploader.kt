@@ -390,7 +390,8 @@ class NativeBackendUploader(
             "motion_state" to motionState.name.lowercase(),
             "motion_confidence" to motionConfidence.toDouble(),
             "pocket" to pocketState.name.lowercase(),
-            "location_quality" to locationQuality.name.lowercase()
+            "location_quality" to locationQuality.name.lowercase(),
+            "sample_count" to sampleCount  // averaged samples — backend uses for confidence weighting
         ).filterValues { it != null }
     }
 
@@ -464,25 +465,26 @@ class NativeBackendUploader(
     }
 
     /**
-     * Compute geohash from last known location (precision 6 for ~1.2km tiles).
+     * Compute geohash from last known location.
+     * Precision adapts to GPS accuracy so coarse-location users map to appropriately sized cells:
+     *   ≤50m accuracy  → precision 6 (~1.2km cells)
+     *   ≤200m accuracy → precision 5 (~5km cells)
+     *   >200m / no accuracy (network/WiFi) → precision 4 (~40km cells)
      */
     private fun computeGeohash(): String? {
         val location = lastLocation ?: return null
 
         return try {
-            // Check if user enabled location sharing
             val prefs = context.getSharedPreferences(AppPrefs.NAME, Context.MODE_PRIVATE)
-            val shareLocation = prefs.getBoolean(AppPrefs.SHARE_LOCATION, true)
+            if (!prefs.getBoolean(AppPrefs.SHARE_LOCATION, true)) return null
 
-            if (!shareLocation) {
-                null
-            } else {
-                GeoHash.withCharacterPrecision(
-                    location.latitude,
-                    location.longitude,
-                    6
-                ).toBase32()
+            val acc = location.accuracy
+            val precision = when {
+                acc != null && acc <= 50.0  -> 6
+                acc != null && acc <= 200.0 -> 5
+                else                        -> 4
             }
+            GeoHash.withCharacterPrecision(location.latitude, location.longitude, precision).toBase32()
         } catch (e: Exception) {
             Log.e(TAG, "Error computing geohash: ${e.message}", e)
             null

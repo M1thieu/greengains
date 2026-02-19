@@ -45,6 +45,18 @@ internal class SensorQualityAnalyzer {
         // Gyro logic if needed
     }
 
+    /**
+     * Returns true when the light sensor is obscured — phone is face-down or likely in a pocket.
+     * Use this to gate light samples out of the averaging window at collection time.
+     */
+    fun isLightObscured(): Boolean = synchronized(this) {
+        val orientationInfo = computeOrientation()
+        if (orientationInfo.state == OrientationState.FACE_DOWN) return@synchronized true
+        val lux = lastLux ?: return@synchronized false
+        val tilt = orientationInfo.tiltDegrees ?: return@synchronized false
+        lux < POCKET_LUX_THRESHOLD && tilt in POCKET_TILT_MIN..POCKET_TILT_MAX
+    }
+
     fun buildMetadata(location: Location?): QualityMetadata = synchronized(this) {
         val orientationInfo = computeOrientation()
         val (motionState, motionConfidence) = classifyMotion(

@@ -35,7 +35,9 @@ data class QualityMetadata(
     val motionState: MotionState = MotionState.UNKNOWN,
     val motionConfidence: Float = 0f,
     val pocketState: PocketState = PocketState.UNKNOWN,
-    val locationQuality: LocationQuality = LocationQuality.NONE
+    val locationQuality: LocationQuality = LocationQuality.NONE,
+    /** Number of raw sensor samples averaged into this reading. Higher = more reliable. */
+    val sampleCount: Int = 1
 )
 
 enum class OrientationState {

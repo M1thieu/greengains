@@ -94,6 +94,21 @@ class ForegroundService : Service() {
     private val _gyroscopeFlow = MutableStateFlow<FloatArray?>(null)
     private val _locationFlow = MutableStateFlow<Location?>(null)
 
+    // Temporal averaging windows — accumulate samples between snapshots, then average.
+    // Reduces noise by ~√N (N = samples collected per window). Thread-safe via windowLock.
+    private val windowLock = Any()
+    private val lightWindow = mutableListOf<Float>()
+    private val pressureWindow = mutableListOf<Float>()
+    private val linearAccelWindow = mutableListOf<FloatArray>() // gravity-free
+    private val gyroWindow = mutableListOf<FloatArray>()
+
+    // Kalman filter for barometric pressure — persists across snapshots, tracks real weather
+    // changes while optimally suppressing MEMS sensor noise (tuned for BME280-class sensors).
+    private val pressureKalman = KalmanFilter1D.forPressure()
+
+    // GPS jump detection — track last physically-plausible location to reject multipath glitches.
+    private var lastAcceptedLocation: Location? = null
+
     // Adaptive GPS optimization with interval-based battery savings:
     // - Always uses PRIORITY_HIGH_ACCURACY for fresh GPS/network locations
     // - Stationary: 60s interval (~50% battery savings, still fresh data)
@@ -138,7 +153,20 @@ class ForegroundService : Service() {
         locationCallback = object : LocationCallback() {
             override fun onLocationResult(locationResult: LocationResult) {
                 locationResult.lastLocation?.let { location ->
-                    Log.d(TAG, "Location received: lat=${location.latitude}, lon=${location.longitude}, accuracy=${location.accuracy}m, provider=${location.provider}")
+                    val prev = lastAcceptedLocation
+                    if (prev != null) {
+                        val dtMs = location.time - prev.time
+                        val distM = prev.distanceTo(location)
+                        // Reject physically impossible jumps: > 300 m/s (1080 km/h) is a GPS glitch.
+                        // Legitimate fast travel (highway, train) is well under this threshold.
+                        val speedMs = if (dtMs > 0) distM / (dtMs / 1000.0) else 0.0
+                        if (speedMs > MAX_PLAUSIBLE_SPEED_MS) {
+                            Log.w(TAG, "GPS jump rejected: ${speedMs.toInt()} m/s from (${prev.latitude},${prev.longitude}) to (${location.latitude},${location.longitude})")
+                            return@let
+                        }
+                    }
+                    lastAcceptedLocation = location
+                    Log.d(TAG, "Location accepted: lat=${location.latitude}, lon=${location.longitude}, accuracy=${location.accuracy}m, provider=${location.provider}")
                     _locationFlow.value = location
                 }
             }
@@ -153,6 +181,11 @@ class ForegroundService : Service() {
                 lux?.let {
                     qualityAnalyzer.onLight(it)
                     sendLightToFlutter(it)
+                    // Only accumulate light samples when the phone is not face-down or in a pocket.
+                    // Occluded readings (0 lux) are physically invalid for ambient light mapping.
+                    if (!qualityAnalyzer.isLightObscured()) {
+                        synchronized(windowLock) { lightWindow.add(it) }
+                    }
                 }
             }
         }
@@ -160,10 +193,14 @@ class ForegroundService : Service() {
         coroutineScope.launch {
             barometer.dataFlow.collect { hPa ->
                 _pressureFlow.value = hPa
-                hPa?.let { sendPressureToFlutter(it) }
+                hPa?.let {
+                    sendPressureToFlutter(it)
+                    synchronized(windowLock) { pressureWindow.add(it) }
+                }
             }
         }
 
+        // Raw accelerometer: kept for quality analyzer (motion/orientation detection needs gravity)
         coroutineScope.launch {
             motionSensors.accelerometerFlow.collect { values ->
                 _accelerometerFlow.value = values
@@ -174,12 +211,22 @@ class ForegroundService : Service() {
             }
         }
 
+        // Linear acceleration (gravity-free): collected for upload window
+        coroutineScope.launch {
+            motionSensors.linearAccelerationFlow.collect { values ->
+                values?.let {
+                    synchronized(windowLock) { linearAccelWindow.add(it.clone()) }
+                }
+            }
+        }
+
         coroutineScope.launch {
             motionSensors.gyroscopeFlow.collect { values ->
                 _gyroscopeFlow.value = values
                 values?.let {
                     qualityAnalyzer.onGyroscope(it)
                     sendGyroscopeToFlutter(it)
+                    synchronized(windowLock) { gyroWindow.add(it.clone()) }
                 }
             }
         }
@@ -431,22 +478,30 @@ class ForegroundService : Service() {
 
         if (nativeSamplerJob?.isActive == true) return
 
-        // Snapshot loop: captures sensor readings every 10 seconds
+        // Snapshot loop: averages accumulated sensor samples at an adaptive interval.
         //
-        // How FIFO batching works with this loop:
-        // - Sensors sample at ~200ms rate (hardware continues independently)
-        // - Samples stored in hardware FIFO buffer
-        // - CPU wakes every ~60s to receive batch of samples
-        // - onSensorChanged() fires rapidly when batch arrives, updating flows
-        // - This loop reads the LATEST value from flows every 10s
+        // How temporal averaging + FIFO work together:
+        // - Hardware sensors sample at ~200ms via FIFO (no CPU wakeup cost)
+        // - Each sample is added to a window accumulator as it arrives
+        // - This loop fires at an adaptive interval based on motion state:
+        //     STATIONARY → 60s  (1 reading/min, ~300 samples averaged → ~17x noise reduction)
+        //     LIGHT      → 30s  (1 reading/30s, ~150 samples averaged → ~12x noise reduction)
+        //     ACTIVE     → 15s  (1 reading/15s, ~75 samples averaged → ~9x noise reduction)
+        // - Each snapshot drains + averages the window, then clears it
         //
-        // Result: Same data quality, 6x fewer CPU wakeups = better battery
+        // DB impact vs previous 10s single-sample: 1.5–6x fewer rows, better SNR
         nativeSamplerJob = coroutineScope.launch(Dispatchers.Default) {
+            var intervalMs = NATIVE_SAMPLE_INTERVAL_ACTIVE_MS
             while (isActive) {
-                delay(NATIVE_SAMPLE_INTERVAL_MS) // Wait first, then snapshot
+                delay(intervalMs)
                 val snapshot = captureSensorSnapshot()
                 if (snapshot != null) {
                     nativeUploader?.addReading(snapshot)
+                }
+                intervalMs = when (currentMotionState) {
+                    MotionState.STATIONARY -> NATIVE_SAMPLE_INTERVAL_STATIONARY_MS
+                    MotionState.LIGHT      -> NATIVE_SAMPLE_INTERVAL_LIGHT_MS
+                    else                   -> NATIVE_SAMPLE_INTERVAL_ACTIVE_MS
                 }
             }
         }
@@ -460,53 +515,118 @@ class ForegroundService : Service() {
     }
 
     private fun captureSensorSnapshot(): SensorReading? {
-        val light = _lightFlow.value
-        val accelValues = _accelerometerFlow.value
-        val gyroValues = _gyroscopeFlow.value
-        val pressure = _pressureFlow.value
+        // Drain accumulators atomically, apply outlier rejection, then average.
+        val rawLight: List<Float>
+        val rawPressure: List<Float>
+        val rawLinearAccel: List<FloatArray>
+        val rawGyro: List<FloatArray>
+
+        synchronized(windowLock) {
+            rawLight       = lightWindow.toList()
+            rawPressure    = pressureWindow.toList()
+            rawLinearAccel = linearAccelWindow.map { it.clone() }
+            rawGyro        = gyroWindow.map { it.clone() }
+            lightWindow.clear()
+            pressureWindow.clear()
+            linearAccelWindow.clear()
+            gyroWindow.clear()
+        }
+
+        // IQR outlier rejection — removes sensor glitches before averaging.
+        // Tukey's method (Q1 - 1.5*IQR, Q3 + 1.5*IQR): textbook robust statistics.
+        val cleanLight    = rejectOutliersFloat(rawLight)
+        val cleanPressure = rejectOutliersFloat(rawPressure)
+        val cleanAccel    = rejectOutliersVectors(rawLinearAccel)
+        val cleanGyro     = rejectOutliersVectors(rawGyro)
+
+        val sampleCount = maxOf(cleanLight.size, cleanPressure.size, cleanAccel.size, 1)
+
+        // Light: plain average of non-occluded, outlier-filtered samples
+        val light = if (cleanLight.isNotEmpty()) cleanLight.average().toFloat() else _lightFlow.value
+
+        // Pressure: average first, then feed through Kalman filter for optimal smoothing.
+        // The Kalman estimate tracks real weather changes while suppressing MEMS noise.
+        val rawPressureAvg = if (cleanPressure.isNotEmpty()) cleanPressure.average() else null
+        val pressure = rawPressureAvg?.let { pressureKalman.update(it).toFloat() }
+            ?: if (pressureKalman.isInitialized) null else _pressureFlow.value
+
+        // Motion: prefer gravity-free linear accel; fall back to raw if sensor unavailable
+        val avgAccel = averageFloatArrayWindow(cleanAccel)
+            ?: _accelerometerFlow.value?.let { floatArrayOf(it[0], it[1], it[2]) }
+        val avgGyro  = averageFloatArrayWindow(cleanGyro)
+            ?: _gyroscopeFlow.value?.let { floatArrayOf(it[0], it[1], it[2]) }
+
         val location = _locationFlow.value
+        Log.d(TAG, "Snapshot: n=$sampleCount samples, motion=${currentMotionState.name}, light=$light, pressure=$pressure")
 
-        // Debug: Log what we're capturing
-        Log.d(TAG, "Snapshot captured: light=$light, pressure=$pressure, accel=${accelValues != null}, gyro=${gyroValues != null}, location=${location != null}")
-
-        val accel = accelValues?.takeIf { it.size >= 3 }?.let {
-            AccelData(it[0], it[1], it[2])
-        }
-        val gyro = gyroValues?.takeIf { it.size >= 3 }?.let {
-            GyroData(it[0], it[1], it[2])
-        }
+        val accel = avgAccel?.takeIf { it.size >= 3 }?.let { AccelData(it[0], it[1], it[2]) }
+        val gyro  = avgGyro?.takeIf  { it.size >= 3 }?.let { GyroData(it[0], it[1], it[2]) }
         val locationData = location?.let {
             LocationData(
-                latitude = it.latitude,
+                latitude  = it.latitude,
                 longitude = it.longitude,
-                accuracy = if (it.hasAccuracy()) it.accuracy.toDouble() else null
+                accuracy  = if (it.hasAccuracy()) it.accuracy.toDouble() else null
             )
         }
-        val quality = qualityAnalyzer.buildMetadata(location)
+        val quality = qualityAnalyzer.buildMetadata(location)?.copy(sampleCount = sampleCount)
+        quality?.motionState?.let { updateGpsPriority(it) }
 
-        // Adaptive GPS optimization: update GPS priority based on motion state
-        quality?.motionState?.let { motionState ->
-            updateGpsPriority(motionState)
-        }
+        if (light == null && accel == null && gyro == null && locationData == null) return null
 
-        if (light == null && accel == null && gyro == null && locationData == null) {
-            return null
-        }
-
-        val reading = SensorReading(
-            timestamp = System.currentTimeMillis(),
-            light = light,
+        return SensorReading(
+            timestamp     = System.currentTimeMillis(),
+            light         = light,
             accelerometer = accel,
-            gyroscope = gyro,
-            pressure = pressure,
-            location = locationData,
-            quality = quality
+            gyroscope     = gyro,
+            pressure      = pressure,
+            location      = locationData,
+            quality       = quality
         )
+    }
 
-        // Debug: Verify SensorReading was created with pressure
-        Log.d(TAG, "SensorReading created: pressure=${reading.pressure}, light=${reading.light}")
+    /**
+     * Tukey IQR outlier rejection for scalar sensor windows.
+     * Removes values outside [Q1 - 1.5*IQR, Q3 + 1.5*IQR]. Returns input unchanged if < 4 samples.
+     */
+    private fun rejectOutliersFloat(values: List<Float>): List<Float> {
+        if (values.size < 4) return values
+        val sorted = values.sorted()
+        val q1 = sorted[sorted.size / 4]
+        val q3 = sorted[sorted.size * 3 / 4]
+        val iqr = q3 - q1
+        if (iqr == 0f) return values
+        val lo = q1 - 1.5f * iqr
+        val hi = q3 + 1.5f * iqr
+        return values.filter { it in lo..hi }
+    }
 
-        return reading
+    /**
+     * Tukey IQR outlier rejection for vector sensor windows (accel, gyro).
+     * Uses vector magnitude for outlier scoring; retains or rejects the full vector.
+     */
+    private fun rejectOutliersVectors(vectors: List<FloatArray>): List<FloatArray> {
+        if (vectors.size < 4) return vectors
+        val magnitudes = vectors.map { arr ->
+            kotlin.math.sqrt(arr[0] * arr[0] + arr[1] * arr[1] + arr[2] * arr[2])
+        }
+        val sorted = magnitudes.sorted()
+        val q1 = sorted[sorted.size / 4]
+        val q3 = sorted[sorted.size * 3 / 4]
+        val iqr = q3 - q1
+        if (iqr == 0f) return vectors
+        val lo = q1 - 1.5f * iqr
+        val hi = q3 + 1.5f * iqr
+        return vectors.filterIndexed { i, _ -> magnitudes[i] in lo..hi }
+    }
+
+    /** Average a list of same-length FloatArrays component-wise. Returns null if empty. */
+    private fun averageFloatArrayWindow(window: List<FloatArray>): FloatArray? {
+        if (window.isEmpty()) return null
+        val dims = window[0].size
+        val sum = FloatArray(dims)
+        for (arr in window) for (i in 0 until minOf(dims, arr.size)) sum[i] += arr[i]
+        val n = window.size.toFloat()
+        return FloatArray(dims) { i -> sum[i] / n }
     }
 
     private fun handleNativeUploadStatus(event: NativeUploadStatusEvent) {
@@ -633,9 +753,15 @@ class ForegroundService : Service() {
 
     companion object {
         private const val TAG = "GreenGainsFGService"
-        // Align GPS interval to snapshot interval (10s) - saves 90% GPS battery with zero data loss
         private val LOCATION_UPDATES_INTERVAL_MS = 10.seconds.inWholeMilliseconds
-        private const val NATIVE_SAMPLE_INTERVAL_MS = 10_000L
+        // Adaptive snapshot intervals — motion state drives how often we flush the averaging window.
+        // More samples per window = better SNR. Fewer snapshots = fewer DB rows.
+        private const val NATIVE_SAMPLE_INTERVAL_STATIONARY_MS = 60_000L // ~300 samples → ~17x noise reduction
+        private const val NATIVE_SAMPLE_INTERVAL_LIGHT_MS      = 30_000L // ~150 samples → ~12x noise reduction
+        private const val NATIVE_SAMPLE_INTERVAL_ACTIVE_MS     = 15_000L // ~75  samples → ~9x  noise reduction
+        // GPS jump detection: reject locations implying speed > 300 m/s (1080 km/h).
+        // Handles GPS multipath teleportation; well above any realistic travel speed.
+        private const val MAX_PLAUSIBLE_SPEED_MS = 300.0
         const val ACTION_STOP_SERVICE = "com.eremat.greengains.action.STOP_SERVICE"
         const val ACTION_PAUSE_TRACKING = "com.eremat.greengains.action.PAUSE_TRACKING"
         const val ACTION_RESUME_TRACKING = "com.eremat.greengains.action.RESUME_TRACKING"
