@@ -20,6 +20,7 @@ import androidx.core.content.PermissionChecker
 import com.eremat.greengains.models.AccelData
 import com.eremat.greengains.models.GyroData
 import com.eremat.greengains.models.LocationData
+import com.eremat.greengains.models.MagneticData
 import com.eremat.greengains.models.MotionState
 import com.eremat.greengains.models.NativeUploadEventType
 import com.eremat.greengains.models.NativeUploadStatusEvent
@@ -28,7 +29,9 @@ import com.eremat.greengains.notification.NotificationsHelper
 import com.eremat.greengains.util.AppPrefs
 import com.eremat.greengains.service.sensors.Barometer
 import com.eremat.greengains.service.sensors.LightSensor
+import com.eremat.greengains.service.sensors.Magnetometer
 import com.eremat.greengains.service.sensors.MotionSensors
+import com.eremat.greengains.service.sensors.ProximitySensor
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
@@ -73,6 +76,8 @@ class ForegroundService : Service() {
     private lateinit var lightSensor: LightSensor
     private lateinit var barometer: Barometer
     private lateinit var motionSensors: MotionSensors
+    private lateinit var proximitySensor: ProximitySensor
+    private lateinit var magnetometer: Magnetometer
 
     // Monitors
     private lateinit var batteryMonitor: BatteryStateMonitor
@@ -101,6 +106,7 @@ class ForegroundService : Service() {
     private val pressureWindow = mutableListOf<Float>()
     private val linearAccelWindow = mutableListOf<FloatArray>() // gravity-free
     private val gyroWindow = mutableListOf<FloatArray>()
+    private val magneticWindow = mutableListOf<FloatArray>()
 
     // Kalman filter for barometric pressure — persists across snapshots, tracks real weather
     // changes while optimally suppressing MEMS sensor noise (tuned for BME280-class sensors).
@@ -139,6 +145,8 @@ class ForegroundService : Service() {
         lightSensor = LightSensor(sensorManager)
         barometer = Barometer(sensorManager)
         motionSensors = MotionSensors(sensorManager)
+        proximitySensor = ProximitySensor(sensorManager)
+        magnetometer = Magnetometer(sensorManager)
 
         // Create Notification Channel (Required for Android O+)
         NotificationsHelper.createNotificationChannel(this)
@@ -238,6 +246,22 @@ class ForegroundService : Service() {
                 }
             }
         }
+
+        // Proximity: real-time pocket detection signal — feed directly to quality analyzer
+        coroutineScope.launch {
+            proximitySensor.dataFlow.collect { near ->
+                near?.let { qualityAnalyzer.onProximity(it) }
+            }
+        }
+
+        // Magnetometer: raw magnetic field data — accumulated for averaging like other sensors
+        coroutineScope.launch {
+            magnetometer.dataFlow.collect { values ->
+                values?.let {
+                    synchronized(windowLock) { magneticWindow.add(it.clone()) }
+                }
+            }
+        }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -323,6 +347,8 @@ class ForegroundService : Service() {
         lightSensor.start()
         barometer.start()
         motionSensors.start()
+        proximitySensor.start()
+        magnetometer.start()
         startLocationUpdates()
 
         Log.i(TAG, "Sensors started with FIFO batching (60s intervals)")
@@ -340,6 +366,8 @@ class ForegroundService : Service() {
         lightSensor.stop()
         barometer.stop()
         motionSensors.stop()
+        proximitySensor.stop()
+        magnetometer.stop()
         stopLocationUpdates()
         stopNativeUploader()
         batteryMonitor.stopMonitoring()
@@ -376,6 +404,8 @@ class ForegroundService : Service() {
         lightSensor.flush()
         barometer.flush()
         motionSensors.flush()
+        magnetometer.flush()
+        // ProximitySensor is a wakeup sensor — no FIFO to flush
         Log.d(TAG, "FIFO buffers flushed")
     }
 
@@ -524,16 +554,19 @@ class ForegroundService : Service() {
         val rawPressure: List<Float>
         val rawLinearAccel: List<FloatArray>
         val rawGyro: List<FloatArray>
+        val rawMagnetic: List<FloatArray>
 
         synchronized(windowLock) {
             rawLight       = lightWindow.toList()
             rawPressure    = pressureWindow.toList()
             rawLinearAccel = linearAccelWindow.map { it.clone() }
             rawGyro        = gyroWindow.map { it.clone() }
+            rawMagnetic    = magneticWindow.map { it.clone() }
             lightWindow.clear()
             pressureWindow.clear()
             linearAccelWindow.clear()
             gyroWindow.clear()
+            magneticWindow.clear()
         }
 
         // IQR outlier rejection — removes sensor glitches before averaging.
@@ -542,6 +575,7 @@ class ForegroundService : Service() {
         val cleanPressure = rejectOutliersFloat(rawPressure)
         val cleanAccel    = rejectOutliersVectors(rawLinearAccel)
         val cleanGyro     = rejectOutliersVectors(rawGyro)
+        val cleanMagnetic = rejectOutliersVectors(rawMagnetic)
 
         val sampleCount = maxOf(cleanLight.size, cleanPressure.size, cleanAccel.size, 1)
 
@@ -562,6 +596,13 @@ class ForegroundService : Service() {
 
         val location = _locationFlow.value
         Log.d(TAG, "Snapshot: n=$sampleCount samples, motion=${currentMotionState.name}, light=$light, pressure=$pressure")
+
+        // Magnetometer: average cleaned window, compute magnitude
+        val avgMagnetic = averageFloatArrayWindow(cleanMagnetic)
+        val magnetic = avgMagnetic?.takeIf { it.size >= 3 }?.let { m ->
+            val mag = kotlin.math.sqrt((m[0] * m[0] + m[1] * m[1] + m[2] * m[2]).toDouble()).toFloat()
+            MagneticData(x = m[0], y = m[1], z = m[2], magnitude = mag)
+        }
 
         val accel = avgAccel?.takeIf { it.size >= 3 }?.let { AccelData(it[0], it[1], it[2]) }
         val gyro  = avgGyro?.takeIf  { it.size >= 3 }?.let { GyroData(it[0], it[1], it[2]) }
@@ -584,7 +625,8 @@ class ForegroundService : Service() {
             gyroscope     = gyro,
             pressure      = pressure,
             location      = locationData,
-            quality       = quality
+            quality       = quality,
+            magneticField = magnetic
         )
     }
 

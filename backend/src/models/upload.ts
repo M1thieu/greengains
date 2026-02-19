@@ -29,14 +29,17 @@ export const QualityMetadataSchema = z.object({
   motion_confidence: z.number().min(0).max(1).optional(),
   pocket: PocketStateEnum.optional(),
   location_quality: LocationQualityEnum.optional(),
+  sample_count: z.number().int().positive().optional(),
+  proximity_near: z.boolean().optional(),
 });
 
 export const SensorReadingSchema = z.object({
   t: z.coerce.date(),
-  light: z.number(),
+  light: z.number().optional(),
   accel: z.array(z.number()).length(3).optional(),
   gyro: z.array(z.number()).length(3).optional(),
-  magnet: z.array(z.number()).length(3).optional(),
+  // [x, y, z, magnitude] in µT — magnitude pre-computed on device to avoid backend recomputation
+  magnetic: z.array(z.number()).length(4).optional(),
   pressure: z.number().optional(),
   quality: QualityMetadataSchema.optional(),
 });

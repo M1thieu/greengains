@@ -3,6 +3,7 @@ package com.eremat.greengains.service
 import com.eremat.greengains.models.AccelData
 import com.eremat.greengains.models.GyroData
 import com.eremat.greengains.models.LocationData
+import com.eremat.greengains.models.MagneticData
 import com.eremat.greengains.models.MotionState
 import com.eremat.greengains.models.NativeUploadEventType
 import com.eremat.greengains.models.NativeUploadStatusEvent
@@ -358,6 +359,7 @@ class NativeBackendUploader(
                 "accel" to reading.accelerometer?.let { listOf(it.x, it.y, it.z) },
                 "gyro" to reading.gyroscope?.let { listOf(it.x, it.y, it.z) },
                 "pressure" to reading.pressure,
+                "magnetic" to reading.magneticField?.toPayloadList(),
                 "quality" to reading.quality?.toPayloadMap()?.takeIf { it.isNotEmpty() }
             ).filterValues { it != null }
         }
@@ -391,9 +393,18 @@ class NativeBackendUploader(
             "motion_confidence" to motionConfidence.toDouble(),
             "pocket" to pocketState.name.lowercase(),
             "location_quality" to locationQuality.name.lowercase(),
-            "sample_count" to sampleCount  // averaged samples — backend uses for confidence weighting
+            "sample_count" to sampleCount,  // averaged samples — backend uses for confidence weighting
+            "proximity_near" to proximityNear  // null if sensor unavailable
         ).filterValues { it != null }
     }
+
+    /**
+     * Serialises magnetic field as [x, y, z, magnitude] (µT).
+     * Compact list format keeps batch payload small; magnitude is redundant but avoids
+     * recomputation on the backend for common queries (e.g. indoor/outdoor detection).
+     */
+    private fun MagneticData.toPayloadList(): List<Float> =
+        listOf(x, y, z, magnitude)
 
     private fun getOrCreateDeviceId(): String {
         val prefs = context.getSharedPreferences(AppPrefs.NAME, Context.MODE_PRIVATE)

@@ -14,12 +14,15 @@ import {
 } from '../utils/sensor-analytics';
 
 function summarizeBatch(readings: SensorReading[]): Summary {
-  const lights = readings.map(r => r.light);
-  const lightSummary = {
-    avg: lights.reduce((a, b) => a + b, 0) / lights.length,
-    min: Math.min(...lights),
-    max: Math.max(...lights),
-  };
+  // Handle optional light data
+  const lightReadings = readings.filter(r => r.light !== undefined).map(r => r.light!);
+  const lightSummary = lightReadings.length > 0
+    ? {
+        avg: lightReadings.reduce((a, b) => a + b, 0) / lightReadings.length,
+        min: Math.min(...lightReadings),
+        max: Math.max(...lightReadings),
+      }
+    : undefined;
 
   // Handle optional accel data
   const accelReadings = readings.filter(r => r.accel !== undefined);
@@ -46,6 +49,18 @@ function summarizeBatch(readings: SensorReading[]): Summary {
       }
     : undefined;
 
+  // Handle optional magnetic data — index [3] is pre-computed magnitude [x,y,z,mag]
+  const magneticMagnitudes = readings
+    .filter(r => r.magnetic !== undefined && r.magnetic.length === 4)
+    .map(r => r.magnetic![3]);
+  const magneticSummary = magneticMagnitudes.length > 0
+    ? {
+        avg: magneticMagnitudes.reduce((a, b) => a + b, 0) / magneticMagnitudes.length,
+        min: Math.min(...magneticMagnitudes),
+        max: Math.max(...magneticMagnitudes),
+      }
+    : undefined;
+
   return {
     count: readings.length,
     period_start: periodStart,
@@ -58,6 +73,7 @@ function summarizeBatch(readings: SensorReading[]): Summary {
       ? gyroMagnitudes.reduce((a, b) => a + b, 0) / gyroMagnitudes.length
       : 0,
     pressure: pressureSummary,
+    magnetic_magnitude: magneticSummary,
   };
 }
 

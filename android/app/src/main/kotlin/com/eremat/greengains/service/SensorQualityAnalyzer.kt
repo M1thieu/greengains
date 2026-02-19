@@ -26,12 +26,17 @@ internal class SensorQualityAnalyzer {
     )
 
     private val accelSamples = ArrayDeque<MotionSample>()
+    private var lastProximityNear: Boolean? = null
     private val gravityVector = FloatArray(3)
     private var gravityInitialized = false
     private var lastLux: Float? = null
 
     fun onLight(lux: Float) = synchronized(this) {
         lastLux = lux
+    }
+
+    fun onProximity(near: Boolean) = synchronized(this) {
+        lastProximityNear = near
     }
 
     fun onAccelerometer(values: FloatArray) = synchronized(this) {
@@ -48,8 +53,15 @@ internal class SensorQualityAnalyzer {
     /**
      * Returns true when the light sensor is obscured — phone is face-down or likely in a pocket.
      * Use this to gate light samples out of the averaging window at collection time.
+     *
+     * Detection priority (most reliable first):
+     *   1. Proximity sensor NEAR → definitive (physical contact with pocket/face/surface)
+     *   2. Orientation FACE_DOWN → definitive (gravity vector analysis)
+     *   3. Low lux + upright tilt → heuristic (pocket without proximity sensor)
      */
     fun isLightObscured(): Boolean = synchronized(this) {
+        // Proximity is a direct physical measurement — no false positives when NEAR
+        if (lastProximityNear == true) return@synchronized true
         val orientationInfo = computeOrientation()
         if (orientationInfo.state == OrientationState.FACE_DOWN) return@synchronized true
         val lux = lastLux ?: return@synchronized false
@@ -71,7 +83,8 @@ internal class SensorQualityAnalyzer {
             motionState = motionState,
             motionConfidence = motionConfidence,
             pocketState = pocketState,
-            locationQuality = determineLocationQuality(location)
+            locationQuality = determineLocationQuality(location),
+            proximityNear = lastProximityNear
         )
     }
 

@@ -15,11 +15,24 @@ data class SensorReading(
     val gyroscope: GyroData?,
     val pressure: Float?,
     val location: LocationData?,
-    val quality: QualityMetadata?
+    val quality: QualityMetadata?,
+    val magneticField: MagneticData? = null
 )
 
 data class AccelData(val x: Float, val y: Float, val z: Float)
 data class GyroData(val x: Float, val y: Float, val z: Float)
+
+/**
+ * Raw magnetometer reading in µT (microtesla).
+ * magnitude = √(x² + y² + z²) — pre-computed for upload efficiency.
+ * Elevated magnitude (>80 µT) suggests indoor environment or nearby metal/electronics.
+ */
+data class MagneticData(
+    val x: Float,
+    val y: Float,
+    val z: Float,
+    val magnitude: Float
+)
 
 data class LocationData(
     val latitude: Double,
@@ -37,7 +50,13 @@ data class QualityMetadata(
     val pocketState: PocketState = PocketState.UNKNOWN,
     val locationQuality: LocationQuality = LocationQuality.NONE,
     /** Number of raw sensor samples averaged into this reading. Higher = more reliable. */
-    val sampleCount: Int = 1
+    val sampleCount: Int = 1,
+    /**
+     * True = proximity sensor reports NEAR (hand/pocket/face within ~5 cm).
+     * Null = proximity sensor not available on this device.
+     * More reliable than light+tilt heuristic for pocket detection.
+     */
+    val proximityNear: Boolean? = null
 )
 
 enum class OrientationState {

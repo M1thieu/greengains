@@ -15,10 +15,11 @@ export interface Summary {
   count: number;
   period_start: Date;
   period_end: Date;
-  light: { avg: number; min: number; max: number };
+  light?: { avg: number; min: number; max: number };
   accel_rms: number;
   gyro_rms: number;
   pressure?: { avg: number; min: number; max: number };
+  magnetic_magnitude?: { avg: number; min: number; max: number };
 }
 
 /**
