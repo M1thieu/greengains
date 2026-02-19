@@ -419,39 +419,43 @@ class ForegroundService : Service() {
     }
 
     /**
-     * Update GPS interval based on motion state for battery optimization.
-     * Always uses HIGH_ACCURACY to ensure fresh locations (not stale).
-     * - STATIONARY: 60s interval (~50% battery savings, still fresh data)
-     * - LIGHT/ACTIVE: 10s interval (better tracking when moving)
+     * Update GPS priority AND interval based on motion state.
      *
-     * Using intervals instead of priority changes ensures GPS gets fresh fixes
-     * and network fallback works properly. Prevents "stale" location quality.
+     * STATIONARY → BALANCED_POWER_ACCURACY (cell+WiFi, ~50-150m) at 60s
+     *   - Drops GPS chip entirely, uses cell towers + WiFi for positioning
+     *   - ~70% battery reduction vs HIGH_ACCURACY with negligible data quality loss:
+     *     stationary users stay in the same neighborhood H3 cell regardless of 50m vs 5m precision
+     *   - Geohash precision adapts automatically (≤200m → precision 5, still valid for aggregation)
+     *
+     * LIGHT/ACTIVE → HIGH_ACCURACY (GPS+WiFi+cell) at 10-30s
+     *   - Full GPS precision when user is moving and spatial diversity matters
+     *   - Transition back from STATIONARY is fast: first accelerometer spike triggers upgrade
      */
-    private fun intervalFor(state: MotionState): Long = when (state) {
-        MotionState.STATIONARY -> 60_000L
-        MotionState.LIGHT, MotionState.ACTIVE -> 10_000L
-        MotionState.UNKNOWN -> LOCATION_UPDATES_INTERVAL_MS
+    private fun gpsConfigFor(state: MotionState): Pair<Int, Long> = when (state) {
+        MotionState.STATIONARY -> LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY to 60_000L
+        MotionState.LIGHT      -> LocationRequest.PRIORITY_HIGH_ACCURACY to 30_000L
+        MotionState.ACTIVE     -> LocationRequest.PRIORITY_HIGH_ACCURACY to 10_000L
+        MotionState.UNKNOWN    -> LocationRequest.PRIORITY_HIGH_ACCURACY to LOCATION_UPDATES_INTERVAL_MS
     }
 
     @SuppressLint("MissingPermission")
     private fun updateGpsPriority(motionState: MotionState) {
         if (motionState == currentMotionState) return
 
-        val newInterval = intervalFor(motionState)
-        val currentInterval = intervalFor(currentMotionState)
+        val (newPriority, newInterval) = gpsConfigFor(motionState)
+        val (curPriority, curInterval) = gpsConfigFor(currentMotionState)
 
-        if (newInterval != currentInterval) {
-            Log.i(TAG, "Motion state changed: ${currentMotionState.name} -> ${motionState.name}")
-            Log.i(TAG, "Updating GPS interval: ${currentInterval}ms -> ${newInterval}ms (always HIGH_ACCURACY)")
+        if (newPriority != curPriority || newInterval != curInterval) {
+            Log.i(TAG, "Motion: ${currentMotionState.name} → ${motionState.name} | GPS: ${getPriorityName(curPriority)}@${curInterval}ms → ${getPriorityName(newPriority)}@${newInterval}ms")
             currentMotionState = motionState
             stopLocationUpdates()
-            startLocationUpdates(LocationRequest.PRIORITY_HIGH_ACCURACY, newInterval)
+            startLocationUpdates(newPriority, newInterval)
         } else {
             currentMotionState = motionState
         }
     }
 
-    private fun getCurrentLocationInterval(): Long = intervalFor(currentMotionState)
+    private fun getCurrentLocationInterval(): Long = gpsConfigFor(currentMotionState).second
 
     private fun getPriorityName(priority: Int): String = when (priority) {
         LocationRequest.PRIORITY_HIGH_ACCURACY -> "HIGH_ACCURACY"
