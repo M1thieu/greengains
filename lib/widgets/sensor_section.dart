@@ -87,10 +87,10 @@ class _SensorSectionState extends State<SensorSection> {
     return 'Very Bright';
   }
 
-  String _getMagneticDescription(double µT) {
-    if (µT < 25) return 'Very low';
-    if (µT < 65) return 'Normal';
-    if (µT < 100) return 'Elevated';
+  String _getMagneticDescription(double microtesla) {
+    if (microtesla < 25) return 'Very low';
+    if (microtesla < 65) return 'Normal';
+    if (microtesla < 100) return 'Elevated';
     return 'High — near metal';
   }
 
