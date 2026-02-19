@@ -125,8 +125,9 @@ class _MyAppState extends State<MyApp> {
         try {
           final token = await user.getIdToken();
           if (token != null) {
-            final prefs = await SharedPreferences.getInstance();
-            await prefs.setString('firebase_auth_token', token);
+            // Store under the correct double-prefixed key so the native
+            // Kotlin uploader reads it via AppPrefs.FIREBASE_AUTH_TOKEN.
+            await AppPreferences.instance.setFirebaseAuthToken(token);
             print('Synced Firebase Token to SharedPreferences');
 
             // Device registration - FIRE AND FORGET (non-blocking)

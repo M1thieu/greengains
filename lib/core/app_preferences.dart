@@ -18,6 +18,17 @@ class PreferenceKeys {
   static const batteryOptimizationPromptLastShown = 'battery_optimization_prompt_last_shown';
   static const postOnboardingAuthPrompted = 'post_onboarding_auth_prompted';
 
+  // Identity credentials shared with the native Kotlin uploader.
+  // The shared_preferences plugin prepends 'flutter.' on write, so keys that
+  // start with 'flutter.' land on disk as 'flutter.flutter.*' — matching
+  // AppPrefs.DEVICE_SECRET / FIREBASE_AUTH_TOKEN in Kotlin.
+  static const deviceSecret = 'flutter.device_secret';
+  static const firebaseAuthToken = 'flutter.firebase_auth_token';
+
+  // Legacy raw keys (single prefix) — kept only for one-time migration
+  static const _legacyDeviceSecret = 'device_secret';
+  static const _legacyFirebaseAuthToken = 'firebase_auth_token';
+
   // Last known sensor values for instant display on app restart
   static const lastLightLux = 'last_light_lux';
   static const lastLightTimestamp = 'last_light_timestamp';
@@ -82,6 +93,16 @@ class AppPreferences {
       prefs,
       PreferenceKeys.lastUploadAt,
       PreferenceKeys._legacyLastUploadAt,
+    );
+    await _migrateStringKey(
+      prefs,
+      PreferenceKeys.deviceSecret,
+      PreferenceKeys._legacyDeviceSecret,
+    );
+    await _migrateStringKey(
+      prefs,
+      PreferenceKeys.firebaseAuthToken,
+      PreferenceKeys._legacyFirebaseAuthToken,
     );
 
     // Clean up stale single-prefixed Android keys.
@@ -310,5 +331,27 @@ class AppPreferences {
     final timestamp = _sp.getInt(PreferenceKeys.lastPressureTimestamp);
     if (hPa == null || timestamp == null) return null;
     return {'hPa': hPa, 'timestamp': timestamp};
+  }
+
+  // ── Identity credentials for native uploader ─────────────────────────────
+
+  /// Long-lived per-device secret, shared with the native Kotlin uploader.
+  /// Read on Android as AppPrefs.DEVICE_SECRET = "flutter.flutter.device_secret".
+  String? get deviceSecret =>
+      _sp.getString(PreferenceKeys.deviceSecret) ??
+      _sp.getString(PreferenceKeys._legacyDeviceSecret);
+
+  Future<void> setDeviceSecret(String value) async {
+    await _sp.setString(PreferenceKeys.deviceSecret, value);
+  }
+
+  /// Firebase ID token, refreshed by Flutter and read by the native uploader.
+  /// Read on Android as AppPrefs.FIREBASE_AUTH_TOKEN = "flutter.flutter.firebase_auth_token".
+  String? get firebaseAuthToken =>
+      _sp.getString(PreferenceKeys.firebaseAuthToken) ??
+      _sp.getString(PreferenceKeys._legacyFirebaseAuthToken);
+
+  Future<void> setFirebaseAuthToken(String value) async {
+    await _sp.setString(PreferenceKeys.firebaseAuthToken, value);
   }
 }

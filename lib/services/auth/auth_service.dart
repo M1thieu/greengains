@@ -7,7 +7,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:flutter/foundation.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
+import '../../core/app_preferences.dart';
 import '../../services/network/backend_client.dart';
 
 class AuthService {
@@ -141,11 +141,8 @@ class AuthService {
 
   static Future<void> _persistToken(User? user) async {
     if (user == null) return;
-    final token = await user.getIdToken();
-    if (token != null) {
-      // Register device to get long-lived secret
-      await registerDevice(user);
-    }
+    // Register device to get long-lived secret (also stores fresh Firebase token)
+    await registerDevice(user);
   }
 
   static Future<void> registerDevice(User user) async {
@@ -153,12 +150,9 @@ class AuthService {
       final token = await user.getIdToken();
       if (token == null) return;
 
-      final prefs = await SharedPreferences.getInstance();
-      String? deviceId = prefs.getString('device_id');
-      if (deviceId == null) {
-        deviceId = _randomUrlSafeString(32);
-        await prefs.setString('device_id', deviceId);
-      }
+      final appPrefs = AppPreferences.instance;
+      await appPrefs.ensureInitialized();
+      final deviceId = await appPrefs.getOrCreateDeviceId();
 
       print('Registering device with backend...');
       final response = await http.post(
@@ -175,9 +169,11 @@ class AuthService {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        final secret = data['device_secret'];
-        await prefs.setString('device_secret', secret);
-        print('Device registered successfully. Secret saved.');
+        final secret = data['device_secret'] as String?;
+        if (secret != null) {
+          await appPrefs.setDeviceSecret(secret);
+          print('Device registered successfully. Secret saved.');
+        }
       } else {
         print('Failed to register device: ${response.statusCode} ${response.body}');
       }

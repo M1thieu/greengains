@@ -254,7 +254,7 @@ export async function uploadRoutes(fastify: FastifyInstance) {
           batch_size: readingsCount,
           period_start: stats.period_start,
           period_end: stats.period_end,
-          avg_light: stats.light.avg,
+          avg_light: stats.light?.avg,
         };
 
         if (batch.location) {
