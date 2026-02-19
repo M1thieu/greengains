@@ -254,11 +254,12 @@ class ForegroundService : Service() {
             }
         }
 
-        // Magnetometer: raw magnetic field data — accumulated for averaging like other sensors
+        // Magnetometer: raw magnetic field data — accumulated for averaging + streamed to Flutter
         coroutineScope.launch {
             magnetometer.dataFlow.collect { values ->
                 values?.let {
                     synchronized(windowLock) { magneticWindow.add(it.clone()) }
+                    sendMagneticFieldToFlutter(it)
                 }
             }
         }
@@ -723,6 +724,19 @@ class ForegroundService : Service() {
                 "z" to values[2].toDouble(),
                 "timestamp" to System.currentTimeMillis()
             )) 
+        }
+    }
+
+    private fun sendMagneticFieldToFlutter(values: FloatArray) {
+        val mag = kotlin.math.sqrt((values[0] * values[0] + values[1] * values[1] + values[2] * values[2]).toDouble())
+        postToFlutter("magnetic") {
+            it.invokeMethod("onMagneticFieldUpdate", mapOf(
+                "x"         to values[0].toDouble(),
+                "y"         to values[1].toDouble(),
+                "z"         to values[2].toDouble(),
+                "magnitude" to mag,
+                "timestamp" to System.currentTimeMillis()
+            ))
         }
     }
 

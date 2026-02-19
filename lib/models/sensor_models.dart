@@ -161,6 +161,38 @@ class GyroscopeData {
   String toString() => 'GyroscopeData(${magnitude.toStringAsFixed(2)} rad/s)';
 }
 
+/// Magnetometer data (µT — microtesla)
+class MagneticFieldData {
+  final double x;
+  final double y;
+  final double z;
+  final double magnitude;
+  final int timestamp;
+
+  MagneticFieldData({
+    required this.x,
+    required this.y,
+    required this.z,
+    required this.magnitude,
+    required this.timestamp,
+  });
+
+  factory MagneticFieldData.fromMap(Map<dynamic, dynamic> map) {
+    return MagneticFieldData(
+      x:         (map['x']         as num).toDouble(),
+      y:         (map['y']         as num).toDouble(),
+      z:         (map['z']         as num).toDouble(),
+      magnitude: (map['magnitude'] as num).toDouble(),
+      timestamp: map['timestamp'] as int,
+    );
+  }
+
+  DateTime get dateTime => DateTime.fromMillisecondsSinceEpoch(timestamp);
+
+  @override
+  String toString() => 'MagneticFieldData(${magnitude.toStringAsFixed(1)} µT)';
+}
+
 /// Barometric pressure data (hPa)
 class PressureData {
   final double hPa;

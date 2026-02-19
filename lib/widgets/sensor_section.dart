@@ -35,6 +35,8 @@ class _SensorSectionState extends State<SensorSection> {
   late bool _hasAccel;
   late bool _hasGyro;
   late bool _hasPressure;
+  // Magnetic is optional — not every device has a magnetometer.
+  // We never gate _allReady on it; the card shows "Connecting…" if unavailable.
   final List<StreamSubscription> _subs = [];
 
   bool get _allReady => _hasLight && _hasAccel && _hasGyro && _hasPressure;
@@ -83,6 +85,13 @@ class _SensorSectionState extends State<SensorSection> {
     if (lux < 500) return 'Normal';
     if (lux < 10000) return 'Bright';
     return 'Very Bright';
+  }
+
+  String _getMagneticDescription(double µT) {
+    if (µT < 25) return 'Very low';
+    if (µT < 65) return 'Normal';
+    if (µT < 100) return 'Elevated';
+    return 'High — near metal';
   }
 
   String _sensorStatus({
@@ -283,9 +292,36 @@ class _SensorSectionState extends State<SensorSection> {
             },
           ),
 
+          // Magnetic Field
+          StreamBuilder<MagneticFieldData>(
+            stream: widget.locationService.magneticFieldStream,
+            initialData: widget.locationService.lastMagneticField,
+            builder: (context, snapshot) {
+              final mag = snapshot.data;
+              final isTracking = widget.locationService.isRunning.value &&
+                  !widget.locationService.isPaused.value;
+              return SensorDataCard(
+                icon: Icons.explore,
+                title: 'Magnetic Field',
+                value: mag != null
+                    ? '${mag.magnitude.toStringAsFixed(1)} µT'
+                    : null,
+                unit: mag != null
+                    ? _getMagneticDescription(mag.magnitude)
+                    : 'microtesla',
+                enabled: isTracking,
+                statusLabel: _sensorStatus(
+                  isRunning: isTracking,
+                  hasData: mag != null,
+                ),
+                updatedAt: mag?.dateTime,
+              );
+            },
+          ),
+
           const SizedBox(height: AppTheme.spaceMd),
 
-          // Motion Section
+          // Movement Section
           Text(
             'Movement',
             style: AppTheme.sectionHeader(theme, isDark),

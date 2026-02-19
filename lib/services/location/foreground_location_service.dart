@@ -18,6 +18,7 @@ class ForegroundLocationService {
   final _accelerometerController = StreamController<AccelerometerData>.broadcast();
   final _gyroscopeController = StreamController<GyroscopeData>.broadcast();
   final _pressureController = StreamController<PressureData>.broadcast();
+  final _magneticFieldController = StreamController<MagneticFieldData>.broadcast();
   final _isRunningNotifier = ValueNotifier<bool>(false);
   final _isPausedNotifier = ValueNotifier<bool>(false);
 
@@ -26,6 +27,7 @@ class ForegroundLocationService {
   Stream<AccelerometerData> get accelerometerStream => _accelerometerController.stream;
   Stream<GyroscopeData> get gyroscopeStream => _gyroscopeController.stream;
   Stream<PressureData> get pressureStream => _pressureController.stream;
+  Stream<MagneticFieldData> get magneticFieldStream => _magneticFieldController.stream;
   ValueListenable<bool> get isRunning => _isRunningNotifier;
   ValueListenable<bool> get isPaused => _isPausedNotifier;
 
@@ -43,6 +45,9 @@ class ForegroundLocationService {
 
   PressureData? _lastPressure;
   PressureData? get lastPressure => _lastPressure;
+
+  MagneticFieldData? _lastMagneticField;
+  MagneticFieldData? get lastMagneticField => _lastMagneticField;
 
   // Consolidated upload status exposed to the UI
   final ValueNotifier<UploadStatusSnapshot> uploadStatus =
@@ -112,6 +117,11 @@ class ForegroundLocationService {
           _pressureController.add(pressure);
           // Persist for instant display on next app start
           unawaited(AppPreferences.instance.saveLastPressure(pressure.hPa, pressure.timestamp));
+          break;
+        case 'onMagneticFieldUpdate':
+          final magnetic = MagneticFieldData.fromMap(call.arguments as Map);
+          _lastMagneticField = magnetic;
+          _magneticFieldController.add(magnetic);
           break;
         case 'collectSensors':
           // This is called periodically by the native service
