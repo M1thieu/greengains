@@ -340,22 +340,28 @@ export async function getCoverageData(
 }
 
 /**
- * Export data as CSV
+ * Export data as CSV (POST — backend expects JSON body)
  */
-export async function exportData(
-  params?: Record<string, string | number>
-): Promise<Blob> {
-  const queryString = params ? `?${new URLSearchParams(Object.entries(params).map(([k, v]) => [k, String(v)])).toString()}` : ''
+export async function exportData(params?: {
+  from?: string
+  to?: string
+  geohash?: string
+  format?: 'csv' | 'json'
+}): Promise<Blob> {
   const token = await getAuthToken()
 
-  const response = await fetch(`${API_BASE_URL}/api/v1/data/export${queryString}`, {
+  const response = await fetch(`${API_BASE_URL}/api/v1/data/export`, {
+    method: 'POST',
     headers: {
+      'Content-Type': 'application/json',
       Authorization: `Bearer ${token}`,
     },
+    body: JSON.stringify({ format: 'csv', ...params }),
   })
 
   if (!response.ok) {
-    throw new Error(`Export failed: ${response.statusText}`)
+    const err = await response.json().catch(() => ({}))
+    throw new Error(err.message || err.error || `Export failed: ${response.statusText}`)
   }
 
   return await response.blob()
@@ -432,14 +438,16 @@ export function generateMockSensorReadings(sensor: string, count = 100): SensorR
   const now = new Date()
 
   for (let i = count - 1; i >= 0; i--) {
-    const time = new Date(now.getTime() - i * 60000) // 1 min intervals
-    readings.push({
-      timestamp: time.toISOString(),
-      Light: Math.floor(Math.random() * 800) + 50,
-      Movement: Math.random() * 5,
-      Pressure: 100 + Math.random() * 4,
-      Quality: Math.random(),
-    })
+    const time = new Date(now.getTime() - i * 5 * 60000) // 5-min intervals
+    let value: number
+    switch (sensor) {
+      case 'Light':    value = Math.floor(Math.random() * 800) + 50; break
+      case 'Movement': value = Math.random() * 5; break
+      case 'Pressure': value = 100 + Math.random() * 4; break
+      case 'Quality':  value = 0.6 + Math.random() * 0.4; break
+      default:         value = Math.random() * 100
+    }
+    readings.push({ timestamp: time.toISOString(), value })
   }
 
   return readings

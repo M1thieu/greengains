@@ -39,7 +39,7 @@ dependencies:
   light: ^4.1.0
   firebase_core: ^4.1.1
   firebase_auth: ^6.1.0
-  firebase_crashlytics: ^4.3.2
+  firebase_crashlytics: 5.0.7
   google_sign_in: ^6.3.0
   flutter_svg: ^2.0.9
   url_launcher: ^6.3.0
@@ -51,6 +51,7 @@ dependencies:
   uuid: ^4.4.0
   geolocator: ^11.0.0
   battery_plus: ^6.0.0
+  get_it: ^7.7.0
   dart_geohash: ^2.0.0
   h3_dart: ^0.7.0
   sqflite: ^2.3.0

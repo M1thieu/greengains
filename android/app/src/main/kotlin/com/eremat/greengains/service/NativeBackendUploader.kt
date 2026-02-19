@@ -1,5 +1,17 @@
 package com.eremat.greengains.service
 
+import com.eremat.greengains.models.AccelData
+import com.eremat.greengains.models.GyroData
+import com.eremat.greengains.models.LocationData
+import com.eremat.greengains.models.MotionState
+import com.eremat.greengains.models.NativeUploadEventType
+import com.eremat.greengains.models.NativeUploadStatusEvent
+import com.eremat.greengains.models.NativeUploadStatusListener
+import com.eremat.greengains.models.OrientationState
+import com.eremat.greengains.models.PocketState
+import com.eremat.greengains.models.QualityMetadata
+import com.eremat.greengains.models.SensorReading
+import com.eremat.greengains.util.AppPrefs
 import android.content.ContentValues
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
@@ -54,10 +66,10 @@ class NativeBackendUploader(
     init {
         // Load API key from SharedPreferences (Flutter writes it on startup)
         // NOTE: apiKey might be empty on first launch - uploads will be skipped until Flutter initializes
-        val prefs = context.getSharedPreferences("FlutterSharedPreferences", Context.MODE_PRIVATE)
-        baseUrl = prefs.getString("flutter.backend_url", null)
+        val prefs = context.getSharedPreferences(AppPrefs.NAME, Context.MODE_PRIVATE)
+        baseUrl = prefs.getString(AppPrefs.BACKEND_URL, null)
             ?: "https://greengains.onrender.com"
-        apiKey = prefs.getString("flutter.backend_api_key", null) ?: run {
+        apiKey = prefs.getString(AppPrefs.BACKEND_API_KEY, null) ?: run {
             Log.w(TAG, "Backend API key not yet available - uploads will be skipped until Flutter initializes")
             "" // Empty string - uploads will be skipped
         }
@@ -186,8 +198,8 @@ class NativeBackendUploader(
         try {
             val deviceId = getOrCreateDeviceId()
             val shareLocation = context
-                .getSharedPreferences("FlutterSharedPreferences", Context.MODE_PRIVATE)
-                .getBoolean("flutter.share_location", false)
+                .getSharedPreferences(AppPrefs.NAME, Context.MODE_PRIVATE)
+                .getBoolean(AppPrefs.SHARE_LOCATION, true) // default true: mapping is the app's purpose
 
             val payload = buildPayload(deviceId, readings, shareLocation)
             val jsonPayload = gson.toJson(payload)
@@ -198,11 +210,11 @@ class NativeBackendUploader(
                 .addHeader("X-API-Key", apiKey)
 
             // Add Firebase Auth Token if available (The "Honeygain" Link)
-            val prefs = context.getSharedPreferences("FlutterSharedPreferences", Context.MODE_PRIVATE)
-            val token = prefs.getString("flutter.firebase_auth_token", null)
+            val prefs = context.getSharedPreferences(AppPrefs.NAME, Context.MODE_PRIVATE)
+            val token = prefs.getString(AppPrefs.FIREBASE_AUTH_TOKEN, null)
             
             // Add Device Secret (Long-lived Auth)
-            val deviceSecret = prefs.getString("flutter.device_secret", null)
+            val deviceSecret = prefs.getString(AppPrefs.DEVICE_SECRET, null)
             if (deviceSecret != null) {
                 Log.d(TAG, "Found Device Secret: ${deviceSecret.take(5)}...")
                 request.addHeader("x-device-secret", deviceSecret)
@@ -248,12 +260,12 @@ class NativeBackendUploader(
 
         // Save upload timestamp to SharedPreferences so Flutter can read it on resume
         // Format as ISO8601 string to match Flutter's expectation
-        val prefs = context.getSharedPreferences("FlutterSharedPreferences", Context.MODE_PRIVATE)
+        val prefs = context.getSharedPreferences(AppPrefs.NAME, Context.MODE_PRIVATE)
         val iso8601Timestamp = java.time.Instant
             .ofEpochMilli(lastUploadTime)
             .toString()
         prefs.edit()
-            .putString("flutter.last_upload_at", iso8601Timestamp)
+            .putString(AppPrefs.LAST_UPLOAD_AT, iso8601Timestamp)
             .apply()
 
         // Save contribution to local SQLite database (independent of Flutter)
@@ -368,12 +380,12 @@ class NativeBackendUploader(
     }
 
     private fun getOrCreateDeviceId(): String {
-        val prefs = context.getSharedPreferences("FlutterSharedPreferences", Context.MODE_PRIVATE)
-        var deviceId = prefs.getString("flutter.device_id", null)
+        val prefs = context.getSharedPreferences(AppPrefs.NAME, Context.MODE_PRIVATE)
+        var deviceId = prefs.getString(AppPrefs.DEVICE_ID, null)
 
         if (deviceId == null) {
             deviceId = UUID.randomUUID().toString()
-            prefs.edit().putString("flutter.device_id", deviceId).apply()
+            prefs.edit().putString(AppPrefs.DEVICE_ID, deviceId).apply()
             Log.i(TAG, "Generated new device ID: $deviceId")
         }
 
@@ -444,8 +456,8 @@ class NativeBackendUploader(
 
         return try {
             // Check if user enabled location sharing
-            val prefs = context.getSharedPreferences("FlutterSharedPreferences", Context.MODE_PRIVATE)
-            val shareLocation = prefs.getBoolean("flutter.share_location", false)
+            val prefs = context.getSharedPreferences(AppPrefs.NAME, Context.MODE_PRIVATE)
+            val shareLocation = prefs.getBoolean(AppPrefs.SHARE_LOCATION, true)
 
             if (!shareLocation) {
                 null
@@ -467,81 +479,4 @@ class NativeBackendUploader(
     }
 }
 
-/**
- * Data class for a single sensor reading
- */
-data class SensorReading(
-    val timestamp: Long,
-    val light: Float?,
-    val accelerometer: AccelData?,
-    val gyroscope: GyroData?,
-    val pressure: Float?,
-    val location: LocationData?,
-    val quality: QualityMetadata?
-)
-
-data class AccelData(val x: Float, val y: Float, val z: Float)
-data class GyroData(val x: Float, val y: Float, val z: Float)
-data class LocationData(
-    val latitude: Double,
-    val longitude: Double,
-    val accuracy: Double?
-)
-
-enum class NativeUploadEventType {
-    STARTED,
-    SUCCESS,
-    FAILURE
-}
-
-data class NativeUploadStatusEvent(
-    val type: NativeUploadEventType,
-    val timestamp: Long = System.currentTimeMillis(),
-    val batchSize: Int = 0,
-    val bufferSize: Int = 0,
-    val errorMessage: String? = null
-)
-
-fun interface NativeUploadStatusListener {
-    fun onStatus(event: NativeUploadStatusEvent)
-}
-
-data class QualityMetadata(
-    val orientation: OrientationState = OrientationState.UNKNOWN,
-    val tiltDegrees: Float? = null,
-    val motionState: MotionState = MotionState.UNKNOWN,
-    val motionConfidence: Float = 0f,
-    val pocketState: PocketState = PocketState.UNKNOWN,
-    val locationQuality: LocationQuality = LocationQuality.NONE
-)
-
-enum class OrientationState {
-    FACE_UP,
-    FACE_DOWN,
-    UPRIGHT_PORTRAIT,
-    UPRIGHT_LANDSCAPE,
-    UPRIGHT_UNKNOWN,
-    UNKNOWN
-}
-
-enum class MotionState {
-    UNKNOWN,
-    STATIONARY,
-    LIGHT,
-    ACTIVE
-}
-
-enum class PocketState {
-    UNKNOWN,
-    LIKELY,
-    UNLIKELY
-}
-
-enum class LocationQuality {
-    NONE,
-    STALE,
-    HIGH,
-    MEDIUM,
-    LOW,
-    POOR
-}
+// Models moved to com.eremat.greengains.models.SensorModels

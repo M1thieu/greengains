@@ -135,9 +135,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           )
                         else
                           const SizedBox(width: 100),
-                        FilledButton(
-                          onPressed: _nextPage,
-                          child: const Text('Next'),
+                        SizedBox(
+                          width: 120,
+                          child: FilledButton(
+                            onPressed: _nextPage,
+                            child: const Text('Next'),
+                          ),
                         ),
                       ],
                     ),

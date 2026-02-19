@@ -11,6 +11,7 @@ import '../core/extensions/context_extensions.dart';
 import '../core/themes.dart';
 import '../services/location/foreground_location_service.dart';
 import '../services/network/backend_client.dart';
+import '../models/sensor_models.dart';
 import '../core/events/app_events.dart';
 import '../utils/app_snackbars.dart';
 import '../core/app_preferences.dart';
@@ -18,8 +19,6 @@ import '../widgets/contribution_stats_card.dart';
 import '../widgets/contextual_tip_card.dart';
 import '../widgets/service_control_button.dart';
 import '../widgets/battery_optimization_dialog.dart';
-import '../widgets/daily_pot_icon.dart';
-import '../widgets/credits_display.dart';
 import '../widgets/tracking_status_banner.dart';
 import '../widgets/impact_summary_card.dart';
 import '../widgets/sensor_section.dart';
@@ -201,7 +200,13 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     // Auto-restart service if it was running before but got killed (e.g., force-stop)
     if (!isRunning && _prefs.foregroundServiceEnabled) {
       debugPrint('Service was running before but is now stopped. Auto-restarting...');
+      final wasPaused = _prefs.trackingPaused;
       await _locationService.start();
+      // Restore paused state if it was paused before the kill
+      if (wasPaused) {
+        await _locationService.pauseTracking();
+        debugPrint('Restored paused state after auto-restart');
+      }
     }
   }
 
@@ -457,19 +462,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 ),
               ),
 
-              // Floating daily pot icon (top-right corner)
-              const Positioned(
-                top: 70,
-                right: 16,
-                child: DailyPotIcon(),
-              ),
-
-              // Credits display (below daily pot)
-              const Positioned(
-                top: 135,
-                right: 16,
-                child: CreditsDisplay(),
-              ),
+              // DailyPot + CreditsDisplay hidden until feature is ready
             ],
           ),
         ),

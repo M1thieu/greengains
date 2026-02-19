@@ -10,6 +10,7 @@ import android.net.NetworkCapabilities
 import android.net.NetworkRequest
 import android.os.Build
 import android.util.Log
+import com.eremat.greengains.util.AppPrefs
 
 /**
  * Monitors network connectivity state and respects user preferences
@@ -114,8 +115,8 @@ class NetworkStateMonitor(private val context: Context) {
             return false
         }
 
-        val prefs = context.getSharedPreferences("FlutterSharedPreferences", Context.MODE_PRIVATE)
-        val allowMobile = prefs.getBoolean("flutter.use_mobile_data_uploads", true)
+        val prefs = context.getSharedPreferences(AppPrefs.NAME, Context.MODE_PRIVATE)
+        val allowMobile = prefs.getBoolean(AppPrefs.USE_MOBILE_DATA, true)
 
         return if (isWiFi) {
             // Always allow on WiFi

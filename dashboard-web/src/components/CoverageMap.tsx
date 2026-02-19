@@ -1,19 +1,5 @@
-interface FilterState {
-  qualityMin: number
-  qualityMax: number
-  lightMin: number
-  lightMax: number
-  minDevices: number
-}
-
-interface CoverageItem {
-  geohash: string
-  samples_count: number
-  device_hours: number
-  avg_light: number | null
-  quality_valid_ratio: number | null
-  last_seen: string
-}
+import type { FilterState } from '../constants/filters'
+import type { CoverageItem } from '../api'
 
 interface CoverageMapProps {
   filters?: FilterState
@@ -54,9 +40,12 @@ export default function CoverageMap({ filters, data, isLoading }: CoverageMapPro
             <p className="text-sm">Loading coverage data...</p>
           </div>
         ) : coverageData.length === 0 ? (
-          <div className="text-center text-slate-400 py-8">
-            <p className="text-sm">No coverage data available</p>
-            <p className="text-xs mt-1 text-slate-500">No sensors have reported in this time range</p>
+          <div className="text-center text-slate-500 py-12">
+            <svg className="w-12 h-12 mx-auto mb-3 text-slate-600 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 20l-5.447-2.724A1 1 0 003 16.382V5.618a1 1 0 011.553-.894L9 7.5m0 0l6.553-3.276A1 1 0 0117 5.618v10.764a1 1 0 01-1.553.894L9 12.5m0 0V20" />
+            </svg>
+            <p className="text-sm font-medium">No geospatial coverage</p>
+            <p className="text-xs mt-2 text-slate-600">No sensors reported data in this time window. Try adjusting the time range or filters.</p>
           </div>
         ) : (
           coverageData.map((item, idx) => {

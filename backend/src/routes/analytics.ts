@@ -4,6 +4,7 @@ import { getPool } from '../database';
 import { AGGREGATION_WINDOW_MINUTES } from '../jobs/aggregator';
 import { verifyAnalyticsApiKey } from '../utils/security';
 import { QueryBuilder, generateCursor, parseCursor } from '../utils/pagination';
+import { numOrNull } from '../utils/response-utils';
 
 const aggregatesQuerySchema = z.object({
   from: z.string().datetime().optional(),
@@ -24,13 +25,6 @@ const deviceStatsQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(500).default(100),
   cursor: z.string().optional(),
 });
-
-/**
- * Convert Postgres numeric types to JS numbers (bigint, numeric → number)
- */
-function numOrNull(value: any): number | null {
-  return value !== null && value !== undefined ? Number(value) : null;
-}
 
 export async function analyticsRoutes(fastify: FastifyInstance) {
   const pool = getPool();

@@ -6,6 +6,7 @@ import android.content.Intent
 import android.os.Build
 import android.util.Log
 import com.eremat.greengains.service.ForegroundService
+import com.eremat.greengains.util.AppPrefs
 
 /**
  * BroadcastReceiver that restarts the ForegroundService after device reboot
@@ -23,8 +24,8 @@ class BootReceiver : BroadcastReceiver() {
         Log.i(TAG, "Device boot completed. Checking if service should restart...")
 
         // Check if service was enabled before reboot
-        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        val wasServiceRunning = prefs.getBoolean(PREF_FOREGROUND_ENABLED, false)
+        val prefs = context.getSharedPreferences(AppPrefs.NAME, Context.MODE_PRIVATE)
+        val wasServiceRunning = prefs.getBoolean(AppPrefs.FOREGROUND_ENABLED, false)
 
         if (wasServiceRunning) {
             // Android 14+ (SDK 35) doesn't allow starting location services from background
@@ -37,7 +38,5 @@ class BootReceiver : BroadcastReceiver() {
 
     companion object {
         private const val TAG = "GreenGainsBootReceiver"
-        private const val PREFS_NAME = "FlutterSharedPreferences"
-        private const val PREF_FOREGROUND_ENABLED = "flutter.foreground_service_enabled"
     }
 }

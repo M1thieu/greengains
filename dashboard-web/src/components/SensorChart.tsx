@@ -1,13 +1,15 @@
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from 'recharts'
 import React from 'react'
-
-interface FilterState {
-  qualityMin: number
-  qualityMax: number
-  lightMin: number
-  lightMax: number
-  minDevices: number
-}
+import { SENSOR_COLORS } from '../constants/sensors'
+import type { FilterState } from '../constants/filters'
 
 interface SensorChartProps {
   selectedSensor: string
@@ -16,142 +18,122 @@ interface SensorChartProps {
   data?: any[]
 }
 
-function SensorChart({ selectedSensor, timeRange, filters, data: propData }: SensorChartProps) {
-  // Transform API data { timestamp, value } to chart format { time, value }
-  const transformData = () => {
-    if (!propData || propData.length === 0) return []
+function SensorChart({ selectedSensor, filters, data: propData }: SensorChartProps) {
+  const color = SENSOR_COLORS[selectedSensor] ?? '#10b981'
 
-    return propData.map((point) => {
-      const timestamp = point.timestamp ? new Date(point.timestamp) : null
-      const time = timestamp
-        ? `${timestamp.getHours().toString().padStart(2, '0')}:${timestamp.getMinutes().toString().padStart(2, '0')}`
+  const chartData = (propData ?? [])
+    .map((point) => {
+      const ts = point.timestamp ? new Date(point.timestamp) : null
+      const time = ts
+        ? `${ts.getHours().toString().padStart(2, '0')}:${ts.getMinutes().toString().padStart(2, '0')}`
         : '—'
-
-      return {
-        time,
-        value: point.value ?? null,
-        fullTimestamp: point.timestamp,
-      }
+      return { time, value: point.value ?? null, fullTimestamp: point.timestamp }
     })
-  }
-
-  const rawData = transformData()
-
-  // Apply filters to data
-  const data = rawData.filter((point) => {
-    if (!filters) return true
-
-    // For readings from a single sensor, we only filter by light if it's the Light sensor
-    if (selectedSensor === 'Light' && point.value !== null) {
-      if (point.value < filters.lightMin || point.value > filters.lightMax) {
-        return false
+    .filter((point) => {
+      if (!filters) return true
+      if (selectedSensor === 'Light' && point.value !== null) {
+        if (point.value < filters.lightMin || point.value > filters.lightMax) return false
       }
-    }
+      return true
+    })
 
-    return true
-  })
+  const values = chartData.map((d) => d.value).filter((v): v is number => typeof v === 'number')
 
-  const getColorForSensor = () => {
-    switch (selectedSensor) {
-      case 'Light':
-        return '#fbbf24'
-      case 'Movement':
-        return '#14b8a6'
-      case 'Pressure':
-        return '#0ea5e9'
-      case 'Quality':
-        return '#10b981'
-      default:
-        return '#10b981'
-    }
-  }
-
-  // Calculate stats dynamically from data
-  const calculateStats = () => {
-    if (data.length === 0) {
-      return { label: `${selectedSensor.toUpperCase()}`, value: '—', peak: '—', points: '0 points' }
-    }
-
-    const values = data.map(d => d.value).filter(v => typeof v === 'number') as number[]
+  const stats = (() => {
     if (values.length === 0) {
-      return { label: `${selectedSensor.toUpperCase()}`, value: '—', peak: '—', points: '0 points' }
+      return { label: selectedSensor.toUpperCase(), value: '—', peak: '—', points: '0 pts' }
     }
-
-    const avg = (values.reduce((a, b) => a + b, 0) / values.length).toFixed(2)
-    const max = Math.max(...values).toFixed(2)
-
+    const avg = values.reduce((a, b) => a + b, 0) / values.length
+    const max = Math.max(...values)
     switch (selectedSensor) {
       case 'Light':
-        return { label: 'AVERAGE LIGHT', value: `${avg} lux`, peak: `${max} lux`, points: `${values.length} points` }
+        return { label: 'AVG LIGHT', value: `${avg.toFixed(0)} lux`, peak: `${max.toFixed(0)} lux`, points: `${values.length} pts` }
       case 'Movement':
-        return { label: 'AVG MOVEMENT', value: parseFloat(avg).toFixed(3), peak: parseFloat(max).toFixed(3), points: `${values.length} points` }
+        return { label: 'AVG MOVEMENT', value: avg.toFixed(3), peak: max.toFixed(3), points: `${values.length} pts` }
       case 'Pressure':
-        return { label: 'AVG PRESSURE', value: `${avg}°`, peak: `${max}°`, points: `${values.length} points` }
+        return { label: 'AVG PRESSURE', value: `${avg.toFixed(2)}°`, peak: `${max.toFixed(2)}°`, points: `${values.length} pts` }
       case 'Quality':
-        return { label: 'AVG QUALITY', value: (parseFloat(avg) * 100).toFixed(0) + '%', peak: (parseFloat(max) * 100).toFixed(0) + '%', points: `${values.length} points` }
+        return { label: 'AVG QUALITY', value: `${(avg * 100).toFixed(0)}%`, peak: `${(max * 100).toFixed(0)}%`, points: `${values.length} pts` }
       default:
-        return { label: 'AVERAGE', value: '—', peak: '—', points: `${values.length} points` }
+        return { label: 'AVERAGE', value: avg.toFixed(2), peak: max.toFixed(2), points: `${values.length} pts` }
     }
-  }
+  })()
 
-  const stats = calculateStats()
+  const gradientId = `sensor-gradient-${selectedSensor}`
 
   return (
     <div>
-      {/* Stats Summary */}
+      {/* Stats row */}
       <div className="grid grid-cols-3 gap-4 mb-6">
-        <div className="slide-in-left" style={{ animationDelay: '0ms' }}>
-          <p className="text-xs text-slate-400 uppercase tracking-wide font-semibold">{stats.label}</p>
-          <p className="text-2xl font-bold text-white mt-1 number-pop">{stats.value}</p>
+        <div>
+          <p className="text-[10px] text-slate-500 uppercase tracking-widest font-semibold">{stats.label}</p>
+          <p className="text-2xl font-bold text-white mt-1 tabular-nums">{stats.value}</p>
         </div>
-        <div className="slide-in-left" style={{ animationDelay: '100ms' }}>
-          <p className="text-xs text-slate-400 uppercase tracking-wide font-semibold">PEAK {selectedSensor.toUpperCase()}</p>
-          <p className="text-2xl font-bold text-white mt-1 number-pop">{stats.peak}</p>
+        <div>
+          <p className="text-[10px] text-slate-500 uppercase tracking-widest font-semibold">PEAK</p>
+          <p className="text-2xl font-bold text-white mt-1 tabular-nums">{stats.peak}</p>
         </div>
-        <div className="slide-in-left" style={{ animationDelay: '200ms' }}>
-          <p className="text-xs text-slate-400 uppercase tracking-wide font-semibold">DATA POINTS</p>
-          <p className="text-2xl font-bold text-white mt-1 number-pop">{stats.points}</p>
+        <div>
+          <p className="text-[10px] text-slate-500 uppercase tracking-widest font-semibold">POINTS</p>
+          <p className="text-2xl font-bold text-white mt-1 tabular-nums">{stats.points}</p>
         </div>
       </div>
 
       {/* Chart */}
-      <div className="h-48 bg-[#0f1a1e]/30 rounded-lg p-4 fade-in border border-slate-800/50 transition-all duration-300 hover:border-slate-700/75 flex items-center justify-center" style={{ animationDelay: '300ms' }}>
-        {data.length === 0 ? (
-          <div className="text-center text-slate-400">
-            <p className="text-sm">No data available for this time range</p>
-            <p className="text-xs mt-1 text-slate-500">Try adjusting your filters or time range</p>
+      <div className="h-48 rounded-lg border border-slate-800/50">
+        {chartData.length === 0 ? (
+          <div className="h-full flex flex-col items-center justify-center text-slate-600">
+            <p className="text-sm">No data for this time range</p>
+            <p className="text-xs mt-1">Adjust filters or select a wider window</p>
           </div>
         ) : (
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart
-              data={data}
-              margin={{ top: 5, right: 30, left: -20, bottom: 5 }}
-            >
-              <CartesianGrid strokeDasharray="3 3" stroke="#334155" opacity={0.3} />
+            <AreaChart data={chartData} margin={{ top: 8, right: 4, left: -24, bottom: 0 }}>
+              <defs>
+                <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor={color} stopOpacity={0.18} />
+                  <stop offset="95%" stopColor={color} stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
               <XAxis
                 dataKey="time"
-                stroke="#94a3b8"
-                style={{ fontSize: '12px' }}
+                stroke="#334155"
+                tick={{ fill: '#64748b', fontSize: 11 }}
+                tickLine={false}
+                axisLine={false}
+                interval="preserveStartEnd"
               />
-              <YAxis stroke="#94a3b8" style={{ fontSize: '12px' }} />
+              <YAxis
+                stroke="#334155"
+                tick={{ fill: '#64748b', fontSize: 11 }}
+                tickLine={false}
+                axisLine={false}
+                width={48}
+              />
               <Tooltip
                 contentStyle={{
-                  backgroundColor: '#1a2635',
-                  border: '1px solid #475569',
-                  borderRadius: '0.5rem',
+                  background: '#0d1821',
+                  border: '1px solid #1e293b',
+                  borderRadius: '6px',
+                  fontSize: '12px',
+                  boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
                 }}
-                labelStyle={{ color: '#f1f5f9' }}
+                labelStyle={{ color: '#94a3b8', marginBottom: '2px' }}
+                itemStyle={{ color: color }}
+                cursor={{ stroke: color, strokeWidth: 1, strokeDasharray: '4 4' }}
               />
-              <Line
+              <Area
                 type="monotone"
                 dataKey="value"
-                stroke={getColorForSensor()}
-                dot={{ fill: getColorForSensor(), r: 5 }}
-                activeDot={{ r: 7 }}
-                strokeWidth={2}
-                isAnimationActive={true}
+                stroke={color}
+                strokeWidth={1.5}
+                fill={`url(#${gradientId})`}
+                dot={false}
+                activeDot={{ r: 4, fill: color, strokeWidth: 0 }}
+                isAnimationActive={false}
               />
-            </LineChart>
+            </AreaChart>
           </ResponsiveContainer>
         )}
       </div>

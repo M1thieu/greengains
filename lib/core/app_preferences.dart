@@ -156,12 +156,13 @@ class AppPreferences {
     await _sp.setBool(PreferenceKeys.trackingPaused, value);
   }
 
-  /// Location sharing preference - defaults to FALSE, user must opt-in
-  /// COARSE location (~200m) is privacy-friendly but requires explicit consent
+  /// Location sharing preference — defaults to TRUE.
+  /// The app's core value proposition is environmental mapping; location is essential.
+  /// Users have already granted system location permission during onboarding.
   bool get shareLocation =>
       _sp.getBool(PreferenceKeys.shareLocation) ??
       _sp.getBool(PreferenceKeys._legacyShareLocation) ??
-      false;
+      true;
 
   Future<void> setShareLocation(bool value) async {
     await _sp.setBool(PreferenceKeys.shareLocation, value);

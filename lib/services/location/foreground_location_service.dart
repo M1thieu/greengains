@@ -1,222 +1,12 @@
 import 'dart:async';
-import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 import '../../core/app_preferences.dart';
 import '../../core/events/app_events.dart';
+import '../../models/sensor_models.dart';
 import '../daily_pot_service.dart';
 import '../tracking/tracking_session_manager.dart';
-
-/// Location source type for tiered fallback system
-enum LocationSource {
-  gps,       // GPS on, accurate (5-20m)
-  network,   // WiFi/cell, coarse (50-500m)
-  lastKnown, // Cached, stale but battery-free
-  none;      // Nothing available
-
-  /// Get H3 resolution based on location source accuracy
-  int get recommendedH3Resolution {
-    switch (this) {
-      case LocationSource.gps:
-        return 10; // ~15m hexagons for accurate GPS
-      case LocationSource.network:
-        return 8;  // ~461m hexagons for coarse network location
-      case LocationSource.lastKnown:
-        return 7;  // ~1.2km hexagons for stale data
-      case LocationSource.none:
-        return 6;  // ~5km hexagons (fallback)
-    }
-  }
-
-  /// Parse from provider string
-  static LocationSource fromProvider(String? provider) {
-    if (provider == null) return LocationSource.none;
-    final lower = provider.toLowerCase();
-    if (lower.contains('gps') || lower.contains('fused')) {
-      return LocationSource.gps;
-    } else if (lower.contains('network') || lower.contains('wifi')) {
-      return LocationSource.network;
-    } else if (lower.contains('passive') || lower.contains('cached')) {
-      return LocationSource.lastKnown;
-    }
-    return LocationSource.none;
-  }
-}
-
-/// Model for location data received from the native foreground service
-class LocationData {
-  final double latitude;
-  final double longitude;
-  final double accuracy;
-  final double? altitude;
-  final double? speed;
-  final double? bearing;
-  final int timestamp;
-  final String? provider;
-
-  LocationData({
-    required this.latitude,
-    required this.longitude,
-    required this.accuracy,
-    this.altitude,
-    this.speed,
-    this.bearing,
-    required this.timestamp,
-    this.provider,
-  });
-
-  factory LocationData.fromMap(Map<dynamic, dynamic> map) {
-    return LocationData(
-      latitude: (map['latitude'] as num).toDouble(),
-      longitude: (map['longitude'] as num).toDouble(),
-      accuracy: (map['accuracy'] as num).toDouble(),
-      altitude: map['altitude'] != null ? (map['altitude'] as num).toDouble() : null,
-      speed: map['speed'] != null ? (map['speed'] as num).toDouble() : null,
-      bearing: map['bearing'] != null ? (map['bearing'] as num).toDouble() : null,
-      timestamp: map['timestamp'] as int,
-      provider: map['provider'] as String?,
-    );
-  }
-
-  DateTime get dateTime => DateTime.fromMillisecondsSinceEpoch(timestamp);
-
-  /// Get location source type from provider
-  LocationSource get source => LocationSource.fromProvider(provider);
-
-  /// Get recommended H3 resolution based on accuracy
-  /// Uses actual accuracy value for more precise tile sizing
-  int get recommendedH3Resolution {
-    if (accuracy <= 20) return 10;  // Very accurate: ~15m hexagons
-    if (accuracy <= 50) return 9;   // Good: ~59m hexagons
-    if (accuracy <= 200) return 8;  // Moderate: ~461m hexagons
-    if (accuracy <= 500) return 7;  // Coarse: ~1.2km hexagons
-    return 6; // Poor: ~5km hexagons
-  }
-
-  @override
-  String toString() {
-    return 'LocationData(lat: $latitude, lon: $longitude, accuracy: ${accuracy.toStringAsFixed(1)}m, provider: $provider)';
-  }
-}
-
-/// Model for light sensor data (ambient light in lux)
-class LightData {
-  final double lux;
-  final int timestamp;
-
-  LightData({
-    required this.lux,
-    required this.timestamp,
-  });
-
-  factory LightData.fromMap(Map<dynamic, dynamic> map) {
-    return LightData(
-      lux: (map['lux'] as num).toDouble(),
-      timestamp: map['timestamp'] as int,
-    );
-  }
-
-  DateTime get dateTime => DateTime.fromMillisecondsSinceEpoch(timestamp);
-
-  @override
-  String toString() {
-    return 'LightData(${lux.toStringAsFixed(0)} lux)';
-  }
-}
-
-/// Model for accelerometer data (acceleration in m/s^2)
-class AccelerometerData {
-  final double x;
-  final double y;
-  final double z;
-  final int timestamp;
-
-  AccelerometerData({
-    required this.x,
-    required this.y,
-    required this.z,
-    required this.timestamp,
-  });
-
-  factory AccelerometerData.fromMap(Map<dynamic, dynamic> map) {
-    return AccelerometerData(
-      x: (map['x'] as num).toDouble(),
-      y: (map['y'] as num).toDouble(),
-      z: (map['z'] as num).toDouble(),
-      timestamp: map['timestamp'] as int,
-    );
-  }
-
-  DateTime get dateTime => DateTime.fromMillisecondsSinceEpoch(timestamp);
-
-  /// Calculate magnitude (total acceleration)
-  double get magnitude => sqrt(x * x + y * y + z * z);
-
-  @override
-  String toString() {
-    return 'AccelerometerData(${magnitude.toStringAsFixed(1)} m/s^2)';
-  }
-}
-
-/// Model for gyroscope data (rotation rate in rad/s)
-class GyroscopeData {
-  final double x;
-  final double y;
-  final double z;
-  final int timestamp;
-
-  GyroscopeData({
-    required this.x,
-    required this.y,
-    required this.z,
-    required this.timestamp,
-  });
-
-  factory GyroscopeData.fromMap(Map<dynamic, dynamic> map) {
-    return GyroscopeData(
-      x: (map['x'] as num).toDouble(),
-      y: (map['y'] as num).toDouble(),
-      z: (map['z'] as num).toDouble(),
-      timestamp: map['timestamp'] as int,
-    );
-  }
-
-  DateTime get dateTime => DateTime.fromMillisecondsSinceEpoch(timestamp);
-
-  /// Calculate magnitude (total rotation rate)
-  double get magnitude => sqrt(x * x + y * y + z * z);
-
-  @override
-  String toString() {
-    return 'GyroscopeData(${magnitude.toStringAsFixed(2)} rad/s)';
-  }
-}
-
-/// Model for pressure sensor data (hPa)
-class PressureData {
-  final double hPa;
-  final int timestamp;
-
-  PressureData({
-    required this.hPa,
-    required this.timestamp,
-  });
-
-  factory PressureData.fromMap(Map<dynamic, dynamic> map) {
-    return PressureData(
-      hPa: (map['hPa'] as num).toDouble(),
-      timestamp: map['timestamp'] as int,
-    );
-  }
-
-  DateTime get dateTime => DateTime.fromMillisecondsSinceEpoch(timestamp);
-
-  @override
-  String toString() {
-    return 'PressureData(${hPa.toStringAsFixed(2)} hPa)';
-  }
-}
 
 /// Service for managing the native Android foreground service for sensor data collection
 class ForegroundLocationService {
@@ -348,16 +138,26 @@ class ForegroundLocationService {
 
   bool _isChangingState = false;
 
-  /// Start the foreground service
-  Future<bool> start() async {
+  /// Prevents overlapping start/stop/pause/resume calls.
+  Future<bool> _guardStateChange(Future<bool> Function() action) async {
     if (_isChangingState) return false;
     _isChangingState = true;
+    try {
+      return await action();
+    } finally {
+      _isChangingState = false;
+    }
+  }
+
+  /// Start the foreground service
+  Future<bool> start() => _guardStateChange(() async {
     try {
       final result = await _fgChannel.invokeMethod<bool>('startForegroundService');
       if (result == true) {
         _isRunningNotifier.value = true;
         _isPausedNotifier.value = false;
-        // Start tracking session in database
+        unawaited(AppPreferences.instance.setForegroundServiceEnabled(true));
+        unawaited(AppPreferences.instance.setTrackingPaused(false));
         await _sessionManager.startSession();
         debugPrint('Foreground location service started');
       }
@@ -365,10 +165,8 @@ class ForegroundLocationService {
     } catch (e) {
       debugPrint('Error starting foreground service: $e');
       return false;
-    } finally {
-      _isChangingState = false;
     }
-  }
+  });
 
   Future<void> requestLocationPermission() async {
     try {
@@ -392,9 +190,7 @@ class ForegroundLocationService {
   }
 
   /// Stop the foreground service
-  Future<bool> stop() async {
-    if (_isChangingState) return false;
-    _isChangingState = true;
+  Future<bool> stop() => _guardStateChange(() async {
     try {
       final result = await _fgChannel.invokeMethod<bool>('stopForegroundService');
       if (result == true) {
@@ -402,7 +198,8 @@ class ForegroundLocationService {
         _isPausedNotifier.value = false;
         _lastLocation = null;
         uploadStatus.value = const UploadStatusSnapshot();
-        // Stop tracking session in database
+        unawaited(AppPreferences.instance.setForegroundServiceEnabled(false));
+        unawaited(AppPreferences.instance.setTrackingPaused(false));
         await _sessionManager.stopSession(reason: 'user_stopped');
         debugPrint('Foreground location service stopped');
       }
@@ -410,10 +207,8 @@ class ForegroundLocationService {
     } catch (e) {
       debugPrint('Error stopping foreground service: $e');
       return false;
-    } finally {
-      _isChangingState = false;
     }
-  }
+  });
 
   /// Check if the foreground service is currently running
   Future<bool> isServiceRunning() async {
@@ -445,39 +240,33 @@ class ForegroundLocationService {
     _isPausedNotifier.value = AppPreferences.instance.trackingPaused;
   }
 
-  Future<bool> pauseTracking() async {
-    if (_isChangingState) return false;
-    _isChangingState = true;
+  Future<bool> pauseTracking() => _guardStateChange(() async {
     try {
       final result = await _fgChannel.invokeMethod<bool>('pauseForegroundService');
       if (result == true) {
         _isPausedNotifier.value = true;
+        unawaited(AppPreferences.instance.setTrackingPaused(true));
       }
       return result ?? false;
     } catch (e) {
       debugPrint('Error pausing foreground service: $e');
       return false;
-    } finally {
-      _isChangingState = false;
     }
-  }
+  });
 
-  Future<bool> resumeTracking() async {
-    if (_isChangingState) return false;
-    _isChangingState = true;
+  Future<bool> resumeTracking() => _guardStateChange(() async {
     try {
       final result = await _fgChannel.invokeMethod<bool>('resumeForegroundService');
       if (result == true) {
         _isPausedNotifier.value = false;
+        unawaited(AppPreferences.instance.setTrackingPaused(false));
       }
       return result ?? false;
     } catch (e) {
       debugPrint('Error resuming foreground service: $e');
       return false;
-    } finally {
-      _isChangingState = false;
     }
-  }
+  });
 
   void _handleNativeUploadStatus(Map<dynamic, dynamic> data) {
     final status = data['status'] as String? ?? 'unknown';

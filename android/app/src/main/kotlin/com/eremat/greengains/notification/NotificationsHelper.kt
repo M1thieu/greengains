@@ -13,13 +13,12 @@ import androidx.core.app.NotificationCompat
 import com.eremat.greengains.MainActivity
 import com.eremat.greengains.R
 import com.eremat.greengains.service.ForegroundService
+import com.eremat.greengains.util.AppPrefs
 import java.time.Instant
 
 internal object NotificationsHelper {
 
     private const val NOTIFICATION_CHANNEL_ID = "general_notification_channel"
-    private const val PREFS_NAME = "FlutterSharedPreferences"
-    private const val PREF_LAST_UPLOAD = "flutter.last_upload_at"
     const val NOTIFICATION_ID_SERVICE = 1
     const val NOTIFICATION_ID_WORKER = 2
 
@@ -107,8 +106,8 @@ internal object NotificationsHelper {
     }
 
     fun readLastUploadFromPrefs(context: Context): Long? {
-        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        val raw = prefs.getString(PREF_LAST_UPLOAD, null) ?: return null
+        val prefs = context.getSharedPreferences(AppPrefs.NAME, Context.MODE_PRIVATE)
+        val raw = prefs.getString(AppPrefs.LAST_UPLOAD_AT, null) ?: return null
         return runCatching { Instant.parse(raw).toEpochMilli() }.getOrNull()
     }
 

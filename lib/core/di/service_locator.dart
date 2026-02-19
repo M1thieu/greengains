@@ -4,7 +4,6 @@ import '../../data/repositories/contribution_repository.dart';
 import '../../services/location/foreground_location_service.dart';
 import '../../services/sensors/sensor_manager.dart';
 import '../../services/network/upload_queue_manager.dart';
-import '../../services/daily_pot_service.dart';
 import '../../services/tracking/tracking_session_manager.dart';
 import '../../core/events/app_events.dart';
 import '../../core/app_preferences.dart';
@@ -58,11 +57,7 @@ Future<void> setupServiceLocator() async {
   getIt.registerSingleton<UploadQueueManager>(UploadQueueManager.instance);
   print('[ServiceLocator] ✅ UploadQueueManager registered');
 
-  /// Daily pot reward service
-  getIt.registerSingleton<DailyPotService>(
-    DailyPotService.instance,
-  );
-  print('[ServiceLocator] ✅ DailyPotService registered');
+  // DailyPotService requires Firebase - initialized later in main.dart after Firebase.initializeApp()
 
   /// Tracking session manager
   getIt.registerSingleton<TrackingSessionManager>(

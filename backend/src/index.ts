@@ -22,9 +22,7 @@ import { initFirebase, isFirebaseInitialized } from './utils/firebase-auth';
 import { runPendingMigrations } from './migrations';
 import { deviceRoutes } from './routes/device';
 import { uploadRoutes } from './routes/upload';
-import { preferencesRoutes } from './routes/preferences';
 import { analyticsRoutes } from './routes/analytics';
-import { dailyPotRoutes } from './routes/daily-pot';
 import { userRoutes } from './routes/user';
 import { authRoutes } from './routes/auth';
 import { dataRoutes } from './routes/data';
@@ -140,9 +138,7 @@ fastify.register(authRoutes);
 fastify.register(dataRoutes);
 fastify.register(deviceRoutes);
 fastify.register(uploadRoutes);
-fastify.register(preferencesRoutes);
 fastify.register(analyticsRoutes);
-fastify.register(dailyPotRoutes);
 fastify.register(userRoutes);
 
 // Graceful shutdown
@@ -169,7 +165,7 @@ const start = async () => {
     // Initialize database
     await initDatabase();
 
-    // Run pending migrations (auto-creates daily_pots table, etc.)
+    // Run pending migrations
     await runPendingMigrations();
 
     // Initialize Firebase

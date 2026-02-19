@@ -3,6 +3,13 @@ import { z } from 'zod';
 import { getPool } from '../database';
 import { verifyFirebaseToken } from '../utils/firebase-auth';
 import { QueryBuilder, generateCursor, parseCursor } from '../utils/pagination';
+import { numOrNull } from '../utils/response-utils';
+import {
+  getOrgSubscriptionTier,
+  TIER_HISTORY_DAYS,
+  TIER_EXPORT_ROWS,
+  type SubscriptionTier,
+} from '../utils/tier-utils';
 
 /**
  * Data Routes - Dashboard/Client Data Endpoints
@@ -26,49 +33,6 @@ const exportSchema = z.object({
   format: z.enum(['csv', 'json']).default('csv'),
 });
 
-function numOrNull(value: any): number | null {
-  return value !== null && value !== undefined ? Number(value) : null;
-}
-
-/**
- * Get subscription tier for an organization
- * Returns 'free' tier if user has no organization (fallback for new users)
- */
-async function getOrgSubscriptionTier(pool: any, userId: string): Promise<string> {
-  try {
-    const result = await pool.query(
-      `SELECT s.tier FROM subscriptions s
-       JOIN organizations o ON s.organization_id = o.id
-       JOIN organization_members om ON o.id = om.organization_id
-       WHERE om.user_id = $1 AND om.accepted_at IS NOT NULL
-       ORDER BY o.created_at ASC
-       LIMIT 1`,
-      [userId]
-    );
-
-    return result.rows[0]?.tier || 'free';
-  } catch (error) {
-    // If tables don't exist or user has no org, return free tier
-    console.warn('Could not determine subscription tier, defaulting to free:', error);
-    return 'free';
-  }
-}
-
-/**
- * Get user's primary organization
- */
-async function getUserOrgId(pool: any, userId: string): Promise<string | null> {
-  const result = await pool.query(
-    `SELECT o.id FROM organizations o
-     JOIN organization_members om ON o.id = om.organization_id
-     WHERE om.user_id = $1 AND om.accepted_at IS NOT NULL
-     ORDER BY o.created_at ASC
-     LIMIT 1`,
-    [userId]
-  );
-
-  return result.rows[0]?.id || null;
-}
 
 export async function dataRoutes(fastify: FastifyInstance) {
   const pool = getPool();
@@ -94,13 +58,7 @@ export async function dataRoutes(fastify: FastifyInstance) {
         // Get user's subscription tier
         const tier = await getOrgSubscriptionTier(pool, userId);
 
-        // Determine max history based on tier
-        const historyDays: Record<string, number> = {
-          free: 7,
-          pro: 90,
-          enterprise: 365,
-        };
-        const maxDays = historyDays[tier] || 7;
+        const maxDays = TIER_HISTORY_DAYS[tier as SubscriptionTier] ?? 7;
 
         // Build query
         const table = query.bucket === 'day' ? 'sensor_aggregates_daily' : 'sensor_aggregates_5m';
@@ -116,9 +74,6 @@ export async function dataRoutes(fastify: FastifyInstance) {
 
         // Apply geohash filter
         qb.whereIf(query.geohash, `geohash LIKE $P`, query.geohash ? `${query.geohash}%` : undefined);
-
-        // Apply precision filter (new feature)
-        qb.whereIf(query.min_precision > 0, `precision_score >= $P`, query.min_precision);
 
         // Cursor-based pagination
         const cursorParts = parseCursor(query.cursor, 2);
@@ -155,9 +110,7 @@ export async function dataRoutes(fastify: FastifyInstance) {
           LIMIT $${nextParamIndex}
         `;
 
-        console.log(`[DEBUG] Executing query on table=${table}, tier=${tier}, params=${JSON.stringify(params.slice(0, 3))}`);
         const result = await pool.query(sql, params);
-        console.log(`[DEBUG] Query returned ${result.rows.length} rows`);
 
         // Check if there's a next page
         const hasNextPage = result.rows.length > query.limit;
@@ -234,10 +187,8 @@ export async function dataRoutes(fastify: FastifyInstance) {
 
         const column = sensorColumnMap[sensor] || 'avg_light';  // default to light
 
-        // Get subscription tier to determine max history
         const tier = await getOrgSubscriptionTier(pool, userId);
-        const historyDays: Record<string, number> = { free: 7, pro: 90, enterprise: 365 };
-        const maxDays = historyDays[tier] || 7;
+        const maxDays = TIER_HISTORY_DAYS[tier] ?? 7;
 
         // Build query
         const qb = new QueryBuilder();
@@ -309,12 +260,7 @@ export async function dataRoutes(fastify: FastifyInstance) {
           });
         }
 
-        // Determine row limit based on tier
-        const rowLimits: Record<string, number> = {
-          pro: 100000,
-          enterprise: 1000000,
-        };
-        const maxRows = rowLimits[tier] || 0;
+        const maxRows = TIER_EXPORT_ROWS[tier] ?? 0;
 
         // Build query
         const timeColumn = 'window_start';

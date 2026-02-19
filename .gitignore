@@ -108,6 +108,9 @@ tmp/
 !SETUP_DEV.md
 !SECURITY_SETUP.md
 !TESTING_GUIDE.md
+!BACKEND_WIRING.md
+!PREMIUM_FEATURES.md
+!REBRAND_CHECKLIST.md
 
 # Temporary files
 upload_monitor.log
@@ -122,4 +125,6 @@ docs/archive/
 # Dashboard build artifacts (source files tracked, not build output)
 dashboard-web/.next/
 dashboard-web/out/
+dashboard-web/dist/
 dashboard-web/node_modules/
+dashboard-web/.env

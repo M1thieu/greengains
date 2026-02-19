@@ -3,6 +3,14 @@ allprojects {
         google()
         mavenCentral()
     }
+    // Force older library versions that are compatible with AGP 8.6.0
+    configurations.configureEach {
+        resolutionStrategy {
+            force 'androidx.browser:browser:1.8.0'
+            force 'androidx.core:core:1.15.0'
+            force 'androidx.core:core-ktx:1.15.0'
+        }
+    }
 }
 
 rootProject.buildDir = "../build"

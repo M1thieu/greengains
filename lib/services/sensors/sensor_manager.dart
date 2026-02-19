@@ -1,5 +1,6 @@
 import 'dart:async';
 import '../location/foreground_location_service.dart';
+import '../../models/sensor_models.dart';
 
 /// Unified sensor data access layer.
 ///
@@ -32,25 +33,25 @@ class SensorManager {
   /// Start the native foreground service and begin collecting sensor data.
   Future<void> start() async {
     if (_running) return;
-    await _foreground.startForegroundService();
+    await _foreground.start();
     _running = true;
   }
 
   /// Stop sensor collection and the foreground service.
   Future<void> stop() async {
     if (!_running) return;
-    await _foreground.stopForegroundService();
+    await _foreground.stop();
     _running = false;
   }
 
   /// Pause tracking without stopping the service.
   Future<void> pause() async {
-    await _foreground.pauseForegroundService();
+    await _foreground.pauseTracking();
   }
 
   /// Resume tracking after a pause.
   Future<void> resume() async {
-    await _foreground.resumeForegroundService();
+    await _foreground.resumeTracking();
   }
 
   /// Check if the native service is currently running.

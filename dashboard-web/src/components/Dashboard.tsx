@@ -1,196 +1,75 @@
 import { useState, useRef, useEffect } from 'react'
+import { toast } from 'sonner'
 import SensorChart from './SensorChart'
 import CoverageMap from './CoverageMap'
 import CommandPalette from './CommandPalette'
-import FilterPanel, { FilterState } from './FilterPanel'
+import FilterPanel from './FilterPanel'
+import { type FilterState, DEFAULT_FILTERS, STORAGE_KEYS } from '../constants/filters'
+import { SENSORS } from '../constants/sensors'
 import { KPISkeleton, ChartSkeleton, CoverageSkeleton } from './LoadingSkeleton'
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts'
+import { useDashboardData } from '../hooks/useDashboardData'
+import { usePersistedUIState } from '../hooks/usePersistedUIState'
 import { exportToCsv, generateCsvFilename, prepareSensorDataForExport } from '../utils/export'
 import DataTable from './DataTable'
-import {
-  getAggregatedData,
-  getSensorReadings,
-  getCoverageData,
-  safeApiCall,
-  generateMockAggregatedData,
-  generateMockSensorReadings,
-  CoverageItem,
-} from '../api'
+import { getSensorReadings, safeApiCall, generateMockSensorReadings } from '../api'
 
 interface DashboardProps {
   onLogout: () => void
 }
 
-const sensorTabs = [
-  { name: 'Light',    color: '#fbbf24', icon: '●' },
-  { name: 'Movement', color: '#14b8a6', icon: '◈' },
-  { name: 'Pressure', color: '#0ea5e9', icon: '◆' },
-  { name: 'Quality',  color: '#10b981', icon: '✓' },
-]
-
 const navTabs = ['Overview', 'Aggregates', 'Coverage', 'Devices']
 
 export default function Dashboard({ onLogout }: DashboardProps) {
-  // UI State
-  const [activeNav, setActiveNav]           = useState('Overview')
-  const [timeRange, setTimeRange]           = useState('24h')
-  const [bucket, setBucket]                 = useState('5 minutes')
-  const [geohash, setGeohash]               = useState('')
-  const [selectedSensor, setSelectedSensor] = useState('Light')
+  const {
+    timeRange, bucket, selectedSensor,
+    setTimeRange, setBucket, setSelectedSensor,
+  } = usePersistedUIState()
+
+  const [activeNav, setActiveNav] = useState('Overview')
+  const [geohash, setGeohash] = useState('')
   const [dismissedAlerts, setDismissedAlerts] = useState<number[]>([])
-  const [isLoading, setIsLoading]           = useState(true)
   const [appliedGeohash, setAppliedGeohash] = useState('')
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false)
   const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false)
-  const [filters, setFilters] = useState<FilterState>({
-    qualityMin: 0.0,
-    qualityMax: 1.0,
-    lightMin: 0,
-    lightMax: 1000,
-    minDevices: 1,
+
+  const [filters, setFilters] = useState<FilterState>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEYS.FILTERS)
+      if (saved) return JSON.parse(saved)
+    } catch { /* ignore */ }
+    return DEFAULT_FILTERS
   })
+
   const [isExporting, setIsExporting] = useState(false)
   const filterButtonRef = useRef<HTMLButtonElement>(null)
 
-  // API Data State
-  const [kpis, setKpis] = useState<Array<{ label: string; value: string; sub: string; trend: string; up: boolean; color: string }>>([
-    { label: 'Total Samples', value: '—', sub: '24 windows',    trend: '+0%', up: true,  color: '#10b981' },
-    { label: 'Avg Light',     value: '—', sub: 'lux',            trend: '+0%', up: true,  color: '#fbbf24' },
-    { label: 'Avg Devices',   value: '—', sub: 'per location',   trend: '+0%', up: true,  color: '#0ea5e9' },
-    { label: 'Quality',       value: '—', sub: 'valid readings', trend: '+0%', up: true,  color: '#14b8a6' },
-  ])
-  const [alerts, setAlerts] = useState<Array<{ level: string; msg: string; time: string }>>([
-    { level: 'info', msg: 'Loading alerts...', time: 'just now' },
-  ])
-  const [sensorReadings, setSensorReadings] = useState<any[]>([])
-  const [coverageData, setCoverageData] = useState<CoverageItem[]>([])
-  const [isCoverageLoading, setIsCoverageLoading] = useState(true)
-  const [apiError, setApiError] = useState<string | null>(null)
-  const [activeSensorCount, setActiveSensorCount] = useState<number>(0)
-
-  // Fetch aggregated data on mount and when filters change
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setIsLoading(true)
-        setApiError(null)
-
-        // Convert timeRange to from/to dates for backend
-        const now = new Date()
-        const days = timeRange === '24h' ? 1 : timeRange === '7d' ? 7 : timeRange === '30d' ? 30 : 90
-        const from = new Date(now.getTime() - days * 24 * 60 * 60 * 1000).toISOString()
-        const to = now.toISOString()
-
-        // Convert bucket to backend format (5m or day)
-        const bucketMap: Record<string, string> = {
-          '5 minutes': '5m',
-          '1 hour': '5m',
-          '1 day': 'day',
-        }
-
-        // Fetch aggregated data with current filters
-        const params: Record<string, string | number> = {
-          from,
-          to,
-          bucket: bucketMap[bucket] || '5m',
-        }
-        if (geohash) params.geohash = geohash
-
-        const data = await safeApiCall(
-          () => getAggregatedData(params),
-          () => generateMockAggregatedData()
-        )
-
-        // Transform API response to KPI format
-        if (data.summary) {
-          setActiveSensorCount(data.summary.activeSensors)
-          const lightSensor = data.sensors.find((s) => s.type === 'Light')
-          const qualityPct = data.summary.averageQuality > 0
-            ? (data.summary.averageQuality * 100).toFixed(0) + '%'
-            : '—'
-          setKpis([
-            {
-              label: 'Total Samples',
-              value: data.summary.totalReadings > 1000 ? `${(data.summary.totalReadings / 1000).toFixed(1)}K` : String(data.summary.totalReadings),
-              sub: 'readings',
-              trend: '',
-              up: true,
-              color: '#10b981',
-            },
-            {
-              label: 'Avg Light',
-              value: lightSensor?.avgValue && lightSensor.avgValue > 0 ? lightSensor.avgValue.toFixed(0) : '—',
-              sub: 'lux',
-              trend: '',
-              up: true,
-              color: '#fbbf24',
-            },
-            {
-              label: 'Active Devices',
-              value: data.summary.activeSensors > 0 ? String(data.summary.activeSensors) : '—',
-              sub: 'max concurrent',
-              trend: '',
-              up: true,
-              color: '#0ea5e9',
-            },
-            {
-              label: 'Avg Quality',
-              value: qualityPct,
-              sub: 'valid readings',
-              trend: '',
-              up: true,
-              color: '#14b8a6',
-            },
-          ])
-        }
-
-        // Fetch sensor readings for chart
-        const readings = await safeApiCall(
-          () => getSensorReadings(selectedSensor, params),
-          () => generateMockSensorReadings(selectedSensor)
-        )
-        setSensorReadings(readings)
-
-        // Fetch coverage data in parallel
-        setIsCoverageLoading(true)
-        const hours = timeRange === '24h' ? 24 : timeRange === '7d' ? 168 : 168
-        safeApiCall(
-          () => getCoverageData({ hours }),
-          () => []
-        ).then((coverage) => {
-          setCoverageData(coverage)
-          setIsCoverageLoading(false)
-        })
-
-        // Update alerts from real data context
-        setAlerts([
-          { level: 'info', msg: `${selectedSensor} data refreshed · ${timeRange}`, time: 'just now' },
-          ...(data.summary.activeSensors > 0
-            ? [{ level: 'info', msg: `${data.summary.activeSensors} devices active in window`, time: 'now' }]
-            : []),
-        ])
-      } catch (error) {
-        const message = error instanceof Error ? error.message : 'Failed to fetch data'
-        setApiError(message)
-        console.error('Data fetch error:', error)
-        // Still set mock data so dashboard doesn't break
-        setKpis([
-          { label: 'Total Samples', value: '—', sub: '24 windows', trend: '+0%', up: true, color: '#10b981' },
-          { label: 'Avg Light', value: '—', sub: 'lux', trend: '+0%', up: true, color: '#fbbf24' },
-          { label: 'Avg Devices', value: '—', sub: 'per location', trend: '+0%', up: true, color: '#0ea5e9' },
-          { label: 'Quality', value: '—', sub: 'valid readings', trend: '+0%', up: true, color: '#14b8a6' },
-        ])
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
-    fetchData()
-    // Dependencies: only primitive values, not objects (to avoid infinite loops)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [timeRange, bucket, geohash, selectedSensor])
+  // All data fetching delegated to hook
+  const {
+    kpis,
+    alerts,
+    sensorReadings,
+    coverageData,
+    isLoading,
+    isCoverageLoading,
+    apiError,
+    activeSensorCount,
+    lastRefreshed,
+  } = useDashboardData({ timeRange, bucket, geohash, selectedSensor })
 
   const systemOk = !apiError
+
+  // Persist filter changes
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEYS.FILTERS, JSON.stringify(filters))
+  }, [filters])
+
+  const formatLastRefreshed = (date: Date): string => {
+    const secs = Math.floor((Date.now() - date.getTime()) / 1000)
+    if (secs < 60) return `${secs}s ago`
+    const mins = Math.floor(secs / 60)
+    return `${mins}m ago`
+  }
 
   // Calculate active filter count
   const activeFilterCount = [
@@ -292,13 +171,7 @@ export default function Dashboard({ onLogout }: DashboardProps) {
   }
 
   const handleFilterReset = () => {
-    setFilters({
-      qualityMin: 0.0,
-      qualityMax: 1.0,
-      lightMin: 0,
-      lightMax: 1000,
-      minDevices: 1,
-    })
+    setFilters(DEFAULT_FILTERS)
   }
 
   const handleExportCsv = async () => {
@@ -321,29 +194,28 @@ export default function Dashboard({ onLogout }: DashboardProps) {
       }
 
       // Prepare and export
-      const prepared = prepareSensorDataForExport(dataToExport)
+      const prepared = prepareSensorDataForExport(dataToExport, selectedSensor)
       const filename = generateCsvFilename(selectedSensor, timeRange)
       exportToCsv(prepared, filename)
+
+      toast.success(`Exported ${prepared.length} readings`, {
+        description: `${selectedSensor} data · ${timeRange}`,
+        duration: 3000,
+      })
     } catch (error) {
       console.error('Export failed:', error)
-      alert('Failed to export data. Please try again.')
+      const message = error instanceof Error ? error.message : 'Failed to export data'
+      toast.error('Export failed', {
+        description: message,
+        duration: 4000,
+      })
     } finally {
       setIsExporting(false)
     }
   }
 
   const removeFilter = (filterType: keyof FilterState) => {
-    const defaults: FilterState = {
-      qualityMin: 0.0,
-      qualityMax: 1.0,
-      lightMin: 0,
-      lightMax: 1000,
-      minDevices: 1,
-    }
-    setFilters((prev) => ({
-      ...prev,
-      [filterType]: defaults[filterType],
-    }))
+    setFilters((prev) => ({ ...prev, [filterType]: DEFAULT_FILTERS[filterType] }))
   }
 
   return (
@@ -359,7 +231,9 @@ export default function Dashboard({ onLogout }: DashboardProps) {
           <span>{systemOk ? 'All systems operational' : 'Degraded — check alerts'}</span>
           <div className="flex items-center gap-5">
             <span className="text-slate-500">{activeSensorCount > 0 ? `${activeSensorCount} devices active` : 'No devices'}</span>
-            <span className="text-slate-500">{timeRange} window</span>
+            <span className="text-slate-500">
+              {lastRefreshed ? `Updated ${formatLastRefreshed(lastRefreshed)}` : `${timeRange} window`}
+            </span>
             <div className="flex items-center gap-1.5">
               <div className="pulse-live h-1.5 w-1.5 rounded-full bg-[#10b981]" />
               <span>Live</span>
@@ -495,7 +369,7 @@ export default function Dashboard({ onLogout }: DashboardProps) {
 
           {/* ── FILTER CHIPS ── */}
           {activeFilterCount > 0 && (
-            <div className="flex flex-wrap gap-2 pb-2 slide-in-down" style={{ animationDelay: '0ms' }}>
+            <div className="flex flex-wrap gap-2 pb-2">
               {(filters.qualityMin > 0.0 || filters.qualityMax < 1.0) && (
                 <button
                   onClick={() => removeFilter('qualityMin')}
@@ -540,7 +414,7 @@ export default function Dashboard({ onLogout }: DashboardProps) {
               {kpis.map((kpi, i) => (
                 <div
                   key={i}
-                  className="kpi-card rounded-lg overflow-hidden cursor-default slide-in-up hover-scale group"
+                  className="kpi-card rounded-lg overflow-hidden cursor-default hover-scale group"
                   style={{
                     background: `linear-gradient(135deg, rgba(13, 24, 33, 0.9) 0%, rgba(${
                       kpi.color === '#10b981' ? '16, 185, 129' :
@@ -555,24 +429,24 @@ export default function Dashboard({ onLogout }: DashboardProps) {
                       '20, 184, 166'
                     }, 0.2)`,
                     borderLeft: `3px solid ${kpi.color}`,
-                    animationDelay: `${i * 50}ms`
                   }}
                 >
                   <div className="px-5 py-4">
                     <p className="text-xs text-slate-400 uppercase tracking-widest mb-2">{kpi.label}</p>
                     <div className="flex items-end justify-between">
                       <p className="text-2xl font-bold text-white leading-none number-pop">{kpi.value}</p>
-                      <span className={`text-[10px] font-semibold mb-0.5 transition-all ${kpi.up ? 'text-[#10b981]' : 'text-red-400'}`}>
-                        {kpi.up ? '↑' : '↓'}
-                        {' '}{kpi.trend}
-                      </span>
+                      {kpi.trend && (
+                        <span className={`text-[10px] font-semibold mb-0.5 transition-all ${kpi.up ? 'text-[#10b981]' : 'text-red-400'}`}>
+                          {kpi.up ? '↑' : '↓'} {kpi.trend}
+                        </span>
+                      )}
                     </div>
                     <p className="text-xs text-slate-500 mt-1">{kpi.sub}</p>
                     {/* Accent fill bar */}
                     <div className="mt-3 h-px bg-slate-800 rounded-full overflow-hidden">
                       <div
                         className="h-full rounded-full transition-all duration-500"
-                        style={{ width: '72%', background: `${kpi.color}50` }}
+                        style={{ width: `${kpi.pct}%`, background: `${kpi.color}50` }}
                       />
                     </div>
                   </div>
@@ -583,7 +457,7 @@ export default function Dashboard({ onLogout }: DashboardProps) {
 
           {/* ── 4. ALERTS STRIP ── */}
           {alerts.filter((_, i) => !dismissedAlerts.includes(i)).length > 0 && (
-            <div className="rounded-lg overflow-hidden fade-in card-elevated" style={{ animationDelay: '100ms' }}>
+            <div className="rounded-lg overflow-hidden card-elevated">
               <div className="flex items-center justify-between px-5 py-3.5 bg-gradient-to-r from-slate-800/30 to-transparent border-b border-slate-800/60">
                 <div className="flex items-center gap-3">
                   <span className="text-[10px] text-slate-500 uppercase tracking-wider font-bold">Alerts</span>
@@ -604,7 +478,6 @@ export default function Dashboard({ onLogout }: DashboardProps) {
                     className={`flex items-start gap-3 px-5 py-3.5 group relative transition-all duration-300 hover:bg-gradient-to-r hover:from-slate-900/40 hover:to-transparent ${
                       a.level === 'warn' ? 'border-l-2 border-l-yellow-500/40' : 'border-l-2 border-l-blue-500/40'
                     }`}
-                    style={{ animation: `slide-in-right 0.4s ease-out`, animationDelay: `${i * 80}ms` }}
                   >
                     <div className={`mt-0.5 h-2.5 w-2.5 rounded-full flex-shrink-0 ${
                       a.level === 'warn' ? 'bg-yellow-500 pulse-glow' : 'bg-[#0ea5e9] pulse-glow'
@@ -630,12 +503,12 @@ export default function Dashboard({ onLogout }: DashboardProps) {
 
           {/* OVERVIEW TAB */}
           {activeNav === 'Overview' && (isLoading ? (
-            <div className="grid grid-cols-3 gap-6 fade-in">
+            <div className="grid grid-cols-3 gap-6">
               <ChartSkeleton />
               <CoverageSkeleton />
             </div>
           ) : (
-          <div className="grid grid-cols-3 gap-6 fade-in">
+          <div className="grid grid-cols-3 gap-6">
 
             {/* Sensor chart — 2/3 width */}
             <div
@@ -685,7 +558,7 @@ export default function Dashboard({ onLogout }: DashboardProps) {
 
               {/* Sensor type tabs */}
               <div className="flex border-b border-slate-700 px-6 bg-gradient-to-r from-slate-900/20 to-transparent">
-                {sensorTabs.map((tab) => (
+                {Object.values(SENSORS).map((tab) => (
                   <button
                     key={tab.name}
                     onClick={() => setSelectedSensor(tab.name)}
@@ -731,7 +604,7 @@ export default function Dashboard({ onLogout }: DashboardProps) {
           {/* AGGREGATES TAB */}
           {activeNav === 'Aggregates' && (
             <div
-              className="rounded-lg overflow-hidden fade-in"
+              className="rounded-lg overflow-hidden"
               style={{ background: 'rgba(13, 24, 33, 0.7)', border: '1px solid rgba(16, 185, 129, 0.15)' }}
             >
               <div className="px-6 py-4 border-b border-slate-800 flex items-center justify-between">
@@ -754,7 +627,7 @@ export default function Dashboard({ onLogout }: DashboardProps) {
           {/* COVERAGE TAB */}
           {activeNav === 'Coverage' && (
             <div
-              className="rounded-lg overflow-hidden fade-in"
+              className="rounded-lg overflow-hidden"
               style={{ background: 'rgba(13, 24, 33, 0.7)', border: '1px solid rgba(16, 185, 129, 0.15)' }}
             >
               <div className="px-6 py-4 border-b border-slate-800">
@@ -770,12 +643,30 @@ export default function Dashboard({ onLogout }: DashboardProps) {
           {/* DEVICES TAB */}
           {activeNav === 'Devices' && (
             <div
-              className="rounded-lg overflow-hidden fade-in p-8 text-center"
+              className="rounded-lg overflow-hidden p-8"
               style={{ background: 'rgba(13, 24, 33, 0.7)', border: '1px solid rgba(16, 185, 129, 0.15)' }}
             >
-              <p className="text-slate-300 text-sm font-medium">Device Fleet</p>
-              <p className="text-slate-500 text-xs mt-2">{activeSensorCount > 0 ? `${activeSensorCount} devices active` : 'No devices reporting'}</p>
-              <p className="text-slate-700 text-xs mt-4">Per-device analytics coming soon</p>
+              <div className="grid grid-cols-3 gap-6 mb-8">
+                <div className="border-l-3 border-l-[#10b981] pl-6">
+                  <p className="text-xs text-slate-500 uppercase tracking-widest">Active Devices</p>
+                  <p className="text-3xl font-bold text-white mt-2">{activeSensorCount}</p>
+                  <p className="text-xs text-slate-600 mt-1">concurrent in window</p>
+                </div>
+                <div className="border-l-3 border-l-[#fbbf24] pl-6">
+                  <p className="text-xs text-slate-500 uppercase tracking-widest">Data Quality</p>
+                  <p className="text-3xl font-bold text-white mt-2">{kpis.find(k => k.label === 'Avg Quality')?.value ?? '—'}</p>
+                  <p className="text-xs text-slate-600 mt-1">valid readings</p>
+                </div>
+                <div className="border-l-3 border-l-[#0ea5e9] pl-6">
+                  <p className="text-xs text-slate-500 uppercase tracking-widest">Time Window</p>
+                  <p className="text-3xl font-bold text-white mt-2">{timeRange}</p>
+                  <p className="text-xs text-slate-600 mt-1">selected period</p>
+                </div>
+              </div>
+              <div className="p-6 bg-slate-900/30 rounded-lg border border-slate-800/40">
+                <p className="text-sm text-slate-400">Per-device analytics and fleet management</p>
+                <p className="text-xs text-slate-600 mt-2">Detailed device profiles, health status, and performance trends coming soon.</p>
+              </div>
             </div>
           )}
         </div>

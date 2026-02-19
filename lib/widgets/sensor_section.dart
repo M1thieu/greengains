@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../core/themes.dart';
 import '../services/location/foreground_location_service.dart';
+import '../models/sensor_models.dart';
 import 'sensor_data_card.dart';
 
 /// Collapsible sensor readings section
