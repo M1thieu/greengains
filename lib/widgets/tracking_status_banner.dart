@@ -41,8 +41,8 @@ class TrackingStatusBanner extends StatelessWidget {
         iconColor: AppColors.error,
         backgroundColor: AppColors.error.withValues(alpha: 0.08),
         borderColor: AppColors.error.withValues(alpha: 0.35),
-        title: 'Upload Failed',
-        subtitle: errorMessage!,
+        title: 'Couldn\'t upload data',
+        subtitle: 'Check your connection and try again',
         showAccent: false,
       );
     }
@@ -69,8 +69,8 @@ class TrackingStatusBanner extends StatelessWidget {
     // Paused state
     if (isPaused) {
       final pausedSubtitle = lastUpload != null
-          ? 'Last upload before pause: ${TimeAgoService.format(lastUpload!)}'
-          : 'No recent uploads while paused';
+          ? 'Last contribution ${TimeAgoService.format(lastUpload!)}'
+          : 'No recent contributions';
       return _buildBanner(
         context: context,
         theme: theme,
@@ -95,7 +95,7 @@ class TrackingStatusBanner extends StatelessWidget {
       backgroundColor: AppColors.surfaceElevated(isDark),
       borderColor: AppColors.border(isDark),
       title: 'Tracking Off',
-      subtitle: 'Start tracking to contribute data',
+      subtitle: 'Tap Start to begin contributing',
       showAccent: false,
     );
   }
@@ -156,6 +156,8 @@ class TrackingStatusBanner extends StatelessWidget {
                     color: AppColors.textSecondary(isDark),
                     height: 1.3,
                   ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),

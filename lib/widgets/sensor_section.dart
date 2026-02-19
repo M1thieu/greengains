@@ -90,7 +90,7 @@ class _SensorSectionState extends State<SensorSection> {
     required bool hasData,
   }) {
     if (!isRunning) return 'Paused';
-    if (!hasData) return 'Waiting';
+    if (!hasData) return 'Connecting…';
     return 'Live';
   }
 
@@ -117,12 +117,14 @@ class _SensorSectionState extends State<SensorSection> {
               }
             },
             title: Text(
-              'Live sensor readings',
+              'Live readings',
               style: AppTheme.cardTitle(theme),
             ),
             subtitle: Text(
-              'Verify that tracking is active and data is streaming',
+              'See what data you\'re contributing right now',
               style: theme.textTheme.bodySmall,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
             children: [
               if (!isRunning)
@@ -174,7 +176,7 @@ class _SensorSectionState extends State<SensorSection> {
             const SizedBox(width: AppTheme.spaceSm),
             Expanded(
               child: Text(
-                'Live sensor feed active',
+                'Collecting first readings…',
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: AppColors.textPrimary(isDark),
                   fontWeight: AppFontWeights.semibold,
@@ -251,7 +253,7 @@ class _SensorSectionState extends State<SensorSection> {
         children: [
           // Environment Section
           Text(
-            'Environment',
+            'Around You',
             style: AppTheme.sectionHeader(theme, isDark),
           ),
           const SizedBox(height: AppTheme.spaceXs),
@@ -285,7 +287,7 @@ class _SensorSectionState extends State<SensorSection> {
 
           // Motion Section
           Text(
-            'Motion',
+            'Movement',
             style: AppTheme.sectionHeader(theme, isDark),
           ),
           const SizedBox(height: AppTheme.spaceXs),
@@ -300,13 +302,11 @@ class _SensorSectionState extends State<SensorSection> {
                   !widget.locationService.isPaused.value;
               return SensorDataCard(
                 icon: Icons.vibration,
-                title: 'Accelerometer',
+                title: 'Movement',
                 value: accel != null
-                    ? '${accel.magnitude.toStringAsFixed(1)} m/s^2'
+                    ? '${accel.magnitude.toStringAsFixed(1)} m/s²'
                     : null,
-                unit: accel != null
-                    ? '(${accel.x.toStringAsFixed(1)}, ${accel.y.toStringAsFixed(1)}, ${accel.z.toStringAsFixed(1)})'
-                    : 'm/s^2',
+                unit: 'Acceleration intensity',
                 enabled: isTracking,
                 statusLabel: _sensorStatus(
                   isRunning: isTracking,
@@ -326,14 +326,12 @@ class _SensorSectionState extends State<SensorSection> {
               final isTracking = widget.locationService.isRunning.value &&
                   !widget.locationService.isPaused.value;
               return SensorDataCard(
-                icon: Icons.rotate_90_degrees_ccw,
-                title: 'Gyroscope',
+                icon: Icons.screen_rotation,
+                title: 'Orientation',
                 value: gyro != null
-                    ? '${gyro.magnitude.toStringAsFixed(2)} rad/s'
+                    ? '${gyro.magnitude.toStringAsFixed(2)} °/s'
                     : null,
-                unit: gyro != null
-                    ? '(${gyro.x.toStringAsFixed(2)}, ${gyro.y.toStringAsFixed(2)}, ${gyro.z.toStringAsFixed(2)})'
-                    : 'rad/s',
+                unit: 'Rotation speed',
                 enabled: isTracking,
                 statusLabel: _sensorStatus(
                   isRunning: isTracking,
@@ -354,11 +352,11 @@ class _SensorSectionState extends State<SensorSection> {
                   !widget.locationService.isPaused.value;
               return SensorDataCard(
                 icon: Icons.compress,
-                title: 'Barometer',
+                title: 'Air Pressure',
                 value: data != null
                     ? '${data.hPa.toStringAsFixed(1)} hPa'
                     : null,
-                unit: 'Atmospheric Pressure',
+                unit: 'Atmospheric pressure',
                 enabled: isTracking,
                 statusLabel: _sensorStatus(
                   isRunning: isTracking,

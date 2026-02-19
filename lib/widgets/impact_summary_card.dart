@@ -29,7 +29,7 @@ class ImpactSummaryCard extends StatelessWidget {
     }
     // Each tile is roughly 156m x 156m = ~24,000 m^2 = 0.024 km^2
     final area = (tileCoverage!.totalTiles * 0.024).toStringAsFixed(1);
-    return '$area km^2 covered';
+    return '$area km² covered';
   }
 
   String _formatDaysActive() {
@@ -161,41 +161,6 @@ class ImpactSummaryCard extends StatelessWidget {
             ],
           ),
 
-          // Today's stats divider + row
-          if (hasData) ...[
-            const SizedBox(height: AppTheme.spaceMd),
-            Container(
-              height: 1,
-              color: AppColors.divider(isDark),
-            ),
-            const SizedBox(height: AppTheme.spaceMd),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                _TodayStat(
-                  label: 'Total',
-                  value: '${stats!.totalUploads}',
-                  isDark: isDark,
-                ),
-                Container(width: 1, height: 24, color: AppColors.divider(isDark)),
-                _TodayStat(
-                  label: 'Today',
-                  value: '${stats!.uploadsToday}',
-                  isDark: isDark,
-                ),
-                if (stats!.currentStreak > 0) ...[
-                  Container(width: 1, height: 24, color: AppColors.divider(isDark)),
-                  _TodayStat(
-                    label: 'Streak',
-                    value: '${stats!.currentStreak}d',
-                    isDark: isDark,
-                    icon: Icons.local_fire_department,
-                    iconColor: stats!.currentStreak >= 3 ? AppColors.warning : null,
-                  ),
-                ],
-              ],
-            ),
-          ],
         ],
       ),
     );
@@ -251,6 +216,8 @@ class _ImpactMetric extends StatelessWidget {
             letterSpacing: -0.2,
           ),
           textAlign: TextAlign.center,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
         ),
         const SizedBox(height: 2),
         Text(
@@ -269,54 +236,3 @@ class _ImpactMetric extends StatelessWidget {
   }
 }
 
-/// Compact today stat display (for merged card)
-class _TodayStat extends StatelessWidget {
-  final String label;
-  final String value;
-  final bool isDark;
-  final IconData? icon;
-  final Color? iconColor;
-
-  const _TodayStat({
-    required this.label,
-    required this.value,
-    required this.isDark,
-    this.icon,
-    this.iconColor,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        if (icon != null) ...[
-          Icon(
-            icon,
-            size: 16,
-            color: iconColor ?? AppColors.primary,
-          ),
-          const SizedBox(height: 2),
-        ],
-        Text(
-          value,
-          style: theme.textTheme.titleMedium?.copyWith(
-            fontWeight: AppFontWeights.semibold,
-            color: AppColors.textPrimary(isDark),
-            letterSpacing: -0.2,
-          ),
-        ),
-        const SizedBox(height: 2),
-        Text(
-          label,
-          style: theme.textTheme.bodySmall?.copyWith(
-            color: AppColors.textSecondary(isDark),
-            fontSize: 12,
-          ),
-        ),
-      ],
-    );
-  }
-}

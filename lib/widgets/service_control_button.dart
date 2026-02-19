@@ -135,10 +135,12 @@ class _ServiceControlButtonState extends State<ServiceControlButton>
       }
     } catch (e) {
       if (!mounted) return;
-      AppSnackbars.showError(
-        context,
-        'Failed to $actionLabel tracking: $e',
-      );
+      final msg = actionLabel == 'start'
+          ? 'Couldn\'t start tracking — please try again.'
+          : actionLabel == 'resume'
+              ? 'Couldn\'t resume — please try again.'
+              : 'Couldn\'t pause — please try again.';
+      AppSnackbars.showError(context, msg);
     } finally {
       if (mounted) {
         setState(() {
@@ -156,7 +158,7 @@ class _ServiceControlButtonState extends State<ServiceControlButton>
       if (mounted) {
         AppSnackbars.showInfo(
           context,
-          'Location permission denied. Please allow access to start tracking.',
+          'Location access is needed to track your contributions.',
         );
       }
       return false;
@@ -272,10 +274,14 @@ class _ServiceControlButtonState extends State<ServiceControlButton>
                         ),
                       Text(
                         _isTogglingService
-                            ? 'Processing...'
+                            ? (!isRunning
+                                ? 'Starting…'
+                                : isPaused
+                                    ? 'Resuming…'
+                                    : 'Pausing…')
                             : isRunning
-                                ? (isPaused ? 'Resume Tracking' : 'Pause Tracking')
-                                : 'Start Tracking',
+                                ? (isPaused ? 'Resume' : 'Pause')
+                                : 'Start Contributing',
                       ),
                     ],
                   ),

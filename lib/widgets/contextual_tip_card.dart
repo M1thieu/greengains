@@ -63,15 +63,18 @@ class ContextualTipCard extends StatelessWidget {
                         style: theme.textTheme.titleSmall?.copyWith(
                           fontWeight: AppFontWeights.semibold,
                         ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                     IconButton(
                       icon: const Icon(Icons.close, size: 18),
                       onPressed: onDismiss,
+                      tooltip: 'Dismiss',
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(
-                        minWidth: 32,
-                        minHeight: 32,
+                        minWidth: 48,
+                        minHeight: 48,
                       ),
                       color: AppColors.textSecondary(isDark),
                     ),

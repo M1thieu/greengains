@@ -43,7 +43,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(),
+      appBar: AppBar(title: const Text('Settings')),
       body: ListView(
         padding: AppTheme.pagePadding,
         children: [
@@ -384,7 +384,7 @@ class _SettingsNavRow extends StatelessWidget {
               ],
             ),
           ),
-          const Icon(Icons.chevron_right),
+          const ExcludeSemantics(child: Icon(Icons.chevron_right)),
         ],
       ),
     );

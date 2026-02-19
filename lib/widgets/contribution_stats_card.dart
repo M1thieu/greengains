@@ -350,8 +350,8 @@ class ContributionStatsCardState extends State<ContributionStatsCard>
                       _buildCompactStat(
                         theme,
                         isDark,
-                        label: 'Streak',
-                        value: '${_stats.currentStreak}d',
+                        label: 'Day Streak',
+                        value: '${_stats.currentStreak}',
                         icon: Icons.local_fire_department,
                         iconColor: hasStreak ? AppColors.warning : (AppColors.textSecondary(isDark)),
                       ),
@@ -365,7 +365,6 @@ class ContributionStatsCardState extends State<ContributionStatsCard>
                     prefix: 'Updated ',
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: AppColors.textSecondary(isDark).withValues(alpha: 0.7),
-                      fontSize: 11,
                     ),
                   ),
                 ],
