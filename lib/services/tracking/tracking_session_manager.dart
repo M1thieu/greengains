@@ -40,17 +40,24 @@ class TrackingSessionManager {
 
       // Check if foreground service is actually running
       final isServiceEnabled = _prefs.foregroundServiceEnabled;
+      final wasPaused = _prefs.trackingPaused;
 
-      if (isServiceEnabled) {
-        // Session is valid - restore state
+      if (isServiceEnabled && !wasPaused) {
+        // Service was actively running - restore state and let it auto-restart
         _isTrackingNotifier.value = true;
         debugPrint('Restored active tracking session: $_currentSessionId (started at $_sessionStartTime)');
       } else {
-        // Service was stopped but session wasn't closed - close it now
-        debugPrint('Found orphaned tracking session - closing it');
-        await _db.stopTrackingSession(endedReason: 'service_stopped_externally');
+        // Service was stopped OR paused when app was killed - close the session
+        final reason = wasPaused ? 'session_paused_app_killed' : 'service_stopped_externally';
+        debugPrint('Closing orphaned session (reason: $reason)');
+        await _db.stopTrackingSession(endedReason: reason);
         _currentSessionId = null;
         _sessionStartTime = null;
+        // If the service was paused, reset prefs so it doesn't auto-restart on relaunch
+        if (wasPaused) {
+          await _prefs.setForegroundServiceEnabled(false);
+          await _prefs.setTrackingPaused(false);
+        }
       }
     }
 

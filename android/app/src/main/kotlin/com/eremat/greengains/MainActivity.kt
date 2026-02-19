@@ -14,6 +14,7 @@ import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.eremat.greengains.service.ForegroundService
+import com.eremat.greengains.util.AppLogger
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
@@ -30,6 +31,8 @@ class MainActivity : FlutterActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        AppLogger.init(this)
+        AppLogger.i("MainActivity", "App started")
         checkAndRequestNotificationPermission()
     }
 
@@ -86,6 +89,26 @@ class MainActivity : FlutterActivity() {
                     "flushSensorBuffers" -> {
                         // Flush FIFO buffers to get fresh data in UI
                         result.success(sendServiceAction(ForegroundService.ACTION_FLUSH_FIFO))
+                    }
+                    else -> result.notImplemented()
+                }
+            }
+
+        // Logging channel for debugging and analytics
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "greengains/logger")
+            .setMethodCallHandler { call, result ->
+                when (call.method) {
+                    "readLogs" -> {
+                        val logs = AppLogger.getInstance().readLogs()
+                        result.success(logs)
+                    }
+                    "clearLogs" -> {
+                        AppLogger.getInstance().clearLogs()
+                        result.success(true)
+                    }
+                    "getLogFileSizeBytes" -> {
+                        val size = AppLogger.getInstance().getLogFileSizeBytes()
+                        result.success(size)
                     }
                     else -> result.notImplemented()
                 }

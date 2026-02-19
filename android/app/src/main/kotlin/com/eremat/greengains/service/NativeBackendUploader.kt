@@ -12,6 +12,7 @@ import com.eremat.greengains.models.PocketState
 import com.eremat.greengains.models.QualityMetadata
 import com.eremat.greengains.models.SensorReading
 import com.eremat.greengains.util.AppPrefs
+import com.eremat.greengains.util.AppLogger
 import android.content.ContentValues
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
@@ -233,6 +234,9 @@ class NativeBackendUploader(
             val builtRequest = request.post(jsonPayload.toRequestBody("application/json".toMediaType())).build()
 
             totalUploadsAttempted++
+            val attemptLog = "Attempt #$totalUploadsAttempted: Uploading ${readings.size} readings"
+            Log.i(TAG, attemptLog)
+            AppLogger.i("NativeUploader", attemptLog)
 
             val response = httpClient.newCall(builtRequest).execute()
             response.use {
@@ -240,23 +244,34 @@ class NativeBackendUploader(
                     handleSuccess(readings.size, it.code)
                 } else {
                     val errorBody = it.body?.string()
+                    val errorMsg = "HTTP ${it.code}: ${errorBody ?: "empty body"}"
+                    Log.e(TAG, "Upload #$totalUploadsAttempted FAILED: $errorMsg")
+                    AppLogger.e("NativeUploader", "Upload #$totalUploadsAttempted FAILED: $errorMsg")
                     handleFailure(
                         readings,
-                        "HTTP ${it.code}: ${errorBody ?: "empty body"}"
+                        errorMsg
                     )
                 }
             }
         } catch (ioe: IOException) {
-            handleFailure(readings, "Network error: ${ioe.message}")
+            val msg = "Network error: ${ioe.message}"
+            Log.e(TAG, "Upload #$totalUploadsAttempted FAILED: $msg", ioe)
+            AppLogger.e("NativeUploader", "Upload #$totalUploadsAttempted FAILED: $msg", ioe)
+            handleFailure(readings, msg)
         } catch (t: Throwable) {
-            handleFailure(readings, "Unexpected error: ${t.message}")
+            val msg = "Unexpected error: ${t.message}"
+            Log.e(TAG, "Upload #$totalUploadsAttempted FAILED: $msg", t)
+            AppLogger.e("NativeUploader", "Upload #$totalUploadsAttempted FAILED: $msg", t)
+            handleFailure(readings, msg)
         }
     }
 
     private fun handleSuccess(batchSize: Int, statusCode: Int) {
         totalUploadsSucceeded++
         lastUploadTime = System.currentTimeMillis()
-        Log.i(TAG, "Upload succeeded. batch=$batchSize status=$statusCode total=$totalUploadsSucceeded")
+        val logMsg = "Upload succeeded. batch=$batchSize status=$statusCode total=$totalUploadsSucceeded"
+        Log.i(TAG, logMsg)
+        AppLogger.i("NativeUploader", logMsg)
 
         // Save upload timestamp to SharedPreferences so Flutter can read it on resume
         // Format as ISO8601 string to match Flutter's expectation

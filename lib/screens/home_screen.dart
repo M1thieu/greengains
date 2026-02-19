@@ -197,15 +197,17 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   Future<void> _checkServiceStatus() async {
     final isRunning = await _locationService.isServiceRunning();
 
-    // Auto-restart service if it was running before but got killed (e.g., force-stop)
     if (!isRunning && _prefs.foregroundServiceEnabled) {
-      debugPrint('Service was running before but is now stopped. Auto-restarting...');
-      final wasPaused = _prefs.trackingPaused;
-      await _locationService.start();
-      // Restore paused state if it was paused before the kill
-      if (wasPaused) {
-        await _locationService.pauseTracking();
-        debugPrint('Restored paused state after auto-restart');
+      if (_prefs.trackingPaused) {
+        // Service was paused when app was killed - treat as stopped, don't auto-restart
+        // (TrackingSessionManager.initialize() should have already cleaned this up)
+        debugPrint('Service was paused when killed - not auto-restarting');
+        await _prefs.setForegroundServiceEnabled(false);
+        await _prefs.setTrackingPaused(false);
+      } else {
+        // Service was actively running - auto-restart
+        debugPrint('Service was running before but is now stopped. Auto-restarting...');
+        await _locationService.start();
       }
     }
   }

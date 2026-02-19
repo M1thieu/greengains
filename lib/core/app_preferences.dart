@@ -83,6 +83,18 @@ class AppPreferences {
       PreferenceKeys.lastUploadAt,
       PreferenceKeys._legacyLastUploadAt,
     );
+
+    // Clean up stale single-prefixed Android keys.
+    // Flutter's shared_preferences plugin adds a "flutter." prefix, so
+    // Flutter key 'tracking_paused' → Android: 'flutter.tracking_paused'.
+    // Native Kotlin now reads the double-prefixed keys (flutter.flutter.*).
+    // Removing legacy Flutter keys prevents Kotlin from reading stale values
+    // if AppPrefs.kt is ever reverted.
+    await prefs.remove(PreferenceKeys._legacyTrackingPaused);
+    await prefs.remove(PreferenceKeys._legacyForegroundServiceEnabled);
+    await prefs.remove(PreferenceKeys._legacyShareLocation);
+    await prefs.remove(PreferenceKeys._legacyLastUploadAt);
+    await prefs.remove(PreferenceKeys._legacyDeviceId);
   }
 
   Future<void> _migrateBoolKey(

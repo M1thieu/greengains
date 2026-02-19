@@ -8,6 +8,7 @@ import '../core/language_controller.dart';
 import '../core/app_preferences.dart';
 import '../l10n/app_localizations.dart';
 import 'webview_screen.dart';
+import 'debug_screen.dart';
 
 /// Settings screen for Data & Privacy, Themes, and Legal
 class SettingsScreen extends StatefulWidget {
@@ -211,11 +212,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
           const SizedBox(height: AppTheme.spaceLg),
 
           Center(
-            child: Text(
-              'Version $_version',
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.outline,
-              ),
+            child: Column(
+              children: [
+                Text(
+                  'Version $_version',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.outline,
+                  ),
+                ),
+                const SizedBox(height: AppTheme.spaceMd),
+                TextButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const DebugScreen()),
+                    );
+                  },
+                  child: const Text('View Debug Logs'),
+                ),
+              ],
             ),
           ),
         ],

@@ -235,9 +235,9 @@ class ForegroundLocationService {
     uploadStatus.value = uploadStatus.value.copyWith(
       lastUpload: AppPreferences.instance.lastUploadAt,
     );
-    _isRunningNotifier.value =
-        AppPreferences.instance.foregroundServiceEnabled;
-    _isPausedNotifier.value = AppPreferences.instance.trackingPaused;
+    // Note: isRunning and isPaused are NOT preloaded from prefs here.
+    // TrackingSessionManager.initialize() already resets prefs for paused sessions.
+    // HomeScreen._checkServiceStatus() calls isServiceRunning() to get authoritative state.
   }
 
   Future<bool> pauseTracking() => _guardStateChange(() async {

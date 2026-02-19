@@ -35,8 +35,6 @@ dependencies:
   intl: any
   # Aucune dépendance externe pour l'instant.
   # Prévisions (ne pas décommenter pour le moment):
-  sensors_plus: ^6.0.0
-  light: ^4.1.0
   firebase_core: ^4.1.1
   firebase_auth: ^6.1.0
   firebase_crashlytics: 5.0.7
@@ -50,7 +48,6 @@ dependencies:
   connectivity_plus: ^7.0.0
   uuid: ^4.4.0
   geolocator: ^11.0.0
-  battery_plus: ^6.0.0
   get_it: ^7.7.0
   dart_geohash: ^2.0.0
   h3_dart: ^0.7.0
@@ -62,9 +59,9 @@ dependencies:
   google_fonts: ^6.2.1
   flutter_map: ^8.2.2
   latlong2: ^0.9.1
+  timeago: ^3.7.0
+  dio: ^5.8.0+1
   # permission_handler
-  # http / dio
-  # shared_preferences (pour plus tard)
 
 dev_dependencies:
   flutter_test:

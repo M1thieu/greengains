@@ -129,9 +129,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         if (_currentPage > 0)
-                          OutlinedButton(
-                            onPressed: _previousPage,
-                            child: const Text('Previous'),
+                          SizedBox(
+                            width: 100,
+                            child: OutlinedButton(
+                              onPressed: _previousPage,
+                              child: const Text('Previous'),
+                            ),
                           )
                         else
                           const SizedBox(width: 100),
