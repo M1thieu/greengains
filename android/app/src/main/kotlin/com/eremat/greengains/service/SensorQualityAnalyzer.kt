@@ -127,9 +127,12 @@ internal class SensorQualityAnalyzer {
         val absGx = abs(gx)
         val absGy = abs(gy)
 
+        // Android accelerometer: z-axis points OUT of the screen.
+        // Face-up (screen facing ceiling): gravity is +9.8 on z → gz ≈ +1
+        // Face-down (screen facing floor): gravity is -9.8 on z → gz ≈ -1
         val state = when {
-            gz <= -FACE_THRESHOLD -> OrientationState.FACE_UP
-            gz >= FACE_THRESHOLD -> OrientationState.FACE_DOWN
+            gz >= FACE_THRESHOLD  -> OrientationState.FACE_UP
+            gz <= -FACE_THRESHOLD -> OrientationState.FACE_DOWN
             absGz < UPRIGHT_THRESHOLD -> {
                 when {
                     absGy - absGx > ORIENTATION_MARGIN -> OrientationState.UPRIGHT_PORTRAIT
@@ -175,6 +178,18 @@ internal class SensorQualityAnalyzer {
         lux: Float?,
         motionState: MotionState
     ): PocketState {
+        // Proximity available: use it as the primary authoritative signal.
+        // NEAR + dark = definitive pocket; FAR = definitely not in pocket (dark room ≠ pocket).
+        if (lastProximityNear != null) {
+            return when {
+                lastProximityNear == true -> PocketState.LIKELY
+                lux != null && lux > BRIGHT_ENV_LUX -> PocketState.UNLIKELY
+                else -> PocketState.UNKNOWN
+            }
+        }
+
+        // No proximity sensor — fall back to lux+tilt heuristic.
+        // This path fires on ~1% of modern phones without a proximity sensor.
         val tilt = orientationInfo.tiltDegrees
         if (lux == null || tilt == null) {
             return PocketState.UNKNOWN
