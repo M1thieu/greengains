@@ -122,7 +122,10 @@ nul
 .archive/
 docs/archive/
 
-# Dashboard build artifacts (source files tracked, not build output)
+# Dashboard — local only, deploy directly to Hostinger (not via GitHub)
+dashboard-web/src/
+dashboard-web/public/
+dashboard-web/index.html
 dashboard-web/.next/
 dashboard-web/out/
 dashboard-web/dist/
