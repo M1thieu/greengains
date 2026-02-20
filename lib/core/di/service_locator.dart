@@ -9,7 +9,7 @@ import '../../core/events/app_events.dart';
 import '../../core/app_preferences.dart';
 
 /// Global service locator instance
-/// Access via: getIt<ServiceType>()
+/// Access via: `getIt<ServiceType>()`
 final getIt = GetIt.instance;
 
 /// Initialize all dependencies
@@ -24,78 +24,23 @@ final getIt = GetIt.instance;
 /// }
 /// ```
 Future<void> setupServiceLocator() async {
-  print('[ServiceLocator] Initializing...');
-
-  // ===== CORE SERVICES (Singletons) =====
-
-  /// SQLite database instance
   getIt.registerSingleton<DatabaseHelper>(DatabaseHelper.instance);
-  print('[ServiceLocator] ✅ DatabaseHelper registered');
-
-  /// Event bus for reactive updates
   getIt.registerSingleton<AppEventBus>(AppEventBus.instance);
-  print('[ServiceLocator] ✅ AppEventBus registered');
 
-  /// SharedPreferences wrapper
-  await AppPreferences.instance.init(); // Ensure initialized
+  await AppPreferences.instance.init();
   getIt.registerSingleton<AppPreferences>(AppPreferences.instance);
-  print('[ServiceLocator] ✅ AppPreferences registered');
 
-  // ===== BUSINESS LOGIC SERVICES (Singletons) =====
-
-  /// Foreground location/sensor service
-  getIt.registerSingleton<ForegroundLocationService>(
-    ForegroundLocationService.instance,
-  );
-  print('[ServiceLocator] ✅ ForegroundLocationService registered');
-
-  /// Unified sensor manager (wraps ForegroundLocationService)
+  getIt.registerSingleton<ForegroundLocationService>(ForegroundLocationService.instance);
   getIt.registerSingleton<SensorManager>(SensorManager.instance);
-  print('[ServiceLocator] ✅ SensorManager registered');
-
-  /// Upload queue manager (retry failed uploads)
   getIt.registerSingleton<UploadQueueManager>(UploadQueueManager.instance);
-  print('[ServiceLocator] ✅ UploadQueueManager registered');
+  // DailyPotService requires Firebase — initialized in main.dart after Firebase.initializeApp()
+  getIt.registerSingleton<TrackingSessionManager>(TrackingSessionManager.instance);
 
-  // DailyPotService requires Firebase - initialized later in main.dart after Firebase.initializeApp()
-
-  /// Tracking session manager
-  getIt.registerSingleton<TrackingSessionManager>(
-    TrackingSessionManager.instance,
-  );
-  print('[ServiceLocator] ✅ TrackingSessionManager registered');
-
-  // ===== REPOSITORIES (Factories) =====
-  // Lightweight objects, can create new instances as needed
-
-  /// Contribution data repository
-  getIt.registerFactory<ContributionRepository>(
-    () => ContributionRepository(),
-  );
-  print('[ServiceLocator] ✅ ContributionRepository registered');
-
-  // ===== CONTROLLERS (Factories) =====
-  // Will be registered here as we create them
-  // Example:
-  // getIt.registerFactory<HomeController>(
-  //   () => HomeController(
-  //     contributionRepo: getIt<ContributionRepository>(),
-  //     locationService: getIt<ForegroundLocationService>(),
-  //   ),
-  // );
-
-  print('[ServiceLocator] ✅ All services registered successfully');
-}
-
-/// Reset service locator (useful for testing)
-/// DO NOT call in production code
-Future<void> resetServiceLocator() async {
-  await getIt.reset();
-  print('[ServiceLocator] ⚠️ Reset complete');
+  getIt.registerFactory<ContributionRepository>(() => ContributionRepository());
 }
 
 /// Extension for easier service access
-/// Usage: context.getService<MyService>() or this.getService<MyService>()
+/// Usage: `context.getService<MyService>()` or `this.getService<MyService>()`
 extension ServiceLocatorExtension on Object {
   T getService<T extends Object>() => getIt<T>();
 }

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import '../../data/models/contribution_stats.dart';
 import '../../data/models/daily_pot.dart';
 
@@ -18,7 +19,7 @@ class AppEventBus {
   /// Emit an event to all listeners
   void emit(AppEvent event) {
     _controller.add(event);
-    print('[EventBus] ${event.runtimeType}: ${event.debugInfo}');
+    debugPrint('[EventBus] ${event.runtimeType}: ${event.debugInfo}');
   }
 
   void dispose() {

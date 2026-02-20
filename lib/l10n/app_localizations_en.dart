@@ -9,57 +9,60 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
-  String get onboardingWelcomeTitle => 'Welcome to GreenGains';
+  String get onboardingWelcomeTitle => 'Your phone earns while you live';
 
   @override
   String get onboardingWelcomeSubtitle =>
-      'Help create greener cities by passively collecting environmental sensor data.';
+      'Install once, forget about it. We passively map environmental data in the background — you get rewarded for helping build a better picture of the world.';
 
   @override
-  String get onboardingFeature1Title => 'Passive Collection';
+  String get onboardingFeature1Title => 'Runs silently';
 
   @override
   String get onboardingFeature1Description =>
-      'Runs in the background while you go about your day. No interaction needed.';
+      'Works in the background while you commute, walk, or sleep. No tapping, no setup — ever again.';
 
   @override
-  String get onboardingFeature2Title => 'Privacy First';
+  String get onboardingFeature2Title => 'Anonymized by design';
 
   @override
   String get onboardingFeature2Description =>
-      'Location sharing is optional and uses coarse positioning only.';
+      'Sensor readings are bundled with thousands of others before leaving your device. No personal data, ever.';
 
   @override
-  String get onboardingFeature3Title => 'Track Your Impact';
+  String get onboardingFeature3Title => 'Watch your impact grow';
 
   @override
   String get onboardingFeature3Description =>
-      'See your contributions and help map environmental data for your city.';
+      'Your coverage map expands with every trip. Every contribution helps researchers and cities understand their environment.';
 
   @override
-  String get onboardingSignInTitle => 'Unlock Rewards';
+  String get onboardingSignInTitle => 'Unlock your rewards';
 
   @override
   String get onboardingSignInSubtitle =>
-      'Sign in to access daily pot rewards and sync your data across devices.';
+      'Sign in once to sync your progress and start earning daily rewards.';
 
   @override
-  String get onboardingDailyPotRewards => 'Daily Pot Rewards';
+  String get onboardingDailyPotRewards => 'Daily Rewards';
 
   @override
-  String get onboardingDailyPotDescription => 'Earn 10-100 credits every day';
+  String get onboardingDailyPotDescription =>
+      'Earn credits every day you contribute';
 
   @override
   String get onboardingCloudSync => 'Cloud Sync';
 
   @override
-  String get onboardingCloudSyncDescription => 'Access your data on any device';
+  String get onboardingCloudSyncDescription =>
+      'Access your stats on any device';
 
   @override
-  String get onboardingFutureFeatures => 'Future Features';
+  String get onboardingFutureFeatures => 'Coming Soon';
 
   @override
-  String get onboardingFutureDescription => 'Leaderboards and competitions';
+  String get onboardingFutureDescription =>
+      'Leaderboards, milestones, and competitions';
 
   @override
   String onboardingPrivacyNotice(String privacyPolicy, String termsOfService) {
@@ -421,6 +424,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get statsLast7Days => 'Last 7 days';
 
   @override
+  String get statsTodayLabel => 'TODAY';
+
+  @override
+  String get statsHistoryNote =>
+      'Weekly history will appear once you have multiple days of data';
+
+  @override
   String get statsContributionTimeline => 'Contribution Timeline';
 
   @override
@@ -557,6 +567,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get sensorMovement => 'Movement';
+
+  @override
+  String get sensorAcceleration => 'Acceleration';
 
   @override
   String get sensorLight => 'Light';
@@ -705,4 +718,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get statsDayStreak => 'Day Streak';
+
+  @override
+  String get offlineBannerMessage => 'No connection · data queued locally';
+
+  @override
+  String get statsWeeklyLabel => '7 DAYS';
+
+  @override
+  String statsWeeklyTotal(int count) => '$count this week';
 }

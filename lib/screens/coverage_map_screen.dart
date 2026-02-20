@@ -50,9 +50,8 @@ class _CoverageMapScreenState extends State<CoverageMapScreen> {
         _loading = false;
       });
     } else {
-      // Default to a reasonable center if no location available
+      // No location yet — map will center on tile data or use widget default
       setState(() {
-        _userLocation = LatLng(45.5017, -73.5673); // Montreal, Canada
         _loading = false;
       });
     }

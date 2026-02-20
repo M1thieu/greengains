@@ -86,8 +86,8 @@ class AppStateManager {
   }
 
   Future<bool> _hasDailyPotCache() async {
-    final user = await _prefs.ensureInitialized().then((_) => null); // No direct user access here
-    // This would need Firebase Auth access - simplified for now
+    await _prefs.ensureInitialized();
+    // Would need Firebase Auth access for per-user check — simplified for now
     return false;
   }
 

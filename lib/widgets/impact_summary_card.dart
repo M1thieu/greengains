@@ -117,7 +117,7 @@ class ImpactSummaryCard extends StatelessWidget {
         ),
         const SizedBox(height: 6),
 
-        // Hero number
+        // Hero number + unit label
         Text(
           '${stats!.totalUploads}',
           style: theme.textTheme.displaySmall?.copyWith(
@@ -125,6 +125,16 @@ class ImpactSummaryCard extends StatelessWidget {
             color: AppColors.primary,
             letterSpacing: -1,
             height: 1,
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          l10n.totalUploads.toUpperCase(),
+          style: TextStyle(
+            fontSize: 10,
+            fontWeight: AppFontWeights.semibold,
+            letterSpacing: 1.0,
+            color: AppColors.textSecondary(isDark),
           ),
         ),
 

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 /// Centralized color system following UI/UX design guide
 class AppColors {
@@ -421,9 +420,8 @@ class AppTheme {
   static const _seed = Color(0xFF059669); // Emerald 600 — drives Material 3 ColorScheme
 
   static TextTheme _buildTextTheme(TextTheme base, {required bool isDark}) {
-    // Use Roboto for EVERYTHING - clean, readable, consistent
-    // Merriweather (serif) looks TERRIBLE for numbers and modern UI
-    final body = GoogleFonts.robotoTextTheme(base);
+    // System font (Roboto on Android, SF Pro on iOS) — no extra download
+    final body = base;
     final textColor = isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary;
     final secondary = isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
     return body.copyWith(

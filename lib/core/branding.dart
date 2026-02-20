@@ -1,9 +1,6 @@
-/// Branding Constants
-///
-/// Single source of truth for app name and branding across the Flutter app.
-/// Update these values when rebranding - all references will update automatically.
-///
-/// CRITICAL: Package ID must NEVER change to avoid requiring reinstalls.
+// Single source of truth for app name and branding across the Flutter app.
+// Update these values when rebranding - all references will update automatically.
+// CRITICAL: Package ID must NEVER change to avoid requiring reinstalls.
 
 class Branding {
   Branding._(); // Private constructor - use static members only

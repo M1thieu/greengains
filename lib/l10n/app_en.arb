@@ -1,22 +1,22 @@
 {
   "@@locale": "en",
 
-  "onboardingWelcomeTitle": "Welcome to GreenGains",
-  "onboardingWelcomeSubtitle": "Help create greener cities by passively collecting environmental sensor data.",
-  "onboardingFeature1Title": "Passive Collection",
-  "onboardingFeature1Description": "Runs in the background while you go about your day. No interaction needed.",
-  "onboardingFeature2Title": "Privacy First",
-  "onboardingFeature2Description": "Location sharing is optional and uses coarse positioning only.",
-  "onboardingFeature3Title": "Track Your Impact",
-  "onboardingFeature3Description": "See your contributions and help map environmental data for your city.",
-  "onboardingSignInTitle": "Unlock Rewards",
-  "onboardingSignInSubtitle": "Sign in to access daily pot rewards and sync your data across devices.",
-  "onboardingDailyPotRewards": "Daily Pot Rewards",
-  "onboardingDailyPotDescription": "Earn 10-100 credits every day",
+  "onboardingWelcomeTitle": "Your phone earns while you live",
+  "onboardingWelcomeSubtitle": "Install once, forget about it. We passively map environmental data in the background — you get rewarded for helping build a better picture of the world.",
+  "onboardingFeature1Title": "Runs silently",
+  "onboardingFeature1Description": "Works in the background while you commute, walk, or sleep. No tapping, no setup — ever again.",
+  "onboardingFeature2Title": "Anonymized by design",
+  "onboardingFeature2Description": "Sensor readings are bundled with thousands of others before leaving your device. No personal data, ever.",
+  "onboardingFeature3Title": "Watch your impact grow",
+  "onboardingFeature3Description": "Your coverage map expands with every trip. Every contribution helps researchers and cities understand their environment.",
+  "onboardingSignInTitle": "Unlock your rewards",
+  "onboardingSignInSubtitle": "Sign in once to sync your progress and start earning daily rewards.",
+  "onboardingDailyPotRewards": "Daily Rewards",
+  "onboardingDailyPotDescription": "Earn credits every day you contribute",
   "onboardingCloudSync": "Cloud Sync",
-  "onboardingCloudSyncDescription": "Access your data on any device",
-  "onboardingFutureFeatures": "Future Features",
-  "onboardingFutureDescription": "Leaderboards and competitions",
+  "onboardingCloudSyncDescription": "Access your stats on any device",
+  "onboardingFutureFeatures": "Coming Soon",
+  "onboardingFutureDescription": "Leaderboards, milestones, and competitions",
   "onboardingPrivacyNotice": "By continuing, you agree to our {privacyPolicy} and {termsOfService}.",
   "@onboardingPrivacyNotice": {
     "placeholders": {
@@ -196,6 +196,8 @@
   "statsKeepContributing": "Keep contributing to track trends",
   "statsActivityTrend": "Activity Trend",
   "statsLast7Days": "Last 7 days",
+  "statsTodayLabel": "TODAY",
+  "statsHistoryNote": "Weekly history will appear once you have multiple days of data",
   "statsContributionTimeline": "Contribution Timeline",
   "statsAchievements": "Achievements",
   "statsEarnings": "Earnings",
@@ -253,6 +255,7 @@
   "sensorCollectingFirst": "Collecting first readings…",
   "sensorAroundYou": "Around You",
   "sensorMovement": "Movement",
+  "sensorAcceleration": "Acceleration",
   "sensorLight": "Light",
   "sensorMagneticField": "Magnetic Field",
   "sensorOrientation": "Orientation",
@@ -308,5 +311,16 @@
   "statsFailedToLoad": "Failed to load stats",
   "statsReadyToContribute": "Ready to contribute?",
   "statsFirstContributionHint": "Start tracking to make your first contribution",
-  "statsDayStreak": "Day Streak"
+  "statsDayStreak": "Day Streak",
+
+  "offlineBannerMessage": "No connection · data queued locally",
+
+  "statsWeeklyLabel": "7 DAYS",
+
+  "statsWeeklyTotal": "{count} this week",
+  "@statsWeeklyTotal": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  }
 }

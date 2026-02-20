@@ -1,22 +1,22 @@
 {
   "@@locale": "fr",
 
-  "onboardingWelcomeTitle": "Bienvenue sur GreenGains",
-  "onboardingWelcomeSubtitle": "Aidez à créer des villes plus vertes en collectant passivement des données environnementales.",
-  "onboardingFeature1Title": "Collection passive",
-  "onboardingFeature1Description": "Fonctionne en arrière-plan pendant vos activités. Aucune interaction nécessaire.",
-  "onboardingFeature2Title": "Confidentialité d'abord",
-  "onboardingFeature2Description": "Le partage de position est optionnel et utilise uniquement une localisation approximative.",
-  "onboardingFeature3Title": "Suivez votre impact",
-  "onboardingFeature3Description": "Visualisez vos contributions et aidez à cartographier les données environnementales de votre ville.",
-  "onboardingSignInTitle": "Débloquez des récompenses",
-  "onboardingSignInSubtitle": "Connectez-vous pour accéder aux récompenses quotidiennes et synchroniser vos données.",
-  "onboardingDailyPotRewards": "Pot quotidien",
-  "onboardingDailyPotDescription": "Gagnez 10 à 100 crédits chaque jour",
+  "onboardingWelcomeTitle": "Votre téléphone gagne pendant que vous vivez",
+  "onboardingWelcomeSubtitle": "Installez une fois, oubliez-le. Nous cartographions passivement l'environnement en arrière-plan — vous êtes récompensé pour contribuer à une meilleure compréhension du monde.",
+  "onboardingFeature1Title": "Fonctionne silencieusement",
+  "onboardingFeature1Description": "Actif en arrière-plan pendant vos trajets, promenades ou sommeil. Aucune interaction nécessaire, jamais.",
+  "onboardingFeature2Title": "Anonymisé par conception",
+  "onboardingFeature2Description": "Les lectures de capteurs sont regroupées avec des milliers d'autres avant de quitter votre appareil. Aucune donnée personnelle.",
+  "onboardingFeature3Title": "Regardez votre impact grandir",
+  "onboardingFeature3Description": "Votre carte de couverture s'étend à chaque trajet. Chaque contribution aide chercheurs et villes à comprendre leur environnement.",
+  "onboardingSignInTitle": "Débloquez vos récompenses",
+  "onboardingSignInSubtitle": "Connectez-vous une fois pour synchroniser vos progrès et commencer à gagner des récompenses quotidiennes.",
+  "onboardingDailyPotRewards": "Récompenses quotidiennes",
+  "onboardingDailyPotDescription": "Gagnez des crédits chaque jour que vous contribuez",
   "onboardingCloudSync": "Synchronisation cloud",
-  "onboardingCloudSyncDescription": "Accédez à vos données depuis n'importe quel appareil",
-  "onboardingFutureFeatures": "Fonctionnalités futures",
-  "onboardingFutureDescription": "Classements et compétitions",
+  "onboardingCloudSyncDescription": "Accédez à vos statistiques depuis n'importe quel appareil",
+  "onboardingFutureFeatures": "Bientôt disponible",
+  "onboardingFutureDescription": "Classements, jalons et compétitions",
   "onboardingPrivacyNotice": "En continuant, vous acceptez notre {privacyPolicy} et nos {termsOfService}.",
   "@onboardingPrivacyNotice": {
     "placeholders": {
@@ -196,6 +196,8 @@
   "statsKeepContributing": "Continuez à contribuer pour suivre les tendances",
   "statsActivityTrend": "Tendance d'activité",
   "statsLast7Days": "7 derniers jours",
+  "statsTodayLabel": "AUJOURD'HUI",
+  "statsHistoryNote": "L'historique hebdomadaire apparaîtra après plusieurs jours de données",
   "statsContributionTimeline": "Historique des contributions",
   "statsAchievements": "Réalisations",
   "statsEarnings": "Gains",
@@ -253,6 +255,7 @@
   "sensorCollectingFirst": "Collecte des premières lectures…",
   "sensorAroundYou": "Autour de vous",
   "sensorMovement": "Mouvement",
+  "sensorAcceleration": "Accélération",
   "sensorLight": "Lumière",
   "sensorMagneticField": "Champ magnétique",
   "sensorOrientation": "Orientation",
@@ -308,5 +311,16 @@
   "statsFailedToLoad": "Impossible de charger les statistiques",
   "statsReadyToContribute": "Prêt à contribuer ?",
   "statsFirstContributionHint": "Commencez le suivi pour faire votre première contribution",
-  "statsDayStreak": "Jours de suite"
+  "statsDayStreak": "Jours de suite",
+
+  "offlineBannerMessage": "Hors connexion · données en attente",
+
+  "statsWeeklyLabel": "7 JOURS",
+
+  "statsWeeklyTotal": "{count} cette semaine",
+  "@statsWeeklyTotal": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  }
 }

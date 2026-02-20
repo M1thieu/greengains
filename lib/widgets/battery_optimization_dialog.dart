@@ -29,7 +29,7 @@ class BatteryOptimizationDialog extends StatelessWidget {
       if (context.mounted) {
         Navigator.of(context).pop();
       }
-    } on PlatformException catch (e) {
+    } on PlatformException {
       if (context.mounted) {
         AppSnackbars.showError(context, 'Unable to open battery settings');
       }

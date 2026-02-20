@@ -54,8 +54,8 @@ class TrackingStatusChip extends StatelessWidget {
                 letterSpacing: 0.1,
               ),
             ),
-            // Last upload (only when tracking)
-            if (isTracking && !isPaused && lastUpload != null) ...[
+            // Last upload (tracking or paused — hidden only when fully stopped)
+            if ((isTracking || isPaused) && lastUpload != null) ...[
               const SizedBox(width: 6),
               Container(width: 1, height: 12, color: Colors.white24),
               const SizedBox(width: 6),

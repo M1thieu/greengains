@@ -9,59 +9,61 @@ class AppLocalizationsFr extends AppLocalizations {
   AppLocalizationsFr([String locale = 'fr']) : super(locale);
 
   @override
-  String get onboardingWelcomeTitle => 'Bienvenue sur GreenGains';
+  String get onboardingWelcomeTitle =>
+      'Votre téléphone gagne pendant que vous vivez';
 
   @override
   String get onboardingWelcomeSubtitle =>
-      'Aidez à créer des villes plus vertes en collectant passivement des données environnementales.';
+      'Installez une fois, oubliez-le. Nous cartographions passivement l\'environnement en arrière-plan — vous êtes récompensé pour contribuer à une meilleure compréhension du monde.';
 
   @override
-  String get onboardingFeature1Title => 'Collection passive';
+  String get onboardingFeature1Title => 'Fonctionne silencieusement';
 
   @override
   String get onboardingFeature1Description =>
-      'Fonctionne en arrière-plan pendant vos activités. Aucune interaction nécessaire.';
+      'Actif en arrière-plan pendant vos trajets, promenades ou sommeil. Aucune interaction nécessaire, jamais.';
 
   @override
-  String get onboardingFeature2Title => 'Confidentialité d\'abord';
+  String get onboardingFeature2Title => 'Anonymisé par conception';
 
   @override
   String get onboardingFeature2Description =>
-      'Le partage de position est optionnel et utilise uniquement une localisation approximative.';
+      'Les lectures de capteurs sont regroupées avec des milliers d\'autres avant de quitter votre appareil. Aucune donnée personnelle.';
 
   @override
-  String get onboardingFeature3Title => 'Suivez votre impact';
+  String get onboardingFeature3Title => 'Regardez votre impact grandir';
 
   @override
   String get onboardingFeature3Description =>
-      'Visualisez vos contributions et aidez à cartographier les données environnementales de votre ville.';
+      'Votre carte de couverture s\'étend à chaque trajet. Chaque contribution aide chercheurs et villes à comprendre leur environnement.';
 
   @override
-  String get onboardingSignInTitle => 'Débloquez des récompenses';
+  String get onboardingSignInTitle => 'Débloquez vos récompenses';
 
   @override
   String get onboardingSignInSubtitle =>
-      'Connectez-vous pour accéder aux récompenses quotidiennes et synchroniser vos données.';
+      'Connectez-vous une fois pour synchroniser vos progrès et commencer à gagner des récompenses quotidiennes.';
 
   @override
-  String get onboardingDailyPotRewards => 'Pot quotidien';
+  String get onboardingDailyPotRewards => 'Récompenses quotidiennes';
 
   @override
   String get onboardingDailyPotDescription =>
-      'Gagnez 10 à 100 crédits chaque jour';
+      'Gagnez des crédits chaque jour que vous contribuez';
 
   @override
   String get onboardingCloudSync => 'Synchronisation cloud';
 
   @override
   String get onboardingCloudSyncDescription =>
-      'Accédez à vos données depuis n\'importe quel appareil';
+      'Accédez à vos statistiques depuis n\'importe quel appareil';
 
   @override
-  String get onboardingFutureFeatures => 'Fonctionnalités futures';
+  String get onboardingFutureFeatures => 'Bientôt disponible';
 
   @override
-  String get onboardingFutureDescription => 'Classements et compétitions';
+  String get onboardingFutureDescription =>
+      'Classements, jalons et compétitions';
 
   @override
   String onboardingPrivacyNotice(String privacyPolicy, String termsOfService) {
@@ -426,6 +428,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get statsLast7Days => '7 derniers jours';
 
   @override
+  String get statsTodayLabel => 'AUJOURD\'HUI';
+
+  @override
+  String get statsHistoryNote =>
+      'L\'historique hebdomadaire apparaîtra après plusieurs jours de données';
+
+  @override
   String get statsContributionTimeline => 'Historique des contributions';
 
   @override
@@ -563,6 +572,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get sensorMovement => 'Mouvement';
+
+  @override
+  String get sensorAcceleration => 'Accélération';
 
   @override
   String get sensorLight => 'Lumière';
@@ -712,4 +724,13 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get statsDayStreak => 'Jours de suite';
+
+  @override
+  String get offlineBannerMessage => 'Hors connexion · données en attente';
+
+  @override
+  String get statsWeeklyLabel => '7 JOURS';
+
+  @override
+  String statsWeeklyTotal(int count) => '$count cette semaine';
 }

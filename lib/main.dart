@@ -101,7 +101,7 @@ class _MyAppState extends State<MyApp> {
 
       // Initialize daily pot service (non-blocking)
       DailyPotService.instance.initialize().catchError((e) {
-        print('Daily pot init failed (non-critical): $e');
+        debugPrint('Daily pot init failed (non-critical): $e');
       });
 
       if (mounted) {
@@ -110,7 +110,7 @@ class _MyAppState extends State<MyApp> {
         });
       }
     } catch (e) {
-      print('❌ Initialization error: $e');
+      debugPrint('Initialization error: $e');
       // Still mark as initialized to show UI (with potential error state)
       if (mounted) {
         setState(() {
@@ -123,24 +123,24 @@ class _MyAppState extends State<MyApp> {
   void _setupAuthTokenSync() {
     FirebaseAuth.instance.idTokenChanges().listen((User? user) async {
       if (user == null) {
-        print('User is currently signed out!');
+        debugPrint('User is currently signed out!');
       } else {
-        print('User is signed in: ${user.uid}');
+        debugPrint('User is signed in: ${user.uid}');
         try {
           final token = await user.getIdToken();
           if (token != null) {
             // Store under the correct double-prefixed key so the native
             // Kotlin uploader reads it via AppPrefs.FIREBASE_AUTH_TOKEN.
             await AppPreferences.instance.setFirebaseAuthToken(token);
-            print('Synced Firebase Token to SharedPreferences');
+            debugPrint('Synced Firebase Token to SharedPreferences');
 
             // Device registration - FIRE AND FORGET (non-blocking)
             AuthService.registerDevice(user).catchError((e) {
-              print('Device registration failed (non-critical): $e');
+              debugPrint('Device registration failed (non-critical): $e');
             });
           }
         } catch (e) {
-          print('Error syncing token: $e');
+          debugPrint('Error syncing token: $e');
         }
       }
     });

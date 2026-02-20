@@ -66,6 +66,10 @@ class CoverageMapWidget extends StatefulWidget {
 class _CoverageMapWidgetState extends State<CoverageMapWidget> {
   late MapController _mapController;
 
+  // Polygon cache — recomputed only when widget.tiles changes, never on every build
+  List<Polygon> _cachedPolygons = const [];
+  bool _hasPolygons = false;
+
   // Carto basemap URLs — no API key needed, free, professional quality
   // Used by numerous mapping/mobility startups for their clean dark aesthetic.
   // H3 hexagon polygons layer on top of these tiles identically regardless of provider.
@@ -80,6 +84,7 @@ class _CoverageMapWidgetState extends State<CoverageMapWidget> {
     super.initState();
     _mapController = MapController();
     widget.recenterTrigger?.addListener(_onRecenterTrigger);
+    _updatePolygonCache();
   }
 
   @override
@@ -89,6 +94,24 @@ class _CoverageMapWidgetState extends State<CoverageMapWidget> {
       old.recenterTrigger?.removeListener(_onRecenterTrigger);
       widget.recenterTrigger?.addListener(_onRecenterTrigger);
     }
+    if (!identical(old.tiles, widget.tiles)) {
+      _updatePolygonCache();
+    }
+  }
+
+  void _updatePolygonCache() {
+    _cachedPolygons = widget.tiles
+        .where((tile) => tile.boundary != null && tile.boundary!.isNotEmpty)
+        .map((tile) {
+      final opacity = (tile.confidence * 0.55).clamp(0.08, 0.55);
+      return Polygon(
+        points: tile.boundary!,
+        color: AppColors.primary.withValues(alpha: opacity),
+        borderColor: AppColors.primary.withValues(alpha: (opacity + 0.15).clamp(0.0, 1.0)),
+        borderStrokeWidth: 1.0,
+      );
+    }).toList();
+    _hasPolygons = _cachedPolygons.isNotEmpty;
   }
 
   @override
@@ -174,22 +197,9 @@ class _CoverageMapWidgetState extends State<CoverageMapWidget> {
             // ── Coverage overlay ────────────────────────────────────────────
             // Currently: geohash-approximated circles (16-point polygons)
             // Future: real H3 hexagons — same PolygonLayer API, just different points
-            if (widget.tiles.any((t) => t.boundary != null))
-              PolygonLayer(
-                polygons: widget.tiles
-                    .where(
-                        (tile) => tile.boundary != null && tile.boundary!.isNotEmpty)
-                    .map((tile) {
-                  final opacity = (tile.confidence * 0.55).clamp(0.08, 0.55);
-                  return Polygon(
-                    points: tile.boundary!,
-                    color: AppColors.primary.withValues(alpha: opacity),
-                    borderColor:
-                        AppColors.primary.withValues(alpha: (opacity + 0.15).clamp(0.0, 1.0)),
-                    borderStrokeWidth: 1.0,
-                  );
-                }).toList(),
-              ),
+            // Polygons are cached in _updatePolygonCache(), rebuilt only on tile changes
+            if (_hasPolygons)
+              PolygonLayer(polygons: _cachedPolygons),
 
             // ── User location marker ─────────────────────────────────────────
             if (widget.userLocation != null)

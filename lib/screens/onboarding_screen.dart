@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../core/extensions/context_extensions.dart';
 import '../core/themes.dart';
@@ -175,13 +174,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               decoration: BoxDecoration(
                 color: AppColors.primaryAlpha(0.12),
                 shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.primary.withValues(alpha: 0.2),
-                    blurRadius: 20,
-                    spreadRadius: 5,
-                  ),
-                ],
               ),
               child: const Icon(
                 Icons.eco,
@@ -212,7 +204,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     );
   }
 
-  // Page 2: Features
+  // Page 2: How it works
   Widget _buildFeaturesPage(ThemeData theme, bool isDark, AppLocalizations l10n) {
     return SafeArea(
       child: Padding(
@@ -221,48 +213,30 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const Spacer(),
-            Icon(
-              Icons.sensors,
-              size: 64,
-              color: AppColors.primary,
-            ),
+            Icon(Icons.phonelink_ring_outlined, size: 56, color: AppColors.primary),
             const SizedBox(height: AppTheme.spaceXl),
             Text(
               l10n.onboardingFeature1Title,
-              style: theme.textTheme.headlineSmall?.copyWith(
+              style: theme.textTheme.headlineMedium?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: AppTheme.spaceMd),
-            Text(
-              l10n.onboardingFeature1Description,
-              style: theme.textTheme.bodyLarge?.copyWith(
-                color: AppColors.textSecondary(isDark),
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: AppTheme.spaceXl),
-            Icon(
-              Icons.privacy_tip,
-              size: 64,
-              color: AppColors.primary,
-            ),
-            const SizedBox(height: AppTheme.spaceXl),
-            Text(
-              l10n.onboardingFeature2Title,
-              style: theme.textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-              textAlign: TextAlign.center,
+            const SizedBox(height: AppTheme.spaceLg),
+            _buildBenefit(
+              icon: Icons.bedtime_outlined,
+              title: l10n.onboardingFeature1Title,
+              description: l10n.onboardingFeature1Description,
+              isDark: isDark,
+              theme: theme,
             ),
             const SizedBox(height: AppTheme.spaceMd),
-            Text(
-              l10n.onboardingFeature2Description,
-              style: theme.textTheme.bodyLarge?.copyWith(
-                color: AppColors.textSecondary(isDark),
-              ),
-              textAlign: TextAlign.center,
+            _buildBenefit(
+              icon: Icons.shield_outlined,
+              title: l10n.onboardingFeature2Title,
+              description: l10n.onboardingFeature2Description,
+              isDark: isDark,
+              theme: theme,
             ),
             const Spacer(),
           ],
@@ -281,7 +255,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           children: [
             const Spacer(),
             Icon(
-              Icons.show_chart,
+              Icons.map_outlined,
               size: 64,
               color: AppColors.primary,
             ),
@@ -445,11 +419,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       height: 56,
                       alignment: Alignment.center,
                       decoration: BoxDecoration(
-                        color: isDark ? const Color(0xFF1F1F1F) : Colors.white,
+                        color: isDark ? AppColors.darkSurfaceElevated : Colors.white,
                         borderRadius: BorderRadius.circular(4),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.15),
+                            color: AppColors.shadowDark(0.15),
                             blurRadius: 4,
                             offset: const Offset(0, 2),
                           ),

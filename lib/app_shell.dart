@@ -66,7 +66,7 @@ class _AppShellState extends State<AppShell> {
     return Scaffold(
       body: PageView(
         controller: _pageController,
-        physics: const PageScrollPhysics(), // explicit — enables swipe between tabs
+        physics: const NeverScrollableScrollPhysics(), // no swipe — map pan conflicts
         onPageChanged: _onPageChanged,
         children: _screens,
       ),

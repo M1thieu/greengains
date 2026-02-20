@@ -101,73 +101,73 @@ abstract class AppLocalizations {
   /// No description provided for @onboardingWelcomeTitle.
   ///
   /// In en, this message translates to:
-  /// **'Welcome to GreenGains'**
+  /// **'Your phone earns while you live'**
   String get onboardingWelcomeTitle;
 
   /// No description provided for @onboardingWelcomeSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Help create greener cities by passively collecting environmental sensor data.'**
+  /// **'Install once, forget about it. We passively map environmental data in the background — you get rewarded for helping build a better picture of the world.'**
   String get onboardingWelcomeSubtitle;
 
   /// No description provided for @onboardingFeature1Title.
   ///
   /// In en, this message translates to:
-  /// **'Passive Collection'**
+  /// **'Runs silently'**
   String get onboardingFeature1Title;
 
   /// No description provided for @onboardingFeature1Description.
   ///
   /// In en, this message translates to:
-  /// **'Runs in the background while you go about your day. No interaction needed.'**
+  /// **'Works in the background while you commute, walk, or sleep. No tapping, no setup — ever again.'**
   String get onboardingFeature1Description;
 
   /// No description provided for @onboardingFeature2Title.
   ///
   /// In en, this message translates to:
-  /// **'Privacy First'**
+  /// **'Anonymized by design'**
   String get onboardingFeature2Title;
 
   /// No description provided for @onboardingFeature2Description.
   ///
   /// In en, this message translates to:
-  /// **'Location sharing is optional and uses coarse positioning only.'**
+  /// **'Sensor readings are bundled with thousands of others before leaving your device. No personal data, ever.'**
   String get onboardingFeature2Description;
 
   /// No description provided for @onboardingFeature3Title.
   ///
   /// In en, this message translates to:
-  /// **'Track Your Impact'**
+  /// **'Watch your impact grow'**
   String get onboardingFeature3Title;
 
   /// No description provided for @onboardingFeature3Description.
   ///
   /// In en, this message translates to:
-  /// **'See your contributions and help map environmental data for your city.'**
+  /// **'Your coverage map expands with every trip. Every contribution helps researchers and cities understand their environment.'**
   String get onboardingFeature3Description;
 
   /// No description provided for @onboardingSignInTitle.
   ///
   /// In en, this message translates to:
-  /// **'Unlock Rewards'**
+  /// **'Unlock your rewards'**
   String get onboardingSignInTitle;
 
   /// No description provided for @onboardingSignInSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Sign in to access daily pot rewards and sync your data across devices.'**
+  /// **'Sign in once to sync your progress and start earning daily rewards.'**
   String get onboardingSignInSubtitle;
 
   /// No description provided for @onboardingDailyPotRewards.
   ///
   /// In en, this message translates to:
-  /// **'Daily Pot Rewards'**
+  /// **'Daily Rewards'**
   String get onboardingDailyPotRewards;
 
   /// No description provided for @onboardingDailyPotDescription.
   ///
   /// In en, this message translates to:
-  /// **'Earn 10-100 credits every day'**
+  /// **'Earn credits every day you contribute'**
   String get onboardingDailyPotDescription;
 
   /// No description provided for @onboardingCloudSync.
@@ -179,19 +179,19 @@ abstract class AppLocalizations {
   /// No description provided for @onboardingCloudSyncDescription.
   ///
   /// In en, this message translates to:
-  /// **'Access your data on any device'**
+  /// **'Access your stats on any device'**
   String get onboardingCloudSyncDescription;
 
   /// No description provided for @onboardingFutureFeatures.
   ///
   /// In en, this message translates to:
-  /// **'Future Features'**
+  /// **'Coming Soon'**
   String get onboardingFutureFeatures;
 
   /// No description provided for @onboardingFutureDescription.
   ///
   /// In en, this message translates to:
-  /// **'Leaderboards and competitions'**
+  /// **'Leaderboards, milestones, and competitions'**
   String get onboardingFutureDescription;
 
   /// No description provided for @onboardingPrivacyNotice.
@@ -860,6 +860,18 @@ abstract class AppLocalizations {
   /// **'Last 7 days'**
   String get statsLast7Days;
 
+  /// No description provided for @statsTodayLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'TODAY'**
+  String get statsTodayLabel;
+
+  /// No description provided for @statsHistoryNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly history will appear once you have multiple days of data'**
+  String get statsHistoryNote;
+
   /// No description provided for @statsContributionTimeline.
   ///
   /// In en, this message translates to:
@@ -1106,6 +1118,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Movement'**
   String get sensorMovement;
+
+  /// No description provided for @sensorAcceleration.
+  ///
+  /// In en, this message translates to:
+  /// **'Acceleration'**
+  String get sensorAcceleration;
 
   /// No description provided for @sensorLight.
   ///
@@ -1376,6 +1394,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Day Streak'**
   String get statsDayStreak;
+
+  /// No description provided for @offlineBannerMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'No connection · data queued locally'**
+  String get offlineBannerMessage;
+
+  /// No description provided for @statsWeeklyLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'7 DAYS'**
+  String get statsWeeklyLabel;
+
+  /// No description provided for @statsWeeklyTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} this week'**
+  String statsWeeklyTotal(int count);
 }
 
 class _AppLocalizationsDelegate

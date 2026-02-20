@@ -72,6 +72,7 @@ class _TrackingFabState extends State<TrackingFab> {
         HapticFeedback.lightImpact();
         await _locationService.resumeTracking();
       } else {
+        HapticFeedback.lightImpact();
         await _locationService.pauseTracking();
       }
     } catch (e) {

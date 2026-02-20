@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import '../data/models/daily_reward.dart';
@@ -47,7 +48,7 @@ class DailyRewardService {
       final response = await BackendClient.get('/daily-reward');
 
       if (response.statusCode == 200) {
-        final data = response.data as Map<String, dynamic>;
+        final data = jsonDecode(response.body) as Map<String, dynamic>;
         _rewardNotifier.value = DailyReward.fromJson(data);
       } else {
         debugPrint('DailyReward: Failed to fetch state: ${response.statusCode}');
@@ -76,7 +77,7 @@ class DailyRewardService {
       final response = await BackendClient.post('/daily-reward/claim', {});
 
       if (response.statusCode == 200) {
-        final data = response.data as Map<String, dynamic>;
+        final data = jsonDecode(response.body) as Map<String, dynamic>;
         _rewardNotifier.value = DailyReward.fromJson(data);
         debugPrint('DailyReward: Claimed successfully! +${data['reward_amount']} credits');
         return true;

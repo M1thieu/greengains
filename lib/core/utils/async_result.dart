@@ -159,7 +159,7 @@ extension AsyncResultExtension<T> on AsyncResult<T> {
 
 /// Helper to create AsyncResult from Future
 extension FutureToAsyncResult<T> on Future<T> {
-  /// Convert Future<T> to Future<AsyncResult<T>>
+  /// Convert `Future<T>` to `Future<AsyncResult<T>>`
   /// Catches exceptions and wraps in Error state
   Future<AsyncResult<T>> toAsyncResult([String Function(Object)? errorMapper]) async {
     try {

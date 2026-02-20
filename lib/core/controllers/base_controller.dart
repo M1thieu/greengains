@@ -56,7 +56,7 @@ abstract class BaseController extends ChangeNotifier {
 
     final sub = AppEventBus.instance.on<T>().listen(handler);
     _subscriptions.add(sub);
-    debugPrint('[${runtimeType}] Listening to ${T.toString()}');
+    debugPrint('[$runtimeType] Listening to ${T.toString()}');
   }
 
   /// Emit event to event bus
@@ -80,7 +80,7 @@ abstract class BaseController extends ChangeNotifier {
     if (!_disposed) {
       notifyListeners();
     } else {
-      debugPrint('[${runtimeType}] Warning: Attempted to update state after disposal');
+      debugPrint('[$runtimeType] Warning: Attempted to update state after disposal');
     }
   }
 
@@ -103,7 +103,7 @@ abstract class BaseController extends ChangeNotifier {
     }
     _subscriptions.clear();
 
-    debugPrint('[${runtimeType}] Disposed');
+    debugPrint('[$runtimeType] Disposed');
     super.dispose();
   }
 }
@@ -117,7 +117,7 @@ extension BaseControllerExtension on BaseController {
       await operation();
       return true;
     } catch (e) {
-      debugPrint('[${runtimeType}] Error in operation: $e');
+      debugPrint('[$runtimeType] Error in operation: $e');
       return false;
     }
   }

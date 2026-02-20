@@ -120,9 +120,28 @@ export async function userRoutes(fastify: FastifyInstance) {
         const longestStreak = streakResult.rows[0]?.longest_streak || 0;
         const currentStreak = streakResult.rows[0]?.current_streak || 0;
 
-        // TODO: Calculate area covered from H3 tiles (requires H3 library)
-        // For now, return 0.0
-        const areaCovered = 0.0;
+        // 7-day upload history (last 7 days, index 0 = 6 days ago, index 6 = today)
+        const weeklyResult = await pool.query(
+          `SELECT
+            DATE(timestamp_utc) as upload_date,
+            COUNT(*)::int as count
+          FROM sensor_batches
+          WHERE user_id = $1
+            AND timestamp_utc >= CURRENT_DATE - INTERVAL '6 days'
+          GROUP BY DATE(timestamp_utc)
+          ORDER BY upload_date ASC`,
+          [userId]
+        );
+
+        const weekly: number[] = Array(7).fill(0);
+        const todayMidnight = new Date();
+        todayMidnight.setUTCHours(0, 0, 0, 0);
+        for (const wr of weeklyResult.rows) {
+          const d = new Date(wr.upload_date);
+          d.setUTCHours(0, 0, 0, 0);
+          const daysAgo = Math.round((todayMidnight.getTime() - d.getTime()) / 86400000);
+          if (daysAgo >= 0 && daysAgo < 7) weekly[6 - daysAgo] = wr.count;
+        }
 
         return reply.send({
           uid: userId,
@@ -133,10 +152,10 @@ export async function userRoutes(fastify: FastifyInstance) {
             daysActive,
             currentStreak,
             longestStreak,
-            areaCovered,
             deviceCount: parseInt(row.device_count, 10),
             firstUploadDate: row.first_upload_date,
             lastUploadDate: row.last_upload_date,
+            weekly,
           },
         });
       } catch (error) {

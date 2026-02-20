@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
@@ -9,7 +10,6 @@ import '../data/models/contribution_stats.dart';
 import '../data/repositories/contribution_repository.dart';
 import '../core/extensions/context_extensions.dart';
 import '../core/themes.dart';
-import '../l10n/app_localizations.dart';
 import '../services/location/foreground_location_service.dart';
 import '../services/network/backend_client.dart';
 import '../models/sensor_models.dart';
@@ -29,9 +29,9 @@ const double _kDefaultTileConfidence = 0.5;
 ///
 /// Layer order (bottom → top):
 ///   0. CoverageMapWidget (edge-to-edge background)
-///   1. Status chip + refresh button (top overlay)
-///   2. DraggableScrollableSheet (stats + sensors, 3 snap positions)
-///   3. TrackingFab (bottom-right, fades when sheet is expanded)
+///   1. Status chip (top overlay)
+///   2. DraggableScrollableSheet (stats + sensors, pull-to-refresh)
+///   3. TrackingFab + MyLocationButton (fades when sheet is expanded)
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -52,9 +52,11 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   TileCoverageStats? _tileCoverage;
   bool _batteryPromptOpen = false;
+  bool _isOnline = true;
   ContributionStats? _stats;
   StreamSubscription<UploadSuccessEvent>? _uploadSuccessSub;
   StreamSubscription<LocationData>? _locationStreamSub;
+  StreamSubscription<List<ConnectivityResult>>? _connectivitySub;
   List<H3Tile> _h3Tiles = [];
   bool _h3TilesLoading = true;
   LatLng? _userLocation;
@@ -69,6 +71,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     _setupUploadSuccessListener();
     _loadDismissedTips();
     _checkBatteryOptimization();
+    _initConnectivity();
     _loadTileCoverage();
     _loadStats();
     _loadH3Tiles();
@@ -80,6 +83,18 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     if (_locationService.isRunning.value) {
       _checkBatteryOptimization();
     }
+  }
+
+  Future<void> _initConnectivity() async {
+    final results = await Connectivity().checkConnectivity();
+    if (mounted) {
+      setState(() => _isOnline = results.any((r) => r != ConnectivityResult.none));
+    }
+    _connectivitySub = Connectivity().onConnectivityChanged.listen((results) {
+      if (mounted) {
+        setState(() => _isOnline = results.any((r) => r != ConnectivityResult.none));
+      }
+    });
   }
 
   /// Fade the FAB + My Location out as sheet expands toward sensor view (70%).
@@ -161,6 +176,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     WidgetsBinding.instance.removeObserver(this);
     _locationStreamSub?.cancel();
     _uploadSuccessSub?.cancel();
+    _connectivitySub?.cancel();
     _locationService.isRunning.removeListener(_handleServiceRunningChange);
     _sheetController.removeListener(_updateFabOpacity);
     _sheetController.dispose();
@@ -346,11 +362,11 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               ),
             ),
 
-            // ── 1. Top overlay: status chip + refresh button ───────────────
+            // ── 1. Top overlay: status chip ───────────────────────────────
             Positioned(
               top: topPadding + 8,
               left: 16,
-              right: 56, // leave room for the refresh button
+              right: 16,
               child: ListenableBuilder(
                 listenable: Listenable.merge([
                   _locationService.isRunning,
@@ -369,16 +385,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 },
               ),
             ),
-            Positioned(
-              top: topPadding + 4,
-              right: 12,
-              child: Semantics(
-                button: true,
-                label: context.l10n.semanticsRefreshMap,
-                child: _RefreshButton(onPressed: _refreshData),
-              ),
-            ),
-
             // ── 2. Bottom sheet: stats + sensors ──────────────────────────
             DraggableScrollableSheet(
               controller: _sheetController,
@@ -395,6 +401,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 locationService: _locationService,
                 shouldShowTip: _shouldShowTip,
                 onDismissTip: _dismissTip,
+                isOnline: _isOnline,
+                onRefresh: _refreshData,
               ),
             ),
 
@@ -449,52 +457,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
 // ─── Private widgets ────────────────────────────────────────────────────────
 
-/// Small icon button overlaid on the map to trigger a data refresh.
-class _RefreshButton extends StatefulWidget {
-  const _RefreshButton({required this.onPressed});
-  final Future<void> Function() onPressed;
-
-  @override
-  State<_RefreshButton> createState() => _RefreshButtonState();
-}
-
-class _RefreshButtonState extends State<_RefreshButton> {
-  bool _loading = false;
-
-  Future<void> _tap() async {
-    if (_loading) return;
-    setState(() => _loading = true);
-    await widget.onPressed();
-    if (mounted) setState(() => _loading = false);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 40,
-      height: 40,
-      decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.65),
-        shape: BoxShape.circle,
-      ),
-      child: _loading
-          ? const Padding(
-              padding: EdgeInsets.all(10),
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                color: Colors.white,
-              ),
-            )
-          : IconButton(
-              padding: EdgeInsets.zero,
-              icon: const Icon(Icons.refresh, color: Colors.white, size: 20),
-              onPressed: _tap,
-              tooltip: context.l10n.tooltipRefresh,
-            ),
-    );
-  }
-}
-
 /// Draggable bottom sheet content: handle + ImpactSummaryCard + sensors.
 class _BottomSheetContent extends StatelessWidget {
   const _BottomSheetContent({
@@ -504,6 +466,8 @@ class _BottomSheetContent extends StatelessWidget {
     required this.locationService,
     required this.shouldShowTip,
     required this.onDismissTip,
+    required this.isOnline,
+    required this.onRefresh,
   });
 
   final ScrollController scrollController;
@@ -512,6 +476,8 @@ class _BottomSheetContent extends StatelessWidget {
   final ForegroundLocationService locationService;
   final bool Function(String) shouldShowTip;
   final Future<void> Function(String) onDismissTip;
+  final bool isOnline;
+  final Future<void> Function() onRefresh;
 
   @override
   Widget build(BuildContext context) {
@@ -525,7 +491,7 @@ class _BottomSheetContent extends StatelessWidget {
         borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.6 : 0.15),
+            color: AppColors.shadowDark(isDark ? 0.6 : 0.15),
             blurRadius: 24,
             offset: const Offset(0, -6),
           ),
@@ -533,9 +499,12 @@ class _BottomSheetContent extends StatelessWidget {
       ),
       child: SafeArea(
         bottom: false, // content allowed to go under nav bar gesture area
-        child: CustomScrollView(
-          controller: scrollController,
-          slivers: [
+        child: RefreshIndicator(
+          onRefresh: onRefresh,
+          color: AppColors.primary,
+          child: CustomScrollView(
+            controller: scrollController,
+            slivers: [
             // Drag handle — Material 3: 32dp wide, 4dp tall, white @20% opacity
             SliverToBoxAdapter(
               child: Center(
@@ -545,13 +514,43 @@ class _BottomSheetContent extends StatelessWidget {
                   height: 4,
                   decoration: BoxDecoration(
                     color: isDark
-                        ? Colors.white.withValues(alpha: 0.2)
-                        : Colors.black.withValues(alpha: 0.15),
+                        ? AppColors.shadowLight(0.2)
+                        : AppColors.shadowDark(0.15),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
               ),
             ),
+
+            // Offline banner (connectivity_plus)
+            if (!isOnline)
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: AppColors.warning.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+                      border: Border.all(color: AppColors.warning.withValues(alpha: 0.3)),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.wifi_off, size: 15, color: AppColors.warning),
+                        const SizedBox(width: 8),
+                        Text(
+                          context.l10n.offlineBannerMessage,
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: AppColors.warning,
+                            fontWeight: AppFontWeights.medium,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
 
             // Impact + stats card
             SliverPadding(
@@ -614,6 +613,7 @@ class _BottomSheetContent extends StatelessWidget {
             // Bottom padding (accounts for system nav bar)
             const SliverToBoxAdapter(child: SizedBox(height: 24)),
           ],
+          ),
         ),
       ),
     );
@@ -621,7 +621,7 @@ class _BottomSheetContent extends StatelessWidget {
 }
 
 /// My Location button — standard map UX (Google Maps / Waze / Apple Maps pattern).
-/// 48×48 circular dark button, matches the refresh button style.
+/// 48×48 circular dark button. Fades with TrackingFab as sheet expands.
 /// Fades together with TrackingFab as sheet expands.
 class _MyLocationButton extends StatelessWidget {
   const _MyLocationButton({required this.onPressed});
@@ -630,10 +630,13 @@ class _MyLocationButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: Colors.black.withValues(alpha: 0.65),
+      color: AppColors.shadowDark(0.65),
       shape: const CircleBorder(),
       child: InkWell(
-        onTap: onPressed,
+        onTap: () {
+          HapticFeedback.lightImpact();
+          onPressed();
+        },
         customBorder: const CircleBorder(),
         child: const SizedBox(
           width: 48,

@@ -154,7 +154,7 @@ class AuthService {
       await appPrefs.ensureInitialized();
       final deviceId = await appPrefs.getOrCreateDeviceId();
 
-      print('Registering device with backend...');
+      debugPrint('Registering device with backend...');
       final response = await http.post(
         Uri.parse('$kBackendBaseUrl/register-device'),
         headers: {
@@ -172,13 +172,13 @@ class AuthService {
         final secret = data['device_secret'] as String?;
         if (secret != null) {
           await appPrefs.setDeviceSecret(secret);
-          print('Device registered successfully. Secret saved.');
+          debugPrint('Device registered successfully. Secret saved.');
         }
       } else {
-        print('Failed to register device: ${response.statusCode} ${response.body}');
+        debugPrint('Failed to register device: ${response.statusCode} ${response.body}');
       }
     } catch (e) {
-      print('Error registering device: $e');
+      debugPrint('Error registering device: $e');
     }
   }
 

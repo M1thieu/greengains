@@ -51,25 +51,17 @@ class _SensorSectionState extends State<SensorSection> {
     _hasGyro = widget.locationService.lastGyroscope != null;
     _hasPressure = widget.locationService.lastPressure != null;
 
-    _subs.add(widget.locationService.lightStream.listen((data) {
-      if (data != null && !_hasLight && mounted) {
-        setState(() => _hasLight = true);
-      }
+    _subs.add(widget.locationService.lightStream.listen((_) {
+      if (!_hasLight && mounted) setState(() => _hasLight = true);
     }));
-    _subs.add(widget.locationService.accelerometerStream.listen((data) {
-      if (data != null && !_hasAccel && mounted) {
-        setState(() => _hasAccel = true);
-      }
+    _subs.add(widget.locationService.accelerometerStream.listen((_) {
+      if (!_hasAccel && mounted) setState(() => _hasAccel = true);
     }));
-    _subs.add(widget.locationService.gyroscopeStream.listen((data) {
-      if (data != null && !_hasGyro && mounted) {
-        setState(() => _hasGyro = true);
-      }
+    _subs.add(widget.locationService.gyroscopeStream.listen((_) {
+      if (!_hasGyro && mounted) setState(() => _hasGyro = true);
     }));
-    _subs.add(widget.locationService.pressureStream.listen((data) {
-      if (data != null && !_hasPressure && mounted) {
-        setState(() => _hasPressure = true);
-      }
+    _subs.add(widget.locationService.pressureStream.listen((_) {
+      if (!_hasPressure && mounted) setState(() => _hasPressure = true);
     }));
   }
 
@@ -209,50 +201,50 @@ class _SensorSectionState extends State<SensorSection> {
     required String subtitle,
   }) {
     final theme = Theme.of(context);
-
     return Padding(
       padding: const EdgeInsets.all(AppTheme.spaceMd),
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(AppTheme.spaceMd),
-            decoration: AppTheme.surfaceContainer(
-              isDark: isDark,
-              border: Border.all(
-                color: AppColors.primary.withValues(alpha: 0.3),
-                width: 1.5,
+      child: Container(
+        padding: const EdgeInsets.all(AppTheme.spaceMd),
+        decoration: AppTheme.surfaceContainer(isDark: isDark),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(AppTheme.spaceXs),
+              decoration: BoxDecoration(
+                color: AppColors.textSecondary(isDark).withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+              ),
+              child: Icon(Icons.sensors_off, size: 20, color: AppColors.textSecondary(isDark)),
+            ),
+            const SizedBox(width: AppTheme.spaceSm),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(title, style: theme.textTheme.bodyMedium?.copyWith(
+                    fontWeight: AppFontWeights.semibold,
+                    color: AppColors.textPrimary(isDark),
+                  )),
+                  const SizedBox(height: 2),
+                  Text(subtitle, style: theme.textTheme.bodySmall?.copyWith(
+                    color: AppColors.textSecondary(isDark),
+                  )),
+                ],
               ),
             ),
-            child: Column(
-              children: [
-                Icon(
-                  Icons.sensors_off,
-                  size: 48,
-                  color: AppColors.textSecondary(isDark),
-                ),
-                const SizedBox(height: AppTheme.spaceSm),
-                Text(
-                  title,
-                  style: AppTheme.cardTitle(theme),
-                ),
-                const SizedBox(height: AppTheme.spaceXs),
-                Text(
-                  subtitle,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: AppColors.textSecondary(isDark),
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildSensorList(BuildContext context, bool isDark, AppLocalizations l10n) {
     final theme = Theme.of(context);
+    // Safe to hoist: _buildSensorList is only called from a ListenableBuilder
+    // that already listens to isRunning + isPaused, so this value is fresh.
+    final isTracking = widget.locationService.isRunning.value &&
+        !widget.locationService.isPaused.value;
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(
@@ -277,8 +269,6 @@ class _SensorSectionState extends State<SensorSection> {
             initialData: widget.locationService.lastLight,
             builder: (context, snapshot) {
               final light = snapshot.data;
-              final isTracking = widget.locationService.isRunning.value &&
-                  !widget.locationService.isPaused.value;
               return SensorDataCard(
                 icon: Icons.light_mode,
                 title: l10n.sensorLight,
@@ -303,8 +293,6 @@ class _SensorSectionState extends State<SensorSection> {
             initialData: widget.locationService.lastMagneticField,
             builder: (context, snapshot) {
               final mag = snapshot.data;
-              final isTracking = widget.locationService.isRunning.value &&
-                  !widget.locationService.isPaused.value;
               return SensorDataCard(
                 icon: Icons.explore,
                 title: l10n.sensorMagneticField,
@@ -340,11 +328,9 @@ class _SensorSectionState extends State<SensorSection> {
             initialData: widget.locationService.lastAccelerometer,
             builder: (context, snapshot) {
               final accel = snapshot.data;
-              final isTracking = widget.locationService.isRunning.value &&
-                  !widget.locationService.isPaused.value;
               return SensorDataCard(
                 icon: Icons.vibration,
-                title: l10n.sensorMovement,
+                title: l10n.sensorAcceleration,
                 value: accel != null
                     ? '${accel.magnitude.toStringAsFixed(1)} m/s²'
                     : null,
@@ -366,8 +352,6 @@ class _SensorSectionState extends State<SensorSection> {
             initialData: widget.locationService.lastGyroscope,
             builder: (context, snapshot) {
               final gyro = snapshot.data;
-              final isTracking = widget.locationService.isRunning.value &&
-                  !widget.locationService.isPaused.value;
               return SensorDataCard(
                 icon: Icons.screen_rotation,
                 title: l10n.sensorOrientation,
@@ -392,8 +376,6 @@ class _SensorSectionState extends State<SensorSection> {
             initialData: widget.locationService.lastPressure,
             builder: (context, snapshot) {
               final data = snapshot.data;
-              final isTracking = widget.locationService.isRunning.value &&
-                  !widget.locationService.isPaused.value;
               return SensorDataCard(
                 icon: Icons.compress,
                 title: l10n.sensorAirPressure,
