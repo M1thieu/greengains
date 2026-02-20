@@ -29,18 +29,19 @@ class AppColors {
   static const Color lightBorder = Color(0xFFD8E0DB);
   static const Color lightDivider = Color(0xFFC8D2CC);
 
-  // Dark mode neutrals — tuned for visible contrast on OLED/AMOLED
-  // Background is near-black; surfaces step up clearly so cards are legible
-  static const Color darkBackground = Color(0xFF0B0F0E);       // near-black base
-  static const Color darkSurface = Color(0xFF162019);          // cards/sheets (+11 from bg)
-  static const Color darkSurfaceElevated = Color(0xFF1F2E28);  // modals/elevated (+19)
-  static const Color darkSurfaceActive = Color(0xFF163025);    // selected/active state
+  // Dark mode neutrals — pure neutral grays, NO color tint in surfaces.
+  // Accent (Emerald) lives only on interactive elements, not backgrounds.
+  // Reference: GitHub Dark, Linear, Vercel dark mode palettes.
+  static const Color darkBackground = Color(0xFF0D0D0D);       // near-black
+  static const Color darkSurface = Color(0xFF171717);          // card/sheet surface
+  static const Color darkSurfaceElevated = Color(0xFF1F1F1F);  // modals, elevated sheets
+  static const Color darkSurfaceActive = Color(0xFF262626);    // pressed/selected state
 
-  static const Color darkTextPrimary = Color(0xFFE8F0EB);      // near-white, slightly warm
-  static const Color darkTextSecondary = Color(0xFFACBAB4);    // readable secondary (+12 vs before)
-  static const Color darkTextTertiary = Color(0xFF8A9C95);     // hints, placeholders
-  static const Color darkBorder = Color(0xFF3A4F47);           // visible borders (+12 vs before)
-  static const Color darkDivider = Color(0xFF485C54);          // visible dividers (+10 vs before)
+  static const Color darkTextPrimary = Color(0xFFF0F0F0);      // clean near-white
+  static const Color darkTextSecondary = Color(0xFF9B9B9B);    // readable mid-gray
+  static const Color darkTextTertiary = Color(0xFF6B6B6B);     // hints/placeholders
+  static const Color darkBorder = Color(0xFF2E2E2E);           // subtle but real
+  static const Color darkDivider = Color(0xFF3A3A3A);          // separator
 
   // Helpers
   static Color shadowLight(double opacity) =>
@@ -224,18 +225,19 @@ class AppGradients {
     ],
   );
 
-  /// Subtle surface gradient for depth on elevated cards
+  /// Subtle neutral surface gradient — NO color tint.
+  /// Used sparingly for depth; prefer flat colors for most surfaces.
   static LinearGradient surfaceGlow(bool isDark) => LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
     colors: isDark
         ? [
-            const Color(0xFF101614),
-            const Color(0xFF1B2420),
+            const Color(0xFF171717),
+            const Color(0xFF1F1F1F),
           ]
         : [
-            const Color(0xFFF9FBF8),
-            const Color(0xFFF2F6F3),
+            const Color(0xFFF9FBF9),
+            const Color(0xFFF2F4F3),
           ],
   );
 }

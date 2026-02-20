@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import '../core/themes.dart';
 import '../data/models/contribution_stats.dart';
 
-/// Impact summary card — hero number + secondary metrics
-/// Shows total contributions as the primary number, area + streak below
+/// Impact summary card — hero number + secondary metrics.
+/// Flat, neutral dark surface. Accent (Emerald) only on numbers/icons.
+/// No gradients, no glow. Linear/GitHub-style card aesthetic.
 class ImpactSummaryCard extends StatelessWidget {
   final ContributionStats? stats;
   final TileCoverageStats? tileCoverage;
@@ -15,10 +16,7 @@ class ImpactSummaryCard extends StatelessWidget {
   });
 
   String _formatCoverageArea() {
-    if (tileCoverage == null || tileCoverage!.totalTiles == 0) {
-      return '—';
-    }
-    // Each tile is roughly 156m x 156m = ~24,000 m^2 = 0.024 km^2
+    if (tileCoverage == null || tileCoverage!.totalTiles == 0) return '—';
     final area = (tileCoverage!.totalTiles * 0.024).toStringAsFixed(1);
     return '$area km²';
   }
@@ -26,8 +24,7 @@ class ImpactSummaryCard extends StatelessWidget {
   String _formatDaysActive() {
     if (stats == null || stats!.totalUploads == 0) return '—';
     final days = stats!.currentStreak;
-    if (days <= 1) return '1 day';
-    return '$days days';
+    return days <= 1 ? '1 day' : '$days days';
   }
 
   @override
@@ -39,43 +36,32 @@ class ImpactSummaryCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(AppTheme.spaceLg),
       decoration: BoxDecoration(
-        gradient: hasData ? AppGradients.surfaceGlow(isDark) : null,
-        color: hasData ? null : AppColors.surface(isDark),
+        // Flat neutral surface — no gradient, no green tint
+        color: AppColors.surface(isDark),
         borderRadius: BorderRadius.circular(AppTheme.radiusLg),
         border: Border.all(
           color: hasData
-              ? AppColors.primary.withValues(alpha: 0.2)
+              ? AppColors.primary.withValues(alpha: 0.25)
               : AppColors.border(isDark),
           width: 1,
         ),
-        boxShadow: hasData
-            ? [
-                ...AppColors.glowEffect(AppColors.primary, opacity: 0.12),
-                ...(isDark
-                    ? AppColors.elevationDark(active: true)
-                    : AppColors.elevationLight(active: true)),
-              ]
-            : (isDark
-                ? AppColors.elevationDark(active: false)
-                : AppColors.elevationLight(active: false)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header
+          // Header row: icon + title + subtitle
           Row(
             children: [
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  gradient: hasData ? AppGradients.greenGlow : null,
-                  color: hasData ? null : AppColors.primaryAlpha(0.12),
-                  borderRadius: BorderRadius.circular(12),
+                  color: AppColors.primaryAlpha(0.12),
+                  borderRadius: BorderRadius.circular(10),
                 ),
                 child: Icon(
-                  hasData ? Icons.eco : Icons.eco_outlined,
-                  color: hasData ? AppColors.primary : AppColors.textSecondary(isDark),
-                  size: 24,
+                  Icons.eco_outlined,
+                  color: AppColors.primary,
+                  size: 22,
                 ),
               ),
               const SizedBox(width: AppTheme.spaceMd),
@@ -85,13 +71,16 @@ class ImpactSummaryCard extends StatelessWidget {
                   children: [
                     Text(
                       hasData ? 'Your Impact' : 'Ready to Start?',
-                      style: AppTheme.smallHeader(theme),
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        fontWeight: AppFontWeights.semibold,
+                        color: AppColors.textPrimary(isDark),
+                      ),
                     ),
                     const SizedBox(height: 2),
                     Text(
                       hasData
                           ? 'Environmental data you\'ve contributed'
-                          : 'Track your environmental contributions',
+                          : 'Start tracking to map your environment',
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: AppColors.textSecondary(isDark),
                         height: 1.3,
@@ -106,53 +95,56 @@ class ImpactSummaryCard extends StatelessWidget {
           if (hasData) ...[
             const SizedBox(height: AppTheme.spaceLg),
 
-            // Hero number — total contributions
-            Center(
-              child: Column(
-                children: [
-                  Text(
-                    '${stats!.totalUploads}',
-                    style: AppTheme.displayNumber(theme).copyWith(
-                      color: AppColors.primary,
-                    ),
-                  ),
-                  const SizedBox(height: AppTheme.spaceXxs),
-                  Text(
-                    'total contributions',
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: AppColors.textSecondary(isDark),
-                      letterSpacing: 0.2,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: AppTheme.spaceLg),
-            Container(height: 1, color: AppColors.divider(isDark)),
-            const SizedBox(height: AppTheme.spaceMd),
-
-            // Secondary metrics
+            // Hero number
             Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                Expanded(
-                  child: _ImpactMetric(
-                    icon: Icons.map_outlined,
-                    value: _formatCoverageArea(),
-                    label: 'Area Covered',
-                    isDark: isDark,
-                    isActive: hasData,
+                Text(
+                  '${stats!.totalUploads}',
+                  style: theme.textTheme.displaySmall?.copyWith(
+                    fontWeight: AppFontWeights.bold,
+                    color: AppColors.primary,
+                    letterSpacing: -1,
+                    height: 1,
                   ),
                 ),
-                const SizedBox(width: AppTheme.spaceMd),
-                Expanded(
-                  child: _ImpactMetric(
-                    icon: Icons.calendar_today,
-                    value: _formatDaysActive(),
-                    label: 'Days Active',
-                    isDark: isDark,
-                    isActive: hasData,
+                const SizedBox(width: 8),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 4),
+                  child: Text(
+                    'contributions',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: AppColors.textSecondary(isDark),
+                    ),
                   ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: AppTheme.spaceMd),
+            Divider(color: AppColors.divider(isDark), height: 1),
+            const SizedBox(height: AppTheme.spaceMd),
+
+            // Secondary metrics — inline row
+            Row(
+              children: [
+                _ImpactMetric(
+                  icon: Icons.map_outlined,
+                  value: _formatCoverageArea(),
+                  label: 'Area Covered',
+                  isDark: isDark,
+                ),
+                Container(
+                  width: 1,
+                  height: 32,
+                  margin: const EdgeInsets.symmetric(horizontal: AppTheme.spaceMd),
+                  color: AppColors.divider(isDark),
+                ),
+                _ImpactMetric(
+                  icon: Icons.local_fire_department_outlined,
+                  value: _formatDaysActive(),
+                  label: 'Active Streak',
+                  isDark: isDark,
                 ),
               ],
             ),
@@ -163,67 +155,47 @@ class ImpactSummaryCard extends StatelessWidget {
   }
 }
 
-/// Individual impact metric display
 class _ImpactMetric extends StatelessWidget {
   final IconData icon;
   final String value;
   final String label;
   final bool isDark;
-  final bool isActive;
 
   const _ImpactMetric({
     required this.icon,
     required this.value,
     required this.label,
     required this.isDark,
-    required this.isActive,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Column(
+    return Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        Container(
-          padding: const EdgeInsets.all(AppTheme.spaceXs),
-          decoration: BoxDecoration(
-            color: isActive
-                ? AppColors.primaryAlpha(0.1)
-                : AppColors.surfaceElevated(isDark),
-            borderRadius: BorderRadius.circular(AppTheme.radiusSm),
-          ),
-          child: Icon(
-            icon,
-            size: 20,
-            color: isActive ? AppColors.primary : AppColors.textTertiary(isDark),
-          ),
-        ),
-        const SizedBox(height: AppTheme.spaceXs),
-        Text(
-          value,
-          style: theme.textTheme.titleLarge?.copyWith(
-            fontWeight: AppFontWeights.semibold,
-            color: isActive
-                ? AppColors.textPrimary(isDark)
-                : AppColors.textSecondary(isDark),
-            letterSpacing: -0.2,
-          ),
-          textAlign: TextAlign.center,
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-        ),
-        const SizedBox(height: 2),
-        Text(
-          label,
-          style: theme.textTheme.bodySmall?.copyWith(
-            color: AppColors.textSecondary(isDark),
-            fontSize: 12,
-            height: 1.2,
-          ),
-          textAlign: TextAlign.center,
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
+        Icon(icon, size: 16, color: AppColors.textTertiary(isDark)),
+        const SizedBox(width: 6),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              value,
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: AppFontWeights.semibold,
+                color: AppColors.textPrimary(isDark),
+                height: 1,
+              ),
+            ),
+            Text(
+              label,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: AppColors.textSecondary(isDark),
+                fontSize: 11,
+              ),
+            ),
+          ],
         ),
       ],
     );
