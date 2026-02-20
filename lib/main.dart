@@ -183,8 +183,7 @@ class _MyAppState extends State<MyApp> {
           theme: AppTheme.theme(),
           darkTheme: AppTheme.themeDark(),
           themeMode: ThemeController.instance.mode,
-          themeAnimationDuration: const Duration(milliseconds: 350),
-          themeAnimationCurve: Curves.easeInOut,
+          themeAnimationDuration: Duration.zero,
           // Show loading indicator if not ready, otherwise show onboarding
           home: _isInitialized
               ? const OnboardingWrapper()

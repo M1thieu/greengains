@@ -474,12 +474,12 @@ class _BottomSheetContent extends StatelessWidget {
 
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.surface(isDark),
+        color: AppColors.surfaceElevated(isDark),
         borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.4 : 0.15),
-            blurRadius: 16,
+            color: Colors.black.withValues(alpha: isDark ? 0.5 : 0.15),
+            blurRadius: 20,
             offset: const Offset(0, -4),
           ),
         ],

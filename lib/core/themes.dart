@@ -5,10 +5,11 @@ import 'package:google_fonts/google_fonts.dart';
 class AppColors {
   AppColors._();
 
-  // Primary brand color (green)
-  static const Color primary = Color(0xFF4CAF50);
-  static const Color primaryLight = Color(0xFF6AC27A);
-  static const Color primaryDark = Color(0xFF2F7D4A);
+  // Primary brand color — Emerald 500 (modern, Stripe/Linear ecosystem)
+  // Replaces Material Green 500 (0xFF4CAF50) — more vibrant, less Android-default
+  static const Color primary = Color(0xFF10B981);
+  static const Color primaryLight = Color(0xFF34D399); // Emerald 300
+  static const Color primaryDark = Color(0xFF059669);  // Emerald 600
 
   // Semantic colors
   static const Color success = Color(0xFF4CAF50);
@@ -28,17 +29,18 @@ class AppColors {
   static const Color lightBorder = Color(0xFFD8E0DB);
   static const Color lightDivider = Color(0xFFC8D2CC);
 
-  // Dark mode neutrals (Calm Tech)
-  static const Color darkBackground = Color(0xFF0B0F0E);
-  static const Color darkSurface = Color(0xFF111614);
-  static const Color darkSurfaceElevated = Color(0xFF1A221F);
-  static const Color darkSurfaceActive = Color(0xFF122019);
+  // Dark mode neutrals — tuned for visible contrast on OLED/AMOLED
+  // Background is near-black; surfaces step up clearly so cards are legible
+  static const Color darkBackground = Color(0xFF0B0F0E);       // near-black base
+  static const Color darkSurface = Color(0xFF162019);          // cards/sheets (+11 from bg)
+  static const Color darkSurfaceElevated = Color(0xFF1F2E28);  // modals/elevated (+19)
+  static const Color darkSurfaceActive = Color(0xFF163025);    // selected/active state
 
-  static const Color darkTextPrimary = Color(0xFFE6ECE8);
-  static const Color darkTextSecondary = Color(0xFF9AA7A1);
-  static const Color darkTextTertiary = Color(0xFF7E8A84);
-  static const Color darkBorder = Color(0xFF2E3A35);
-  static const Color darkDivider = Color(0xFF3E4A45);
+  static const Color darkTextPrimary = Color(0xFFE8F0EB);      // near-white, slightly warm
+  static const Color darkTextSecondary = Color(0xFFACBAB4);    // readable secondary (+12 vs before)
+  static const Color darkTextTertiary = Color(0xFF8A9C95);     // hints, placeholders
+  static const Color darkBorder = Color(0xFF3A4F47);           // visible borders (+12 vs before)
+  static const Color darkDivider = Color(0xFF485C54);          // visible dividers (+10 vs before)
 
   // Helpers
   static Color shadowLight(double opacity) =>
@@ -414,7 +416,7 @@ class AppTheme {
     );
   }
 
-  static const _seed = Color(0xFF2F6D5F);
+  static const _seed = Color(0xFF059669); // Emerald 600 — drives Material 3 ColorScheme
 
   static TextTheme _buildTextTheme(TextTheme base, {required bool isDark}) {
     // Use Roboto for EVERYTHING - clean, readable, consistent
