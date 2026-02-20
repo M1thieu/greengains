@@ -183,6 +183,9 @@ internal class SensorQualityAnalyzer {
         if (lastProximityNear != null) {
             return when {
                 lastProximityNear == true -> PocketState.LIKELY
+                // FACE_UP: gravity vector confirms screen faces the ceiling — physically
+                // impossible to be in a pocket, regardless of lighting conditions.
+                orientationInfo.state == OrientationState.FACE_UP -> PocketState.UNLIKELY
                 lux != null && lux > BRIGHT_ENV_LUX -> PocketState.UNLIKELY
                 else -> PocketState.UNKNOWN
             }

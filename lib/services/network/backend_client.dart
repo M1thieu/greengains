@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -47,6 +48,19 @@ class BackendClient {
     );
   }
 
+  /// Adds Firebase ID token to [headers] if the user is signed in.
+  /// Silent on failure — anonymous/legacy uploads are allowed.
+  static Future<void> _addAuthHeaders(Map<String, String> headers) async {
+    try {
+      final token = await FirebaseAuth.instance.currentUser?.getIdToken();
+      if (token != null) {
+        headers[HttpHeaders.authorizationHeader] = 'Bearer $token';
+      }
+    } catch (e) {
+      debugPrint('Failed to get auth token: $e');
+    }
+  }
+
   Future<void> uploadBatch(
     Map<String, dynamic> payload, {
     bool compress = false,
@@ -61,17 +75,7 @@ class BackendClient {
     if (compress) {
       headers[HttpHeaders.contentEncodingHeader] = 'gzip';
     }
-
-    // Add Firebase Auth Token if available
-    try {
-      final token = await FirebaseAuth.instance.currentUser?.getIdToken();
-      if (token != null) {
-        headers[HttpHeaders.authorizationHeader] = 'Bearer $token';
-      }
-    } catch (e) {
-      // Ignore auth errors for now (allow anonymous/legacy uploads)
-      print('Failed to get auth token: $e');
-    }
+    await _addAuthHeaders(headers);
 
     final response = await _client.post(
       _uploadUri,
@@ -98,17 +102,7 @@ class BackendClient {
       HttpHeaders.acceptHeader: 'application/json',
       HttpHeaders.contentTypeHeader: 'application/json',
     };
-
-    // Add Firebase Auth Token
-    try {
-      final token = await FirebaseAuth.instance.currentUser?.getIdToken();
-      if (token != null) {
-        headers[HttpHeaders.authorizationHeader] = 'Bearer $token';
-      }
-    } catch (e) {
-      print('Failed to get auth token: $e');
-    }
-
+    await _addAuthHeaders(headers);
     return await http.get(uri, headers: headers);
   }
 
@@ -118,22 +112,8 @@ class BackendClient {
     final headers = <String, String>{
       HttpHeaders.contentTypeHeader: 'application/json',
     };
-
-    // Add Firebase Auth Token
-    try {
-      final token = await FirebaseAuth.instance.currentUser?.getIdToken();
-      if (token != null) {
-        headers[HttpHeaders.authorizationHeader] = 'Bearer $token';
-      }
-    } catch (e) {
-      print('Failed to get auth token: $e');
-    }
-
-    return await http.post(
-      uri,
-      headers: headers,
-      body: jsonEncode(body),
-    );
+    await _addAuthHeaders(headers);
+    return await http.post(uri, headers: headers, body: jsonEncode(body));
   }
 
   Future<List<CoverageTile>> fetchCoverage({

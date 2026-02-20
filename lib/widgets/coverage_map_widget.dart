@@ -21,21 +21,24 @@ class H3Tile {
   });
 }
 
-/// Compact coverage map with H3 hexagon visualization
-/// Shows transparent-to-green gradient based on data confidence
-/// Option B: 50% height for home screen integration
+/// Coverage map with H3 hexagon visualization.
+/// Supports two modes:
+/// - [fillScreen] = false (default): fixed height via [heightFraction], card-style chrome
+/// - [fillScreen] = true: expands to fill its parent (Stack/SizedBox.expand), no card chrome
 class CoverageMapWidget extends StatefulWidget {
   final List<H3Tile> tiles;
   final LatLng? userLocation;
-  final double heightFraction; // 0.0-1.0 of screen height
+  final double heightFraction; // used only when fillScreen == false
   final bool showControls;
+  final bool fillScreen;
 
   const CoverageMapWidget({
     super.key,
     required this.tiles,
     this.userLocation,
     this.heightFraction = 0.5,
-    this.showControls = false,
+    this.showControls = true,
+    this.fillScreen = false,
   });
 
   @override
@@ -119,20 +122,7 @@ class _CoverageMapWidgetState extends State<CoverageMapWidget> {
       (bounds.east + bounds.west) / 2,
     );
 
-    return Container(
-      height: MediaQuery.of(context).size.height * widget.heightFraction,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
-        border: Border.all(
-          color: AppColors.border(isDark),
-          width: 1,
-        ),
-        boxShadow: isDark
-            ? AppColors.elevationDark(active: false)
-            : AppColors.elevationLight(active: false),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: Stack(
+    final mapStack = Stack(
         children: [
           FlutterMap(
             mapController: _mapController,
@@ -311,7 +301,25 @@ class _CoverageMapWidgetState extends State<CoverageMapWidget> {
               ),
             ),
         ],
+    );
+
+    if (widget.fillScreen) {
+      // Edge-to-edge background — no card chrome, expands to fill parent Stack
+      return SizedBox.expand(child: mapStack);
+    }
+
+    // Card mode — fixed height with border + shadow
+    return Container(
+      height: MediaQuery.of(context).size.height * widget.heightFraction,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+        border: Border.all(color: AppColors.border(isDark), width: 1),
+        boxShadow: isDark
+            ? AppColors.elevationDark(active: false)
+            : AppColors.elevationLight(active: false),
       ),
+      clipBehavior: Clip.antiAlias,
+      child: mapStack,
     );
   }
 
