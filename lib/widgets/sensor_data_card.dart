@@ -1,6 +1,6 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import '../core/themes.dart';
+import 'time_ago_text.dart';
 
 /// Reusable sensor data display card with live values
 /// Shows icon, title, current value, and unit
@@ -83,24 +83,17 @@ class _SensorDataCardState extends State<SensorDataCard>
         margin: const EdgeInsets.only(bottom: AppTheme.spaceSm),
         padding: const EdgeInsets.all(AppTheme.spaceMd),
         decoration: BoxDecoration(
-          color: AppColors.surface(isDark),
+          // surfaceElevated: floats above sheet (surface), no green tint
+          color: AppColors.surfaceElevated(isDark),
           borderRadius: BorderRadius.circular(AppTheme.radiusMd),
           border: Border.all(
+            // Active: slightly more visible emerald border (informative, not decorative)
+            // Inactive: standard border
             color: isActive
-                ? AppColors.primary.withValues(alpha: 0.2)
+                ? AppColors.primary.withValues(alpha: 0.35)
                 : AppColors.border(isDark),
             width: 1,
           ),
-          boxShadow: isActive
-              ? [
-                  ...AppColors.glowEffect(AppColors.primary, opacity: 0.12),
-                  ...(isDark
-                      ? AppColors.elevationDark(active: true)
-                      : AppColors.elevationLight(active: true)),
-                ]
-              : (isDark
-                  ? AppColors.elevationDark(active: false)
-                  : AppColors.elevationLight(active: false)),
         ),
         child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -111,25 +104,19 @@ class _SensorDataCardState extends State<SensorDataCard>
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  gradient: isActive ? AppGradients.greenGlow : null,
-                  color: isActive ? null : AppColors.surfaceElevated(isDark),
+                  // Flat icon bg: primary tint when active, surfaceActive when not.
+                  // No gradient, no glow — Linear/Vercel flat icon style.
+                  color: isActive
+                      ? AppColors.primaryAlpha(0.12)
+                      : AppColors.surfaceActive(isDark),
                   borderRadius: BorderRadius.circular(AppTheme.radiusSm),
-                  // Add subtle inner glow for active icons
-                  boxShadow: isActive
-                      ? [
-                          BoxShadow(
-                            color: AppColors.primary.withValues(alpha: 0.3),
-                            blurRadius: 8,
-                            spreadRadius: -2,
-                            offset: const Offset(0, 2),
-                          ),
-                        ]
-                      : null,
                 ),
                 child: Icon(
                   widget.icon,
                   size: AppIconSizes.sm,
-                  color: isActive ? AppColors.primary : AppColors.textTertiary(isDark),
+                  color: isActive
+                      ? AppColors.primary
+                      : AppColors.textSecondary(isDark),
                 ),
               ),
               const SizedBox(width: AppTheme.spaceMd),
@@ -194,9 +181,8 @@ class _SensorDataCardState extends State<SensorDataCard>
                     // Timestamp display
                     if (widget.updatedAt != null) ...[
                       const SizedBox(height: 2),
-                      _TimeSinceText(
+                      TimeAgoText(
                         timestamp: widget.updatedAt!,
-                        prefix: '',
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: AppColors.textTertiary(isDark),
                           fontSize: 11,
@@ -301,79 +287,3 @@ class _ShimmerLoadingState extends State<_ShimmerLoading>
   }
 }
 
-class _TimeSinceText extends StatefulWidget {
-  final DateTime timestamp;
-  final TextStyle? style;
-  final String prefix;
-
-  const _TimeSinceText({
-    required this.timestamp,
-    this.style,
-    this.prefix = 'Updated ',
-  });
-
-  @override
-  State<_TimeSinceText> createState() => _TimeSinceTextState();
-}
-
-class _TimeSinceTextState extends State<_TimeSinceText> {
-  Timer? _timer;
-  String _timeAgo = '';
-
-  @override
-  void initState() {
-    super.initState();
-    _updateTimeAgo();
-    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
-      if (mounted) {
-        _updateTimeAgo();
-      }
-    });
-  }
-
-  @override
-  void didUpdateWidget(_TimeSinceText oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.timestamp != oldWidget.timestamp) {
-      _updateTimeAgo();
-    }
-  }
-
-  @override
-  void dispose() {
-    _timer?.cancel();
-    super.dispose();
-  }
-
-  void _updateTimeAgo() {
-    final now = DateTime.now();
-    final difference = now.difference(widget.timestamp);
-
-    String timeAgo;
-    if (difference.inSeconds < 5) {
-      timeAgo = 'just now';
-    } else if (difference.inSeconds < 60) {
-      timeAgo = '${difference.inSeconds}s ago';
-    } else if (difference.inMinutes < 60) {
-      timeAgo = '${difference.inMinutes}m ago';
-    } else if (difference.inHours < 24) {
-      timeAgo = '${difference.inHours}h ago';
-    } else {
-      timeAgo = '${difference.inDays}d ago';
-    }
-
-    if (mounted && timeAgo != _timeAgo) {
-      setState(() {
-        _timeAgo = timeAgo;
-      });
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      '${widget.prefix}$_timeAgo',
-      style: widget.style,
-    );
-  }
-}

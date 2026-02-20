@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:timeago/timeago.dart' as timeago;
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
@@ -23,6 +24,9 @@ import 'services/tracking/tracking_session_manager.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Register timeago locale messages for all supported languages
+  timeago.setLocaleMessages('fr', timeago.FrMessages());
 
   // Draw behind status bar and navigation bar (edge-to-edge)
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+import '../core/extensions/context_extensions.dart';
 import '../core/themes.dart';
 import '../services/location/foreground_location_service.dart';
 
@@ -67,15 +68,16 @@ class _CoverageMapScreenState extends State<CoverageMapScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final l10n = context.l10n;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Coverage Map'),
+        title: Text(l10n.mapTitle),
         actions: [
           if (_userLocation != null)
             IconButton(
               icon: const Icon(Icons.my_location),
-              tooltip: 'Center on location',
+              tooltip: l10n.mapCenterTooltip,
               onPressed: _centerOnUser,
             ),
         ],
@@ -90,7 +92,7 @@ class _CoverageMapScreenState extends State<CoverageMapScreen> {
                   ),
                   const SizedBox(height: AppTheme.spaceMd),
                   Text(
-                    'Loading map...',
+                    l10n.mapLoadingText,
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: AppColors.textSecondary(isDark),
                     ),
@@ -202,14 +204,14 @@ class _CoverageMapScreenState extends State<CoverageMapScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Coverage Heatmap Coming Soon',
+                                l10n.mapComingSoonTitle,
                                 style: theme.textTheme.titleSmall?.copyWith(
                                   fontWeight: AppFontWeights.bold,
                                 ),
                               ),
                               const SizedBox(height: 2),
                               Text(
-                                'Tile coverage visualization in progress',
+                                l10n.mapComingSoonDescription,
                                 style: theme.textTheme.bodySmall?.copyWith(
                                   color: AppColors.textSecondary(isDark),
                                 ),

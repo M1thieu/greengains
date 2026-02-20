@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import '../core/extensions/context_extensions.dart';
 import '../core/themes.dart';
+import '../l10n/app_localizations.dart';
 import '../widgets/time_ago_text.dart';
 
 /// Compact status pill shown as a map overlay.
@@ -19,7 +21,8 @@ class TrackingStatusChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final (dotColor, label) = _state();
+    final l10n = context.l10n;
+    final (dotColor, label) = _state(l10n);
 
     return IntrinsicWidth(
       child: Container(
@@ -70,9 +73,9 @@ class TrackingStatusChip extends StatelessWidget {
     );
   }
 
-  (Color, String) _state() {
-    if (isTracking && !isPaused) return (AppColors.primary, 'Contributing');
-    if (isPaused) return (AppColors.warning, 'Paused');
-    return (Colors.grey, 'Tap Start');
+  (Color, String) _state(AppLocalizations l10n) {
+    if (isTracking && !isPaused) return (AppColors.primary, l10n.chipContributing);
+    if (isPaused) return (AppColors.warning, l10n.chipPaused);
+    return (Colors.grey, l10n.chipTapStart);
   }
 }

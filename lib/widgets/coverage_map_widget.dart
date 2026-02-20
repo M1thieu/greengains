@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:flutter_map_compass/flutter_map_compass.dart';
 import 'package:latlong2/latlong.dart';
+import '../core/extensions/context_extensions.dart';
 import '../core/themes.dart';
 
 /// H3 hexagon tile model
@@ -36,6 +38,14 @@ class CoverageMapWidget extends StatefulWidget {
   final bool showControls;
   final bool fillScreen;
   final bool isLoading;
+  /// Incrementing this notifier triggers a smooth recenter on [userLocation].
+  /// Provider-agnostic: parent never touches MapController directly.
+  final ValueNotifier<int>? recenterTrigger;
+  /// Extra inset applied to map control widgets (scalebar, compass) so the
+  /// parent's overlays (sheet peek, FAB row) don't obscure them.
+  /// Pass [EdgeInsets.only(bottom: sheetPeekHeight + margin)] from fillScreen
+  /// callers. Defaults to EdgeInsets.zero — no layout knowledge baked in.
+  final EdgeInsets controlsPadding;
 
   const CoverageMapWidget({
     super.key,
@@ -45,6 +55,8 @@ class CoverageMapWidget extends StatefulWidget {
     this.showControls = true,
     this.fillScreen = false,
     this.isLoading = false,
+    this.recenterTrigger,
+    this.controlsPadding = EdgeInsets.zero,
   });
 
   @override
@@ -67,13 +79,26 @@ class _CoverageMapWidgetState extends State<CoverageMapWidget> {
   void initState() {
     super.initState();
     _mapController = MapController();
+    widget.recenterTrigger?.addListener(_onRecenterTrigger);
+  }
+
+  @override
+  void didUpdateWidget(CoverageMapWidget old) {
+    super.didUpdateWidget(old);
+    if (old.recenterTrigger != widget.recenterTrigger) {
+      old.recenterTrigger?.removeListener(_onRecenterTrigger);
+      widget.recenterTrigger?.addListener(_onRecenterTrigger);
+    }
   }
 
   @override
   void dispose() {
+    widget.recenterTrigger?.removeListener(_onRecenterTrigger);
     _mapController.dispose();
     super.dispose();
   }
+
+  void _onRecenterTrigger() => _recenterOnUser();
 
   /// Calculate initial map center from tiles + user location.
   /// Falls back to Colmar, France (dev/testing location).
@@ -108,8 +133,16 @@ class _CoverageMapWidgetState extends State<CoverageMapWidget> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final center = _calculateCenter();
 
+    // Tile base color behind all layers — prevents white flash while tiles load.
+    // Carto Dark Matter renders on near-black; Voyager on warm off-white.
+    final tileBackground =
+        isDark ? const Color(0xFF1A1A1A) : const Color(0xFFECE8E0);
+
     final mapStack = Stack(
       children: [
+        // Base color fill — sits below FlutterMap so unloaded tile areas
+        // show this instead of transparent/white.
+        Positioned.fill(child: ColoredBox(color: tileBackground)),
         FlutterMap(
           mapController: _mapController,
           options: MapOptions(
@@ -133,6 +166,9 @@ class _CoverageMapWidgetState extends State<CoverageMapWidget> {
               subdomains: _cartoSubdomains,
               userAgentPackageName: 'com.eremat.greengains',
               maxNativeZoom: 19,
+              // More tiles cached around viewport → less white on pan
+              keepBuffer: 5,
+              panBuffer: 2,
             ),
 
             // ── Coverage overlay ────────────────────────────────────────────
@@ -189,6 +225,37 @@ class _CoverageMapWidgetState extends State<CoverageMapWidget> {
                 ],
               ),
 
+            // ── Scale bar ───────────────────────────────────────────────────
+            // Adapts to dark/light theme; positioned bottom-left so it doesn't
+            // clash with the FAB (bottom-right) or My Location button (bottom-left
+            // in fillScreen mode — the My Location button is at HomeScreen level
+            // so it renders above this and naturally covers any overlap).
+            Scalebar(
+              alignment: Alignment.bottomLeft,
+              padding: EdgeInsets.only(
+                left: 12,
+                bottom: widget.controlsPadding.bottom + 16,
+              ),
+              textStyle: TextStyle(
+                color: isDark ? Colors.white70 : Colors.black87,
+                fontSize: 11,
+              ),
+              lineColor: isDark ? Colors.white70 : Colors.black87,
+              length: ScalebarLength.s,
+            ),
+
+            // ── Compass ─────────────────────────────────────────────────────
+            // Hidden when map is north-up (hideIfRotatedNorth: true).
+            // Top-left avoids the reload button (top-right in HomeScreen).
+            MapCompass.cupertino(
+              hideIfRotatedNorth: true,
+              alignment: Alignment.topLeft,
+              padding: EdgeInsets.only(
+                top: widget.controlsPadding.top + 10,
+                left: 10,
+              ),
+            ),
+
             // Attribution (required by Carto + OSM ToS)
             RichAttributionWidget(
               attributions: [
@@ -222,7 +289,7 @@ class _CoverageMapWidgetState extends State<CoverageMapWidget> {
                     Icon(Icons.hexagon, size: 16, color: AppColors.primary),
                     const SizedBox(width: 6),
                     Text(
-                      '${widget.tiles.length} tiles',
+                      context.l10n.tilesCount(widget.tiles.length),
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: AppColors.textPrimary(isDark),
                             fontWeight: AppFontWeights.medium,
@@ -264,7 +331,7 @@ class _CoverageMapWidgetState extends State<CoverageMapWidget> {
                         size: 48, color: AppColors.textSecondary(isDark)),
                     const SizedBox(height: AppTheme.spaceSm),
                     Text(
-                      'No coverage yet',
+                      context.l10n.noCoverageYet,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                             color: AppColors.textPrimary(isDark),
                             fontWeight: AppFontWeights.semibold,
@@ -272,7 +339,7 @@ class _CoverageMapWidgetState extends State<CoverageMapWidget> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Start tracking to map your area',
+                      context.l10n.startTrackingToMap,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: AppColors.textSecondary(isDark),
                           ),

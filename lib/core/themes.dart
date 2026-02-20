@@ -29,19 +29,19 @@ class AppColors {
   static const Color lightBorder = Color(0xFFD8E0DB);
   static const Color lightDivider = Color(0xFFC8D2CC);
 
-  // Dark mode neutrals — pure neutral grays, NO color tint in surfaces.
+  // Dark mode neutrals — GitHub Dark proportions: neutral grays, high contrast.
+  // bg→surface: +15, surface→elevated: +10, surface→border: +36 (key for legibility).
   // Accent (Emerald) lives only on interactive elements, not backgrounds.
-  // Reference: GitHub Dark, Linear, Vercel dark mode palettes.
-  static const Color darkBackground = Color(0xFF0D0D0D);       // near-black
-  static const Color darkSurface = Color(0xFF171717);          // card/sheet surface
-  static const Color darkSurfaceElevated = Color(0xFF1F1F1F);  // modals, elevated sheets
-  static const Color darkSurfaceActive = Color(0xFF262626);    // pressed/selected state
+  static const Color darkBackground = Color(0xFF0D0D0D);       // near-black (13)
+  static const Color darkSurface = Color(0xFF1C1C1C);          // card surface (28, +15)
+  static const Color darkSurfaceElevated = Color(0xFF262626);  // elevated sheet (38, +10)
+  static const Color darkSurfaceActive = Color(0xFF2E2E2E);    // pressed state (46)
 
-  static const Color darkTextPrimary = Color(0xFFF0F0F0);      // clean near-white
-  static const Color darkTextSecondary = Color(0xFF9B9B9B);    // readable mid-gray
-  static const Color darkTextTertiary = Color(0xFF6B6B6B);     // hints/placeholders
-  static const Color darkBorder = Color(0xFF2E2E2E);           // subtle but real
-  static const Color darkDivider = Color(0xFF3A3A3A);          // separator
+  static const Color darkTextPrimary = Color(0xFFF0F0F0);      // near-white
+  static const Color darkTextSecondary = Color(0xFFA0A0A0);    // readable mid-gray
+  static const Color darkTextTertiary = Color(0xFF707070);     // hints/placeholders
+  static const Color darkBorder = Color(0xFF525252);           // clearly visible (82, +44 from surface)
+  static const Color darkDivider = Color(0xFF3A3A3A);          // separator (58)
 
   // Helpers
   static Color shadowLight(double opacity) =>
@@ -471,8 +471,8 @@ class AppTheme {
         color: textColor,
       ),
       bodyLarge: body.bodyLarge?.copyWith(fontSize: 16, color: textColor),
-      bodyMedium: body.bodyMedium?.copyWith(fontSize: 16, color: textColor),
-      bodySmall: body.bodySmall?.copyWith(fontSize: 14, color: secondary),
+      bodyMedium: body.bodyMedium?.copyWith(fontSize: 14, color: textColor), // M3 spec: 14
+      bodySmall: body.bodySmall?.copyWith(fontSize: 12, color: secondary),   // M3 spec: 12
       labelLarge: body.labelLarge?.copyWith(fontWeight: AppFontWeights.semibold, color: textColor),
       labelMedium: body.labelMedium?.copyWith(fontWeight: AppFontWeights.medium, color: textColor),
     );
@@ -683,18 +683,18 @@ class AppTheme {
       ),
       inputDecorationTheme: const InputDecorationTheme(
         filled: true,
-        fillColor: Color(0xFF111A17),
+        fillColor: Color(0xFF111111), // neutral dark, no green tint
         border: OutlineInputBorder(
           borderRadius: BorderRadius.all(Radius.circular(14)),
-          borderSide: BorderSide(color: Color(0xFF21302A)),
+          borderSide: BorderSide(color: Color(0xFF2E2E2E)),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.all(Radius.circular(14)),
-          borderSide: BorderSide(color: Color(0xFF21302A)),
+          borderSide: BorderSide(color: Color(0xFF2E2E2E)),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.all(Radius.circular(14)),
-          borderSide: BorderSide(color: Color(0xFF7FA392), width: 1.2),
+          borderSide: BorderSide(color: Color(0xFF525252), width: 1.2),
         ),
         contentPadding: EdgeInsets.symmetric(vertical: 14, horizontal: 16),
       ),
@@ -719,9 +719,9 @@ class AppTheme {
           minimumSize: const Size.fromHeight(48),
           textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
           shape: const StadiumBorder(),
-          side: const BorderSide(color: Color(0xFF21302A)),
+          side: const BorderSide(color: Color(0xFF2E2E2E)),
           foregroundColor: Colors.white,
-          backgroundColor: const Color(0xFF0E1613),
+          backgroundColor: const Color(0xFF111111),
         ),
       ),
       iconButtonTheme: IconButtonThemeData(

@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../core/extensions/context_extensions.dart';
 import '../core/themes.dart';
 import '../services/referral/referral_service.dart';
 import '../utils/app_snackbars.dart';
@@ -37,7 +38,7 @@ class ReferralInviteCard extends StatelessWidget {
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    'Invite a friend',
+                    context.l10n.referralInviteTitle,
                     style: theme.textTheme.titleMedium?.copyWith(fontWeight: AppFontWeights.semibold),
                   ),
                 ),
@@ -45,7 +46,7 @@ class ReferralInviteCard extends StatelessWidget {
             ),
             const SizedBox(height: AppTheme.spaceSm),
             Text(
-              'Earn bonus credits when friends contribute data.',
+              context.l10n.referralInviteDescription,
               style: theme.textTheme.bodyMedium,
             ),
             const SizedBox(height: AppTheme.spaceSm),
@@ -72,11 +73,11 @@ class ReferralInviteCard extends StatelessWidget {
                         inviterUid: user.uid,
                       );
                       if (context.mounted) {
-                        AppSnackbars.showInfo(context, 'Referral link copied');
+                        AppSnackbars.showInfo(context, context.l10n.referralLinkCopied);
                       }
                     },
                     icon: const Icon(Icons.copy, size: 16),
-                    label: const Text('Copy link'),
+                    label: Text(context.l10n.referralCopyLink),
                   ),
                 ],
               ),

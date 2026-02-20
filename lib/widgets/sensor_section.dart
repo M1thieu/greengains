@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../core/extensions/context_extensions.dart';
 import '../core/themes.dart';
+import '../l10n/app_localizations.dart';
 import '../services/location/foreground_location_service.dart';
 import '../models/sensor_models.dart';
 import 'sensor_data_card.dart';
@@ -79,34 +81,36 @@ class _SensorSectionState extends State<SensorSection> {
     super.dispose();
   }
 
-  String _getLightDescription(double lux) {
-    if (lux < 10) return 'Dark';
-    if (lux < 50) return 'Dim';
-    if (lux < 500) return 'Normal';
-    if (lux < 10000) return 'Bright';
-    return 'Very Bright';
+  String _getLightDescription(double lux, AppLocalizations l10n) {
+    if (lux < 10) return l10n.lightDark;
+    if (lux < 50) return l10n.lightDim;
+    if (lux < 500) return l10n.lightNormal;
+    if (lux < 10000) return l10n.lightBright;
+    return l10n.lightVeryBright;
   }
 
-  String _getMagneticDescription(double microtesla) {
-    if (microtesla < 25) return 'Very low';
-    if (microtesla < 65) return 'Normal';
-    if (microtesla < 100) return 'Elevated';
-    return 'High — near metal';
+  String _getMagneticDescription(double microtesla, AppLocalizations l10n) {
+    if (microtesla < 25) return l10n.magnetVeryLow;
+    if (microtesla < 65) return l10n.magnetNormal;
+    if (microtesla < 100) return l10n.magnetElevated;
+    return l10n.magnetHighNearMetal;
   }
 
   String _sensorStatus({
     required bool isRunning,
     required bool hasData,
+    required AppLocalizations l10n,
   }) {
-    if (!isRunning) return 'Paused';
-    if (!hasData) return 'Connecting…';
-    return 'Live';
+    if (!isRunning) return l10n.sensorStatusPaused;
+    if (!hasData) return l10n.sensorStatusConnecting;
+    return l10n.sensorStatusLive;
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final l10n = context.l10n;
 
     return ListenableBuilder(
       listenable: Listenable.merge([
@@ -126,11 +130,11 @@ class _SensorSectionState extends State<SensorSection> {
               }
             },
             title: Text(
-              'Live readings',
+              l10n.sensorLiveReadings,
               style: AppTheme.cardTitle(theme),
             ),
             subtitle: Text(
-              'See what data you\'re contributing right now',
+              l10n.sensorLiveSubtitle,
               style: theme.textTheme.bodySmall,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
@@ -140,20 +144,20 @@ class _SensorSectionState extends State<SensorSection> {
                 _buildInactiveState(
                   context,
                   isDark,
-                  title: 'Sensors inactive',
-                  subtitle: 'Start tracking above to begin collecting data',
+                  title: l10n.sensorInactiveTitle,
+                  subtitle: l10n.sensorInactiveSubtitle,
                 )
               else if (isPaused)
                 _buildInactiveState(
                   context,
                   isDark,
-                  title: 'Sensors paused',
-                  subtitle: 'Resume tracking to continue collecting data',
+                  title: l10n.sensorPausedTitle,
+                  subtitle: l10n.sensorPausedSubtitle,
                 )
               else if (!_allReady)
-                _buildReadyGate(context, isDark)
+                _buildReadyGate(context, isDark, l10n)
               else
-                _buildSensorList(context, isDark),
+                _buildSensorList(context, isDark, l10n),
             ],
           ),
         );
@@ -161,7 +165,7 @@ class _SensorSectionState extends State<SensorSection> {
     );
   }
 
-  Widget _buildReadyGate(BuildContext context, bool isDark) {
+  Widget _buildReadyGate(BuildContext context, bool isDark, AppLocalizations l10n) {
     final theme = Theme.of(context);
     return Padding(
       padding: const EdgeInsets.all(AppTheme.spaceMd),
@@ -185,7 +189,7 @@ class _SensorSectionState extends State<SensorSection> {
             const SizedBox(width: AppTheme.spaceSm),
             Expanded(
               child: Text(
-                'Collecting first readings…',
+                l10n.sensorCollectingFirst,
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: AppColors.textPrimary(isDark),
                   fontWeight: AppFontWeights.semibold,
@@ -247,7 +251,7 @@ class _SensorSectionState extends State<SensorSection> {
     );
   }
 
-  Widget _buildSensorList(BuildContext context, bool isDark) {
+  Widget _buildSensorList(BuildContext context, bool isDark, AppLocalizations l10n) {
     final theme = Theme.of(context);
 
     return Padding(
@@ -262,7 +266,7 @@ class _SensorSectionState extends State<SensorSection> {
         children: [
           // Environment Section
           Text(
-            'Around You',
+            l10n.sensorAroundYou,
             style: AppTheme.sectionHeader(theme, isDark),
           ),
           const SizedBox(height: AppTheme.spaceXs),
@@ -277,15 +281,16 @@ class _SensorSectionState extends State<SensorSection> {
                   !widget.locationService.isPaused.value;
               return SensorDataCard(
                 icon: Icons.light_mode,
-                title: 'Light',
+                title: l10n.sensorLight,
                 value: light != null
                     ? '${light.lux.toStringAsFixed(0)} lux'
                     : null,
-                unit: light != null ? _getLightDescription(light.lux) : 'lux',
+                unit: light != null ? _getLightDescription(light.lux, l10n) : 'lux',
                 enabled: isTracking,
                 statusLabel: _sensorStatus(
                   isRunning: isTracking,
                   hasData: light != null,
+                  l10n: l10n,
                 ),
                 updatedAt: light?.dateTime,
               );
@@ -302,17 +307,18 @@ class _SensorSectionState extends State<SensorSection> {
                   !widget.locationService.isPaused.value;
               return SensorDataCard(
                 icon: Icons.explore,
-                title: 'Magnetic Field',
+                title: l10n.sensorMagneticField,
                 value: mag != null
                     ? '${mag.magnitude.toStringAsFixed(1)} µT'
                     : null,
                 unit: mag != null
-                    ? _getMagneticDescription(mag.magnitude)
+                    ? _getMagneticDescription(mag.magnitude, l10n)
                     : 'microtesla',
                 enabled: isTracking,
                 statusLabel: _sensorStatus(
                   isRunning: isTracking,
                   hasData: mag != null,
+                  l10n: l10n,
                 ),
                 updatedAt: mag?.dateTime,
               );
@@ -323,7 +329,7 @@ class _SensorSectionState extends State<SensorSection> {
 
           // Movement Section
           Text(
-            'Movement',
+            l10n.sensorMovement,
             style: AppTheme.sectionHeader(theme, isDark),
           ),
           const SizedBox(height: AppTheme.spaceXs),
@@ -338,15 +344,16 @@ class _SensorSectionState extends State<SensorSection> {
                   !widget.locationService.isPaused.value;
               return SensorDataCard(
                 icon: Icons.vibration,
-                title: 'Movement',
+                title: l10n.sensorMovement,
                 value: accel != null
                     ? '${accel.magnitude.toStringAsFixed(1)} m/s²'
                     : null,
-                unit: 'Acceleration intensity',
+                unit: l10n.sensorAccelerationIntensity,
                 enabled: isTracking,
                 statusLabel: _sensorStatus(
                   isRunning: isTracking,
                   hasData: accel != null,
+                  l10n: l10n,
                 ),
                 updatedAt: accel?.dateTime,
               );
@@ -363,15 +370,16 @@ class _SensorSectionState extends State<SensorSection> {
                   !widget.locationService.isPaused.value;
               return SensorDataCard(
                 icon: Icons.screen_rotation,
-                title: 'Orientation',
+                title: l10n.sensorOrientation,
                 value: gyro != null
                     ? '${gyro.magnitude.toStringAsFixed(2)} °/s'
                     : null,
-                unit: 'Rotation speed',
+                unit: l10n.sensorRotationSpeed,
                 enabled: isTracking,
                 statusLabel: _sensorStatus(
                   isRunning: isTracking,
                   hasData: gyro != null,
+                  l10n: l10n,
                 ),
                 updatedAt: gyro?.dateTime,
               );
@@ -388,15 +396,16 @@ class _SensorSectionState extends State<SensorSection> {
                   !widget.locationService.isPaused.value;
               return SensorDataCard(
                 icon: Icons.compress,
-                title: 'Air Pressure',
+                title: l10n.sensorAirPressure,
                 value: data != null
                     ? '${data.hPa.toStringAsFixed(1)} hPa'
                     : null,
-                unit: 'Atmospheric pressure',
+                unit: l10n.sensorAtmosphericPressure,
                 enabled: isTracking,
                 statusLabel: _sensorStatus(
                   isRunning: isTracking,
                   hasData: data != null,
+                  l10n: l10n,
                 ),
                 updatedAt: data?.dateTime,
               );

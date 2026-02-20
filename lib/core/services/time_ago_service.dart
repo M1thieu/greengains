@@ -29,9 +29,10 @@ class TimeAgoService {
     _timer = null;
   }
 
-  /// Format a timestamp as "time ago" using the timeago package
-  static String format(DateTime timestamp) {
-    return timeago.format(timestamp, locale: 'en_short');
+  /// Format a timestamp as "time ago" using the timeago package.
+  /// Pass [locale] from context (e.g. 'en', 'fr') to get localized output.
+  static String format(DateTime timestamp, {String locale = 'en'}) {
+    return timeago.format(timestamp, locale: locale);
   }
 
   void dispose() {

@@ -1,10 +1,10 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import '../data/models/contribution_stats.dart';
-import '../data/repositories/contribution_repository.dart';
-import '../services/location/foreground_location_service.dart';
+import '../core/extensions/context_extensions.dart';
 import '../core/events/app_events.dart';
 import '../core/themes.dart';
+import '../data/models/contribution_stats.dart';
+import '../data/repositories/contribution_repository.dart';
 import 'time_ago_text.dart';
 
 /// Compact horizontal contribution stats bar
@@ -172,7 +172,7 @@ class ContributionStatsCardState extends State<ContributionStatsCard>
             const SizedBox(width: AppTheme.spaceSm),
             Expanded(
               child: Text(
-                'Failed to load stats',
+                context.l10n.statsFailedToLoad,
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: AppColors.textSecondary(isDark),
                 ),
@@ -183,7 +183,7 @@ class ContributionStatsCardState extends State<ContributionStatsCard>
               style: TextButton.styleFrom(
                 padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceMd, vertical: AppTheme.spaceXs),
               ),
-              child: const Text('Retry'),
+              child: Text(context.l10n.buttonRetry),
             ),
           ],
         ),
@@ -226,12 +226,12 @@ class ContributionStatsCardState extends State<ContributionStatsCard>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Ready to contribute?',
+                    context.l10n.statsReadyToContribute,
                     style: AppTheme.smallHeader(theme),
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    'Start tracking to make your first contribution',
+                    context.l10n.statsFirstContributionHint,
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: AppColors.textSecondary(isDark),
                     ),
@@ -335,14 +335,14 @@ class ContributionStatsCardState extends State<ContributionStatsCard>
                     _buildCompactStat(
                       theme,
                       isDark,
-                      label: 'Total',
+                      label: context.l10n.statsTotal,
                       value: '${_stats.totalUploads}',
                     ),
                     _buildDivider(isDark),
                     _buildCompactStat(
                       theme,
                       isDark,
-                      label: 'Today',
+                      label: context.l10n.statsToday,
                       value: '${_stats.uploadsToday}',
                     ),
                     if (_stats.currentStreak > 0) ...[
@@ -350,7 +350,7 @@ class ContributionStatsCardState extends State<ContributionStatsCard>
                       _buildCompactStat(
                         theme,
                         isDark,
-                        label: 'Day Streak',
+                        label: context.l10n.statsDayStreak,
                         value: '${_stats.currentStreak}',
                         icon: Icons.local_fire_department,
                         iconColor: hasStreak ? AppColors.warning : (AppColors.textSecondary(isDark)),
@@ -362,7 +362,7 @@ class ContributionStatsCardState extends State<ContributionStatsCard>
                   const SizedBox(height: 6),
                   TimeAgoText(
                     timestamp: _stats.loadedAt!,
-                    prefix: 'Updated ',
+                    prefix: context.l10n.statsUpdatedPrefix,
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: AppColors.textSecondary(isDark).withValues(alpha: 0.7),
                     ),

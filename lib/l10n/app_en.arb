@@ -167,5 +167,146 @@
   "loading": "Loading...",
   "saving": "Saving...",
   "success": "Success",
-  "error": "Error"
+  "error": "Error",
+
+  "profileNotSignedIn": "Not Signed In",
+  "profileSignInPrompt": "Sign in with Google to unlock daily pot rewards and sync your data across devices.",
+  "profileAnonymousNote": "Using anonymously. Daily pot rewards unavailable.",
+  "profileUserFallback": "User",
+  "profileViewStats": "View Statistics",
+  "profileContributionsHint": "Track your contributions",
+  "profileSignedOut": "Signed out",
+
+  "chipContributing": "Contributing",
+  "chipPaused": "Paused",
+  "chipTapStart": "Tap Start",
+
+  "uploadSuccessMessage": "Contribution uploaded successfully!",
+  "semanticsRefreshMap": "Refresh map data",
+  "semanticsToggleTracking": "Toggle tracking",
+  "semanticsCenterOnMe": "Center map on my location",
+  "tipViewLiveDataTitle": "View live data",
+  "tipViewLiveDataMessage": "Tap below to see what data you're contributing right now",
+
+  "statsScreenTitle": "Statistics",
+  "statsToday": "Today",
+  "statsStreak": "Streak",
+  "statsTotal": "Total",
+  "statsTotalContributions": "Total Contributions",
+  "statsKeepContributing": "Keep contributing to track trends",
+  "statsActivityTrend": "Activity Trend",
+  "statsLast7Days": "Last 7 days",
+  "statsContributionTimeline": "Contribution Timeline",
+  "statsAchievements": "Achievements",
+  "statsEarnings": "Earnings",
+  "statsVisualizationNote": "Visualization based on your current activity",
+  "statsAchievementsDescription": "Unlock badges and milestones as you contribute",
+  "statsEarningsTracking": "Earnings Tracking",
+  "statsEarningsDescription": "Track your earnings and payout history once monetization begins",
+  "statsStartContributing": "Start Contributing",
+  "statsEmptyDescription": "Your statistics will appear here once you begin tracking",
+  "statsUpdatedPrefix": "Updated ",
+  "statsDayMon": "Mon",
+  "statsDayTue": "Tue",
+  "statsDayWed": "Wed",
+  "statsDayThu": "Thu",
+  "statsDayFri": "Fri",
+  "statsDaySat": "Sat",
+  "statsDayToday": "Today",
+
+  "mapLoadingText": "Loading map...",
+  "mapComingSoonTitle": "Coverage Heatmap Coming Soon",
+  "mapComingSoonDescription": "Tile coverage visualization in progress",
+  "mapCenterTooltip": "Center on location",
+
+  "yourContributions": "YOUR CONTRIBUTIONS",
+  "loadingStatsLabel": "Loading contribution stats",
+  "noContributionsYet": "No contributions yet. Start tracking to begin.",
+  "startContributingTitle": "Start contributing",
+  "startContributingHint": "Track your environment to build your coverage map",
+  "areaCovered": "Area covered",
+  "activeStreak": "Active streak",
+  "contributionStatsSemanticsLabel": "Your contributions: {uploads}. Area covered: {area}. Active streak: {streak}.",
+  "@contributionStatsSemanticsLabel": {
+    "placeholders": {
+      "uploads": {"type": "String"},
+      "area": {"type": "String"},
+      "streak": {"type": "String"}
+    }
+  },
+
+  "noCoverageYet": "No coverage yet",
+  "startTrackingToMap": "Start tracking to map your area",
+  "tilesCount": "{count} tiles",
+  "@tilesCount": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+
+  "sensorLiveReadings": "Live readings",
+  "sensorLiveSubtitle": "See what data you're contributing right now",
+  "sensorInactiveTitle": "Sensors inactive",
+  "sensorInactiveSubtitle": "Start tracking above to begin collecting data",
+  "sensorPausedTitle": "Sensors paused",
+  "sensorPausedSubtitle": "Resume tracking to continue collecting data",
+  "sensorCollectingFirst": "Collecting first readings…",
+  "sensorAroundYou": "Around You",
+  "sensorMovement": "Movement",
+  "sensorLight": "Light",
+  "sensorMagneticField": "Magnetic Field",
+  "sensorOrientation": "Orientation",
+  "sensorAirPressure": "Air Pressure",
+  "sensorAccelerationIntensity": "Acceleration intensity",
+  "sensorRotationSpeed": "Rotation speed",
+  "sensorAtmosphericPressure": "Atmospheric pressure",
+  "sensorStatusPaused": "Paused",
+  "sensorStatusConnecting": "Connecting…",
+  "sensorStatusLive": "Live",
+  "lightDark": "Dark",
+  "lightDim": "Dim",
+  "lightNormal": "Normal",
+  "lightBright": "Bright",
+  "lightVeryBright": "Very Bright",
+  "magnetVeryLow": "Very low",
+  "magnetNormal": "Normal",
+  "magnetElevated": "Elevated",
+  "magnetHighNearMetal": "High — near metal",
+
+  "daysActive": "{count, plural, =1{1 day} other{{count} days}}",
+  "@daysActive": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+
+  "trackingFabStarting": "Starting…",
+  "trackingFabPause": "Pause tracking",
+  "trackingFabResume": "Resume tracking",
+  "trackingFabStart": "Start tracking",
+  "trackingErrorUpdateFailed": "Couldn't update tracking — please try again.",
+
+  "settingsThemeLight": "Light",
+  "settingsThemeDark": "Dark",
+  "settingsThemeAuto": "Auto",
+  "settingsLocationDescription": "Enable location for coverage map and H3 tiles",
+  "settingsMobileDataDescription": "Upload contributions over LTE/5G when needed",
+  "settingsLegal": "Legal",
+  "settingsPrivacyPolicyDesc": "How we handle your data",
+  "settingsTermsOfServiceDesc": "Usage terms and conditions",
+  "settingsDataDeletion": "Request Data Deletion",
+  "settingsDataDeletionDesc": "Remove your contributions",
+
+  "referralInviteTitle": "Invite a friend",
+  "referralInviteDescription": "Earn bonus credits when friends contribute data.",
+  "referralLinkCopied": "Referral link copied",
+  "referralCopyLink": "Copy link",
+
+  "tooltipRefresh": "Refresh",
+  "tooltipDismiss": "Dismiss",
+
+  "statsFailedToLoad": "Failed to load stats",
+  "statsReadyToContribute": "Ready to contribute?",
+  "statsFirstContributionHint": "Start tracking to make your first contribution",
+  "statsDayStreak": "Day Streak"
 }

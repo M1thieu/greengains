@@ -52,7 +52,7 @@ internal object NotificationsHelper {
             PendingIntent.FLAG_IMMUTABLE
         )
 
-        val (subtitle, expandedText) = buildSubtitle(context, lastUploadMillis, isPaused)
+        val (collapsed, detail) = buildSubtitle(context, lastUploadMillis, isPaused)
         val actionLabel = if (isPaused) {
             context.getString(R.string.notification_action_resume)
         } else {
@@ -61,10 +61,10 @@ internal object NotificationsHelper {
 
         return NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_ID)
             .setContentTitle(context.getString(R.string.app_name))
-            .setContentText(subtitle)
-            .setStyle(NotificationCompat.BigTextStyle().bigText(expandedText))
+            .setContentText(collapsed)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(detail))
             .setSmallIcon(R.mipmap.ic_launcher)
-            .setColor(Color.parseColor("#4CAF50"))
+            .setColor(Color.parseColor("#10B981"))
             .setOngoing(true)
             .addAction(
                 R.mipmap.ic_launcher,
@@ -79,30 +79,39 @@ internal object NotificationsHelper {
     }
 
     private fun buildSubtitle(context: Context, lastUploadMillis: Long?, isPaused: Boolean): Pair<String, String> {
-        val status = if (isPaused) {
-            context.getString(R.string.notification_status_paused)
-        } else {
-            context.getString(R.string.notification_status_collecting)
-        }
-
-        val lastUploadText = lastUploadMillis?.let {
-            val relative = DateUtils.getRelativeTimeSpanString(
-                it,
-                System.currentTimeMillis(),
-                DateUtils.MINUTE_IN_MILLIS
-            ).toString()
-            if (isPaused) {
-                context.getString(R.string.notification_last_upload_before_pause, relative)
+        val relative: String? = lastUploadMillis?.let {
+            val ageMs = System.currentTimeMillis() - it
+            if (ageMs < 60_000L) {
+                context.getString(R.string.notification_just_now)
             } else {
-                context.getString(R.string.notification_last_upload, relative)
+                DateUtils.getRelativeTimeSpanString(
+                    it,
+                    System.currentTimeMillis(),
+                    DateUtils.MINUTE_IN_MILLIS
+                ).toString()
             }
-        } ?: if (isPaused) {
-            context.getString(R.string.notification_last_upload_paused_unknown)
-        } else {
-            context.getString(R.string.notification_last_upload_unknown)
         }
 
-        return status to "$status\n$lastUploadText"
+        // Collapsed line: compact, shows upload time inline when available
+        val collapsed = when {
+            isPaused -> context.getString(R.string.notification_status_paused)
+            relative != null -> context.getString(R.string.notification_collecting_with_upload, relative)
+            else -> context.getString(R.string.notification_collecting_no_upload)
+        }
+
+        // Expanded detail line (shown in expanded notification)
+        val detail = when {
+            isPaused && relative != null ->
+                context.getString(R.string.notification_last_upload_before_pause, relative)
+            isPaused ->
+                context.getString(R.string.notification_last_upload_paused_unknown)
+            relative != null ->
+                context.getString(R.string.notification_last_upload, relative)
+            else ->
+                context.getString(R.string.notification_last_upload_unknown)
+        }
+
+        return collapsed to detail
     }
 
     fun readLastUploadFromPrefs(context: Context): Long? {
@@ -117,10 +126,10 @@ internal object NotificationsHelper {
 
     fun buildWorkerNotification(context: Context): Notification {
         return NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_ID)
-            .setContentTitle("GreenGains processing data")
-            .setContentText("Crunching recent sensor batches")
+            .setContentTitle(context.getString(R.string.notification_worker_title))
+            .setContentText(context.getString(R.string.notification_worker_body))
             .setSmallIcon(R.mipmap.ic_launcher)
-            .setColor(Color.parseColor("#4CAF50"))
+            .setColor(Color.parseColor("#10B981"))
             .setForegroundServiceBehavior(NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE)
             .setContentIntent(Intent(context, MainActivity::class.java).let { notificationIntent ->
                 PendingIntent.getActivity(context, 0, notificationIntent, PendingIntent.FLAG_IMMUTABLE)

@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../core/extensions/context_extensions.dart';
 import '../core/themes.dart';
+import '../l10n/app_localizations.dart';
 import '../services/auth/auth_service.dart';
 import '../utils/app_snackbars.dart';
 import '../widgets/referral_invite_card.dart';
@@ -27,6 +28,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final user = FirebaseAuth.instance.currentUser;
     final theme = context.theme;
     final isDark = context.isDarkMode;
+    final l10n = context.l10n;
 
     return Scaffold(
       appBar: AppBar(
@@ -40,17 +42,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
               );
             },
-            tooltip: 'Settings',
+            tooltip: l10n.navSettings,
           ),
         ],
       ),
-      body: user == null ? _buildSignedOutState(theme, isDark) : _buildSignedInState(user, theme, isDark),
+      body: user == null
+          ? _buildSignedOutState(theme, isDark, l10n)
+          : _buildSignedInState(user, theme, isDark, l10n),
     );
   }
 
   /// Signed-out state - show Google Sign In option
   /// Users should sign in to unlock daily pot rewards and sync data
-  Widget _buildSignedOutState(ThemeData theme, bool isDark) {
+  Widget _buildSignedOutState(ThemeData theme, bool isDark, AppLocalizations l10n) {
     return Padding(
       padding: AppTheme.pagePadding,
       child: Column(
@@ -63,7 +67,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
           const SizedBox(height: AppTheme.spaceMd),
           Text(
-            'Not Signed In',
+            l10n.profileNotSignedIn,
             style: theme.textTheme.titleLarge?.copyWith(
               fontWeight: AppFontWeights.semibold,
             ),
@@ -71,7 +75,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
           const SizedBox(height: AppTheme.spaceSm),
           Text(
-            'Sign in with Google to unlock daily pot rewards and sync your data across devices.',
+            l10n.profileSignInPrompt,
             style: theme.textTheme.bodyMedium?.copyWith(
               color: AppColors.textSecondary(isDark),
             ),
@@ -120,30 +124,31 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   /// Handle Google Sign In - preserves existing tracking data
   Future<void> _handleGoogleSignIn() async {
+    final l10n = context.l10n; // capture before async gap
     if (_signingIn) return;
     setState(() => _signingIn = true);
 
     try {
       await AuthService.signInWithGoogleUniversal();
       if (!mounted) return;
-      AppSnackbars.showSuccess(context, 'Signed in successfully');
+      AppSnackbars.showSuccess(context, l10n.signInSuccess);
       setState(() {}); // Trigger rebuild to show signed-in state
     } catch (e) {
-      print('❌ Sign-in error: $e');
+      debugPrint('Sign-in error: $e');
       if (!mounted) return;
       setState(() => _signingIn = false);
-      AppSnackbars.showError(context, 'Sign-in cancelled or failed');
+      AppSnackbars.showError(context, l10n.signInError);
     }
   }
 
   /// REDESIGNED: Compact signed-in state (no scrolling required)
-  Widget _buildSignedInState(User user, ThemeData theme, bool isDark) {
+  Widget _buildSignedInState(User user, ThemeData theme, bool isDark, AppLocalizations l10n) {
     return Padding(
       padding: AppTheme.pagePadding,
       child: Column(
         children: [
           // COMPACT USER HEADER (~100px)
-          _buildCompactUserHeader(user, theme, isDark),
+          _buildCompactUserHeader(user, theme, isDark, l10n),
 
           const SizedBox(height: AppTheme.spaceMd),
 
@@ -153,7 +158,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           const SizedBox(height: AppTheme.spaceMd),
 
           // COMPACT STATISTICS NAVIGATION (~70px)
-          _buildCompactStatsCard(theme, isDark),
+          _buildCompactStatsCard(theme, isDark, l10n),
 
           const Spacer(), // Pushes sign out to bottom if screen is taller
 
@@ -164,7 +169,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             OutlinedButton.icon(
               onPressed: _handleSignOut,
               icon: const Icon(Icons.logout),
-              label: const Text('Sign out'),
+              label: Text(l10n.profileSignOut),
               style: OutlinedButton.styleFrom(
                 foregroundColor: AppColors.error,
                 side: BorderSide(color: AppColors.error.withValues(alpha: 0.5)),
@@ -185,7 +190,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     const SizedBox(width: AppTheme.spaceSm),
                     Expanded(
                       child: Text(
-                        'Using anonymously. Daily pot rewards unavailable.',
+                        l10n.profileAnonymousNote,
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: AppColors.textSecondary(isDark),
                         ),
@@ -201,7 +206,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   /// COMPACT USER HEADER: Horizontal layout, smaller avatar, inline member badge
-  Widget _buildCompactUserHeader(User user, ThemeData theme, bool isDark) {
+  Widget _buildCompactUserHeader(User user, ThemeData theme, bool isDark, AppLocalizations l10n) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(AppTheme.spaceMd),
@@ -231,7 +236,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 children: [
                   // Name (single line)
                   Text(
-                    user.displayName ?? 'User',
+                    user.displayName ?? l10n.profileUserFallback,
                     style: theme.textTheme.titleLarge?.copyWith(
                       fontWeight: AppFontWeights.semibold,
                     ),
@@ -243,7 +248,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   // Inline member since (no container, just text)
                   if (user.metadata.creationTime != null)
                     Text(
-                      'Member since ${_formatDate(user.metadata.creationTime!)}',
+                      l10n.profileMemberSince(_formatDate(user.metadata.creationTime!)),
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant,
                       ),
@@ -258,7 +263,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   /// COMPACT STATISTICS NAVIGATION: Single-line ListTile instead of multi-line card
-  Widget _buildCompactStatsCard(ThemeData theme, bool isDark) {
+  Widget _buildCompactStatsCard(ThemeData theme, bool isDark, AppLocalizations l10n) {
     return Card(
       child: ListTile(
         onTap: () {
@@ -282,13 +287,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ),
         title: Text(
-          'View Statistics',
+          l10n.profileViewStats,
           style: theme.textTheme.titleMedium?.copyWith(
             fontWeight: AppFontWeights.semibold,
           ),
         ),
         subtitle: Text(
-          'Track your contributions',
+          l10n.profileContributionsHint,
           style: theme.textTheme.bodySmall?.copyWith(
             color: AppColors.textSecondary(isDark),
           ),
@@ -310,16 +315,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _handleSignOut() async {
+    final l10n = context.l10n; // capture before async gap
     HapticFeedback.lightImpact();
     try {
       await FirebaseAuth.instance.signOut();
       if (mounted) {
         setState(() {});
-        AppSnackbars.showSuccess(context, 'Signed out');
+        AppSnackbars.showSuccess(context, l10n.profileSignedOut);
       }
     } catch (e) {
       if (mounted) {
-        AppSnackbars.showError(context, 'Sign-out failed: $e');
+        AppSnackbars.showError(context, l10n.errorGeneric);
       }
     }
   }

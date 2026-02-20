@@ -715,6 +715,667 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Error'**
   String get error;
+
+  /// No description provided for @profileNotSignedIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Not Signed In'**
+  String get profileNotSignedIn;
+
+  /// No description provided for @profileSignInPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in with Google to unlock daily pot rewards and sync your data across devices.'**
+  String get profileSignInPrompt;
+
+  /// No description provided for @profileAnonymousNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Using anonymously. Daily pot rewards unavailable.'**
+  String get profileAnonymousNote;
+
+  /// No description provided for @profileUserFallback.
+  ///
+  /// In en, this message translates to:
+  /// **'User'**
+  String get profileUserFallback;
+
+  /// No description provided for @profileViewStats.
+  ///
+  /// In en, this message translates to:
+  /// **'View Statistics'**
+  String get profileViewStats;
+
+  /// No description provided for @profileContributionsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Track your contributions'**
+  String get profileContributionsHint;
+
+  /// No description provided for @profileSignedOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Signed out'**
+  String get profileSignedOut;
+
+  /// No description provided for @chipContributing.
+  ///
+  /// In en, this message translates to:
+  /// **'Contributing'**
+  String get chipContributing;
+
+  /// No description provided for @chipPaused.
+  ///
+  /// In en, this message translates to:
+  /// **'Paused'**
+  String get chipPaused;
+
+  /// No description provided for @chipTapStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap Start'**
+  String get chipTapStart;
+
+  /// No description provided for @uploadSuccessMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Contribution uploaded successfully!'**
+  String get uploadSuccessMessage;
+
+  /// No description provided for @semanticsRefreshMap.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh map data'**
+  String get semanticsRefreshMap;
+
+  /// No description provided for @semanticsToggleTracking.
+  ///
+  /// In en, this message translates to:
+  /// **'Toggle tracking'**
+  String get semanticsToggleTracking;
+
+  /// No description provided for @semanticsCenterOnMe.
+  ///
+  /// In en, this message translates to:
+  /// **'Center map on my location'**
+  String get semanticsCenterOnMe;
+
+  /// No description provided for @tipViewLiveDataTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'View live data'**
+  String get tipViewLiveDataTitle;
+
+  /// No description provided for @tipViewLiveDataMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap below to see what data you\'re contributing right now'**
+  String get tipViewLiveDataMessage;
+
+  /// No description provided for @statsScreenTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Statistics'**
+  String get statsScreenTitle;
+
+  /// No description provided for @statsToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get statsToday;
+
+  /// No description provided for @statsStreak.
+  ///
+  /// In en, this message translates to:
+  /// **'Streak'**
+  String get statsStreak;
+
+  /// No description provided for @statsTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Total'**
+  String get statsTotal;
+
+  /// No description provided for @statsTotalContributions.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Contributions'**
+  String get statsTotalContributions;
+
+  /// No description provided for @statsKeepContributing.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep contributing to track trends'**
+  String get statsKeepContributing;
+
+  /// No description provided for @statsActivityTrend.
+  ///
+  /// In en, this message translates to:
+  /// **'Activity Trend'**
+  String get statsActivityTrend;
+
+  /// No description provided for @statsLast7Days.
+  ///
+  /// In en, this message translates to:
+  /// **'Last 7 days'**
+  String get statsLast7Days;
+
+  /// No description provided for @statsContributionTimeline.
+  ///
+  /// In en, this message translates to:
+  /// **'Contribution Timeline'**
+  String get statsContributionTimeline;
+
+  /// No description provided for @statsAchievements.
+  ///
+  /// In en, this message translates to:
+  /// **'Achievements'**
+  String get statsAchievements;
+
+  /// No description provided for @statsEarnings.
+  ///
+  /// In en, this message translates to:
+  /// **'Earnings'**
+  String get statsEarnings;
+
+  /// No description provided for @statsVisualizationNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Visualization based on your current activity'**
+  String get statsVisualizationNote;
+
+  /// No description provided for @statsAchievementsDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock badges and milestones as you contribute'**
+  String get statsAchievementsDescription;
+
+  /// No description provided for @statsEarningsTracking.
+  ///
+  /// In en, this message translates to:
+  /// **'Earnings Tracking'**
+  String get statsEarningsTracking;
+
+  /// No description provided for @statsEarningsDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Track your earnings and payout history once monetization begins'**
+  String get statsEarningsDescription;
+
+  /// No description provided for @statsStartContributing.
+  ///
+  /// In en, this message translates to:
+  /// **'Start Contributing'**
+  String get statsStartContributing;
+
+  /// No description provided for @statsEmptyDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Your statistics will appear here once you begin tracking'**
+  String get statsEmptyDescription;
+
+  /// No description provided for @statsUpdatedPrefix.
+  ///
+  /// In en, this message translates to:
+  /// **'Updated '**
+  String get statsUpdatedPrefix;
+
+  /// No description provided for @statsDayMon.
+  ///
+  /// In en, this message translates to:
+  /// **'Mon'**
+  String get statsDayMon;
+
+  /// No description provided for @statsDayTue.
+  ///
+  /// In en, this message translates to:
+  /// **'Tue'**
+  String get statsDayTue;
+
+  /// No description provided for @statsDayWed.
+  ///
+  /// In en, this message translates to:
+  /// **'Wed'**
+  String get statsDayWed;
+
+  /// No description provided for @statsDayThu.
+  ///
+  /// In en, this message translates to:
+  /// **'Thu'**
+  String get statsDayThu;
+
+  /// No description provided for @statsDayFri.
+  ///
+  /// In en, this message translates to:
+  /// **'Fri'**
+  String get statsDayFri;
+
+  /// No description provided for @statsDaySat.
+  ///
+  /// In en, this message translates to:
+  /// **'Sat'**
+  String get statsDaySat;
+
+  /// No description provided for @statsDayToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get statsDayToday;
+
+  /// No description provided for @mapLoadingText.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading map...'**
+  String get mapLoadingText;
+
+  /// No description provided for @mapComingSoonTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Coverage Heatmap Coming Soon'**
+  String get mapComingSoonTitle;
+
+  /// No description provided for @mapComingSoonDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Tile coverage visualization in progress'**
+  String get mapComingSoonDescription;
+
+  /// No description provided for @mapCenterTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Center on location'**
+  String get mapCenterTooltip;
+
+  /// No description provided for @yourContributions.
+  ///
+  /// In en, this message translates to:
+  /// **'YOUR CONTRIBUTIONS'**
+  String get yourContributions;
+
+  /// No description provided for @loadingStatsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading contribution stats'**
+  String get loadingStatsLabel;
+
+  /// No description provided for @noContributionsYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No contributions yet. Start tracking to begin.'**
+  String get noContributionsYet;
+
+  /// No description provided for @startContributingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Start contributing'**
+  String get startContributingTitle;
+
+  /// No description provided for @startContributingHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Track your environment to build your coverage map'**
+  String get startContributingHint;
+
+  /// No description provided for @areaCovered.
+  ///
+  /// In en, this message translates to:
+  /// **'Area covered'**
+  String get areaCovered;
+
+  /// No description provided for @activeStreak.
+  ///
+  /// In en, this message translates to:
+  /// **'Active streak'**
+  String get activeStreak;
+
+  /// No description provided for @contributionStatsSemanticsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Your contributions: {uploads}. Area covered: {area}. Active streak: {streak}.'**
+  String contributionStatsSemanticsLabel(
+      String uploads, String area, String streak);
+
+  /// No description provided for @noCoverageYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No coverage yet'**
+  String get noCoverageYet;
+
+  /// No description provided for @startTrackingToMap.
+  ///
+  /// In en, this message translates to:
+  /// **'Start tracking to map your area'**
+  String get startTrackingToMap;
+
+  /// No description provided for @tilesCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} tiles'**
+  String tilesCount(int count);
+
+  /// No description provided for @sensorLiveReadings.
+  ///
+  /// In en, this message translates to:
+  /// **'Live readings'**
+  String get sensorLiveReadings;
+
+  /// No description provided for @sensorLiveSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'See what data you\'re contributing right now'**
+  String get sensorLiveSubtitle;
+
+  /// No description provided for @sensorInactiveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sensors inactive'**
+  String get sensorInactiveTitle;
+
+  /// No description provided for @sensorInactiveSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Start tracking above to begin collecting data'**
+  String get sensorInactiveSubtitle;
+
+  /// No description provided for @sensorPausedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sensors paused'**
+  String get sensorPausedTitle;
+
+  /// No description provided for @sensorPausedSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Resume tracking to continue collecting data'**
+  String get sensorPausedSubtitle;
+
+  /// No description provided for @sensorCollectingFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Collecting first readings…'**
+  String get sensorCollectingFirst;
+
+  /// No description provided for @sensorAroundYou.
+  ///
+  /// In en, this message translates to:
+  /// **'Around You'**
+  String get sensorAroundYou;
+
+  /// No description provided for @sensorMovement.
+  ///
+  /// In en, this message translates to:
+  /// **'Movement'**
+  String get sensorMovement;
+
+  /// No description provided for @sensorLight.
+  ///
+  /// In en, this message translates to:
+  /// **'Light'**
+  String get sensorLight;
+
+  /// No description provided for @sensorMagneticField.
+  ///
+  /// In en, this message translates to:
+  /// **'Magnetic Field'**
+  String get sensorMagneticField;
+
+  /// No description provided for @sensorOrientation.
+  ///
+  /// In en, this message translates to:
+  /// **'Orientation'**
+  String get sensorOrientation;
+
+  /// No description provided for @sensorAirPressure.
+  ///
+  /// In en, this message translates to:
+  /// **'Air Pressure'**
+  String get sensorAirPressure;
+
+  /// No description provided for @sensorAccelerationIntensity.
+  ///
+  /// In en, this message translates to:
+  /// **'Acceleration intensity'**
+  String get sensorAccelerationIntensity;
+
+  /// No description provided for @sensorRotationSpeed.
+  ///
+  /// In en, this message translates to:
+  /// **'Rotation speed'**
+  String get sensorRotationSpeed;
+
+  /// No description provided for @sensorAtmosphericPressure.
+  ///
+  /// In en, this message translates to:
+  /// **'Atmospheric pressure'**
+  String get sensorAtmosphericPressure;
+
+  /// No description provided for @sensorStatusPaused.
+  ///
+  /// In en, this message translates to:
+  /// **'Paused'**
+  String get sensorStatusPaused;
+
+  /// No description provided for @sensorStatusConnecting.
+  ///
+  /// In en, this message translates to:
+  /// **'Connecting…'**
+  String get sensorStatusConnecting;
+
+  /// No description provided for @sensorStatusLive.
+  ///
+  /// In en, this message translates to:
+  /// **'Live'**
+  String get sensorStatusLive;
+
+  /// No description provided for @lightDark.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark'**
+  String get lightDark;
+
+  /// No description provided for @lightDim.
+  ///
+  /// In en, this message translates to:
+  /// **'Dim'**
+  String get lightDim;
+
+  /// No description provided for @lightNormal.
+  ///
+  /// In en, this message translates to:
+  /// **'Normal'**
+  String get lightNormal;
+
+  /// No description provided for @lightBright.
+  ///
+  /// In en, this message translates to:
+  /// **'Bright'**
+  String get lightBright;
+
+  /// No description provided for @lightVeryBright.
+  ///
+  /// In en, this message translates to:
+  /// **'Very Bright'**
+  String get lightVeryBright;
+
+  /// No description provided for @magnetVeryLow.
+  ///
+  /// In en, this message translates to:
+  /// **'Very low'**
+  String get magnetVeryLow;
+
+  /// No description provided for @magnetNormal.
+  ///
+  /// In en, this message translates to:
+  /// **'Normal'**
+  String get magnetNormal;
+
+  /// No description provided for @magnetElevated.
+  ///
+  /// In en, this message translates to:
+  /// **'Elevated'**
+  String get magnetElevated;
+
+  /// No description provided for @magnetHighNearMetal.
+  ///
+  /// In en, this message translates to:
+  /// **'High — near metal'**
+  String get magnetHighNearMetal;
+
+  /// No description provided for @daysActive.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 day} other{{count} days}}'**
+  String daysActive(int count);
+
+  /// No description provided for @trackingFabStarting.
+  ///
+  /// In en, this message translates to:
+  /// **'Starting…'**
+  String get trackingFabStarting;
+
+  /// No description provided for @trackingFabPause.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause tracking'**
+  String get trackingFabPause;
+
+  /// No description provided for @trackingFabResume.
+  ///
+  /// In en, this message translates to:
+  /// **'Resume tracking'**
+  String get trackingFabResume;
+
+  /// No description provided for @trackingFabStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Start tracking'**
+  String get trackingFabStart;
+
+  /// No description provided for @trackingErrorUpdateFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t update tracking — please try again.'**
+  String get trackingErrorUpdateFailed;
+
+  /// No description provided for @settingsThemeLight.
+  ///
+  /// In en, this message translates to:
+  /// **'Light'**
+  String get settingsThemeLight;
+
+  /// No description provided for @settingsThemeDark.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark'**
+  String get settingsThemeDark;
+
+  /// No description provided for @settingsThemeAuto.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto'**
+  String get settingsThemeAuto;
+
+  /// No description provided for @settingsLocationDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable location for coverage map and H3 tiles'**
+  String get settingsLocationDescription;
+
+  /// No description provided for @settingsMobileDataDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload contributions over LTE/5G when needed'**
+  String get settingsMobileDataDescription;
+
+  /// No description provided for @settingsLegal.
+  ///
+  /// In en, this message translates to:
+  /// **'Legal'**
+  String get settingsLegal;
+
+  /// No description provided for @settingsPrivacyPolicyDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'How we handle your data'**
+  String get settingsPrivacyPolicyDesc;
+
+  /// No description provided for @settingsTermsOfServiceDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Usage terms and conditions'**
+  String get settingsTermsOfServiceDesc;
+
+  /// No description provided for @settingsDataDeletion.
+  ///
+  /// In en, this message translates to:
+  /// **'Request Data Deletion'**
+  String get settingsDataDeletion;
+
+  /// No description provided for @settingsDataDeletionDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove your contributions'**
+  String get settingsDataDeletionDesc;
+
+  /// No description provided for @referralInviteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite a friend'**
+  String get referralInviteTitle;
+
+  /// No description provided for @referralInviteDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Earn bonus credits when friends contribute data.'**
+  String get referralInviteDescription;
+
+  /// No description provided for @referralLinkCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Referral link copied'**
+  String get referralLinkCopied;
+
+  /// No description provided for @referralCopyLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy link'**
+  String get referralCopyLink;
+
+  /// No description provided for @tooltipRefresh.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh'**
+  String get tooltipRefresh;
+
+  /// No description provided for @tooltipDismiss.
+  ///
+  /// In en, this message translates to:
+  /// **'Dismiss'**
+  String get tooltipDismiss;
+
+  /// No description provided for @statsFailedToLoad.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load stats'**
+  String get statsFailedToLoad;
+
+  /// No description provided for @statsReadyToContribute.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready to contribute?'**
+  String get statsReadyToContribute;
+
+  /// No description provided for @statsFirstContributionHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Start tracking to make your first contribution'**
+  String get statsFirstContributionHint;
+
+  /// No description provided for @statsDayStreak.
+  ///
+  /// In en, this message translates to:
+  /// **'Day Streak'**
+  String get statsDayStreak;
 }
 
 class _AppLocalizationsDelegate

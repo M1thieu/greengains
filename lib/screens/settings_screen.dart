@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import '../core/extensions/context_extensions.dart';
 import '../core/themes.dart';
 import '../core/theme_controller.dart';
 import '../core/language_controller.dart';
 import '../core/app_preferences.dart';
-import '../l10n/app_localizations.dart';
 import 'webview_screen.dart';
 
 /// Settings screen for Data & Privacy, Themes, and Legal
@@ -41,9 +41,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = context.l10n;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Settings')),
+      appBar: AppBar(title: Text(l10n.settingsTitle)),
       body: ListView(
         padding: AppTheme.pagePadding,
         children: [
@@ -51,26 +52,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _SettingsSectionTitle(text: 'Theme'),
+                _SettingsSectionTitle(text: l10n.settingsTheme),
                 ListenableBuilder(
                   listenable: _themeController,
                   builder: (context, _) {
+                    final l = context.l10n;
                     return SegmentedButton<ThemeMode>(
-                      segments: const [
+                      segments: [
                         ButtonSegment(
                           value: ThemeMode.light,
-                          icon: Icon(Icons.light_mode),
-                          label: Text('Light'),
+                          icon: const Icon(Icons.light_mode),
+                          label: Text(l.settingsThemeLight),
                         ),
                         ButtonSegment(
                           value: ThemeMode.dark,
-                          icon: Icon(Icons.dark_mode),
-                          label: Text('Dark'),
+                          icon: const Icon(Icons.dark_mode),
+                          label: Text(l.settingsThemeDark),
                         ),
                         ButtonSegment(
                           value: ThemeMode.system,
-                          icon: Icon(Icons.auto_mode),
-                          label: Text('Auto'),
+                          icon: const Icon(Icons.auto_mode),
+                          label: Text(l.settingsThemeAuto),
                         ),
                       ],
                       selected: {_themeController.mode},
@@ -91,27 +93,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _SettingsSectionTitle(text: AppLocalizations.of(context)!.settingsLanguage),
+                _SettingsSectionTitle(text: l10n.settingsLanguage),
                 ListenableBuilder(
                   listenable: _languageController,
                   builder: (context, _) {
-                    final l10n = AppLocalizations.of(context)!;
+                    final l = context.l10n;
                     return SegmentedButton<String?>(
                       segments: [
                         ButtonSegment(
                           value: null,
                           icon: const Icon(Icons.auto_mode),
-                          label: Text(l10n.settingsLanguageSystem),
+                          label: Text(l.settingsLanguageSystem),
                         ),
                         ButtonSegment(
                           value: 'en',
                           icon: const Icon(Icons.language),
-                          label: Text(l10n.settingsLanguageEnglish),
+                          label: Text(l.settingsLanguageEnglish),
                         ),
                         ButtonSegment(
                           value: 'fr',
                           icon: const Icon(Icons.language),
-                          label: Text(l10n.settingsLanguageFrench),
+                          label: Text(l.settingsLanguageFrench),
                         ),
                       ],
                       selected: {_languageController.locale?.languageCode},
@@ -135,11 +137,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _SettingsSectionTitle(text: 'Data & Privacy'),
+                _SettingsSectionTitle(text: l10n.settingsPrivacy),
                 _SettingsToggleRow(
                   icon: Icons.location_on_outlined,
-                  title: 'Share Location',
-                  subtitle: 'Enable location for coverage map and H3 tiles',
+                  title: l10n.settingsLocationSharing,
+                  subtitle: l10n.settingsLocationDescription,
                   value: _prefs.shareLocation,
                   onChanged: (value) {
                     HapticFeedback.selectionClick();
@@ -151,8 +153,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 const SizedBox(height: AppTheme.spaceSm),
                 _SettingsToggleRow(
                   icon: Icons.podcasts_outlined,
-                  title: 'Use Mobile Data',
-                  subtitle: 'Upload contributions over LTE/5G when needed',
+                  title: l10n.settingsMobileData,
+                  subtitle: l10n.settingsMobileDataDescription,
                   value: _prefs.useMobileUploads,
                   onChanged: (value) {
                     HapticFeedback.selectionClick();
@@ -171,37 +173,37 @@ class _SettingsScreenState extends State<SettingsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _SettingsSectionTitle(text: 'Legal'),
+                _SettingsSectionTitle(text: l10n.settingsLegal),
                 _SettingsNavRow(
                   icon: Icons.privacy_tip_outlined,
-                  title: 'Privacy Policy',
-                  subtitle: 'How we handle your data',
+                  title: l10n.privacyPolicy,
+                  subtitle: l10n.settingsPrivacyPolicyDesc,
                   onTap: () => _openWebView(
                     context,
                     'https://greengains.eremat.org/privacy-policy',
-                    'Privacy Policy',
+                    l10n.privacyPolicy,
                   ),
                 ),
                 const SizedBox(height: AppTheme.spaceSm),
                 _SettingsNavRow(
                   icon: Icons.description_outlined,
-                  title: 'Terms of Service',
-                  subtitle: 'Usage terms and conditions',
+                  title: l10n.termsOfService,
+                  subtitle: l10n.settingsTermsOfServiceDesc,
                   onTap: () => _openWebView(
                     context,
                     'https://greengains.eremat.org/terms-of-service',
-                    'Terms of Service',
+                    l10n.termsOfService,
                   ),
                 ),
                 const SizedBox(height: AppTheme.spaceSm),
                 _SettingsNavRow(
                   icon: Icons.delete_outline,
-                  title: 'Request Data Deletion',
-                  subtitle: 'Remove your contributions',
+                  title: l10n.settingsDataDeletion,
+                  subtitle: l10n.settingsDataDeletionDesc,
                   onTap: () => _openWebView(
                     context,
                     'https://greengains.eremat.org/data-deletion-request',
-                    'Request Data Deletion',
+                    l10n.settingsDataDeletion,
                   ),
                 ),
               ],
@@ -212,7 +214,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
           Center(
             child: Text(
-              'Version $_version',
+              l10n.settingsVersion(_version),
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.outline,
               ),

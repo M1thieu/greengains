@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../core/extensions/context_extensions.dart';
 import '../core/themes.dart';
 
 /// Dismissible tip card that appears contextually to guide users
@@ -70,7 +71,7 @@ class ContextualTipCard extends StatelessWidget {
                     IconButton(
                       icon: const Icon(Icons.close, size: 18),
                       onPressed: onDismiss,
-                      tooltip: 'Dismiss',
+                      tooltip: context.l10n.tooltipDismiss,
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(
                         minWidth: 48,

@@ -167,5 +167,146 @@
   "loading": "Chargement...",
   "saving": "Enregistrement...",
   "success": "Succès",
-  "error": "Erreur"
+  "error": "Erreur",
+
+  "profileNotSignedIn": "Non connecté",
+  "profileSignInPrompt": "Connectez-vous avec Google pour débloquer les récompenses quotidiennes et synchroniser vos données sur tous vos appareils.",
+  "profileAnonymousNote": "Utilisation anonyme. Les récompenses quotidiennes ne sont pas disponibles.",
+  "profileUserFallback": "Utilisateur",
+  "profileViewStats": "Voir les statistiques",
+  "profileContributionsHint": "Suivez vos contributions",
+  "profileSignedOut": "Déconnecté",
+
+  "chipContributing": "En cours",
+  "chipPaused": "En pause",
+  "chipTapStart": "Démarrer",
+
+  "uploadSuccessMessage": "Contribution envoyée avec succès !",
+  "semanticsRefreshMap": "Actualiser les données de la carte",
+  "semanticsToggleTracking": "Activer/désactiver le suivi",
+  "semanticsCenterOnMe": "Centrer la carte sur ma position",
+  "tipViewLiveDataTitle": "Voir les données en direct",
+  "tipViewLiveDataMessage": "Appuyez ci-dessous pour voir les données que vous contribuez actuellement",
+
+  "statsScreenTitle": "Statistiques",
+  "statsToday": "Aujourd'hui",
+  "statsStreak": "Série",
+  "statsTotal": "Total",
+  "statsTotalContributions": "Total des contributions",
+  "statsKeepContributing": "Continuez à contribuer pour suivre les tendances",
+  "statsActivityTrend": "Tendance d'activité",
+  "statsLast7Days": "7 derniers jours",
+  "statsContributionTimeline": "Historique des contributions",
+  "statsAchievements": "Réalisations",
+  "statsEarnings": "Gains",
+  "statsVisualizationNote": "Visualisation basée sur votre activité actuelle",
+  "statsAchievementsDescription": "Débloquez des badges et jalons en contribuant",
+  "statsEarningsTracking": "Suivi des gains",
+  "statsEarningsDescription": "Suivez vos gains et l'historique des paiements une fois la monétisation lancée",
+  "statsStartContributing": "Commencer à contribuer",
+  "statsEmptyDescription": "Vos statistiques apparaîtront ici une fois que vous aurez commencé le suivi",
+  "statsUpdatedPrefix": "Mis à jour ",
+  "statsDayMon": "Lun",
+  "statsDayTue": "Mar",
+  "statsDayWed": "Mer",
+  "statsDayThu": "Jeu",
+  "statsDayFri": "Ven",
+  "statsDaySat": "Sam",
+  "statsDayToday": "Aujourd'hui",
+
+  "mapLoadingText": "Chargement de la carte...",
+  "mapComingSoonTitle": "Carte de couverture bientôt disponible",
+  "mapComingSoonDescription": "Visualisation de la couverture en cours",
+  "mapCenterTooltip": "Centrer sur la position",
+
+  "yourContributions": "VOS CONTRIBUTIONS",
+  "loadingStatsLabel": "Chargement des statistiques",
+  "noContributionsYet": "Aucune contribution pour le moment. Commencez le suivi.",
+  "startContributingTitle": "Commencer à contribuer",
+  "startContributingHint": "Suivez votre environnement pour construire votre carte de couverture",
+  "areaCovered": "Zone couverte",
+  "activeStreak": "Série active",
+  "contributionStatsSemanticsLabel": "Vos contributions : {uploads}. Zone couverte : {area}. Série active : {streak}.",
+  "@contributionStatsSemanticsLabel": {
+    "placeholders": {
+      "uploads": {"type": "String"},
+      "area": {"type": "String"},
+      "streak": {"type": "String"}
+    }
+  },
+
+  "noCoverageYet": "Aucune couverture",
+  "startTrackingToMap": "Commencez le suivi pour cartographier votre zone",
+  "tilesCount": "{count} tuiles",
+  "@tilesCount": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+
+  "sensorLiveReadings": "Lectures en direct",
+  "sensorLiveSubtitle": "Voir les données que vous contribuez en ce moment",
+  "sensorInactiveTitle": "Capteurs inactifs",
+  "sensorInactiveSubtitle": "Démarrez le suivi ci-dessus pour commencer à collecter des données",
+  "sensorPausedTitle": "Capteurs en pause",
+  "sensorPausedSubtitle": "Reprenez le suivi pour continuer à collecter des données",
+  "sensorCollectingFirst": "Collecte des premières lectures…",
+  "sensorAroundYou": "Autour de vous",
+  "sensorMovement": "Mouvement",
+  "sensorLight": "Lumière",
+  "sensorMagneticField": "Champ magnétique",
+  "sensorOrientation": "Orientation",
+  "sensorAirPressure": "Pression de l'air",
+  "sensorAccelerationIntensity": "Intensité d'accélération",
+  "sensorRotationSpeed": "Vitesse de rotation",
+  "sensorAtmosphericPressure": "Pression atmosphérique",
+  "sensorStatusPaused": "En pause",
+  "sensorStatusConnecting": "Connexion…",
+  "sensorStatusLive": "En direct",
+  "lightDark": "Sombre",
+  "lightDim": "Faible",
+  "lightNormal": "Normal",
+  "lightBright": "Lumineux",
+  "lightVeryBright": "Très lumineux",
+  "magnetVeryLow": "Très faible",
+  "magnetNormal": "Normal",
+  "magnetElevated": "Élevé",
+  "magnetHighNearMetal": "Élevé — près d'un métal",
+
+  "daysActive": "{count, plural, =1{1 jour} other{{count} jours}}",
+  "@daysActive": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+
+  "trackingFabStarting": "Démarrage…",
+  "trackingFabPause": "Mettre en pause",
+  "trackingFabResume": "Reprendre le suivi",
+  "trackingFabStart": "Démarrer le suivi",
+  "trackingErrorUpdateFailed": "Impossible de mettre à jour le suivi — veuillez réessayer.",
+
+  "settingsThemeLight": "Clair",
+  "settingsThemeDark": "Sombre",
+  "settingsThemeAuto": "Auto",
+  "settingsLocationDescription": "Activer la localisation pour la carte de couverture et les tuiles H3",
+  "settingsMobileDataDescription": "Envoyer les contributions via LTE/5G si nécessaire",
+  "settingsLegal": "Légal",
+  "settingsPrivacyPolicyDesc": "Comment nous gérons vos données",
+  "settingsTermsOfServiceDesc": "Conditions générales d'utilisation",
+  "settingsDataDeletion": "Demande de suppression des données",
+  "settingsDataDeletionDesc": "Supprimer vos contributions",
+
+  "referralInviteTitle": "Inviter un ami",
+  "referralInviteDescription": "Gagnez des crédits bonus lorsque vos amis contribuent des données.",
+  "referralLinkCopied": "Lien de parrainage copié",
+  "referralCopyLink": "Copier le lien",
+
+  "tooltipRefresh": "Actualiser",
+  "tooltipDismiss": "Fermer",
+
+  "statsFailedToLoad": "Impossible de charger les statistiques",
+  "statsReadyToContribute": "Prêt à contribuer ?",
+  "statsFirstContributionHint": "Commencez le suivi pour faire votre première contribution",
+  "statsDayStreak": "Jours de suite"
 }

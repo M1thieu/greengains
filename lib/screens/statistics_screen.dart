@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import '../core/extensions/context_extensions.dart';
 import '../core/themes.dart';
+import '../l10n/app_localizations.dart';
 import '../data/models/contribution_stats.dart';
 import '../data/repositories/contribution_repository.dart';
 import '../core/events/app_events.dart';
@@ -83,10 +85,11 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final l10n = context.l10n;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Statistics'),
+        title: Text(l10n.statsScreenTitle),
         // Share feature commented out - will be implemented later
         // actions: [
         //   IconButton(
@@ -113,21 +116,21 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                       const SizedBox(height: AppTheme.spaceLg),
 
                       // Section: Contribution Timeline - Simple trend chart
-                      _buildSectionHeader('Contribution Timeline', theme, isDark),
+                      _buildSectionHeader(l10n.statsContributionTimeline, theme, isDark),
                       const SizedBox(height: AppTheme.spaceMd),
-                      _buildSimpleTrendChart(theme, isDark),
+                      _buildSimpleTrendChart(theme, isDark, l10n),
                       const SizedBox(height: AppTheme.spaceLg),
 
                       // Section: Achievements (Coming soon placeholder)
-                      _buildSectionHeader('Achievements', theme, isDark),
+                      _buildSectionHeader(l10n.statsAchievements, theme, isDark),
                       const SizedBox(height: AppTheme.spaceMd),
-                      _buildAchievementsPlaceholder(theme, isDark),
+                      _buildAchievementsPlaceholder(theme, isDark, l10n),
                       const SizedBox(height: AppTheme.spaceLg),
 
                       // Section: Future Earnings
-                      _buildSectionHeader('Earnings', theme, isDark),
+                      _buildSectionHeader(l10n.statsEarnings, theme, isDark),
                       const SizedBox(height: AppTheme.spaceMd),
-                      _buildEarningsPlaceholder(theme, isDark),
+                      _buildEarningsPlaceholder(theme, isDark, l10n),
                     ],
                   ),
                 ),
@@ -174,7 +177,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
           ),
           const SizedBox(height: AppTheme.spaceXs),
           Text(
-            'Total Contributions',
+            context.l10n.statsTotalContributions,
             style: theme.textTheme.titleMedium?.copyWith(
               color: AppColors.textSecondary(isDark),
             ),
@@ -183,7 +186,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
             const SizedBox(height: 4),
             TimeAgoText(
               timestamp: _stats!.loadedAt!,
-              prefix: 'Updated ',
+              prefix: context.l10n.statsUpdatedPrefix,
               style: theme.textTheme.bodySmall?.copyWith(
                 color: AppColors.textSecondary(isDark).withValues(alpha: 0.6),
                 fontSize: 11,
@@ -212,7 +215,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
             )
           else
             Text(
-              'Keep contributing to track trends',
+              context.l10n.statsKeepContributing,
               style: theme.textTheme.bodySmall?.copyWith(
                 color: AppColors.textSecondary(isDark),
               ),
@@ -223,12 +226,13 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
   }
 
   Widget _buildQuickStatsGrid(ThemeData theme, bool isDark) {
+    final l10n = context.l10n;
     return Row(
       children: [
         Expanded(
           child: _buildQuickStatTile(
-            'Today',
-            '${_stats!.uploadsToday}', // Real data from database
+            l10n.statsToday,
+            '${_stats!.uploadsToday}',
             Icons.today,
             theme,
             isDark,
@@ -237,8 +241,8 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
         const SizedBox(width: AppTheme.spaceMd),
         Expanded(
           child: _buildQuickStatTile(
-            'Streak',
-            '${_stats!.currentStreak}d', // Real data from database
+            l10n.statsStreak,
+            '${_stats!.currentStreak}d',
             Icons.local_fire_department,
             theme,
             isDark,
@@ -247,8 +251,8 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
         const SizedBox(width: AppTheme.spaceMd),
         Expanded(
           child: _buildQuickStatTile(
-            'Total',
-            '${_stats!.totalUploads}', // Real data from database
+            l10n.statsTotal,
+            '${_stats!.totalUploads}',
             Icons.eco,
             theme,
             isDark,
@@ -307,7 +311,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
   }
 
   /// Simple trend chart showing basic contribution pattern
-  Widget _buildSimpleTrendChart(ThemeData theme, bool isDark) {
+  Widget _buildSimpleTrendChart(ThemeData theme, bool isDark, AppLocalizations l10n) {
     // Create a simple 7-day visualization
     // Use today's count as the latest point, then taper back for demo purposes
     final todayCount = _stats!.uploadsToday.toDouble();
@@ -330,7 +334,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Activity Trend',
+                l10n.statsActivityTrend,
                 style: theme.textTheme.titleMedium?.copyWith(
                   fontWeight: AppFontWeights.semibold,
                 ),
@@ -345,7 +349,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                   borderRadius: BorderRadius.circular(AppTheme.radiusMin),
                 ),
                 child: Text(
-                  'Last 7 days',
+                  l10n.statsLast7Days,
                   style: theme.textTheme.labelSmall?.copyWith(
                     color: AppColors.primary,
                     fontWeight: AppFontWeights.semibold,
@@ -390,7 +394,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                     sideTitles: SideTitles(
                       showTitles: true,
                       getTitlesWidget: (value, meta) {
-                        const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Today'];
+                        final days = [l10n.statsDayMon, l10n.statsDayTue, l10n.statsDayWed, l10n.statsDayThu, l10n.statsDayFri, l10n.statsDaySat, l10n.statsDayToday];
                         if (value.toInt() >= 0 && value.toInt() < days.length) {
                           return Padding(
                             padding: const EdgeInsets.only(top: 8),
@@ -456,7 +460,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
           ),
           const SizedBox(height: AppTheme.spaceSm),
           Text(
-            'Visualization based on your current activity',
+            l10n.statsVisualizationNote,
             style: theme.textTheme.labelSmall?.copyWith(
               color: AppColors.textTertiary(isDark),
               fontStyle: FontStyle.italic,
@@ -511,20 +515,20 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
     );
   }
 
-  Widget _buildAchievementsPlaceholder(ThemeData theme, bool isDark) {
+  Widget _buildAchievementsPlaceholder(ThemeData theme, bool isDark, AppLocalizations l10n) {
     return _buildComingSoonCard(
-      'Achievements',
-      'Unlock badges and milestones as you contribute',
+      l10n.statsAchievements,
+      l10n.statsAchievementsDescription,
       Icons.emoji_events_outlined,
       theme,
       isDark,
     );
   }
 
-  Widget _buildEarningsPlaceholder(ThemeData theme, bool isDark) {
+  Widget _buildEarningsPlaceholder(ThemeData theme, bool isDark, AppLocalizations l10n) {
     return _buildComingSoonCard(
-      'Earnings Tracking',
-      'Track your earnings and payout history once monetization begins',
+      l10n.statsEarningsTracking,
+      l10n.statsEarningsDescription,
       Icons.attach_money,
       theme,
       isDark,
@@ -554,6 +558,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
   }
 
   Widget _buildEmptyState(BuildContext context, ThemeData theme, bool isDark) {
+    final l10n = context.l10n;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(AppTheme.spaceLg),
@@ -574,14 +579,14 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
             ),
             const SizedBox(height: AppTheme.spaceLg),
             Text(
-              'Start Contributing',
+              l10n.statsStartContributing,
               style: theme.textTheme.headlineSmall?.copyWith(
                 fontWeight: AppFontWeights.semibold,
               ),
             ),
             const SizedBox(height: AppTheme.spaceXs),
             Text(
-              'Your statistics will appear here\nonce you begin tracking',
+              l10n.statsEmptyDescription,
               textAlign: TextAlign.center,
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: AppColors.textSecondary(isDark),
@@ -591,7 +596,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
             FilledButton.icon(
               onPressed: () => Navigator.pop(context),
               icon: const Icon(Icons.play_arrow),
-              label: const Text('Start Tracking'),
+              label: Text(l10n.startTracking),
             ),
           ],
         ),

@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import '../core/extensions/context_extensions.dart';
 import '../core/themes.dart';
+import '../l10n/app_localizations.dart';
 import '../services/auth/auth_service.dart';
 import '../utils/app_snackbars.dart';
 import 'webview_screen.dart';
@@ -49,21 +51,23 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   Future<void> _handleGoogleSignIn() async {
+    // Capture l10n before async gap (Flutter best practice)
+    final l10n = context.l10n;
     if (_signingIn) return;
     setState(() => _signingIn = true);
 
     try {
       await AuthService.signInWithGoogleUniversal();
       if (!mounted) return;
-      AppSnackbars.showSuccess(context, 'Signed in successfully');
+      AppSnackbars.showSuccess(context, l10n.signInSuccess);
       await Future.delayed(const Duration(milliseconds: 500));
       if (!mounted) return;
       widget.onComplete();
     } catch (e) {
-      print('❌ Sign-in error: $e');
+      debugPrint('Sign-in error: $e');
       if (!mounted) return;
       setState(() => _signingIn = false);
-      AppSnackbars.showError(context, 'Sign-in cancelled or failed');
+      AppSnackbars.showError(context, l10n.signInError);
     }
   }
 
@@ -73,6 +77,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final l10n = context.l10n;
 
     return Scaffold(
       body: Stack(
@@ -84,10 +89,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               setState(() => _currentPage = index);
             },
             children: [
-              _buildWelcomePage(theme, isDark),
-              _buildFeaturesPage(theme, isDark),
-              _buildImpactPage(theme, isDark),
-              _buildSignInPage(theme, isDark),
+              _buildWelcomePage(theme, isDark, l10n),
+              _buildFeaturesPage(theme, isDark, l10n),
+              _buildImpactPage(theme, isDark, l10n),
+              _buildSignInPage(theme, isDark, l10n),
             ],
           ),
 
@@ -133,7 +138,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                             width: 100,
                             child: OutlinedButton(
                               onPressed: _previousPage,
-                              child: const Text('Previous'),
+                              child: Text(l10n.buttonPrevious),
                             ),
                           )
                         else
@@ -142,7 +147,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           width: 120,
                           child: FilledButton(
                             onPressed: _nextPage,
-                            child: const Text('Next'),
+                            child: Text(l10n.buttonNext),
                           ),
                         ),
                       ],
@@ -157,7 +162,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   // Page 1: Welcome
-  Widget _buildWelcomePage(ThemeData theme, bool isDark) {
+  Widget _buildWelcomePage(ThemeData theme, bool isDark, AppLocalizations l10n) {
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.all(AppTheme.spaceLg),
@@ -186,7 +191,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             ),
             const SizedBox(height: AppTheme.spaceXl),
             Text(
-              'Welcome to GreenGains',
+              l10n.onboardingWelcomeTitle,
               style: theme.textTheme.headlineMedium?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
@@ -194,7 +199,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             ),
             const SizedBox(height: AppTheme.spaceMd),
             Text(
-              'Help create greener cities by passively collecting environmental sensor data.',
+              l10n.onboardingWelcomeSubtitle,
               style: theme.textTheme.bodyLarge?.copyWith(
                 color: AppColors.textSecondary(isDark),
               ),
@@ -208,7 +213,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   // Page 2: Features
-  Widget _buildFeaturesPage(ThemeData theme, bool isDark) {
+  Widget _buildFeaturesPage(ThemeData theme, bool isDark, AppLocalizations l10n) {
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.all(AppTheme.spaceLg),
@@ -223,7 +228,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             ),
             const SizedBox(height: AppTheme.spaceXl),
             Text(
-              'Passive Collection',
+              l10n.onboardingFeature1Title,
               style: theme.textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
@@ -231,7 +236,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             ),
             const SizedBox(height: AppTheme.spaceMd),
             Text(
-              'Runs in the background while you go about your day. No interaction needed.',
+              l10n.onboardingFeature1Description,
               style: theme.textTheme.bodyLarge?.copyWith(
                 color: AppColors.textSecondary(isDark),
               ),
@@ -245,7 +250,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             ),
             const SizedBox(height: AppTheme.spaceXl),
             Text(
-              'Privacy First',
+              l10n.onboardingFeature2Title,
               style: theme.textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
@@ -253,7 +258,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             ),
             const SizedBox(height: AppTheme.spaceMd),
             Text(
-              'Location sharing is optional and uses coarse positioning only.',
+              l10n.onboardingFeature2Description,
               style: theme.textTheme.bodyLarge?.copyWith(
                 color: AppColors.textSecondary(isDark),
               ),
@@ -267,7 +272,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   // Page 3: Impact
-  Widget _buildImpactPage(ThemeData theme, bool isDark) {
+  Widget _buildImpactPage(ThemeData theme, bool isDark, AppLocalizations l10n) {
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.all(AppTheme.spaceLg),
@@ -282,7 +287,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             ),
             const SizedBox(height: AppTheme.spaceXl),
             Text(
-              'Track Your Impact',
+              l10n.onboardingFeature3Title,
               style: theme.textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
@@ -290,7 +295,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             ),
             const SizedBox(height: AppTheme.spaceMd),
             Text(
-              'See your contributions and help map environmental data for your city.',
+              l10n.onboardingFeature3Description,
               style: theme.textTheme.bodyLarge?.copyWith(
                 color: AppColors.textSecondary(isDark),
               ),
@@ -304,7 +309,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   // Page 4: Sign In
-  Widget _buildSignInPage(ThemeData theme, bool isDark) {
+  Widget _buildSignInPage(ThemeData theme, bool isDark, AppLocalizations l10n) {
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.all(AppTheme.spaceLg),
@@ -319,7 +324,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             ),
             const SizedBox(height: AppTheme.spaceXl),
             Text(
-              'Unlock Rewards',
+              l10n.onboardingSignInTitle,
               style: theme.textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
@@ -327,7 +332,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             ),
             const SizedBox(height: AppTheme.spaceMd),
             Text(
-              'Sign in to access daily pot rewards and sync your data across devices.',
+              l10n.onboardingSignInSubtitle,
               style: theme.textTheme.bodyLarge?.copyWith(
                 color: AppColors.textSecondary(isDark),
               ),
@@ -338,85 +343,96 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             // Benefits list
             _buildBenefit(
               icon: Icons.eco,
-              title: 'Daily Pot Rewards',
-              description: 'Earn 10-100 credits every day',
+              title: l10n.onboardingDailyPotRewards,
+              description: l10n.onboardingDailyPotDescription,
               isDark: isDark,
               theme: theme,
             ),
             const SizedBox(height: AppTheme.spaceMd),
             _buildBenefit(
               icon: Icons.cloud_sync,
-              title: 'Cloud Sync',
-              description: 'Access your data on any device',
+              title: l10n.onboardingCloudSync,
+              description: l10n.onboardingCloudSyncDescription,
               isDark: isDark,
               theme: theme,
             ),
             const SizedBox(height: AppTheme.spaceMd),
             _buildBenefit(
               icon: Icons.leaderboard,
-              title: 'Future Features',
-              description: 'Leaderboards and competitions',
+              title: l10n.onboardingFutureFeatures,
+              description: l10n.onboardingFutureDescription,
               isDark: isDark,
               theme: theme,
             ),
 
             const Spacer(),
 
-            // Privacy Policy link
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceSm),
-              child: RichText(
-                textAlign: TextAlign.center,
-                text: TextSpan(
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: AppColors.textSecondary(isDark),
+            // Privacy Policy link — split-placeholder pattern:
+            // pass sentinel tokens into the localized template, then split
+            // on them to extract the surrounding prose segments.
+            // This preserves correct word order for every locale.
+            Builder(builder: (context) {
+              const ppToken = '__PP__';
+              const tosToken = '__TOS__';
+              final full = l10n.onboardingPrivacyNotice(ppToken, tosToken);
+              final beforePP = full.split(ppToken)[0];
+              final rest = full.split(ppToken)[1];
+              final betweenLinks = rest.split(tosToken)[0];
+              final afterTOS = rest.split(tosToken)[1];
+              return Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: AppTheme.spaceSm),
+                child: RichText(
+                  textAlign: TextAlign.center,
+                  text: TextSpan(
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: AppColors.textSecondary(isDark),
+                    ),
+                    children: [
+                      TextSpan(text: beforePP),
+                      TextSpan(
+                        text: l10n.privacyPolicy,
+                        style: TextStyle(
+                          color: AppColors.primary,
+                          decoration: TextDecoration.underline,
+                          fontWeight: AppFontWeights.medium,
+                        ),
+                        recognizer: TapGestureRecognizer()
+                          ..onTap = () {
+                            Navigator.of(context).push(MaterialPageRoute(
+                              builder: (_) => WebViewScreen(
+                                url:
+                                    'https://greengains.eremat.org/privacy-policy',
+                                title: l10n.privacyPolicy,
+                              ),
+                            ));
+                          },
+                      ),
+                      TextSpan(text: betweenLinks),
+                      TextSpan(
+                        text: l10n.termsOfService,
+                        style: TextStyle(
+                          color: AppColors.primary,
+                          decoration: TextDecoration.underline,
+                          fontWeight: AppFontWeights.medium,
+                        ),
+                        recognizer: TapGestureRecognizer()
+                          ..onTap = () {
+                            Navigator.of(context).push(MaterialPageRoute(
+                              builder: (_) => WebViewScreen(
+                                url:
+                                    'https://greengains.eremat.org/terms-of-service',
+                                title: l10n.termsOfService,
+                              ),
+                            ));
+                          },
+                      ),
+                      TextSpan(text: afterTOS),
+                    ],
                   ),
-                  children: [
-                    const TextSpan(text: 'By continuing, you agree to our '),
-                    TextSpan(
-                      text: 'Privacy Policy',
-                      style: TextStyle(
-                        color: AppColors.primary,
-                        decoration: TextDecoration.underline,
-                        fontWeight: AppFontWeights.medium,
-                      ),
-                      recognizer: TapGestureRecognizer()
-                        ..onTap = () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (context) => const WebViewScreen(
-                                url: 'https://greengains.eremat.org/privacy-policy',
-                                title: 'Privacy Policy',
-                              ),
-                            ),
-                          );
-                        },
-                    ),
-                    const TextSpan(text: ' and '),
-                    TextSpan(
-                      text: 'Terms of Service',
-                      style: TextStyle(
-                        color: AppColors.primary,
-                        decoration: TextDecoration.underline,
-                        fontWeight: AppFontWeights.medium,
-                      ),
-                      recognizer: TapGestureRecognizer()
-                        ..onTap = () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (context) => const WebViewScreen(
-                                url: 'https://greengains.eremat.org/terms-of-service',
-                                title: 'Terms of Service',
-                              ),
-                            ),
-                          );
-                        },
-                    ),
-                    const TextSpan(text: '.'),
-                  ],
                 ),
-              ),
-            ),
+              );
+            }),
 
             const SizedBox(height: AppTheme.spaceLg),
 

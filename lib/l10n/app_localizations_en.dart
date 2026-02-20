@@ -344,4 +344,365 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get error => 'Error';
+
+  @override
+  String get profileNotSignedIn => 'Not Signed In';
+
+  @override
+  String get profileSignInPrompt =>
+      'Sign in with Google to unlock daily pot rewards and sync your data across devices.';
+
+  @override
+  String get profileAnonymousNote =>
+      'Using anonymously. Daily pot rewards unavailable.';
+
+  @override
+  String get profileUserFallback => 'User';
+
+  @override
+  String get profileViewStats => 'View Statistics';
+
+  @override
+  String get profileContributionsHint => 'Track your contributions';
+
+  @override
+  String get profileSignedOut => 'Signed out';
+
+  @override
+  String get chipContributing => 'Contributing';
+
+  @override
+  String get chipPaused => 'Paused';
+
+  @override
+  String get chipTapStart => 'Tap Start';
+
+  @override
+  String get uploadSuccessMessage => 'Contribution uploaded successfully!';
+
+  @override
+  String get semanticsRefreshMap => 'Refresh map data';
+
+  @override
+  String get semanticsToggleTracking => 'Toggle tracking';
+
+  @override
+  String get semanticsCenterOnMe => 'Center map on my location';
+
+  @override
+  String get tipViewLiveDataTitle => 'View live data';
+
+  @override
+  String get tipViewLiveDataMessage =>
+      'Tap below to see what data you\'re contributing right now';
+
+  @override
+  String get statsScreenTitle => 'Statistics';
+
+  @override
+  String get statsToday => 'Today';
+
+  @override
+  String get statsStreak => 'Streak';
+
+  @override
+  String get statsTotal => 'Total';
+
+  @override
+  String get statsTotalContributions => 'Total Contributions';
+
+  @override
+  String get statsKeepContributing => 'Keep contributing to track trends';
+
+  @override
+  String get statsActivityTrend => 'Activity Trend';
+
+  @override
+  String get statsLast7Days => 'Last 7 days';
+
+  @override
+  String get statsContributionTimeline => 'Contribution Timeline';
+
+  @override
+  String get statsAchievements => 'Achievements';
+
+  @override
+  String get statsEarnings => 'Earnings';
+
+  @override
+  String get statsVisualizationNote =>
+      'Visualization based on your current activity';
+
+  @override
+  String get statsAchievementsDescription =>
+      'Unlock badges and milestones as you contribute';
+
+  @override
+  String get statsEarningsTracking => 'Earnings Tracking';
+
+  @override
+  String get statsEarningsDescription =>
+      'Track your earnings and payout history once monetization begins';
+
+  @override
+  String get statsStartContributing => 'Start Contributing';
+
+  @override
+  String get statsEmptyDescription =>
+      'Your statistics will appear here once you begin tracking';
+
+  @override
+  String get statsUpdatedPrefix => 'Updated ';
+
+  @override
+  String get statsDayMon => 'Mon';
+
+  @override
+  String get statsDayTue => 'Tue';
+
+  @override
+  String get statsDayWed => 'Wed';
+
+  @override
+  String get statsDayThu => 'Thu';
+
+  @override
+  String get statsDayFri => 'Fri';
+
+  @override
+  String get statsDaySat => 'Sat';
+
+  @override
+  String get statsDayToday => 'Today';
+
+  @override
+  String get mapLoadingText => 'Loading map...';
+
+  @override
+  String get mapComingSoonTitle => 'Coverage Heatmap Coming Soon';
+
+  @override
+  String get mapComingSoonDescription =>
+      'Tile coverage visualization in progress';
+
+  @override
+  String get mapCenterTooltip => 'Center on location';
+
+  @override
+  String get yourContributions => 'YOUR CONTRIBUTIONS';
+
+  @override
+  String get loadingStatsLabel => 'Loading contribution stats';
+
+  @override
+  String get noContributionsYet =>
+      'No contributions yet. Start tracking to begin.';
+
+  @override
+  String get startContributingTitle => 'Start contributing';
+
+  @override
+  String get startContributingHint =>
+      'Track your environment to build your coverage map';
+
+  @override
+  String get areaCovered => 'Area covered';
+
+  @override
+  String get activeStreak => 'Active streak';
+
+  @override
+  String contributionStatsSemanticsLabel(
+      String uploads, String area, String streak) {
+    return 'Your contributions: $uploads. Area covered: $area. Active streak: $streak.';
+  }
+
+  @override
+  String get noCoverageYet => 'No coverage yet';
+
+  @override
+  String get startTrackingToMap => 'Start tracking to map your area';
+
+  @override
+  String tilesCount(int count) {
+    return '$count tiles';
+  }
+
+  @override
+  String get sensorLiveReadings => 'Live readings';
+
+  @override
+  String get sensorLiveSubtitle =>
+      'See what data you\'re contributing right now';
+
+  @override
+  String get sensorInactiveTitle => 'Sensors inactive';
+
+  @override
+  String get sensorInactiveSubtitle =>
+      'Start tracking above to begin collecting data';
+
+  @override
+  String get sensorPausedTitle => 'Sensors paused';
+
+  @override
+  String get sensorPausedSubtitle =>
+      'Resume tracking to continue collecting data';
+
+  @override
+  String get sensorCollectingFirst => 'Collecting first readings…';
+
+  @override
+  String get sensorAroundYou => 'Around You';
+
+  @override
+  String get sensorMovement => 'Movement';
+
+  @override
+  String get sensorLight => 'Light';
+
+  @override
+  String get sensorMagneticField => 'Magnetic Field';
+
+  @override
+  String get sensorOrientation => 'Orientation';
+
+  @override
+  String get sensorAirPressure => 'Air Pressure';
+
+  @override
+  String get sensorAccelerationIntensity => 'Acceleration intensity';
+
+  @override
+  String get sensorRotationSpeed => 'Rotation speed';
+
+  @override
+  String get sensorAtmosphericPressure => 'Atmospheric pressure';
+
+  @override
+  String get sensorStatusPaused => 'Paused';
+
+  @override
+  String get sensorStatusConnecting => 'Connecting…';
+
+  @override
+  String get sensorStatusLive => 'Live';
+
+  @override
+  String get lightDark => 'Dark';
+
+  @override
+  String get lightDim => 'Dim';
+
+  @override
+  String get lightNormal => 'Normal';
+
+  @override
+  String get lightBright => 'Bright';
+
+  @override
+  String get lightVeryBright => 'Very Bright';
+
+  @override
+  String get magnetVeryLow => 'Very low';
+
+  @override
+  String get magnetNormal => 'Normal';
+
+  @override
+  String get magnetElevated => 'Elevated';
+
+  @override
+  String get magnetHighNearMetal => 'High — near metal';
+
+  @override
+  String daysActive(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count days',
+      one: '1 day',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get trackingFabStarting => 'Starting…';
+
+  @override
+  String get trackingFabPause => 'Pause tracking';
+
+  @override
+  String get trackingFabResume => 'Resume tracking';
+
+  @override
+  String get trackingFabStart => 'Start tracking';
+
+  @override
+  String get trackingErrorUpdateFailed =>
+      'Couldn\'t update tracking — please try again.';
+
+  @override
+  String get settingsThemeLight => 'Light';
+
+  @override
+  String get settingsThemeDark => 'Dark';
+
+  @override
+  String get settingsThemeAuto => 'Auto';
+
+  @override
+  String get settingsLocationDescription =>
+      'Enable location for coverage map and H3 tiles';
+
+  @override
+  String get settingsMobileDataDescription =>
+      'Upload contributions over LTE/5G when needed';
+
+  @override
+  String get settingsLegal => 'Legal';
+
+  @override
+  String get settingsPrivacyPolicyDesc => 'How we handle your data';
+
+  @override
+  String get settingsTermsOfServiceDesc => 'Usage terms and conditions';
+
+  @override
+  String get settingsDataDeletion => 'Request Data Deletion';
+
+  @override
+  String get settingsDataDeletionDesc => 'Remove your contributions';
+
+  @override
+  String get referralInviteTitle => 'Invite a friend';
+
+  @override
+  String get referralInviteDescription =>
+      'Earn bonus credits when friends contribute data.';
+
+  @override
+  String get referralLinkCopied => 'Referral link copied';
+
+  @override
+  String get referralCopyLink => 'Copy link';
+
+  @override
+  String get tooltipRefresh => 'Refresh';
+
+  @override
+  String get tooltipDismiss => 'Dismiss';
+
+  @override
+  String get statsFailedToLoad => 'Failed to load stats';
+
+  @override
+  String get statsReadyToContribute => 'Ready to contribute?';
+
+  @override
+  String get statsFirstContributionHint =>
+      'Start tracking to make your first contribution';
+
+  @override
+  String get statsDayStreak => 'Day Streak';
 }

@@ -18,12 +18,13 @@ class TimeAgoText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final locale = Localizations.localeOf(context).languageCode;
     // Listen to centralized timer for updates
     return ValueListenableBuilder<int>(
       valueListenable: TimeAgoService.instance.tick,
       builder: (context, _, __) {
         return Text(
-          '$prefix${TimeAgoService.format(timestamp)}',
+          '$prefix${TimeAgoService.format(timestamp, locale: locale)}',
           style: style,
         );
       },

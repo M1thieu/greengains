@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../core/app_preferences.dart';
+import '../core/extensions/context_extensions.dart';
 import '../core/themes.dart';
 import '../services/location/foreground_location_service.dart';
 import '../services/location/location_service.dart';
@@ -52,10 +53,7 @@ class _TrackingFabState extends State<TrackingFab> {
       final granted = await _locationPermissionHelper.requestLocation();
       if (!granted) {
         if (mounted) {
-          AppSnackbars.showInfo(
-            context,
-            'Location access is needed to track your contributions.',
-          );
+          AppSnackbars.showInfo(context, context.l10n.permissionLocationMessage);
         }
         return;
       }
@@ -78,7 +76,7 @@ class _TrackingFabState extends State<TrackingFab> {
       }
     } catch (e) {
       if (!mounted) return;
-      AppSnackbars.showError(context, 'Couldn\'t update tracking — please try again.');
+      AppSnackbars.showError(context, context.l10n.trackingErrorUpdateFailed);
     } finally {
       if (mounted) setState(() => _isToggling = false);
     }
@@ -90,11 +88,12 @@ class _TrackingFabState extends State<TrackingFab> {
     final isPaused = _locationService.isPaused.value;
     final isActive = isRunning && !isPaused;
 
-    final (icon, bgColor, fgColor) = switch (true) {
-      _ when _isToggling => (Icons.hourglass_empty, AppColors.surfaceElevated(true), Colors.white54),
-      _ when isActive    => (Icons.pause, AppColors.primary, Colors.white),
-      _ when isPaused    => (Icons.play_arrow, AppColors.warning, Colors.white),
-      _                  => (Icons.play_arrow, AppColors.primary, Colors.white),
+    final l10n = context.l10n;
+    final (icon, bgColor, fgColor, tooltip) = switch (true) {
+      _ when _isToggling => (Icons.hourglass_empty, AppColors.surfaceElevated(true), Colors.white54, l10n.trackingFabStarting),
+      _ when isActive    => (Icons.pause,      AppColors.primary,  Colors.white, l10n.trackingFabPause),
+      _ when isPaused    => (Icons.play_arrow, AppColors.warning,  Colors.white, l10n.trackingFabResume),
+      _                  => (Icons.play_arrow, AppColors.primary,  Colors.white, l10n.trackingFabStart),
     };
 
     return FloatingActionButton(
@@ -103,6 +102,7 @@ class _TrackingFabState extends State<TrackingFab> {
       backgroundColor: bgColor,
       foregroundColor: fgColor,
       elevation: 4,
+      tooltip: tooltip, // accessibility + long-press hint
       child: Icon(icon, size: 28),
     );
   }
