@@ -16,7 +16,6 @@ import '../core/events/app_events.dart';
 import '../utils/app_snackbars.dart';
 import '../core/app_preferences.dart';
 import '../widgets/contextual_tip_card.dart';
-import '../widgets/battery_optimization_dialog.dart';
 import '../widgets/impact_summary_card.dart';
 import '../widgets/sensor_section.dart';
 import '../widgets/coverage_map_widget.dart';
@@ -48,7 +47,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   final _fabOpacity = ValueNotifier<double>(1.0);
 
   TileCoverageStats? _tileCoverage;
-  bool _tileCoverageLoading = true;
   bool _batteryPromptOpen = false;
   ContributionStats? _stats;
   StreamSubscription<UploadSuccessEvent>? _uploadSuccessSub;
@@ -218,14 +216,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     try {
       final stats = await _contributionRepo.getTodayTileCoverage();
       if (mounted) {
-        setState(() {
-          _tileCoverage = stats;
-          _tileCoverageLoading = false;
-        });
+        setState(() => _tileCoverage = stats);
       }
-    } catch (_) {
-      if (mounted) setState(() => _tileCoverageLoading = false);
-    }
+    } catch (_) {}
   }
 
   Future<void> _loadStats() async {
@@ -295,7 +288,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     try {
       final permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied ||
-          permission == LocationPermission.deniedForever) return;
+          permission == LocationPermission.deniedForever) {
+        return;
+      }
 
       final position = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high,
@@ -336,6 +331,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               tiles: _h3Tiles,
               userLocation: _userLocation,
               fillScreen: true,
+              isLoading: _h3TilesLoading,
             ),
 
             // ── 1. Top overlay: status chip + refresh button ───────────────

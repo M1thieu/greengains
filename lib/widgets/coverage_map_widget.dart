@@ -25,12 +25,17 @@ class H3Tile {
 /// Supports two modes:
 /// - [fillScreen] = false (default): fixed height via [heightFraction], card-style chrome
 /// - [fillScreen] = true: expands to fill its parent (Stack/SizedBox.expand), no card chrome
+///
+/// Base tiles: Carto Dark Matter (dark) / Carto Voyager (light)
+/// Free, no API key required, professional dark look used by major mapping apps.
+/// H3 polygon overlay is tile-provider-agnostic — works with any base.
 class CoverageMapWidget extends StatefulWidget {
   final List<H3Tile> tiles;
   final LatLng? userLocation;
   final double heightFraction; // used only when fillScreen == false
   final bool showControls;
   final bool fillScreen;
+  final bool isLoading;
 
   const CoverageMapWidget({
     super.key,
@@ -39,6 +44,7 @@ class CoverageMapWidget extends StatefulWidget {
     this.heightFraction = 0.5,
     this.showControls = true,
     this.fillScreen = false,
+    this.isLoading = false,
   });
 
   @override
@@ -47,6 +53,15 @@ class CoverageMapWidget extends StatefulWidget {
 
 class _CoverageMapWidgetState extends State<CoverageMapWidget> {
   late MapController _mapController;
+
+  // Carto basemap URLs — no API key needed, free, professional quality
+  // Used by numerous mapping/mobility startups for their clean dark aesthetic.
+  // H3 hexagon polygons layer on top of these tiles identically regardless of provider.
+  static const _cartoDark =
+      'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png';
+  static const _cartoVoyager =
+      'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png';
+  static const _cartoSubdomains = ['a', 'b', 'c', 'd'];
 
   @override
   void initState() {
@@ -60,50 +75,26 @@ class _CoverageMapWidgetState extends State<CoverageMapWidget> {
     super.dispose();
   }
 
-  /// Calculate initial map bounds from tiles + user location
-  LatLngBounds _calculateBounds() {
-    if (widget.tiles.isEmpty && widget.userLocation == null) {
-      // Default: Colmar, France
-      return LatLngBounds(
-        const LatLng(48.0, 7.3),
-        const LatLng(48.1, 7.4),
-      );
-    }
+  /// Calculate initial map center from tiles + user location.
+  /// Falls back to Colmar, France (dev/testing location).
+  LatLng _calculateCenter() {
+    if (widget.userLocation != null) return widget.userLocation!;
 
-    double minLat = 90.0;
-    double maxLat = -90.0;
-    double minLng = 180.0;
-    double maxLng = -180.0;
-
-    // Include user location
-    if (widget.userLocation != null) {
-      final loc = widget.userLocation!;
-      minLat = loc.latitude;
-      maxLat = loc.latitude;
-      minLng = loc.longitude;
-      maxLng = loc.longitude;
-    }
-
-    // Include all tile boundaries (if pre-computed)
-    for (final tile in widget.tiles) {
-      if (tile.boundary != null) {
-        for (final point in tile.boundary!) {
-          minLat = minLat < point.latitude ? minLat : point.latitude;
-          maxLat = maxLat > point.latitude ? maxLat : point.latitude;
-          minLng = minLng < point.longitude ? minLng : point.longitude;
-          maxLng = maxLng > point.longitude ? maxLng : point.longitude;
+    if (widget.tiles.isNotEmpty) {
+      double lat = 0, lng = 0;
+      int count = 0;
+      for (final tile in widget.tiles) {
+        if (tile.boundary != null && tile.boundary!.isNotEmpty) {
+          final centroid = tile.boundary![0];
+          lat += centroid.latitude;
+          lng += centroid.longitude;
+          count++;
         }
       }
+      if (count > 0) return LatLng(lat / count, lng / count);
     }
 
-    // Add padding (5%)
-    final latPadding = (maxLat - minLat) * 0.05;
-    final lngPadding = (maxLng - minLng) * 0.05;
-
-    return LatLngBounds(
-      LatLng(minLat - latPadding, minLng - lngPadding),
-      LatLng(maxLat + latPadding, maxLng + lngPadding),
-    );
+    return const LatLng(48.08, 7.36); // Colmar default
   }
 
   void _recenterOnUser() {
@@ -114,155 +105,148 @@ class _CoverageMapWidgetState extends State<CoverageMapWidget> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final bounds = _calculateBounds();
-    final center = LatLng(
-      (bounds.north + bounds.south) / 2,
-      (bounds.east + bounds.west) / 2,
-    );
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final center = _calculateCenter();
 
     final mapStack = Stack(
-        children: [
-          FlutterMap(
-            mapController: _mapController,
-            options: MapOptions(
-              initialCenter: center,
-              initialZoom: 13.0,
-              minZoom: 5.0,
-              maxZoom: 18.0,
-              interactionOptions: InteractionOptions(
-                flags: widget.showControls
-                    ? InteractiveFlag.all
-                    : InteractiveFlag.none,
-              ),
+      children: [
+        FlutterMap(
+          mapController: _mapController,
+          options: MapOptions(
+            initialCenter: center,
+            initialZoom: 13.0,
+            minZoom: 5.0,
+            maxZoom: 18.0,
+            interactionOptions: InteractionOptions(
+              flags: widget.showControls
+                  ? InteractiveFlag.all
+                  : InteractiveFlag.none,
             ),
-            children: [
-              // Base map tiles (OpenStreetMap)
-              TileLayer(
-                urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                userAgentPackageName: 'com.eremat.greengains',
-                tileBuilder: isDark ? _darkModeTileBuilder : null,
+          ),
+          children: [
+            // ── Base tiles (Carto) ─────────────────────────────────────────
+            // Dark Matter: professional dark used by Helium, mobility startups
+            // Voyager: clean neutral for light mode
+            // Both free, no API key, scales to millions of tiles/month
+            TileLayer(
+              urlTemplate: isDark ? _cartoDark : _cartoVoyager,
+              subdomains: _cartoSubdomains,
+              userAgentPackageName: 'com.eremat.greengains',
+              maxNativeZoom: 19,
+            ),
+
+            // ── Coverage overlay ────────────────────────────────────────────
+            // Currently: geohash-approximated circles (16-point polygons)
+            // Future: real H3 hexagons — same PolygonLayer API, just different points
+            if (widget.tiles.any((t) => t.boundary != null))
+              PolygonLayer(
+                polygons: widget.tiles
+                    .where(
+                        (tile) => tile.boundary != null && tile.boundary!.isNotEmpty)
+                    .map((tile) {
+                  final opacity = (tile.confidence * 0.55).clamp(0.08, 0.55);
+                  return Polygon(
+                    points: tile.boundary!,
+                    color: AppColors.primary.withValues(alpha: opacity),
+                    borderColor:
+                        AppColors.primary.withValues(alpha: (opacity + 0.15).clamp(0.0, 1.0)),
+                    borderStrokeWidth: 1.0,
+                  );
+                }).toList(),
               ),
 
-              // H3 hexagon layer (if tiles have pre-computed boundaries)
-              if (widget.tiles.any((t) => t.boundary != null))
-                PolygonLayer(
-                  polygons: widget.tiles
-                      .where((tile) => tile.boundary != null && tile.boundary!.isNotEmpty)
-                      .map((tile) {
-                    // Gradient opacity based on confidence
-                    final opacity = (tile.confidence * 0.7).clamp(0.1, 0.7);
-
-                    return Polygon(
-                      points: tile.boundary!,
-                      color: AppColors.primary.withValues(alpha: opacity),
-                      borderColor: AppColors.primary.withValues(alpha: opacity + 0.2),
-                      borderStrokeWidth: 1.5,
-                    );
-                  }).toList(),
-                ),
-
-              // User location marker
-              if (widget.userLocation != null)
-                MarkerLayer(
-                  markers: [
-                    Marker(
-                      point: widget.userLocation!,
-                      width: 40,
-                      height: 40,
-                      child: GestureDetector(
-                        onTap: widget.showControls ? _recenterOnUser : null,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: AppColors.primary,
-                            border: Border.all(
-                              color: Colors.white,
-                              width: 3,
+            // ── User location marker ─────────────────────────────────────────
+            if (widget.userLocation != null)
+              MarkerLayer(
+                markers: [
+                  Marker(
+                    point: widget.userLocation!,
+                    width: 40,
+                    height: 40,
+                    child: GestureDetector(
+                      onTap: widget.showControls ? _recenterOnUser : null,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: AppColors.primary,
+                          border: Border.all(color: Colors.white, width: 3),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.3),
+                              blurRadius: 8,
+                              spreadRadius: 1,
                             ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.3),
-                                blurRadius: 8,
-                                spreadRadius: 1,
-                              ),
-                            ],
-                          ),
-                          child: const Icon(
-                            Icons.person,
-                            color: Colors.white,
-                            size: 20,
-                          ),
+                          ],
+                        ),
+                        child: const Icon(
+                          Icons.person,
+                          color: Colors.white,
+                          size: 20,
                         ),
                       ),
                     ),
-                  ],
-                ),
-            ],
-          ),
+                  ),
+                ],
+              ),
 
-          // Legend overlay (top-right)
+            // Attribution (required by Carto + OSM ToS)
+            RichAttributionWidget(
+              attributions: [
+                TextSourceAttribution('© OpenStreetMap contributors'),
+                TextSourceAttribution('© CARTO'),
+              ],
+            ),
+          ],
+        ),
+
+        // ── In card mode: tile count legend + recenter FAB ────────────────
+        // These are HIDDEN in fillScreen mode — HomeScreen manages its own
+        // overlay layer (TrackingStatusChip + TrackingFab at HomeScreen level).
+        if (!widget.fillScreen) ...[
           if (widget.tiles.isNotEmpty)
             Positioned(
               top: 12,
               right: 12,
               child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 8,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 decoration: BoxDecoration(
                   color: isDark
                       ? Colors.black.withValues(alpha: 0.7)
                       : Colors.white.withValues(alpha: 0.9),
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                    color: AppColors.border(isDark),
-                  ),
+                  border: Border.all(color: AppColors.border(isDark)),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(
-                      Icons.hexagon,
-                      size: 16,
-                      color: AppColors.primary,
-                    ),
+                    Icon(Icons.hexagon, size: 16, color: AppColors.primary),
                     const SizedBox(width: 6),
                     Text(
                       '${widget.tiles.length} tiles',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: AppColors.textPrimary(isDark),
-                        fontWeight: AppFontWeights.medium,
-                      ),
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: AppColors.textPrimary(isDark),
+                            fontWeight: AppFontWeights.medium,
+                          ),
                     ),
                   ],
                 ),
               ),
             ),
 
-          // Recenter button (bottom-right) - Google Maps style
           if (widget.showControls && widget.userLocation != null)
             Positioned(
               bottom: 16,
               right: 16,
               child: FloatingActionButton.small(
                 onPressed: _recenterOnUser,
-                backgroundColor: isDark
-                    ? Colors.grey[850]
-                    : Colors.white,
+                backgroundColor: isDark ? Colors.grey[850] : Colors.white,
                 elevation: 4,
-                child: Icon(
-                  Icons.my_location,
-                  color: AppColors.primary,
-                  size: 20,
-                ),
+                child: Icon(Icons.my_location, color: AppColors.primary, size: 20),
               ),
             ),
 
-          // Empty state
-          if (widget.tiles.isEmpty)
+          // Empty state (card mode only — full-screen map always shows base tiles)
+          if (!widget.isLoading && widget.tiles.isEmpty)
             Center(
               child: Container(
                 padding: const EdgeInsets.all(AppTheme.spaceLg),
@@ -276,39 +260,35 @@ class _CoverageMapWidgetState extends State<CoverageMapWidget> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(
-                      Icons.map_outlined,
-                      size: 48,
-                      color: AppColors.textSecondary(isDark),
-                    ),
+                    Icon(Icons.map_outlined,
+                        size: 48, color: AppColors.textSecondary(isDark)),
                     const SizedBox(height: AppTheme.spaceSm),
                     Text(
                       'No coverage yet',
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        color: AppColors.textPrimary(isDark),
-                        fontWeight: AppFontWeights.semibold,
-                      ),
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            color: AppColors.textPrimary(isDark),
+                            fontWeight: AppFontWeights.semibold,
+                          ),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       'Start tracking to map your area',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: AppColors.textSecondary(isDark),
-                      ),
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: AppColors.textSecondary(isDark),
+                          ),
                     ),
                   ],
                 ),
               ),
             ),
         ],
+      ],
     );
 
     if (widget.fillScreen) {
-      // Edge-to-edge background — no card chrome, expands to fill parent Stack
       return SizedBox.expand(child: mapStack);
     }
 
-    // Card mode — fixed height with border + shadow
     return Container(
       height: MediaQuery.of(context).size.height * widget.heightFraction,
       decoration: BoxDecoration(
@@ -320,19 +300,6 @@ class _CoverageMapWidgetState extends State<CoverageMapWidget> {
       ),
       clipBehavior: Clip.antiAlias,
       child: mapStack,
-    );
-  }
-
-  /// Dark mode tile filter
-  Widget _darkModeTileBuilder(BuildContext context, Widget tileWidget, TileImage tile) {
-    return ColorFiltered(
-      colorFilter: const ColorFilter.matrix([
-        -0.8, 0, 0, 0, 255, // Red
-        0, -0.8, 0, 0, 255, // Green
-        0, 0, -0.8, 0, 255, // Blue
-        0, 0, 0, 1, 0, // Alpha
-      ]),
-      child: tileWidget,
     );
   }
 }
