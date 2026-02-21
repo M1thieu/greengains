@@ -34,6 +34,8 @@ class PreferenceKeys {
   static const lastLightTimestamp = 'last_light_timestamp';
   static const lastPressureHPa = 'last_pressure_hpa';
   static const lastPressureTimestamp = 'last_pressure_timestamp';
+  static const lastMagneticMagnitude = 'last_magnetic_magnitude';
+  static const lastMagneticTimestamp = 'last_magnetic_timestamp';
 
   static const _legacyDeviceId = 'device_id';
   static const _legacyForegroundServiceEnabled = 'foreground_service_enabled';
@@ -331,6 +333,20 @@ class AppPreferences {
     final timestamp = _sp.getInt(PreferenceKeys.lastPressureTimestamp);
     if (hPa == null || timestamp == null) return null;
     return {'hPa': hPa, 'timestamp': timestamp};
+  }
+
+  /// Save last known magnetometer reading (magnitude only — orientation-independent)
+  Future<void> saveLastMagnetic(double magnitude, int timestampMs) async {
+    await _sp.setDouble(PreferenceKeys.lastMagneticMagnitude, magnitude);
+    await _sp.setInt(PreferenceKeys.lastMagneticTimestamp, timestampMs);
+  }
+
+  /// Get last known magnetometer reading
+  Map<String, dynamic>? getLastMagnetic() {
+    final magnitude = _sp.getDouble(PreferenceKeys.lastMagneticMagnitude);
+    final timestamp = _sp.getInt(PreferenceKeys.lastMagneticTimestamp);
+    if (magnitude == null || timestamp == null) return null;
+    return {'magnitude': magnitude, 'timestamp': timestamp};
   }
 
   // ── Identity credentials for native uploader ─────────────────────────────

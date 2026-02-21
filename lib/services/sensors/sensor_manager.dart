@@ -24,11 +24,12 @@ class SensorManager {
   bool get isRunning => _running;
 
   // Expose typed streams from the native foreground service
-  Stream<AccelerometerData> get accelerometer$ => _foreground.accelerometerStream;
-  Stream<GyroscopeData> get gyroscope$ => _foreground.gyroscopeStream;
-  Stream<LightData> get light$ => _foreground.lightStream;
-  Stream<PressureData> get pressure$ => _foreground.pressureStream;
-  Stream<LocationData> get location$ => _foreground.locationStream;
+  Stream<AccelerometerData>  get accelerometer$ => _foreground.accelerometerStream;
+  Stream<GyroscopeData>      get gyroscope$     => _foreground.gyroscopeStream;
+  Stream<LightData>          get light$         => _foreground.lightStream;
+  Stream<PressureData>       get pressure$      => _foreground.pressureStream;
+  Stream<MagneticFieldData>  get magnetic$      => _foreground.magneticFieldStream;
+  Stream<LocationData>       get location$      => _foreground.locationStream;
 
   /// Start the native foreground service and begin collecting sensor data.
   Future<void> start() async {

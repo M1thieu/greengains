@@ -173,11 +173,11 @@ export async function dataRoutes(fastify: FastifyInstance) {
         const query = dataAggregatesSchema.parse(request.query);
         const pool = getPool();
 
-        // Map sensor name to DB column
+        // Map sensor name to DB column (same columns exist in both 5m and daily tables)
         const sensorColumnMap: Record<string, string> = {
           Light: 'avg_light',
           Movement: 'movement_score',
-          Pressure: 'avg_gyro_rms',    // best proxy for pressure/orientation
+          Pressure: 'avg_gyro_rms',
           Quality: 'quality_valid_ratio',
           light: 'avg_light',
           movement: 'movement_score',
@@ -185,18 +185,23 @@ export async function dataRoutes(fastify: FastifyInstance) {
           quality: 'quality_valid_ratio',
         };
 
-        const column = sensorColumnMap[sensor] || 'avg_light';  // default to light
+        const column = sensorColumnMap[sensor] || 'avg_light';
 
         const tier = await getOrgSubscriptionTier(pool, userId);
         const maxDays = TIER_HISTORY_DAYS[tier] ?? 7;
+
+        // Use daily aggregates for wide ranges — same pattern as /aggregated endpoint
+        const isDailyBucket = query.bucket === 'day';
+        const table = isDailyBucket ? 'sensor_aggregates_daily' : 'sensor_aggregates_5m';
+        const timeColumn = isDailyBucket ? 'day' : 'window_start';
 
         // Build query
         const qb = new QueryBuilder();
         const fromTime = query.from ? new Date(query.from) : new Date(Date.now() - maxDays * 86400000);
         const toTime = query.to ? new Date(query.to) : new Date();
 
-        qb.where(`window_start >= $P`, fromTime.toISOString());
-        qb.where(`window_start <= $P`, toTime.toISOString());
+        qb.where(`${timeColumn} >= $P`, fromTime.toISOString());
+        qb.where(`${timeColumn} <= $P`, toTime.toISOString());
         qb.whereIf(query.geohash, `geohash LIKE $P`, query.geohash ? `${query.geohash}%` : undefined);
 
         const { whereSql, params, nextParamIndex } = qb.build();
@@ -204,11 +209,11 @@ export async function dataRoutes(fastify: FastifyInstance) {
 
         const sql = `
           SELECT
-            window_start as timestamp,
+            ${timeColumn} as timestamp,
             ${column} as value
-          FROM sensor_aggregates_5m
+          FROM ${table}
           ${whereSql}
-          ORDER BY window_start ASC
+          ORDER BY ${timeColumn} ASC
           LIMIT $${nextParamIndex}
         `;
 
@@ -364,7 +369,7 @@ export async function dataRoutes(fastify: FastifyInstance) {
 
       try {
         const query = z.object({
-          hours: z.coerce.number().int().min(1).max(168).default(24),
+          hours: z.coerce.number().int().min(1).max(2190).default(24),
           min_devices: z.coerce.number().int().min(0).default(0),
         }).parse(request.query);
 
@@ -372,7 +377,25 @@ export async function dataRoutes(fastify: FastifyInstance) {
 
         const fromTime = new Date(Date.now() - query.hours * 3600000);
 
-        const sql = `
+        // Use daily aggregates for wide ranges — 5m table may not retain data beyond ~7d
+        // and scanning thousands of 5m windows is slow. Daily table is pre-aggregated.
+        const useDaily = query.hours > 168;
+
+        const sql = useDaily ? `
+          SELECT
+            geohash,
+            SUM(samples_count) as samples_count,
+            SUM(device_count) as device_count,
+            SUM(device_hours) as device_hours,
+            AVG(avg_light) as avg_light,
+            MAX(quality_valid_ratio) as quality_valid_ratio,
+            MAX(day) as last_seen
+          FROM sensor_aggregates_daily
+          WHERE day >= $1
+          GROUP BY geohash
+          HAVING SUM(device_count) >= $2
+          ORDER BY SUM(device_count) DESC
+        ` : `
           SELECT
             geohash,
             SUM(samples_count) as samples_count,

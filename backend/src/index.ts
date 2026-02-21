@@ -26,6 +26,7 @@ import { analyticsRoutes } from './routes/analytics';
 import { userRoutes } from './routes/user';
 import { authRoutes } from './routes/auth';
 import { dataRoutes } from './routes/data';
+import { referralRoutes } from './routes/referral';
 import { startAggregationJob, stopAggregationJob } from './jobs/aggregator';
 import { ErrorCodes, createErrorResponse } from './utils/errors';
 
@@ -140,6 +141,7 @@ fastify.register(deviceRoutes);
 fastify.register(uploadRoutes);
 fastify.register(analyticsRoutes);
 fastify.register(userRoutes);
+fastify.register(referralRoutes);
 
 // Graceful shutdown
 const shutdown = async (signal: string) => {

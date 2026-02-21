@@ -1,23 +1,39 @@
 import 'package:flutter/foundation.dart';
+import '../network/backend_client.dart';
 
 class ReferralService {
   ReferralService._();
 
   static final ReferralService instance = ReferralService._();
 
-  // TODO: Replace with backend-generated codes and validation.
+  /// Log that the user shared their referral link.
   Future<void> registerReferralInvite({
     required String referralCode,
     required String inviterUid,
   }) async {
-    debugPrint('Referral stub: invite copied for $inviterUid ($referralCode)');
+    try {
+      await BackendClient.post(
+        '/api/v1/referrals/invite',
+        {'referralCode': referralCode},
+      );
+    } catch (e) {
+      // Non-critical — never block the copy action
+      debugPrint('Referral invite log failed (non-critical): $e');
+    }
   }
 
-  // TODO: Call backend when an invite link is opened to register a conversion.
+  /// Log that a new user signed up via a referral link.
   Future<void> registerReferralOpen({
     required String referralCode,
     required String inviteeUid,
   }) async {
-    debugPrint('Referral stub: invite opened by $inviteeUid ($referralCode)');
+    try {
+      await BackendClient.post(
+        '/api/v1/referrals/convert',
+        {'referralCode': referralCode},
+      );
+    } catch (e) {
+      debugPrint('Referral convert log failed (non-critical): $e');
+    }
   }
 }

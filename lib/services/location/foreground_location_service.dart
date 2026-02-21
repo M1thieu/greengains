@@ -84,6 +84,16 @@ class ForegroundLocationService {
         timestamp: pressure['timestamp'] as int,
       );
     }
+
+    // Load last magnetic reading (magnitude only — x/y/z are orientation-dependent)
+    final magnetic = prefs.getLastMagnetic();
+    if (magnetic != null) {
+      _lastMagneticField = MagneticFieldData(
+        x: 0, y: 0, z: 0,
+        magnitude: magnetic['magnitude'] as double,
+        timestamp: magnetic['timestamp'] as int,
+      );
+    }
   }
 
   void _setupMethodCallHandler() {
@@ -122,6 +132,7 @@ class ForegroundLocationService {
           final magnetic = MagneticFieldData.fromMap(call.arguments as Map);
           _lastMagneticField = magnetic;
           _magneticFieldController.add(magnetic);
+          unawaited(AppPreferences.instance.saveLastMagnetic(magnetic.magnitude, magnetic.timestamp));
           break;
         case 'collectSensors':
           // This is called periodically by the native service
