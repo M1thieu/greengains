@@ -95,27 +95,33 @@ class BackendClient {
     _client.close();
   }
 
-  /// Static helper for GET requests (used by daily pot service)
-  static Future<http.Response> get(String path) async {
+  /// Static helper for GET requests.
+  static Future<http.Response> get(
+    String path, {
+    Duration timeout = const Duration(seconds: 12),
+  }) async {
     final uri = Uri.parse('$kBackendBaseUrl$path');
     final headers = <String, String>{
       HttpHeaders.acceptHeader: 'application/json',
       HttpHeaders.contentTypeHeader: 'application/json',
     };
     await _addAuthHeaders(headers);
-    return await http.get(uri, headers: headers)
-        .timeout(const Duration(seconds: 30));
+    return await http.get(uri, headers: headers).timeout(timeout);
   }
 
-  /// Static helper for POST requests (used by daily pot service)
-  static Future<http.Response> post(String path, Map<String, dynamic> body) async {
+  /// Static helper for POST requests.
+  static Future<http.Response> post(
+    String path,
+    Map<String, dynamic> body, {
+    Duration timeout = const Duration(seconds: 12),
+  }) async {
     final uri = Uri.parse('$kBackendBaseUrl$path');
     final headers = <String, String>{
       HttpHeaders.contentTypeHeader: 'application/json',
     };
     await _addAuthHeaders(headers);
     return await http.post(uri, headers: headers, body: jsonEncode(body))
-        .timeout(const Duration(seconds: 30));
+        .timeout(timeout);
   }
 
   Future<List<CoverageTile>> fetchCoverage({

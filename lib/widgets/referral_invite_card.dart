@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../core/app_preferences.dart';
 import '../core/extensions/context_extensions.dart';
 import '../core/themes.dart';
 import '../services/referral/referral_service.dart';
@@ -28,21 +29,32 @@ class _ReferralInviteCardState extends State<ReferralInviteCard> {
   @override
   void initState() {
     super.initState();
+    // Show cached code immediately — no spinner if we already have it
+    final cached = AppPreferences.instance.referralCode;
+    if (cached != null) {
+      _referralCode = cached;
+      _isLoading = false;
+    }
     _loadReferralData();
   }
 
   Future<void> _loadReferralData() async {
-    setState(() {
-      _isLoading = true;
-      _hasLoadError = false;
-    });
+    if (_referralCode == null) {
+      setState(() {
+        _isLoading = true;
+        _hasLoadError = false;
+      });
+    }
 
     try {
-      final statsFuture = ReferralService.instance.fetchStats();
-      final codeFuture = ReferralService.instance.fetchReferralCode();
+      // Run code and stats in parallel
+      final results = await Future.wait([
+        ReferralService.instance.fetchReferralCode(),
+        ReferralService.instance.fetchStats(),
+      ]);
 
-      final stats = await statsFuture;
-      final code = await codeFuture;
+      final code = results[0] as String?;
+      final stats = results[1] as ({int invitesShared, int conversions})?;
 
       if (!mounted) return;
       setState(() {
@@ -55,9 +67,9 @@ class _ReferralInviteCardState extends State<ReferralInviteCard> {
       if (!mounted) return;
       setState(() {
         _conversions = 0;
-        _referralCode = null;
         _isLoading = false;
-        _hasLoadError = true;
+        // Keep existing cached code if we have it; only flag error if never loaded
+        if (_referralCode == null) _hasLoadError = true;
       });
     }
   }
