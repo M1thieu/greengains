@@ -40,5 +40,11 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<!-- Location — required by geolocator plugin -->
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>GreenGains uses your location to contribute anonymous environmental data to help cities improve air quality and urban planning.</string>
+	<!-- Motion — required by Core Motion (accelerometer/gyroscope) -->
+	<key>NSMotionUsageDescription</key>
+	<string>GreenGains uses motion sensors to collect environmental data while you move around the city.</string>
 </dict>
 </plist>

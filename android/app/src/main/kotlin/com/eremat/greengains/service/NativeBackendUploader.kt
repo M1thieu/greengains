@@ -62,19 +62,24 @@ class NativeBackendUploader(
     private val maxBufferSize = 1000
 
     // Backend configuration (loaded from SharedPreferences, set by Flutter)
+    // baseUrl is stable so cached at init; apiKey is read fresh each upload to handle
+    // the case where the service starts before Flutter has written the key (e.g. fresh install).
     private val baseUrl: String
-    private val apiKey: String
 
     init {
-        // Load API key from SharedPreferences (Flutter writes it on startup)
-        // NOTE: apiKey might be empty on first launch - uploads will be skipped until Flutter initializes
         val prefs = context.getSharedPreferences(AppPrefs.NAME, Context.MODE_PRIVATE)
         baseUrl = prefs.getString(AppPrefs.BACKEND_URL, null)
             ?: "https://greengains.onrender.com"
-        apiKey = prefs.getString(AppPrefs.BACKEND_API_KEY, null) ?: run {
-            Log.w(TAG, "Backend API key not yet available - uploads will be skipped until Flutter initializes")
-            "" // Empty string - uploads will be skipped
+    }
+
+    /** Reads the API key fresh from SharedPreferences on every call. */
+    private fun resolveApiKey(): String {
+        val key = context.getSharedPreferences(AppPrefs.NAME, Context.MODE_PRIVATE)
+            .getString(AppPrefs.BACKEND_API_KEY, null)
+        if (key.isNullOrEmpty()) {
+            Log.w(TAG, "Backend API key not yet available — build with --dart-define-from-file=dart_defines.json")
         }
+        return key ?: ""
     }
 
     // HTTP client with generous timeouts for Render.com cold starts (free tier)
@@ -148,9 +153,9 @@ class NativeBackendUploader(
     fun getBufferSize(): Int = synchronized(sensorBuffer) { sensorBuffer.size }
 
     private suspend fun uploadBatch() = withContext(Dispatchers.IO) {
-        // Skip if API key not yet loaded
+        val apiKey = resolveApiKey()
         if (apiKey.isEmpty()) {
-            Log.d(TAG, "Upload skipped: API key not yet available (Flutter still initializing)")
+            Log.w(TAG, "Upload skipped: API key missing — build with --dart-define-from-file=dart_defines.json")
             return@withContext
         }
 

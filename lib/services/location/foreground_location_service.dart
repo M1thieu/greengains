@@ -251,6 +251,18 @@ class ForegroundLocationService {
     }
   }
 
+  /// Android 13+: true when previous app process exit was user-requested
+  /// (e.g. Task Manager stop). Returns false on unsupported versions/errors.
+  Future<bool> wasAppUserStopped() async {
+    try {
+      final result = await _fgChannel.invokeMethod<bool>('wasAppUserStopped');
+      return result ?? false;
+    } catch (e) {
+      debugPrint('Error checking app user-stop state: $e');
+      return false;
+    }
+  }
+
   Future<void> _bootstrapUploadStatus() async {
     await AppPreferences.instance.ensureInitialized();
     uploadStatus.value = uploadStatus.value.copyWith(

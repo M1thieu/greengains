@@ -17,6 +17,7 @@ class PreferenceKeys {
   static const batteryOptimizationPromptDismissed = 'battery_optimization_prompt_dismissed';
   static const batteryOptimizationPromptLastShown = 'battery_optimization_prompt_last_shown';
   static const postOnboardingAuthPrompted = 'post_onboarding_auth_prompted';
+  static const homeSheetSize = 'home_sheet_size';
 
   // Identity credentials shared with the native Kotlin uploader.
   // The shared_preferences plugin prepends 'flutter.' on write, so keys that
@@ -230,6 +231,12 @@ class AppPreferences {
 
   Future<void> setPostOnboardingAuthPrompted(bool value) async {
     await _sp.setBool(PreferenceKeys.postOnboardingAuthPrompted, value);
+  }
+
+  double? get homeSheetSize => _sp.getDouble(PreferenceKeys.homeSheetSize);
+
+  Future<void> setHomeSheetSize(double value) async {
+    await _sp.setDouble(PreferenceKeys.homeSheetSize, value);
   }
 
 

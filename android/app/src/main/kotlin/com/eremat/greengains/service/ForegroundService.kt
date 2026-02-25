@@ -290,12 +290,16 @@ class ForegroundService : Service() {
             return START_NOT_STICKY
         }
 
-        // Handle pause/resume actions
+        // Handle pause/resume actions.
+        // If the service was killed while paused and restarted via notification,
+        // `running` is still false here — ensure it's initialised before delegating.
         if (intent?.action == ACTION_PAUSE_TRACKING) {
+            if (!running) startForegroundService()
             pauseTracking()
             return START_STICKY
         }
         if (intent?.action == ACTION_RESUME_TRACKING) {
+            if (!running) startForegroundService()
             resumeTracking()
             return START_STICKY
         }

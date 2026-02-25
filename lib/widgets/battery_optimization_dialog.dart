@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../core/app_preferences.dart';
+import '../core/extensions/context_extensions.dart';
 import '../utils/app_snackbars.dart';
 
 class BatteryOptimizationDialog extends StatelessWidget {
@@ -23,6 +24,8 @@ class BatteryOptimizationDialog extends StatelessWidget {
   }
 
   Future<void> _openSettings(BuildContext context) async {
+    // Capture l10n string before async gap (context unsafe after await)
+    final errorMsg = context.l10n.batteryDialogError;
     try {
       await _markPromptShown();
       await platform.invokeMethod('requestIgnoreBatteryOptimizations');
@@ -31,25 +34,24 @@ class BatteryOptimizationDialog extends StatelessWidget {
       }
     } on PlatformException {
       if (context.mounted) {
-        AppSnackbars.showError(context, 'Unable to open battery settings');
+        AppSnackbars.showError(context, errorMsg);
       }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return AlertDialog(
-      title: const Text('Maximize Your Earnings'),
-      content: const SingleChildScrollView(
+      title: Text(l10n.batteryDialogTitle),
+      content: SingleChildScrollView(
         child: ListBody(
           children: <Widget>[
+            Text(l10n.batteryDialogBody),
+            const SizedBox(height: 10),
             Text(
-              'To earn 24/7, GreenGains needs to run in the background without being killed by the system.',
-            ),
-            SizedBox(height: 10),
-            Text(
-              'Please disable "Battery Optimization" for GreenGains in the next screen.',
-              style: TextStyle(fontWeight: FontWeight.bold),
+              l10n.batteryDialogBodyBold,
+              style: const TextStyle(fontWeight: FontWeight.bold),
             ),
           ],
         ),
@@ -57,15 +59,15 @@ class BatteryOptimizationDialog extends StatelessWidget {
       actions: <Widget>[
         TextButton(
           onPressed: () => _dismissPrompt(context, permanently: true),
-          child: const Text('Don\'t show again'),
+          child: Text(l10n.batteryDialogDismissForever),
         ),
         TextButton(
           onPressed: () => _dismissPrompt(context),
-          child: const Text('Later'),
+          child: Text(l10n.batteryDialogLater),
         ),
         FilledButton(
           onPressed: () => _openSettings(context),
-          child: const Text('Allow Background Run'),
+          child: Text(l10n.batteryDialogAllow),
         ),
       ],
     );

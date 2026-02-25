@@ -1359,6 +1359,12 @@ abstract class AppLocalizations {
   /// **'Copy link'**
   String get referralCopyLink;
 
+  /// No description provided for @referralConversions.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No friends joined yet} =1{1 friend joined} other{{count} friends joined}}'**
+  String referralConversions(int count);
+
   /// No description provided for @tooltipRefresh.
   ///
   /// In en, this message translates to:
@@ -1412,6 +1418,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count} this week'**
   String statsWeeklyTotal(int count);
+
+  /// No description provided for @batteryDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Maximize Your Earnings'**
+  String get batteryDialogTitle;
+
+  /// No description provided for @batteryDialogBody.
+  ///
+  /// In en, this message translates to:
+  /// **'To earn 24/7, GreenGains needs to run in the background without being killed by the system.'**
+  String get batteryDialogBody;
+
+  /// No description provided for @batteryDialogBodyBold.
+  ///
+  /// In en, this message translates to:
+  /// **'Please disable \"Battery Optimization\" for GreenGains in the next screen.'**
+  String get batteryDialogBodyBold;
+
+  /// No description provided for @batteryDialogDismissForever.
+  ///
+  /// In en, this message translates to:
+  /// **'Don\'t show again'**
+  String get batteryDialogDismissForever;
+
+  /// No description provided for @batteryDialogLater.
+  ///
+  /// In en, this message translates to:
+  /// **'Later'**
+  String get batteryDialogLater;
+
+  /// No description provided for @batteryDialogAllow.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow Background Run'**
+  String get batteryDialogAllow;
+
+  /// No description provided for @batteryDialogError.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to open battery settings'**
+  String get batteryDialogError;
+
+  /// No description provided for @locationPermBannerBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Set to \'Allow all the time\' for 24/7 collection'**
+  String get locationPermBannerBody;
+
+  /// No description provided for @locationPermBannerFix.
+  ///
+  /// In en, this message translates to:
+  /// **'Fix'**
+  String get locationPermBannerFix;
 }
 
 class _AppLocalizationsDelegate

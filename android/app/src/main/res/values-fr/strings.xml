@@ -3,15 +3,9 @@
     <string name="app_name">GreenGains</string>
     <string name="notification_status_collecting">Collecte en cours</string>
     <string name="notification_status_paused">En pause — appuyez sur Reprendre</string>
-    <string name="notification_collecting_with_upload">Collecte · envoyé %1$s</string>
     <string name="notification_collecting_no_upload">Collecte · en attente du premier envoi</string>
-    <string name="notification_last_upload">Dernier envoi : %1$s</string>
-    <string name="notification_last_upload_unknown">Premier envoi en cours…</string>
-    <string name="notification_last_upload_before_pause">Dernier envoi avant la pause : %1$s</string>
-    <string name="notification_last_upload_paused_unknown">Aucun envoi récent</string>
     <string name="notification_action_pause">Pause</string>
     <string name="notification_action_resume">Reprendre</string>
-    <string name="notification_just_now">à l\'instant</string>
     <string name="notification_worker_title">GreenGains — traitement des données</string>
     <string name="notification_worker_body">Traitement des dernières données capteurs</string>
 </resources>

@@ -1,5 +1,7 @@
 package com.eremat.greengains
 
+import android.app.ActivityManager
+import android.app.ApplicationExitInfo
 import android.Manifest.permission.ACCESS_COARSE_LOCATION
 import android.Manifest.permission.ACCESS_FINE_LOCATION
 import android.content.Context
@@ -68,6 +70,9 @@ class MainActivity : FlutterActivity() {
                     }
                     "isTrackingPaused" -> {
                         result.success(ForegroundService.trackingPaused)
+                    }
+                    "wasAppUserStopped" -> {
+                        result.success(wasAppUserStopped())
                     }
                     "requestLocationPermission" -> {
                         requestLocationPermissions()
@@ -260,6 +265,22 @@ class MainActivity : FlutterActivity() {
                 startService(serviceIntent)
             }
             true
+        } catch (_: Exception) {
+            false
+        }
+    }
+
+    /**
+     * Returns true when Android reports the previous process exit as user-requested.
+     * This maps to Task Manager stop on Android 13+.
+     */
+    private fun wasAppUserStopped(): Boolean {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) return false
+        return try {
+            val activityManager = getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+            val reasons = activityManager.getHistoricalProcessExitReasons(packageName, 0, 1)
+            val reason = reasons.firstOrNull()?.reason
+            reason == ApplicationExitInfo.REASON_USER_REQUESTED
         } catch (_: Exception) {
             false
         }

@@ -5,7 +5,9 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:in_app_review/in_app_review.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../data/models/contribution_stats.dart';
 import '../data/repositories/contribution_repository.dart';
 import '../core/extensions/context_extensions.dart';
@@ -22,8 +24,13 @@ import '../widgets/sensor_section.dart';
 import '../widgets/coverage_map_widget.dart';
 import '../widgets/tracking_status_chip.dart';
 import '../widgets/tracking_fab.dart';
+import '../widgets/daily_login_widget.dart';
+import '../widgets/credits_display.dart';
 
 const double _kDefaultTileConfidence = 0.5;
+const double _kSheetMinSize = 0.14;
+const double _kSheetInitialSize = 0.30;
+const double _kSheetMaxSize = 0.72;
 
 /// Home screen — map-as-background layout.
 ///
@@ -46,6 +53,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   final Set<String> _dismissedTips = {};
   final _sheetController = DraggableScrollableController();
   final _fabOpacity = ValueNotifier<double>(1.0);
+  final _userLocationNotifier = ValueNotifier<LatLng?>(null);
   /// Incrementing recenter triggers CoverageMapWidget to move camera to user.
   /// Provider-agnostic: HomeScreen never touches MapController directly.
   final _recenterTrigger = ValueNotifier<int>(0);
@@ -59,7 +67,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   StreamSubscription<List<ConnectivityResult>>? _connectivitySub;
   List<H3Tile> _h3Tiles = [];
   bool _h3TilesLoading = true;
-  LatLng? _userLocation;
+  double _sheetInitialSize = _kSheetInitialSize;
+  Timer? _sheetSizeSaveDebounce;
 
   @override
   void initState() {
@@ -77,6 +86,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     _loadH3Tiles();
     _loadUserLocation();
     _subscribeToLocationUpdates();
+    _restoreSheetState();
   }
 
   void _handleServiceRunningChange() {
@@ -104,10 +114,31 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     // Start fading at 38%, fully hidden at 52% (aligned with new snap points)
     final opacity = ((0.48 - size) / (0.48 - 0.36)).clamp(0.0, 1.0);
     _fabOpacity.value = opacity;
+    _persistSheetState(size);
+  }
+
+  Future<void> _restoreSheetState() async {
+    await _prefs.ensureInitialized();
+    final saved = _prefs.homeSheetSize;
+    if (saved == null) return;
+    final restored = saved.clamp(_kSheetMinSize, _kSheetMaxSize);
+    if (!mounted) return;
+    setState(() => _sheetInitialSize = restored);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_sheetController.isAttached) return;
+      _sheetController.jumpTo(restored);
+    });
+  }
+
+  void _persistSheetState(double size) {
+    _sheetSizeSaveDebounce?.cancel();
+    _sheetSizeSaveDebounce = Timer(const Duration(milliseconds: 300), () {
+      _prefs.setHomeSheetSize(size.clamp(_kSheetMinSize, _kSheetMaxSize));
+    });
   }
 
   Future<void> _checkBatteryOptimization() async {
-    await Future.delayed(const Duration(seconds: 2));
+    await Future.delayed(const Duration(milliseconds: 300));
     if (!mounted) return;
     if (_batteryPromptOpen) return;
 
@@ -167,8 +198,24 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     if (!mounted) return;
     AppSnackbars.showSuccess(context, context.l10n.uploadSuccessMessage);
     _loadTileCoverage();
-    _loadStats();
+    _loadStats().then((_) => _maybeRequestReview());
     _loadH3Tiles();
+  }
+
+  /// Show the Play Store in-app review dialog once, after the user's 5th upload.
+  /// The OS controls whether the dialog actually appears (rate-limited by Android).
+  Future<void> _maybeRequestReview() async {
+    try {
+      final stats = _stats;
+      if (stats == null || stats.totalUploads < 5) return;
+      final prefs = await SharedPreferences.getInstance();
+      if (prefs.getBool('review_requested') == true) return;
+      final review = InAppReview.instance;
+      if (await review.isAvailable()) {
+        await review.requestReview();
+        await prefs.setBool('review_requested', true);
+      }
+    } catch (_) {}
   }
 
   @override
@@ -179,9 +226,11 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     _connectivitySub?.cancel();
     _locationService.isRunning.removeListener(_handleServiceRunningChange);
     _sheetController.removeListener(_updateFabOpacity);
+    _sheetSizeSaveDebounce?.cancel();
     _sheetController.dispose();
     _fabOpacity.dispose();
     _recenterTrigger.dispose();
+    _userLocationNotifier.dispose();
     super.dispose();
   }
 
@@ -211,6 +260,13 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   Future<void> _checkServiceStatus() async {
     final isRunning = await _locationService.isServiceRunning();
     if (!isRunning && _prefs.foregroundServiceEnabled) {
+      final wasUserStopped = await _locationService.wasAppUserStopped();
+      if (wasUserStopped) {
+        debugPrint('App was user-stopped by system. Not auto-restarting tracking.');
+        await _prefs.setForegroundServiceEnabled(false);
+        await _prefs.setTrackingPaused(false);
+        return;
+      }
       if (_prefs.trackingPaused) {
         debugPrint('Service was paused when killed - not auto-restarting');
         await _prefs.setForegroundServiceEnabled(false);
@@ -278,7 +334,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           }
 
           return H3Tile(
-            h3Index: tile['h3Index'] as String,
+            h3Index: tile['h3Index'] as String? ?? '',
             confidence: (tile['confidence'] as num?)?.toDouble() ??
                 _kDefaultTileConfidence,
             sampleCount: tile['sampleCount'] as int? ?? 0,
@@ -318,8 +374,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         timeLimit: const Duration(seconds: 5),
       );
       if (mounted) {
-        setState(() =>
-            _userLocation = LatLng(position.latitude, position.longitude));
+        _userLocationNotifier.value =
+            LatLng(position.latitude, position.longitude);
       }
     } catch (e) {
       debugPrint('Failed to get user location: $e');
@@ -330,8 +386,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     _locationStreamSub =
         _locationService.locationStream.listen((locationData) {
       if (mounted) {
-        setState(() => _userLocation =
-            LatLng(locationData.latitude, locationData.longitude));
+        _userLocationNotifier.value =
+            LatLng(locationData.latitude, locationData.longitude);
       }
     });
   }
@@ -348,17 +404,18 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         body: Stack(
           children: [
             // ── 0. Full-screen map (edge-to-edge background) ──────────────
-            CoverageMapWidget(
-              tiles: _h3Tiles,
-              userLocation: _userLocation,
-              fillScreen: true,
-              isLoading: _h3TilesLoading,
-              recenterTrigger: _recenterTrigger,
-              // Keep map controls (scalebar, compass) above the sheet peek and
-              // status bar — widget stays layout-agnostic, caller provides insets.
-              controlsPadding: EdgeInsets.only(
-                top: topPadding,
-                bottom: screenHeight * 0.14 + 48,
+            ValueListenableBuilder<LatLng?>(
+              valueListenable: _userLocationNotifier,
+              builder: (context, userLocation, _) => CoverageMapWidget(
+                tiles: _h3Tiles,
+                userLocation: userLocation,
+                fillScreen: true,
+                isLoading: _h3TilesLoading,
+                recenterTrigger: _recenterTrigger,
+                controlsPadding: EdgeInsets.only(
+                  top: topPadding,
+                  bottom: screenHeight * 0.14 + 48,
+                ),
               ),
             ),
 
@@ -388,9 +445,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             // ── 2. Bottom sheet: stats + sensors ──────────────────────────
             DraggableScrollableSheet(
               controller: _sheetController,
-              minChildSize: 0.14,   // collapsed: just the handle
-              initialChildSize: 0.30, // open: full impact card visible
-              maxChildSize: 0.72,   // expanded: sensors fully readable
+              minChildSize: _kSheetMinSize,   // collapsed: just the handle
+              initialChildSize: _sheetInitialSize,
+              maxChildSize: _kSheetMaxSize,   // expanded: sensors fully readable
               snap: true,
               snapSizes: const [0.30, 0.72], // 2 natural positions (not 3)
               snapAnimationDuration: const Duration(milliseconds: 320),
@@ -428,26 +485,31 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             // ── 4. My Location button (bottom-left, above sheet) ──────────
             // Standard map UX: every major map app (Google Maps, Waze, Apple Maps)
             // has a "recenter on me" button. Provider-agnostic via recenterTrigger.
-            if (_userLocation != null)
-              Positioned(
-                left: 16,
-                bottom: screenHeight * 0.14 + 16,
-                child: ValueListenableBuilder<double>(
-                  valueListenable: _fabOpacity,
-                  builder: (_, opacity, child) => AnimatedOpacity(
-                    opacity: opacity,
-                    duration: const Duration(milliseconds: 150),
-                    child: child,
-                  ),
-                  child: Semantics(
-                    button: true,
-                    label: context.l10n.semanticsCenterOnMe,
-                    child: _MyLocationButton(
-                      onPressed: () => _recenterTrigger.value++,
+            ValueListenableBuilder<LatLng?>(
+              valueListenable: _userLocationNotifier,
+              builder: (context, userLocation, _) {
+                if (userLocation == null) return const SizedBox.shrink();
+                return Positioned(
+                  left: 16,
+                  bottom: screenHeight * 0.14 + 16,
+                  child: ValueListenableBuilder<double>(
+                    valueListenable: _fabOpacity,
+                    builder: (_, opacity, child) => AnimatedOpacity(
+                      opacity: opacity,
+                      duration: const Duration(milliseconds: 150),
+                      child: child,
+                    ),
+                    child: Semantics(
+                      button: true,
+                      label: context.l10n.semanticsCenterOnMe,
+                      child: _MyLocationButton(
+                        onPressed: () => _recenterTrigger.value++,
+                      ),
                     ),
                   ),
-                ),
-              ),
+                );
+              },
+            ),
           ],
         ),
       ),
@@ -567,6 +629,23 @@ class _BottomSheetContent extends StatelessWidget {
 
             const SliverToBoxAdapter(child: SizedBox(height: 8)),
 
+            // Daily rewards strip (credits + claim/progress)
+            const SliverPadding(
+              padding: EdgeInsets.symmetric(horizontal: 16),
+              sliver: SliverToBoxAdapter(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    CreditsDisplay(),
+                    SizedBox(width: 8),
+                    DailyLoginWidget(),
+                  ],
+                ),
+              ),
+            ),
+
+            const SliverToBoxAdapter(child: SizedBox(height: 8)),
+
             // Contextual tip (dismissible)
             SliverPadding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -647,3 +726,4 @@ class _MyLocationButton extends StatelessWidget {
     );
   }
 }
+

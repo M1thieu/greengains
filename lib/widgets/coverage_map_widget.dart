@@ -69,6 +69,7 @@ class _CoverageMapWidgetState extends State<CoverageMapWidget> {
   // Polygon cache — recomputed only when widget.tiles changes, never on every build
   List<Polygon> _cachedPolygons = const [];
   bool _hasPolygons = false;
+  late LatLng _cachedCenter;
 
   // Carto basemap URLs — no API key needed, free, professional quality
   // Used by numerous mapping/mobility startups for their clean dark aesthetic.
@@ -85,6 +86,7 @@ class _CoverageMapWidgetState extends State<CoverageMapWidget> {
     _mapController = MapController();
     widget.recenterTrigger?.addListener(_onRecenterTrigger);
     _updatePolygonCache();
+    _cachedCenter = _calculateCenter();
   }
 
   @override
@@ -96,6 +98,9 @@ class _CoverageMapWidgetState extends State<CoverageMapWidget> {
     }
     if (!identical(old.tiles, widget.tiles)) {
       _updatePolygonCache();
+    }
+    if (!identical(old.tiles, widget.tiles) || old.userLocation != widget.userLocation) {
+      _cachedCenter = _calculateCenter();
     }
   }
 
@@ -154,7 +159,7 @@ class _CoverageMapWidgetState extends State<CoverageMapWidget> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final center = _calculateCenter();
+    final center = _cachedCenter;
 
     // Tile base color behind all layers — prevents white flash while tiles load.
     // Carto Dark Matter renders on near-black; Voyager on warm off-white.
@@ -380,3 +385,4 @@ class _CoverageMapWidgetState extends State<CoverageMapWidget> {
     );
   }
 }
+

@@ -707,6 +707,18 @@ class AppLocalizationsFr extends AppLocalizations {
   String get referralCopyLink => 'Copier le lien';
 
   @override
+  String referralConversions(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count amis ont rejoint',
+      one: '1 ami a rejoint',
+      zero: 'Aucun ami rejoint pour l\'instant',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get tooltipRefresh => 'Actualiser';
 
   @override
@@ -732,5 +744,38 @@ class AppLocalizationsFr extends AppLocalizations {
   String get statsWeeklyLabel => '7 JOURS';
 
   @override
-  String statsWeeklyTotal(int count) => '$count cette semaine';
+  String statsWeeklyTotal(int count) {
+    return '$count cette semaine';
+  }
+
+  @override
+  String get batteryDialogTitle => 'Maximisez vos gains';
+
+  @override
+  String get batteryDialogBody =>
+      'Pour gagner 24h/24, GreenGains doit fonctionner en arrière-plan sans être arrêté par le système.';
+
+  @override
+  String get batteryDialogBodyBold =>
+      'Veuillez désactiver l\'« Optimisation de la batterie » pour GreenGains dans l\'écran suivant.';
+
+  @override
+  String get batteryDialogDismissForever => 'Ne plus afficher';
+
+  @override
+  String get batteryDialogLater => 'Plus tard';
+
+  @override
+  String get batteryDialogAllow => 'Autoriser l\'exécution en arrière-plan';
+
+  @override
+  String get batteryDialogError =>
+      'Impossible d\'ouvrir les paramètres de la batterie';
+
+  @override
+  String get locationPermBannerBody =>
+      'Choisissez \'Toujours autoriser\' pour collecter en continu';
+
+  @override
+  String get locationPermBannerFix => 'Corriger';
 }

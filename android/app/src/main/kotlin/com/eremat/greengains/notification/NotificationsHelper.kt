@@ -8,7 +8,6 @@ import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.graphics.Color
-import android.text.format.DateUtils
 import androidx.core.app.NotificationCompat
 import com.eremat.greengains.MainActivity
 import com.eremat.greengains.R
@@ -51,67 +50,38 @@ internal object NotificationsHelper {
             actionIntent,
             PendingIntent.FLAG_IMMUTABLE
         )
-
-        val (collapsed, detail) = buildSubtitle(context, lastUploadMillis, isPaused)
         val actionLabel = if (isPaused) {
             context.getString(R.string.notification_action_resume)
         } else {
             context.getString(R.string.notification_action_pause)
         }
 
-        return NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_ID)
+        // Body text: state only — no manually computed relative time.
+        // Android's SystemUI auto-updates the "X min. ago" header via setWhen(), so
+        // we never need a refresh loop and the display is always accurate.
+        val body = when {
+            isPaused -> context.getString(R.string.notification_status_paused)
+            lastUploadMillis != null -> context.getString(R.string.notification_status_collecting)
+            else -> context.getString(R.string.notification_collecting_no_upload)
+        }
+
+        val builder = NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_ID)
             .setContentTitle(context.getString(R.string.app_name))
-            .setContentText(collapsed)
-            .setStyle(NotificationCompat.BigTextStyle().bigText(detail))
+            .setContentText(body)
             .setSmallIcon(R.mipmap.ic_launcher)
             .setColor(Color.parseColor("#10B981"))
             .setOngoing(true)
-            .addAction(
-                R.mipmap.ic_launcher,
-                actionLabel,
-                actionPendingIntent
-            )
+            // setWhen: Android shows "X min. ago" in the notification header, live-updated by SystemUI.
+            // Only shown when we have a real upload timestamp; hidden otherwise.
+            .setWhen(lastUploadMillis ?: 0L)
+            .setShowWhen(lastUploadMillis != null)
+            .addAction(R.mipmap.ic_launcher, actionLabel, actionPendingIntent)
             .setForegroundServiceBehavior(NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE)
             .setContentIntent(Intent(context, MainActivity::class.java).let { notificationIntent ->
                 PendingIntent.getActivity(context, 0, notificationIntent, PendingIntent.FLAG_IMMUTABLE)
             })
-            .build()
-    }
 
-    private fun buildSubtitle(context: Context, lastUploadMillis: Long?, isPaused: Boolean): Pair<String, String> {
-        val relative: String? = lastUploadMillis?.let {
-            val ageMs = System.currentTimeMillis() - it
-            if (ageMs < 60_000L) {
-                context.getString(R.string.notification_just_now)
-            } else {
-                DateUtils.getRelativeTimeSpanString(
-                    it,
-                    System.currentTimeMillis(),
-                    DateUtils.MINUTE_IN_MILLIS
-                ).toString()
-            }
-        }
-
-        // Collapsed line: compact, shows upload time inline when available
-        val collapsed = when {
-            isPaused -> context.getString(R.string.notification_status_paused)
-            relative != null -> context.getString(R.string.notification_collecting_with_upload, relative)
-            else -> context.getString(R.string.notification_collecting_no_upload)
-        }
-
-        // Expanded detail line (shown in expanded notification)
-        val detail = when {
-            isPaused && relative != null ->
-                context.getString(R.string.notification_last_upload_before_pause, relative)
-            isPaused ->
-                context.getString(R.string.notification_last_upload_paused_unknown)
-            relative != null ->
-                context.getString(R.string.notification_last_upload, relative)
-            else ->
-                context.getString(R.string.notification_last_upload_unknown)
-        }
-
-        return collapsed to detail
+        return builder.build()
     }
 
     fun readLastUploadFromPrefs(context: Context): Long? {

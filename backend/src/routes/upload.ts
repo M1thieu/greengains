@@ -12,6 +12,11 @@ import {
   calculateUptimeSeconds,
   Summary,
 } from '../utils/sensor-analytics';
+import {
+  checkDeviceRateLimit,
+  validateSensorRanges,
+  checkGpsVelocity,
+} from '../utils/uploadValidation';
 
 function summarizeBatch(readings: SensorReading[]): Summary {
   // Handle optional light data
@@ -235,16 +240,53 @@ export async function uploadRoutes(fastify: FastifyInstance) {
         const deviceHash = hashDeviceId(batch.device_id);
         const readingsCount = batch.batch.length;
 
+        const pool = getPool();
+
+        // ── Abuse prevention checks ───────────────────────────────────────────
+
+        // 1. Rate limit: max 120 batches per device per sliding hour
+        if (await checkDeviceRateLimit(pool, deviceHash)) {
+          return reply.code(429).send({
+            error: 'Too Many Requests',
+            message: 'Upload rate limit exceeded. Max 120 batches per hour per device.',
+          });
+        }
+
+        // 2. Sensor range validation: reject physically impossible values
+        const invalidField = validateSensorRanges(batch);
+        if (invalidField !== null) {
+          return reply.code(422).send({
+            error: 'Unprocessable Entity',
+            message: `Sensor value out of valid range: ${invalidField}`,
+          });
+        }
+
+        // 3. GPS velocity check: reject if implied speed > 300 m/s
+        if (await checkGpsVelocity(pool, deviceHash, batch)) {
+          return reply.code(422).send({
+            error: 'Unprocessable Entity',
+            message: 'GPS location implies physically impossible travel speed.',
+          });
+        }
+
+        // ─────────────────────────────────────────────────────────────────────
+
         // Build storage payload
         const sanitizedPayload = buildStoragePayload(batch);
         const payloadJson = JSON.stringify(sanitizedPayload);
 
-        // Store in database
-        const pool = getPool();
-        await pool.query(
-          'INSERT INTO sensor_batches (device_hash, timestamp_utc, batch_json, user_id) VALUES ($1, $2, $3::jsonb, $4)',
-          [deviceHash, batch.timestamp, payloadJson, userId]
+        // Store in database — ON CONFLICT DO NOTHING deduplicates retried uploads
+        const insertResult = await pool.query(
+          `INSERT INTO sensor_batches (device_hash, timestamp_utc, batch_json, user_id)
+           VALUES ($1, $2, $3::jsonb, $4)
+           ON CONFLICT (device_hash, timestamp_utc) DO NOTHING`,
+          [deviceHash, batch.timestamp, payloadJson, userId],
         );
+
+        // Duplicate batch (same device + timestamp already stored) — accept silently
+        if (insertResult.rowCount === 0) {
+          return reply.code(202).send({ accepted_records: 0, duplicate: true });
+        }
         await upsertUserStats(pool, deviceHash, sanitizedPayload.summary, batch.batch, batch.timestamp, userId);
 
         // Log with stats

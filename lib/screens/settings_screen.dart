@@ -168,48 +168,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
           const SizedBox(height: AppTheme.spaceLg),
 
-          _SettingsSectionContainer(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          // Legal footer — minimal text links, no card (industry standard: Stripe, Linear, Notion)
+          Center(
+            child: Wrap(
+              alignment: WrapAlignment.center,
               children: [
-                _SettingsSectionTitle(text: l10n.settingsLegal),
-                _SettingsNavRow(
-                  icon: Icons.privacy_tip_outlined,
-                  title: l10n.privacyPolicy,
-                  subtitle: l10n.settingsPrivacyPolicyDesc,
-                  onTap: () => _openWebView(
-                    context,
-                    'https://greengains.eremat.org/privacy-policy',
-                    l10n.privacyPolicy,
-                  ),
-                ),
-                const SizedBox(height: AppTheme.spaceSm),
-                _SettingsNavRow(
-                  icon: Icons.description_outlined,
-                  title: l10n.termsOfService,
-                  subtitle: l10n.settingsTermsOfServiceDesc,
-                  onTap: () => _openWebView(
-                    context,
-                    'https://greengains.eremat.org/terms-of-service',
-                    l10n.termsOfService,
-                  ),
-                ),
-                const SizedBox(height: AppTheme.spaceSm),
-                _SettingsNavRow(
-                  icon: Icons.delete_outline,
-                  title: l10n.settingsDataDeletion,
-                  subtitle: l10n.settingsDataDeletionDesc,
-                  onTap: () => _openWebView(
-                    context,
-                    'https://greengains.eremat.org/data-deletion-request',
-                    l10n.settingsDataDeletion,
-                  ),
-                ),
+                _legalLink(context, l10n.privacyPolicy, 'https://greengains.eremat.org/privacy-policy', theme),
+                Text(' · ', style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.outline)),
+                _legalLink(context, l10n.termsOfService, 'https://greengains.eremat.org/terms-of-service', theme),
+                Text(' · ', style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.outline)),
+                _legalLink(context, l10n.settingsDataDeletion, 'https://greengains.eremat.org/data-deletion-request', theme),
               ],
             ),
           ),
 
-          const SizedBox(height: AppTheme.spaceLg),
+          const SizedBox(height: AppTheme.spaceSm),
 
           Center(
             child: Text(
@@ -230,6 +203,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
         builder: (context) => WebViewScreen(
           url: url,
           title: title,
+        ),
+      ),
+    );
+  }
+
+  Widget _legalLink(BuildContext context, String label, String url, ThemeData theme) {
+    return GestureDetector(
+      onTap: () => _openWebView(context, url, label),
+      child: Text(
+        label,
+        style: theme.textTheme.bodySmall?.copyWith(
+          color: theme.colorScheme.outline,
+          decoration: TextDecoration.underline,
+          decorationColor: theme.colorScheme.outline,
         ),
       ),
     );
@@ -352,7 +339,10 @@ class _SettingsNavRow extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
     return InkWell(
       borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-      onTap: onTap,
+      onTap: () {
+        HapticFeedback.selectionClick();
+        onTap();
+      },
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [

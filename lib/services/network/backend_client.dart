@@ -103,7 +103,8 @@ class BackendClient {
       HttpHeaders.contentTypeHeader: 'application/json',
     };
     await _addAuthHeaders(headers);
-    return await http.get(uri, headers: headers);
+    return await http.get(uri, headers: headers)
+        .timeout(const Duration(seconds: 30));
   }
 
   /// Static helper for POST requests (used by daily pot service)
@@ -113,7 +114,8 @@ class BackendClient {
       HttpHeaders.contentTypeHeader: 'application/json',
     };
     await _addAuthHeaders(headers);
-    return await http.post(uri, headers: headers, body: jsonEncode(body));
+    return await http.post(uri, headers: headers, body: jsonEncode(body))
+        .timeout(const Duration(seconds: 30));
   }
 
   Future<List<CoverageTile>> fetchCoverage({

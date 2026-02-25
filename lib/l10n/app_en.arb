@@ -1,22 +1,22 @@
 {
   "@@locale": "en",
 
-  "onboardingWelcomeTitle": "Your phone earns while you live",
-  "onboardingWelcomeSubtitle": "Install once, forget about it. We passively map environmental data in the background — you get rewarded for helping build a better picture of the world.",
+  "onboardingWelcomeTitle": "Your city, mapped block by block",
+  "onboardingWelcomeSubtitle": "Your phone passively collects environmental data — light, pressure, movement — while you go about your day. You help build the sensor network cities can't afford. You get rewarded for it.",
   "onboardingFeature1Title": "Runs silently",
   "onboardingFeature1Description": "Works in the background while you commute, walk, or sleep. No tapping, no setup — ever again.",
   "onboardingFeature2Title": "Anonymized by design",
   "onboardingFeature2Description": "Sensor readings are bundled with thousands of others before leaving your device. No personal data, ever.",
-  "onboardingFeature3Title": "Watch your impact grow",
-  "onboardingFeature3Description": "Your coverage map expands with every trip. Every contribution helps researchers and cities understand their environment.",
-  "onboardingSignInTitle": "Unlock your rewards",
-  "onboardingSignInSubtitle": "Sign in once to sync your progress and start earning daily rewards.",
-  "onboardingDailyPotRewards": "Daily Rewards",
-  "onboardingDailyPotDescription": "Earn credits every day you contribute",
-  "onboardingCloudSync": "Cloud Sync",
-  "onboardingCloudSyncDescription": "Access your stats on any device",
+  "onboardingFeature3Title": "Real data, real impact",
+  "onboardingFeature3Description": "Your readings go into a live environmental map used by researchers and urban planners. Every street covered is data that didn't exist before.",
+  "onboardingSignInTitle": "Join the network",
+  "onboardingSignInSubtitle": "Sign in to sync your contributions across devices and unlock daily contributor rewards.",
+  "onboardingDailyPotRewards": "Contributor Rewards",
+  "onboardingDailyPotDescription": "Earn credits for every day you contribute data",
+  "onboardingCloudSync": "Live Coverage Map",
+  "onboardingCloudSyncDescription": "Watch your personal coverage area grow in real time",
   "onboardingFutureFeatures": "Coming Soon",
-  "onboardingFutureDescription": "Leaderboards, milestones, and competitions",
+  "onboardingFutureDescription": "Revenue sharing, data insights, and contributor milestones",
   "onboardingPrivacyNotice": "By continuing, you agree to our {privacyPolicy} and {termsOfService}.",
   "@onboardingPrivacyNotice": {
     "placeholders": {
@@ -300,10 +300,16 @@
   "settingsDataDeletion": "Request Data Deletion",
   "settingsDataDeletionDesc": "Remove your contributions",
 
-  "referralInviteTitle": "Invite a friend",
-  "referralInviteDescription": "Earn bonus credits when friends contribute data.",
+  "referralInviteTitle": "Grow the network",
+  "referralInviteDescription": "Invite contributors to expand coverage. You earn bonus credits when they join.",
   "referralLinkCopied": "Referral link copied",
   "referralCopyLink": "Copy link",
+  "referralConversions": "{count, plural, =0{No friends joined yet} =1{1 friend joined} other{{count} friends joined}}",
+  "@referralConversions": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
 
   "tooltipRefresh": "Refresh",
   "tooltipDismiss": "Dismiss",
@@ -322,5 +328,16 @@
     "placeholders": {
       "count": {"type": "int"}
     }
-  }
+  },
+
+  "batteryDialogTitle": "Maximize Your Earnings",
+  "batteryDialogBody": "To earn 24/7, GreenGains needs to run in the background without being killed by the system.",
+  "batteryDialogBodyBold": "Please disable \"Battery Optimization\" for GreenGains in the next screen.",
+  "batteryDialogDismissForever": "Don't show again",
+  "batteryDialogLater": "Later",
+  "batteryDialogAllow": "Allow Background Run",
+  "batteryDialogError": "Unable to open battery settings",
+
+  "locationPermBannerBody": "Set to 'Allow all the time' for 24/7 collection",
+  "locationPermBannerFix": "Fix"
 }

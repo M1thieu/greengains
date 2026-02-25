@@ -7,9 +7,7 @@ import 'core/themes.dart';
 import 'services/location/foreground_location_service.dart';
 
 /// Main navigation shell with bottom navigation bar.
-///
-/// PageView handles swipe gestures between Home and Profile automatically.
-/// The NavigationBar syncs with page position via [_onPageChanged].
+/// Uses IndexedStack to preserve each tab's UI state.
 class AppShell extends StatefulWidget {
   const AppShell({super.key});
 
@@ -17,9 +15,8 @@ class AppShell extends StatefulWidget {
   State<AppShell> createState() => _AppShellState();
 }
 
-class _AppShellState extends State<AppShell> {
+class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
   int _currentIndex = 0;
-  late final PageController _pageController;
   final _locationService = ForegroundLocationService.instance;
 
   static const _screens = [
@@ -30,45 +27,53 @@ class _AppShellState extends State<AppShell> {
   @override
   void initState() {
     super.initState();
-    _pageController = PageController(initialPage: _currentIndex);
+    WidgetsBinding.instance.addObserver(this);
     TimeAgoService.instance.start();
     _locationService.isRunning.addListener(_rebuild);
     _locationService.isPaused.addListener(_rebuild);
+    _syncForegroundState();
   }
 
   @override
   void dispose() {
-    _pageController.dispose();
+    WidgetsBinding.instance.removeObserver(this);
     _locationService.isRunning.removeListener(_rebuild);
     _locationService.isPaused.removeListener(_rebuild);
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _syncForegroundState();
+    }
+  }
+
+  Future<void> _syncForegroundState() async {
+    await _locationService.isServiceRunning();
   }
 
   void _rebuild() {
     if (mounted) setState(() {});
   }
 
-  void _onPageChanged(int index) => setState(() => _currentIndex = index);
-
   void _onDestinationSelected(int index) {
-    _pageController.animateToPage(
-      index,
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeInOut,
-    );
+    setState(() => _currentIndex = index);
   }
 
   @override
   Widget build(BuildContext context) {
-    final isTracking = _locationService.isRunning.value &&
-        !_locationService.isPaused.value;
+    final isTracking =
+        _locationService.isRunning.value && !_locationService.isPaused.value;
 
     return Scaffold(
-      body: PageView(
-        controller: _pageController,
-        physics: const NeverScrollableScrollPhysics(), // no swipe — map pan conflicts
-        onPageChanged: _onPageChanged,
-        children: _screens,
+      body: Stack(
+        children: [
+          IndexedStack(
+            index: _currentIndex,
+            children: _screens,
+          ),
+        ],
       ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _currentIndex,

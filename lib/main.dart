@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -12,6 +13,7 @@ import 'core/app_preferences.dart';
 import 'core/theme_controller.dart';
 import 'core/language_controller.dart';
 import 'core/themes.dart';
+import 'core/branding.dart';
 import 'core/di/service_locator.dart';
 import 'app_shell.dart';
 import 'screens/onboarding_screen.dart';
@@ -66,6 +68,9 @@ class _MyAppState extends State<MyApp> {
         options: DefaultFirebaseOptions.currentPlatform,
       );
 
+      // Crashlytics: disable in debug to avoid polluting production reports
+      await FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(!kDebugMode);
+
       // Crashlytics: capture Flutter framework errors
       FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
 
@@ -75,7 +80,7 @@ class _MyAppState extends State<MyApp> {
         return true;
       };
 
-      // Setup auth listener (non-blocking background work)
+      // Setup auth listener (non-blocking background work — also sets Crashlytics user ID)
       _setupAuthTokenSync();
 
       // No anonymous sign-in - all users must authenticate with Google
@@ -124,8 +129,11 @@ class _MyAppState extends State<MyApp> {
     FirebaseAuth.instance.idTokenChanges().listen((User? user) async {
       if (user == null) {
         debugPrint('User is currently signed out!');
+        FirebaseCrashlytics.instance.setUserIdentifier('');
       } else {
         debugPrint('User is signed in: ${user.uid}');
+        // Tag crash reports with the user's UID for faster triage
+        FirebaseCrashlytics.instance.setUserIdentifier(user.uid);
         try {
           final token = await user.getIdToken();
           if (token != null) {
@@ -169,7 +177,7 @@ class _MyAppState extends State<MyApp> {
       ]),
       builder: (context, _) {
         return MaterialApp(
-          title: 'GreenGains',
+          title: Branding.appDisplayName,
           debugShowCheckedModeBanner: false,
           // Internationalization support
           localizationsDelegates: const [

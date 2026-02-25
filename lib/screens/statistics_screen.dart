@@ -82,7 +82,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
         final stats = body['stats'] as Map<String, dynamic>?;
         final raw = stats?['weekly'] as List<dynamic>?;
         if (raw != null) {
-          setState(() => _weeklyData = raw.map((e) => (e as num).toInt()).toList());
+          setState(() => _weeklyData = raw.map((e) => e is num ? e.toInt() : 0).toList());
         }
       }
     } catch (_) {
@@ -119,14 +119,6 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                       _buildSectionHeader(l10n.statsContributionTimeline, theme, isDark),
                       const SizedBox(height: AppTheme.spaceMd),
                       _buildActivityChart(theme, isDark, l10n),
-                      const SizedBox(height: AppTheme.spaceLg),
-                      _buildSectionHeader(l10n.statsAchievements, theme, isDark),
-                      const SizedBox(height: AppTheme.spaceMd),
-                      _buildComingSoonCard(l10n.statsAchievements, l10n.statsAchievementsDescription, Icons.emoji_events_outlined, theme, isDark),
-                      const SizedBox(height: AppTheme.spaceLg),
-                      _buildSectionHeader(l10n.statsEarnings, theme, isDark),
-                      const SizedBox(height: AppTheme.spaceMd),
-                      _buildComingSoonCard(l10n.statsEarningsTracking, l10n.statsEarningsDescription, Icons.attach_money, theme, isDark),
                     ],
                   ),
                 ),
@@ -197,6 +189,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
     final weeklyTotal = data.fold(0, (a, b) => a + b);
     const maxBarH = 72.0;
     const minBarH = 4.0;
+    final chartLocale = Localizations.localeOf(context).toString();
 
     return Container(
       padding: const EdgeInsets.all(AppTheme.spaceMd),
@@ -248,7 +241,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                     ? (count / maxVal * maxBarH).clamp(minBarH, maxBarH)
                     : minBarH;
                 final date = DateTime.now().subtract(Duration(days: 6 - i));
-                final label = DateFormat('EEE').format(date);
+                final label = DateFormat('EEE', chartLocale).format(date);
 
                 return Expanded(
                   child: Column(
@@ -364,22 +357,6 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
     );
   }
 
-  Widget _buildComingSoonCard(String title, String description, IconData icon, ThemeData theme, bool isDark) {
-    return Container(
-      padding: const EdgeInsets.all(AppTheme.spaceLg),
-      decoration: AppTheme.surfaceContainer(isDark: isDark, border: Border.all(color: AppColors.primary.withValues(alpha: 0.2), width: 1.5)),
-      child: Column(
-        children: [
-          Icon(icon, size: 48, color: AppColors.primary.withValues(alpha: 0.5)),
-          const SizedBox(height: AppTheme.spaceMd),
-          Text(title, style: theme.textTheme.titleMedium?.copyWith(fontWeight: AppFontWeights.semibold)),
-          const SizedBox(height: AppTheme.spaceXs),
-          Text(description, textAlign: TextAlign.center, style: theme.textTheme.bodySmall?.copyWith(color: AppColors.textSecondary(isDark))),
-        ],
-      ),
-    );
-  }
-
   Widget _buildLoadingSkeleton(bool isDark) {
     final color = AppColors.textSecondary(isDark).withValues(alpha: 0.1);
     final decoration = BoxDecoration(color: color, borderRadius: BorderRadius.circular(AppTheme.radiusMd));
@@ -392,14 +369,6 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
         Container(height: 20, width: 160, decoration: decoration),
         const SizedBox(height: AppTheme.spaceMd),
         Container(height: 148, decoration: decoration),
-        const SizedBox(height: AppTheme.spaceLg),
-        Container(height: 20, width: 130, decoration: decoration),
-        const SizedBox(height: AppTheme.spaceMd),
-        Container(height: 140, decoration: decoration),
-        const SizedBox(height: AppTheme.spaceLg),
-        Container(height: 20, width: 110, decoration: decoration),
-        const SizedBox(height: AppTheme.spaceMd),
-        Container(height: 140, decoration: decoration),
       ],
     );
   }

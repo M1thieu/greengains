@@ -701,6 +701,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get referralCopyLink => 'Copy link';
 
   @override
+  String referralConversions(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count friends joined',
+      one: '1 friend joined',
+      zero: 'No friends joined yet',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get tooltipRefresh => 'Refresh';
 
   @override
@@ -726,5 +738,37 @@ class AppLocalizationsEn extends AppLocalizations {
   String get statsWeeklyLabel => '7 DAYS';
 
   @override
-  String statsWeeklyTotal(int count) => '$count this week';
+  String statsWeeklyTotal(int count) {
+    return '$count this week';
+  }
+
+  @override
+  String get batteryDialogTitle => 'Maximize Your Earnings';
+
+  @override
+  String get batteryDialogBody =>
+      'To earn 24/7, GreenGains needs to run in the background without being killed by the system.';
+
+  @override
+  String get batteryDialogBodyBold =>
+      'Please disable \"Battery Optimization\" for GreenGains in the next screen.';
+
+  @override
+  String get batteryDialogDismissForever => 'Don\'t show again';
+
+  @override
+  String get batteryDialogLater => 'Later';
+
+  @override
+  String get batteryDialogAllow => 'Allow Background Run';
+
+  @override
+  String get batteryDialogError => 'Unable to open battery settings';
+
+  @override
+  String get locationPermBannerBody =>
+      'Set to \'Allow all the time\' for 24/7 collection';
+
+  @override
+  String get locationPermBannerFix => 'Fix';
 }

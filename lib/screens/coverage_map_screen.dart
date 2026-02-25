@@ -6,7 +6,7 @@ import '../core/themes.dart';
 import '../services/location/foreground_location_service.dart';
 
 /// Coverage map screen showing geographic areas where user has contributed data
-/// Foundation for map visualization - full coverage heatmap coming soon
+/// Lightweight map view with current location and navigation controls.
 ///
 /// Usage:
 /// ```dart
@@ -160,69 +160,6 @@ class _CoverageMapScreenState extends State<CoverageMapScreen> {
                   ],
                 ),
 
-                // Coming soon banner
-                Positioned(
-                  top: AppTheme.spaceMd,
-                  left: AppTheme.spaceMd,
-                  right: AppTheme.spaceMd,
-                  child: Container(
-                    padding: const EdgeInsets.all(AppTheme.spaceMd),
-                    decoration: BoxDecoration(
-                      color: isDark
-                          ? AppColors.darkSurface.withValues(alpha: 0.95)
-                          : AppColors.lightSurface.withValues(alpha: 0.95),
-                      borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-                      border: Border.all(
-                        color: AppColors.primary.withValues(alpha: 0.3),
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.15),
-                          blurRadius: 10,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(AppTheme.spaceXs),
-                          decoration: BoxDecoration(
-                            color: AppColors.primaryAlpha(0.15),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Icon(
-                            Icons.construction,
-                            color: AppColors.primary,
-                            size: 20,
-                          ),
-                        ),
-                        const SizedBox(width: AppTheme.spaceSm),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                l10n.mapComingSoonTitle,
-                                style: theme.textTheme.titleSmall?.copyWith(
-                                  fontWeight: AppFontWeights.bold,
-                                ),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                l10n.mapComingSoonDescription,
-                                style: theme.textTheme.bodySmall?.copyWith(
-                                  color: AppColors.textSecondary(isDark),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-
                 // Map controls overlay (bottom)
                 Positioned(
                   bottom: AppTheme.spaceMd,
@@ -286,8 +223,8 @@ class _MapControlButton extends StatelessWidget {
         onTap: onPressed,
         borderRadius: BorderRadius.circular(AppTheme.radiusSm),
         child: Container(
-          width: 44,
-          height: 44,
+          width: 48,
+          height: 48,
           decoration: BoxDecoration(
             border: Border.all(
               color: AppColors.border(isDark),

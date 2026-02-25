@@ -7,11 +7,12 @@ import '../services/location/foreground_location_service.dart';
 import '../services/location/location_service.dart';
 import '../utils/app_snackbars.dart';
 
-/// Compact 56×56 FAB that replaces the full-width ServiceControlButton
-/// for the map-as-background layout.
+/// Compact 56×56 FAB with jelly press feedback.
 ///
-/// Icon-only (no label): play / pause / hourglass (loading).
-/// Fades out when the bottom sheet is expanded — caller wraps in AnimatedOpacity.
+/// On tap: squish (0.88×) → pop (1.18×) → elastic settle (1.0×).
+/// Icon transitions via AnimatedSwitcher (scale+fade).
+/// Color transitions via AnimatedContainer.
+/// Fades out when bottom sheet expands — caller wraps in AnimatedOpacity.
 class TrackingFab extends StatefulWidget {
   const TrackingFab({super.key});
 
@@ -19,21 +20,50 @@ class TrackingFab extends StatefulWidget {
   State<TrackingFab> createState() => _TrackingFabState();
 }
 
-class _TrackingFabState extends State<TrackingFab> {
+class _TrackingFabState extends State<TrackingFab>
+    with SingleTickerProviderStateMixin {
   final _locationService = ForegroundLocationService.instance;
   final _locationPermissionHelper = LocationService.instance;
   final _prefs = AppPreferences.instance;
   bool _isToggling = false;
+
+  late final AnimationController _jellyController;
+  late final Animation<double> _jellyScale;
 
   @override
   void initState() {
     super.initState();
     _locationService.isRunning.addListener(_rebuild);
     _locationService.isPaused.addListener(_rebuild);
+
+    _jellyController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 420),
+    );
+
+    // Squish → pop → elastic settle
+    _jellyScale = TweenSequence<double>([
+      TweenSequenceItem(
+        tween: Tween(begin: 1.0, end: 0.88)
+            .chain(CurveTween(curve: Curves.easeIn)),
+        weight: 18,
+      ),
+      TweenSequenceItem(
+        tween: Tween(begin: 0.88, end: 1.18)
+            .chain(CurveTween(curve: Curves.easeOut)),
+        weight: 32,
+      ),
+      TweenSequenceItem(
+        tween: Tween(begin: 1.18, end: 1.0)
+            .chain(CurveTween(curve: Curves.elasticOut)),
+        weight: 50,
+      ),
+    ]).animate(_jellyController);
   }
 
   @override
   void dispose() {
+    _jellyController.dispose();
     _locationService.isRunning.removeListener(_rebuild);
     _locationService.isPaused.removeListener(_rebuild);
     super.dispose();
@@ -45,6 +75,9 @@ class _TrackingFabState extends State<TrackingFab> {
 
   Future<void> _toggle() async {
     if (_isToggling) return;
+
+    // Fire jelly immediately — doesn't wait for service ops
+    _jellyController.forward(from: 0.0);
 
     var isRunning = _locationService.isRunning.value;
     final isPaused = _locationService.isPaused.value;
@@ -92,19 +125,56 @@ class _TrackingFabState extends State<TrackingFab> {
     final l10n = context.l10n;
     final (icon, bgColor, fgColor, tooltip) = switch (true) {
       _ when _isToggling => (Icons.hourglass_empty, AppColors.surfaceElevated(true), Colors.white54, l10n.trackingFabStarting),
-      _ when isActive    => (Icons.pause,      AppColors.primary,  Colors.white, l10n.trackingFabPause),
-      _ when isPaused    => (Icons.play_arrow, AppColors.warning,  Colors.white, l10n.trackingFabResume),
-      _                  => (Icons.play_arrow, AppColors.primary,  Colors.white, l10n.trackingFabStart),
+      _ when isActive    => (Icons.pause,            AppColors.primary,              Colors.white,   l10n.trackingFabPause),
+      _ when isPaused    => (Icons.play_arrow,        AppColors.warning,              Colors.white,   l10n.trackingFabResume),
+      _                  => (Icons.play_arrow,        AppColors.primary,              Colors.white,   l10n.trackingFabStart),
     };
 
-    return FloatingActionButton(
-      heroTag: 'tracking_fab',
-      onPressed: _isToggling ? null : _toggle,
-      backgroundColor: bgColor,
-      foregroundColor: fgColor,
-      elevation: 4,
-      tooltip: tooltip, // accessibility + long-press hint
-      child: Icon(icon, size: 28),
+    return Semantics(
+      button: true,
+      label: tooltip,
+      child: ScaleTransition(
+        scale: _jellyScale,
+        child: GestureDetector(
+          onTap: _isToggling ? null : _toggle,
+          child: Tooltip(
+            message: tooltip,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 220),
+              curve: Curves.easeInOut,
+              width: 56,
+              height: 56,
+              decoration: BoxDecoration(
+                color: bgColor,
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: bgColor.withValues(alpha: isActive ? 0.45 : 0.25),
+                    blurRadius: isActive ? 18 : 8,
+                    spreadRadius: isActive ? 2 : 0,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 180),
+                switchInCurve: Curves.easeOut,
+                switchOutCurve: Curves.easeIn,
+                transitionBuilder: (child, anim) => ScaleTransition(
+                  scale: anim,
+                  child: FadeTransition(opacity: anim, child: child),
+                ),
+                child: Icon(
+                  icon,
+                  key: ValueKey(icon),
+                  color: fgColor,
+                  size: 28,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

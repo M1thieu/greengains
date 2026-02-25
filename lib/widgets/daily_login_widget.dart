@@ -1,20 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../core/themes.dart';
+import '../core/extensions/context_extensions.dart';
 import '../services/daily_pot_service.dart';
 import '../data/models/daily_pot.dart';
 import '../utils/app_snackbars.dart';
 
-/// Minimal daily pot icon - Honeygain Lucky Pot style
-/// Shows progress ring + lock icon, jiggles when unlocked
-class DailyPotIcon extends StatefulWidget {
-  const DailyPotIcon({super.key});
+/// Daily login widget - compact daily pot progress + claim action.
+class DailyLoginWidget extends StatefulWidget {
+  const DailyLoginWidget({super.key});
 
   @override
-  State<DailyPotIcon> createState() => _DailyPotIconState();
+  State<DailyLoginWidget> createState() => _DailyLoginWidgetState();
 }
 
-class _DailyPotIconState extends State<DailyPotIcon>
+class _DailyLoginWidgetState extends State<DailyLoginWidget>
     with SingleTickerProviderStateMixin {
   final _service = DailyPotService.instance;
   late AnimationController _jiggleController;
@@ -39,43 +39,39 @@ class _DailyPotIconState extends State<DailyPotIcon>
     super.dispose();
   }
 
-  Future<void> _claimPot() async {
+  Future<void> _claimReward() async {
     if (_claiming) return;
     setState(() => _claiming = true);
 
     HapticFeedback.heavyImpact();
     final claimedAmount = await _service.claimPot();
+    final l10n = context.l10n;
 
     if (!mounted) return;
     setState(() => _claiming = false);
 
     if (claimedAmount > 0) {
       HapticFeedback.heavyImpact();
-      AppSnackbars.showSuccess(
-        context,
-        '+$claimedAmount credits! 🍯',
-      );
+      AppSnackbars.showSuccess(context, l10n.dailyPotClaimed(claimedAmount));
     } else {
-      AppSnackbars.showInfo(context, 'Already claimed today or not unlocked');
+      AppSnackbars.showInfo(context, l10n.dailyPotAlreadyClaimed);
     }
   }
 
   void _showLockedFeedback() {
     final pot = _service.pot.value;
     if (pot == null) return;
+    final l10n = context.l10n;
 
     HapticFeedback.lightImpact();
 
     if (pot.hasClaimedToday) {
-      AppSnackbars.showInfo(
-        context,
-        'Already claimed today! Come back tomorrow',
-      );
+      AppSnackbars.showInfo(context, l10n.dailyPotAlreadyClaimed);
     } else if (!pot.isUnlocked) {
       final remaining = pot.uploadsRequired - pot.uploadsToday;
       AppSnackbars.showInfo(
         context,
-        'Need $remaining more upload${remaining == 1 ? '' : 's'} to unlock',
+        l10n.dailyPotNeedMoreUploads(remaining, remaining == 1 ? '' : 's'),
       );
     }
   }
@@ -87,16 +83,13 @@ class _DailyPotIconState extends State<DailyPotIcon>
     return ValueListenableBuilder<DailyPot?>(
       valueListenable: _service.pot,
       builder: (context, pot, _) {
-        if (pot == null) {
-          return const SizedBox.shrink();
-        }
+        if (pot == null) return const SizedBox.shrink();
 
         return GestureDetector(
-          onTap: pot.canClaim ? _claimPot : _showLockedFeedback,
+          onTap: pot.canClaim ? _claimReward : _showLockedFeedback,
           child: AnimatedBuilder(
             animation: _jiggleAnimation,
             builder: (context, child) {
-              // Jiggle when unlocked
               return Transform.rotate(
                 angle: pot.canClaim ? _jiggleAnimation.value : 0,
                 child: child,
@@ -105,7 +98,6 @@ class _DailyPotIconState extends State<DailyPotIcon>
             child: Container(
               width: 44,
               height: 44,
-              // Floating drop shadow for all states
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 boxShadow: [
@@ -119,7 +111,6 @@ class _DailyPotIconState extends State<DailyPotIcon>
               child: Stack(
                 alignment: Alignment.center,
                 children: [
-                  // Progress ring
                   SizedBox(
                     width: 44,
                     height: 44,
@@ -128,14 +119,10 @@ class _DailyPotIconState extends State<DailyPotIcon>
                       strokeWidth: 3,
                       backgroundColor: AppColors.surfaceElevated(isDark).withValues(alpha: 0.3),
                       valueColor: AlwaysStoppedAnimation(
-                        pot.isUnlocked
-                            ? AppColors.success
-                            : AppColors.primary,
+                        pot.isUnlocked ? AppColors.success : AppColors.primary,
                       ),
                     ),
                   ),
-
-                  // Center icon
                   Container(
                     width: 30,
                     height: 30,
@@ -150,28 +137,13 @@ class _DailyPotIconState extends State<DailyPotIcon>
                           : null,
                       color: pot.canClaim ? null : AppColors.surfaceElevated(isDark),
                       boxShadow: pot.canClaim
-                          ? [
-                              BoxShadow(
-                                color: AppColors.primary.withValues(alpha: 0.4),
-                                blurRadius: 12,
-                                spreadRadius: 2,
-                              ),
-                            ]
+                          ? [BoxShadow(color: AppColors.primary.withValues(alpha: 0.4), blurRadius: 12, spreadRadius: 2)]
                           : null,
                     ),
                     child: Stack(
                       alignment: Alignment.center,
                       children: [
-                        // Eco/leaf icon
-                        Icon(
-                          Icons.eco,
-                          size: 18,
-                          color: pot.canClaim
-                              ? Colors.white
-                              : AppColors.primary,
-                        ),
-
-                        // Lock overlay when not unlocked
+                        Icon(Icons.eco, size: 18, color: pot.canClaim ? Colors.white : AppColors.primary),
                         if (!pot.isUnlocked)
                           Icon(
                             Icons.lock,

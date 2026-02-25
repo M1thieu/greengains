@@ -1,16 +1,10 @@
 <resources>
     <string name="app_name">GreenGains</string>
-    <string name="notification_status_collecting">Contributing data</string>
+    <string name="notification_status_collecting">Contributing</string>
     <string name="notification_status_paused">Paused — tap Resume to continue</string>
-    <string name="notification_collecting_with_upload">Contributing · uploaded %1$s</string>
     <string name="notification_collecting_no_upload">Contributing · waiting for first upload</string>
-    <string name="notification_last_upload">Last upload: %1$s</string>
-    <string name="notification_last_upload_unknown">Uploading your first batch…</string>
-    <string name="notification_last_upload_before_pause">Last upload before pause: %1$s</string>
-    <string name="notification_last_upload_paused_unknown">No recent uploads</string>
     <string name="notification_action_pause">Pause</string>
     <string name="notification_action_resume">Resume</string>
-    <string name="notification_just_now">just now</string>
     <string name="notification_worker_title">GreenGains — processing data</string>
     <string name="notification_worker_body">Crunching recent sensor batches</string>
 </resources>
