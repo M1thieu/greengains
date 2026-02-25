@@ -9,16 +9,23 @@ CREATE TABLE IF NOT EXISTS referral_codes (
 CREATE INDEX IF NOT EXISTS idx_referral_codes_code
   ON referral_codes (referral_code);
 
--- Attribution owner on referral events.
--- inviter_uid = owner of referral_code.
-ALTER TABLE referral_events
-  ADD COLUMN IF NOT EXISTS inviter_uid TEXT;
+-- Attribution owner on referral events (only if the old table exists).
+-- Safe no-op if referral_events was never created or has already been dropped
+-- by the 20260226_unify_referrals.sql migration.
+DO $$ BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.tables
+    WHERE table_schema = 'public' AND table_name = 'referral_events'
+  ) THEN
+    ALTER TABLE referral_events
+      ADD COLUMN IF NOT EXISTS inviter_uid TEXT;
 
--- Backfill historical invite events where actor_uid was the inviter.
-UPDATE referral_events
-SET inviter_uid = actor_uid
-WHERE event_type = 'invite'
-  AND inviter_uid IS NULL;
+    UPDATE referral_events
+    SET inviter_uid = actor_uid
+    WHERE event_type = 'invite'
+      AND inviter_uid IS NULL;
 
-CREATE INDEX IF NOT EXISTS idx_referral_events_inviter
-  ON referral_events (inviter_uid);
+    CREATE INDEX IF NOT EXISTS idx_referral_events_inviter
+      ON referral_events (inviter_uid);
+  END IF;
+END $$;
