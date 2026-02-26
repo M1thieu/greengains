@@ -19,6 +19,7 @@ class PreferenceKeys {
   static const postOnboardingAuthPrompted = 'post_onboarding_auth_prompted';
   static const homeSheetSize = 'home_sheet_size';
   static const referralCode = 'referral_code';
+  static const consentDate = 'consent_date';
 
   // Identity credentials shared with the native Kotlin uploader.
   // The shared_preferences plugin prepends 'flutter.' on write, so keys that
@@ -245,6 +246,16 @@ class AppPreferences {
 
   Future<void> setReferralCode(String value) async {
     await _sp.setString(PreferenceKeys.referralCode, value);
+  }
+
+  /// Date the user explicitly consented to data collection (ISO string).
+  DateTime? get consentDate {
+    final raw = _sp.getString(PreferenceKeys.consentDate);
+    return raw != null ? DateTime.tryParse(raw) : null;
+  }
+
+  Future<void> setConsentDate(DateTime dt) async {
+    await _sp.setString(PreferenceKeys.consentDate, dt.toIso8601String());
   }
 
 

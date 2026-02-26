@@ -21,7 +21,6 @@ import 'l10n/app_localizations.dart';
 import 'services/network/backend_client.dart';
 import 'services/network/upload_queue_manager.dart';
 import 'services/auth/auth_service.dart';
-import 'services/daily_pot_service.dart';
 import 'services/tracking/tracking_session_manager.dart';
 
 void main() async {
@@ -103,11 +102,6 @@ class _MyAppState extends State<MyApp> {
 
       // Initialize upload queue (process pending retries)
       UploadQueueManager.instance.initialize();
-
-      // Initialize daily pot service (non-blocking)
-      DailyPotService.instance.initialize().catchError((e) {
-        debugPrint('Daily pot init failed (non-critical): $e');
-      });
 
       if (mounted) {
         setState(() {

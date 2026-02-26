@@ -1,10 +1,15 @@
+import 'dart:async';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import '../core/app_preferences.dart';
 import '../core/extensions/context_extensions.dart';
 import '../core/themes.dart';
 import '../l10n/app_localizations.dart';
 import '../services/auth/auth_service.dart';
+import '../services/network/backend_client.dart';
 import '../utils/app_snackbars.dart';
 import 'webview_screen.dart';
 
@@ -58,6 +63,21 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     try {
       await AuthService.signInWithGoogleUniversal();
       if (!mounted) return;
+
+      // Fire-and-forget: record explicit consent to backend + cache locally.
+      unawaited(
+        BackendClient.post('/api/user/consent', {
+          'platform': Platform.isIOS ? 'ios' : 'android',
+          'appVersion': '1.1.0',
+        }).then((res) async {
+          final rawDate = res?['agreedAt'];
+          final dt = rawDate != null ? DateTime.tryParse(rawDate.toString()) : DateTime.now();
+          await AppPreferences.instance.setConsentDate(dt ?? DateTime.now());
+        }).catchError((_) {
+          // Non-critical — consent date will be set on next successful call.
+        }),
+      );
+
       AppSnackbars.showSuccess(context, l10n.signInSuccess);
       await Future.delayed(const Duration(milliseconds: 500));
       if (!mounted) return;
@@ -277,9 +297,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
             // Benefits list
             _buildBenefit(
-              icon: Icons.eco,
-              title: l10n.onboardingDailyPotRewards,
-              description: l10n.onboardingDailyPotDescription,
+              icon: Icons.sensors,
+              title: l10n.onboardingDataCollectedTitle,
+              description: l10n.onboardingDataCollectedDescription,
               isDark: isDark,
               theme: theme,
             ),

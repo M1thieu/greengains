@@ -112,6 +112,14 @@ class ForegroundService : Service() {
     // changes while optimally suppressing MEMS sensor noise (tuned for BME280-class sensors).
     private val pressureKalman = KalmanFilter1D.forPressure()
 
+    // Exponential moving average for the light sensor (α = 0.15).
+    // Light sensors exhibit hardware-level hysteresis: when a light source is removed, the
+    // lux reading decays gradually (e.g. 200 → 20 → 1 over ~3 s) rather than snapping to the
+    // new level. Without smoothing, the decay tail inflates the window average.
+    // α = 0.15 responds to genuine scene changes in ~5 samples (~1 s at 5 Hz) while attenuating
+    // transient decay spikes. Null until first reading so cold start doesn't bias the filter.
+    private var lightEma: Float? = null
+
     // GPS jump detection — track last physically-plausible location to reject multipath glitches.
     private var lastAcceptedLocation: Location? = null
 
@@ -192,7 +200,11 @@ class ForegroundService : Service() {
                     // Only accumulate light samples when the phone is not face-down or in a pocket.
                     // Occluded readings (0 lux) are physically invalid for ambient light mapping.
                     if (!qualityAnalyzer.isLightObscured()) {
-                        synchronized(windowLock) { lightWindow.add(it) }
+                        // Apply EMA before window accumulation to attenuate sensor hysteresis /
+                        // decay tails (e.g. 200→20→1 lux after a light switches off).
+                        val ema = lightEma?.let { prev -> 0.85f * prev + 0.15f * it } ?: it
+                        lightEma = ema
+                        synchronized(windowLock) { lightWindow.add(ema) }
                     }
                 }
             }

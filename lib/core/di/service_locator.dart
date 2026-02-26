@@ -33,7 +33,6 @@ Future<void> setupServiceLocator() async {
   getIt.registerSingleton<ForegroundLocationService>(ForegroundLocationService.instance);
   getIt.registerSingleton<SensorManager>(SensorManager.instance);
   getIt.registerSingleton<UploadQueueManager>(UploadQueueManager.instance);
-  // DailyPotService requires Firebase — initialized in main.dart after Firebase.initializeApp()
   getIt.registerSingleton<TrackingSessionManager>(TrackingSessionManager.instance);
 
   getIt.registerFactory<ContributionRepository>(() => ContributionRepository());

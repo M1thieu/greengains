@@ -11,8 +11,6 @@
   "onboardingFeature3Description": "Vos mesures alimentent une carte environnementale en direct utilisée par des chercheurs et des urbanistes. Chaque rue couverte est une donnée qui n'existait pas avant.",
   "onboardingSignInTitle": "Rejoindre le réseau",
   "onboardingSignInSubtitle": "Connectez-vous pour synchroniser vos contributions et débloquer les récompenses quotidiennes des contributeurs.",
-  "onboardingDailyPotRewards": "Récompenses contributeurs",
-  "onboardingDailyPotDescription": "Gagnez des crédits pour chaque jour de contribution",
   "onboardingCloudSync": "Carte de couverture en direct",
   "onboardingCloudSyncDescription": "Regardez votre zone de couverture personnelle s'agrandir en temps réel",
   "onboardingFutureFeatures": "Bientôt disponible",
@@ -299,6 +297,16 @@
   "settingsTermsOfServiceDesc": "Conditions générales d'utilisation",
   "settingsDataDeletion": "Demande de suppression des données",
   "settingsDataDeletionDesc": "Supprimer vos contributions",
+  "settingsDataSection": "Données",
+  "settingsConsentDate": "Consentement : {date}",
+  "@settingsConsentDate": {
+    "placeholders": {
+      "date": { "type": "String" }
+    }
+  },
+  "settingsDataRetention": "Conservation : 7 jours (Gratuit)",
+  "onboardingDataCollectedTitle": "Ce que nous collectons",
+  "onboardingDataCollectedDescription": "Lumière, mouvement, pression et position anonyme — agrégés avec 100\u202f000+ appareils avant toute analyse.",
 
   "referralInviteTitle": "Développer le réseau",
   "referralInviteDescription": "Invitez des contributeurs pour étendre la couverture. Vous gagnez des crédits bonus quand ils rejoignent.",

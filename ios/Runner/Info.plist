@@ -46,5 +46,38 @@
 	<!-- Motion — required by Core Motion (accelerometer/gyroscope) -->
 	<key>NSMotionUsageDescription</key>
 	<string>GreenGains uses motion sensors to collect environmental data while you move around the city.</string>
+
+	<!-- Privacy Nutrition Label — iOS 17.3+ App Store requirement -->
+	<!-- Linked=false: data is NOT linked to user identity -->
+	<!-- Tracking=false: data is NOT used for cross-app tracking -->
+	<key>NSPrivacyCollectedDataTypes</key>
+	<array>
+		<!-- GPS / coarse location (anonymised before upload) -->
+		<dict>
+			<key>NSPrivacyCollectedDataType</key>
+			<string>NSPrivacyCollectedDataTypeLocation</string>
+			<key>NSPrivacyCollectedDataTypeLinked</key>
+			<false/>
+			<key>NSPrivacyCollectedDataTypeTracking</key>
+			<false/>
+			<key>NSPrivacyCollectedDataTypePurposes</key>
+			<array>
+				<string>NSPrivacyCollectedDataTypePurposeAppFunctionality</string>
+			</array>
+		</dict>
+		<!-- Accelerometer, gyroscope, barometer, light, magnetometer -->
+		<dict>
+			<key>NSPrivacyCollectedDataType</key>
+			<string>NSPrivacyCollectedDataTypeOtherSensorData</string>
+			<key>NSPrivacyCollectedDataTypeLinked</key>
+			<false/>
+			<key>NSPrivacyCollectedDataTypeTracking</key>
+			<false/>
+			<key>NSPrivacyCollectedDataTypePurposes</key>
+			<array>
+				<string>NSPrivacyCollectedDataTypePurposeAppFunctionality</string>
+			</array>
+		</dict>
+	</array>
 </dict>
 </plist>

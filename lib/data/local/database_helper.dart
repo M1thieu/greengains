@@ -1,7 +1,6 @@
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import '../models/contribution_stats.dart';
-import '../models/daily_pot.dart';
 import 'package:flutter/foundation.dart';
 
 /// Enhanced SQLite database for comprehensive app state persistence
@@ -9,7 +8,6 @@ import 'package:flutter/foundation.dart';
 /// Schema:
 /// - contributions: Upload history with geohash for tile coverage
 /// - tracking_sessions: Start/stop history for analytics
-/// - daily_pot_cache: Offline-first daily pot state
 /// - upload_queue: Pending uploads (for future retry logic)
 /// - app_state: Key-value store for misc state
 class DatabaseHelper {
@@ -415,64 +413,6 @@ class DatabaseHelper {
       orderBy: 'started_at DESC',
       limit: limit,
     );
-  }
-
-  // ========== DAILY POT CACHE ==========
-
-  /// Save daily pot state to local cache (offline-first)
-  Future<void> cacheDailyPot(DailyPot pot) async {
-    final db = await database;
-    final now = DateTime.now().millisecondsSinceEpoch;
-
-    await db.insert(
-      'daily_pot_cache',
-      {
-        'user_id': pot.userId,
-        'total_credits': pot.totalCredits,
-        'uploads_today': pot.uploadsToday,
-        'uploads_required': pot.uploadsRequired,
-        'is_unlocked': pot.isUnlocked ? 1 : 0,
-        'has_claimed_today': pot.hasClaimedToday ? 1 : 0,
-        'last_claim_date': pot.lastClaimDate?.toIso8601String(),
-        'last_synced_at': now,
-        'cached_at': now,
-      },
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
-
-    debugPrint('Cached daily pot for user ${pot.userId}');
-  }
-
-  /// Get cached daily pot state
-  Future<DailyPot?> getCachedDailyPot(String userId) async {
-    final db = await database;
-    final results = await db.query(
-      'daily_pot_cache',
-      where: 'user_id = ?',
-      whereArgs: [userId],
-    );
-
-    if (results.isEmpty) return null;
-
-    final row = results.first;
-    return DailyPot(
-      userId: row['user_id'] as String,
-      totalCredits: row['total_credits'] as int,
-      uploadsToday: row['uploads_today'] as int,
-      uploadsRequired: row['uploads_required'] as int,
-      isUnlocked: (row['is_unlocked'] as int) == 1,
-      hasClaimedToday: (row['has_claimed_today'] as int) == 1,
-      lastClaimDate: row['last_claim_date'] != null
-          ? DateTime.parse(row['last_claim_date'] as String)
-          : null,
-    );
-  }
-
-  /// Clear daily pot cache (e.g., on sign out)
-  Future<void> clearDailyPotCache() async {
-    final db = await database;
-    await db.delete('daily_pot_cache');
-    debugPrint('Cleared daily pot cache');
   }
 
   // ========== UPLOAD QUEUE ==========

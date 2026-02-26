@@ -230,4 +230,47 @@ export async function userRoutes(fastify: FastifyInstance) {
       }
     }
   );
+
+  /**
+   * POST /api/user/consent
+   * Records that the authenticated user explicitly accepted the privacy policy.
+   * Body: { platform?: 'android'|'ios', appVersion?: string }
+   * Returns: { agreedAt: ISO timestamp }
+   */
+  fastify.post(
+    '/api/user/consent',
+    async (request: FastifyRequest, reply: FastifyReply) => {
+      let userId: string | null = null;
+
+      try {
+        userId = await verifyFirebaseToken(request, reply);
+        if (reply.sent || !userId) return;
+      } catch (e) {
+        return reply.code(401).send({ error: 'Unauthorized' });
+      }
+
+      try {
+        const { platform, appVersion } = (request.body as any) ?? {};
+        const pool = getPool();
+
+        await pool.query(
+          `INSERT INTO user_consent_agreements (user_id, platform, app_version)
+           VALUES ($1, $2, $3)`,
+          [userId, platform ?? null, appVersion ?? null]
+        );
+
+        const row = await pool.query(
+          `SELECT agreed_at FROM user_consent_agreements
+           WHERE user_id = $1
+           ORDER BY agreed_at DESC LIMIT 1`,
+          [userId]
+        );
+
+        return reply.send({ agreedAt: row.rows[0].agreed_at });
+      } catch (error) {
+        console.error('Consent record error:', error);
+        return reply.code(500).send({ error: 'Internal Server Error' });
+      }
+    }
+  );
 }

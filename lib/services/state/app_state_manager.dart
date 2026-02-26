@@ -3,7 +3,6 @@ import 'package:flutter/foundation.dart';
 import '../../core/app_preferences.dart';
 import '../../data/local/database_helper.dart';
 import '../tracking/tracking_session_manager.dart';
-import '../daily_pot_service.dart';
 import '../location/foreground_location_service.dart';
 
 /// Centralized app state management and restoration
@@ -26,9 +25,6 @@ class AppStateManager {
 
     // Restore tracking state
     await _restoreTrackingState();
-
-    // Restore daily pot cache
-    await _restoreDailyPotState();
 
     // Clean old data periodically
     await _cleanOldData();
@@ -54,12 +50,6 @@ class AppStateManager {
     }
   }
 
-  /// Restore daily pot state from cache
-  Future<void> _restoreDailyPotState() async {
-    // Daily pot service handles its own restoration
-    // This is just a hook for future enhancements
-  }
-
   /// Clean old data to keep database size manageable
   Future<void> _cleanOldData() async {
     try {
@@ -81,14 +71,7 @@ class AppStateManager {
       totalSessions: stats['tracking_sessions'] ?? 0,
       queuedUploads: stats['queued_uploads'] ?? 0,
       averageSessionDuration: sessionStats.averageDuration,
-      hasDailyPotCache: await _hasDailyPotCache(),
     );
-  }
-
-  Future<bool> _hasDailyPotCache() async {
-    await _prefs.ensureInitialized();
-    // Would need Firebase Auth access for per-user check — simplified for now
-    return false;
   }
 
   /// Export app state as JSON (for debugging/support)
@@ -139,7 +122,6 @@ class AppStateManager {
 
   /// Clear all cached data (useful for sign out)
   Future<void> clearCache() async {
-    await DailyPotService.instance.clearCache();
     debugPrint('App cache cleared');
   }
 
@@ -150,7 +132,6 @@ class AppStateManager {
       await ForegroundLocationService.instance.stop();
     }
 
-    // Clear all caches
     await clearCache();
 
     debugPrint('App state reset complete');
@@ -164,7 +145,6 @@ class AppStateSummary {
   final int totalSessions;
   final int queuedUploads;
   final Duration averageSessionDuration;
-  final bool hasDailyPotCache;
 
   const AppStateSummary({
     required this.isTracking,
@@ -172,7 +152,6 @@ class AppStateSummary {
     required this.totalSessions,
     required this.queuedUploads,
     required this.averageSessionDuration,
-    required this.hasDailyPotCache,
   });
 
   @override

@@ -5,7 +5,6 @@ import 'package:flutter/services.dart';
 import '../../core/app_preferences.dart';
 import '../../core/events/app_events.dart';
 import '../../models/sensor_models.dart';
-import '../daily_pot_service.dart';
 import '../tracking/tracking_session_manager.dart';
 
 /// Service for managing the native Android foreground service for sensor data collection
@@ -344,11 +343,6 @@ class ForegroundLocationService {
         ));
 
         // Note: Native code already saved contribution to SQLite database
-        // Record upload for daily pot progress (non-blocking)
-        DailyPotService.instance.recordUpload().catchError((e) {
-          debugPrint('Daily pot record upload failed (non-critical): $e');
-        });
-
         // Record upload in tracking session (non-blocking)
         _sessionManager.recordUploadCompleted().catchError((e) {
           debugPrint('Session upload record failed (non-critical): $e');

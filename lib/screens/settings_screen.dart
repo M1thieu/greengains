@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import '../core/extensions/context_extensions.dart';
 import '../core/themes.dart';
@@ -168,6 +169,29 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
           const SizedBox(height: AppTheme.spaceLg),
 
+          _SettingsSectionContainer(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _SettingsSectionTitle(text: l10n.settingsDataSection),
+                _DataInfoRow(
+                  icon: Icons.verified_user_outlined,
+                  label: () {
+                    final d = _prefs.consentDate;
+                    if (d == null) return l10n.settingsConsentDate('—');
+                    final locale = Localizations.localeOf(context).toString();
+                    return l10n.settingsConsentDate(DateFormat('MMM d, y', locale).format(d.toLocal()));
+                  }(),
+                ),
+                const SizedBox(height: AppTheme.spaceSm),
+                _DataInfoRow(
+                  icon: Icons.schedule_outlined,
+                  label: l10n.settingsDataRetention,
+                ),
+              ],
+            ),
+          ),
+
           // Legal footer — minimal text links, no card (industry standard: Stripe, Linear, Notion)
           Center(
             child: Wrap(
@@ -314,6 +338,32 @@ class _SettingsToggleRow extends StatelessWidget {
         Switch(
           value: value,
           onChanged: onChanged,
+        ),
+      ],
+    );
+  }
+}
+
+/// Read-only info row used in the Data section.
+class _DataInfoRow extends StatelessWidget {
+  const _DataInfoRow({required this.icon, required this.label});
+
+  final IconData icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    return Row(
+      children: [
+        Icon(icon, size: 20, color: AppColors.textTertiary(isDark)),
+        const SizedBox(width: AppTheme.spaceSm),
+        Text(
+          label,
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: AppColors.textSecondary(isDark),
+          ),
         ),
       ],
     );

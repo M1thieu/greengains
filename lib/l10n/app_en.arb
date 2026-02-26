@@ -11,9 +11,7 @@
   "onboardingFeature3Description": "Your readings go into a live environmental map used by researchers and urban planners. Every street covered is data that didn't exist before.",
   "onboardingSignInTitle": "Join the network",
   "onboardingSignInSubtitle": "Sign in to sync your contributions across devices and unlock daily contributor rewards.",
-  "onboardingDailyPotRewards": "Contributor Rewards",
-  "onboardingDailyPotDescription": "Earn credits for every day you contribute data",
-  "onboardingCloudSync": "Live Coverage Map",
+"onboardingCloudSync": "Live Coverage Map",
   "onboardingCloudSyncDescription": "Watch your personal coverage area grow in real time",
   "onboardingFutureFeatures": "Coming Soon",
   "onboardingFutureDescription": "Revenue sharing, data insights, and contributor milestones",
@@ -299,6 +297,16 @@
   "settingsTermsOfServiceDesc": "Usage terms and conditions",
   "settingsDataDeletion": "Request Data Deletion",
   "settingsDataDeletionDesc": "Remove your contributions",
+  "settingsDataSection": "Data",
+  "settingsConsentDate": "Consented: {date}",
+  "@settingsConsentDate": {
+    "placeholders": {
+      "date": { "type": "String" }
+    }
+  },
+  "settingsDataRetention": "Retention: 7 days (Free)",
+  "onboardingDataCollectedTitle": "What we collect",
+  "onboardingDataCollectedDescription": "Light, motion, pressure and anonymous location — aggregated with 100,000+ devices before any analysis.",
 
   "referralInviteTitle": "Grow the network",
   "referralInviteDescription": "Invite contributors to expand coverage. You earn bonus credits when they join.",
