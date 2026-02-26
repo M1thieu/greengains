@@ -34,7 +34,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   void _nextPage() {
-    if (_currentPage < 3) {
+    if (_currentPage < 2) {
       _pageController.nextPage(
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
@@ -90,7 +90,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             children: [
               _buildWelcomePage(theme, isDark, l10n),
               _buildFeaturesPage(theme, isDark, l10n),
-              _buildImpactPage(theme, isDark, l10n),
               _buildSignInPage(theme, isDark, l10n),
             ],
           ),
@@ -108,7 +107,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: List.generate(
-                    4,
+                    3,
                     (index) => AnimatedContainer(
                       duration: const Duration(milliseconds: 300),
                       margin: const EdgeInsets.symmetric(horizontal: 4),
@@ -126,7 +125,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 const SizedBox(height: 32),
 
                 // Navigation buttons (only for pages 0-2)
-                if (_currentPage < 3)
+                if (_currentPage < 2)
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 32),
                     child: Row(
@@ -213,16 +212,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const Spacer(),
-            Icon(Icons.phonelink_ring_outlined, size: 56, color: AppColors.primary),
-            const SizedBox(height: AppTheme.spaceXl),
-            Text(
-              l10n.onboardingFeature1Title,
-              style: theme.textTheme.headlineMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: AppTheme.spaceLg),
             _buildBenefit(
               icon: Icons.bedtime_outlined,
               title: l10n.onboardingFeature1Title,
@@ -238,6 +227,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               isDark: isDark,
               theme: theme,
             ),
+            const SizedBox(height: AppTheme.spaceMd),
+            _buildBenefit(
+              icon: Icons.map_outlined,
+              title: l10n.onboardingFeature3Title,
+              description: l10n.onboardingFeature3Description,
+              isDark: isDark,
+              theme: theme,
+            ),
             const Spacer(),
           ],
         ),
@@ -246,43 +243,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   // Page 3: Impact
-  Widget _buildImpactPage(ThemeData theme, bool isDark, AppLocalizations l10n) {
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.all(AppTheme.spaceLg),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Spacer(),
-            Icon(
-              Icons.map_outlined,
-              size: 64,
-              color: AppColors.primary,
-            ),
-            const SizedBox(height: AppTheme.spaceXl),
-            Text(
-              l10n.onboardingFeature3Title,
-              style: theme.textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: AppTheme.spaceMd),
-            Text(
-              l10n.onboardingFeature3Description,
-              style: theme.textTheme.bodyLarge?.copyWith(
-                color: AppColors.textSecondary(isDark),
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const Spacer(),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // Page 4: Sign In
+  // Page 3: Sign In
   Widget _buildSignInPage(ThemeData theme, bool isDark, AppLocalizations l10n) {
     return SafeArea(
       child: Padding(
@@ -292,7 +253,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           children: [
             const Spacer(),
             Icon(
-              Icons.card_giftcard,
+              Icons.hub_outlined,
               size: 64,
               color: AppColors.primary,
             ),

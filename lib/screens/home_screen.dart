@@ -24,8 +24,6 @@ import '../widgets/sensor_section.dart';
 import '../widgets/coverage_map_widget.dart';
 import '../widgets/tracking_status_chip.dart';
 import '../widgets/tracking_fab.dart';
-import '../widgets/daily_login_widget.dart';
-import '../widgets/credits_display.dart';
 
 const double _kDefaultTileConfidence = 0.5;
 const double _kSheetMinSize = 0.14;
@@ -623,23 +621,6 @@ class _BottomSheetContent extends StatelessWidget {
                   tileCoverage: tileCoverage,
                   // stats==null means API response not yet received → show skeleton
                   isLoading: stats == null,
-                ),
-              ),
-            ),
-
-            const SliverToBoxAdapter(child: SizedBox(height: 8)),
-
-            // Daily rewards strip (credits + claim/progress)
-            const SliverPadding(
-              padding: EdgeInsets.symmetric(horizontal: 16),
-              sliver: SliverToBoxAdapter(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    CreditsDisplay(),
-                    SizedBox(width: 8),
-                    DailyLoginWidget(),
-                  ],
                 ),
               ),
             ),
