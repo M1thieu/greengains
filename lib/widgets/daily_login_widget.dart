@@ -45,11 +45,11 @@ class _DailyLoginWidgetState extends State<DailyLoginWidget>
 
     HapticFeedback.heavyImpact();
     final claimedAmount = await _service.claimPot();
-    final l10n = context.l10n;
 
     if (!mounted) return;
     setState(() => _claiming = false);
 
+    final l10n = context.l10n;
     if (claimedAmount > 0) {
       HapticFeedback.heavyImpact();
       AppSnackbars.showSuccess(context, l10n.dailyPotClaimed(claimedAmount));
