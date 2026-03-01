@@ -1,7 +1,7 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { z } from 'zod';
 import { getPool } from '../database';
-import { verifyFirebaseToken } from '../utils/firebase-auth';
+import { requireFirebaseAuth } from '../middleware/auth';
 import { QueryBuilder, generateCursor, parseCursor } from '../utils/pagination';
 import { numOrNull } from '../utils/response-utils';
 import {
@@ -44,16 +44,12 @@ export async function dataRoutes(fastify: FastifyInstance) {
    */
   fastify.get(
     '/api/v1/data/aggregated',
-    { preHandler: (req, reply) => verifyFirebaseToken(req, reply) },
+    { preHandler: requireFirebaseAuth },
     async (request: FastifyRequest, reply: FastifyReply) => {
-      const userId = (request as any).user?.uid;
-      if (!userId) {
-        return reply.code(401).send({ error: 'Unauthorized' });
-      }
+      const userId = request.user!.uid;
 
       try {
         const query = dataAggregatesSchema.parse(request.query);
-        const pool = getPool();
 
         // Get user's subscription tier
         const tier = await getOrgSubscriptionTier(pool, userId);
@@ -148,8 +144,7 @@ export async function dataRoutes(fastify: FastifyInstance) {
           return reply.code(422).send({ error: 'Validation Error', details: error.errors });
         }
         const errorMsg = error instanceof Error ? error.message : String(error);
-        console.error(`[ERROR] /api/v1/data/aggregated failed: ${errorMsg}`, error);
-        fastify.log.error(error);
+        fastify.log.error({ err: error }, '/api/v1/data/aggregated failed');
         return reply.code(500).send({ error: 'Internal Server Error', details: errorMsg });
       }
     }
@@ -161,17 +156,13 @@ export async function dataRoutes(fastify: FastifyInstance) {
    */
   fastify.get(
     '/api/v1/data/readings/:sensor',
-    { preHandler: (req, reply) => verifyFirebaseToken(req, reply) },
+    { preHandler: requireFirebaseAuth },
     async (request: FastifyRequest, reply: FastifyReply) => {
-      const userId = (request as any).user?.uid;
-      if (!userId) {
-        return reply.code(401).send({ error: 'Unauthorized' });
-      }
+      const userId = request.user!.uid;
 
       try {
         const { sensor } = request.params as { sensor: string };
         const query = dataAggregatesSchema.parse(request.query);
-        const pool = getPool();
 
         // Map sensor name to DB column (same columns exist in both 5m and daily tables)
         const sensorColumnMap: Record<string, string> = {
@@ -243,16 +234,12 @@ export async function dataRoutes(fastify: FastifyInstance) {
    */
   fastify.post(
     '/api/v1/data/export',
-    { preHandler: (req, reply) => verifyFirebaseToken(req, reply) },
+    { preHandler: requireFirebaseAuth },
     async (request: FastifyRequest, reply: FastifyReply) => {
-      const userId = (request as any).user?.uid;
-      if (!userId) {
-        return reply.code(401).send({ error: 'Unauthorized' });
-      }
+      const userId = request.user!.uid;
 
       try {
         const query = exportSchema.parse(request.body);
-        const pool = getPool();
 
         // Get user's subscription tier
         const tier = await getOrgSubscriptionTier(pool, userId);
@@ -360,20 +347,15 @@ export async function dataRoutes(fastify: FastifyInstance) {
    */
   fastify.get(
     '/api/v1/data/coverage',
-    { preHandler: (req, reply) => verifyFirebaseToken(req, reply) },
+    { preHandler: requireFirebaseAuth },
     async (request: FastifyRequest, reply: FastifyReply) => {
-      const userId = (request as any).user?.uid;
-      if (!userId) {
-        return reply.code(401).send({ error: 'Unauthorized' });
-      }
+      const userId = request.user!.uid;
 
       try {
         const query = z.object({
           hours: z.coerce.number().int().min(1).max(2190).default(24),
           min_devices: z.coerce.number().int().min(0).default(0),
         }).parse(request.query);
-
-        const pool = getPool();
 
         const fromTime = new Date(Date.now() - query.hours * 3600000);
 

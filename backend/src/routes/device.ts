@@ -41,13 +41,13 @@ export async function deviceRoutes(fastify: FastifyInstance) {
                     [device_id, userId, deviceSecret]
                 );
 
-                console.log(`Device registered: ${device_id} for user ${userId}`);
+                request.log.info({ device_id, userId }, 'Device registered');
 
                 // 4. Return Secret
                 return reply.code(200).send({ device_secret: deviceSecret });
 
             } catch (error: any) {
-                console.error('Device registration error:', error);
+                request.log.error({ err: error }, 'Device registration error');
                 if (error.issues) {
                     return reply.code(422).send({ error: 'Validation Error', details: error.issues });
                 }

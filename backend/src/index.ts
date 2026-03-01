@@ -145,15 +145,15 @@ fastify.register(referralRoutes);
 
 // Graceful shutdown
 const shutdown = async (signal: string) => {
-  console.log(`\nReceived ${signal}, shutting down gracefully...`);
+  fastify.log.info({ signal }, 'Shutting down gracefully');
   try {
     await fastify.close();
     await stopAggregationJob();
     await closeDatabase();
-    console.log('Server shut down successfully');
+    fastify.log.info('Server shut down successfully');
     process.exit(0);
   } catch (error) {
-    console.error('Error during shutdown:', error);
+    fastify.log.error({ err: error }, 'Error during shutdown');
     process.exit(1);
   }
 };
@@ -184,15 +184,13 @@ const start = async () => {
       host: '0.0.0.0',
     });
 
-    console.log('--------------------------------------------');
-    console.log('GreenGains backend is running');
-    console.log(`Server:      http://0.0.0.0:${config.port}`);
-    console.log('Database:    Connected');
-    console.log(`Firebase:    ${isFirebaseInitialized() ? 'Enabled' : 'Disabled'}`);
-    console.log(`Environment: ${config.nodeEnv}`);
-    console.log('--------------------------------------------');
+    fastify.log.info({
+      port: config.port,
+      env: config.nodeEnv,
+      firebase: isFirebaseInitialized() ? 'enabled' : 'disabled',
+    }, 'GreenGains backend running');
   } catch (error) {
-    console.error('Failed to start server:', error);
+    fastify.log.error({ err: error }, 'Failed to start server');
     process.exit(1);
   }
 };

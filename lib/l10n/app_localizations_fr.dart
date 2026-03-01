@@ -9,12 +9,11 @@ class AppLocalizationsFr extends AppLocalizations {
   AppLocalizationsFr([String locale = 'fr']) : super(locale);
 
   @override
-  String get onboardingWelcomeTitle =>
-      'Votre téléphone gagne pendant que vous vivez';
+  String get onboardingWelcomeTitle => 'Votre ville, cartographiée rue par rue';
 
   @override
   String get onboardingWelcomeSubtitle =>
-      'Installez une fois, oubliez-le. Nous cartographions passivement l\'environnement en arrière-plan — vous êtes récompensé pour contribuer à une meilleure compréhension du monde.';
+      'Votre téléphone collecte passivement des données environnementales — lumière, pression, mouvement — pendant votre quotidien. Vous aidez à construire le réseau de capteurs que les villes n\'ont pas les moyens de déployer. Vous êtes récompensé pour cela.';
 
   @override
   String get onboardingFeature1Title => 'Fonctionne silencieusement';
@@ -31,39 +30,32 @@ class AppLocalizationsFr extends AppLocalizations {
       'Les lectures de capteurs sont regroupées avec des milliers d\'autres avant de quitter votre appareil. Aucune donnée personnelle.';
 
   @override
-  String get onboardingFeature3Title => 'Regardez votre impact grandir';
+  String get onboardingFeature3Title => 'Des données réelles, un impact réel';
 
   @override
   String get onboardingFeature3Description =>
-      'Votre carte de couverture s\'étend à chaque trajet. Chaque contribution aide chercheurs et villes à comprendre leur environnement.';
+      'Vos mesures alimentent une carte environnementale en direct utilisée par des chercheurs et des urbanistes. Chaque rue couverte est une donnée qui n\'existait pas avant.';
 
   @override
-  String get onboardingSignInTitle => 'Débloquez vos récompenses';
+  String get onboardingSignInTitle => 'Rejoindre le réseau';
 
   @override
   String get onboardingSignInSubtitle =>
-      'Connectez-vous une fois pour synchroniser vos progrès et commencer à gagner des récompenses quotidiennes.';
+      'Connectez-vous pour synchroniser vos contributions et débloquer les récompenses quotidiennes des contributeurs.';
 
   @override
-  String get onboardingDailyPotRewards => 'Récompenses quotidiennes';
-
-  @override
-  String get onboardingDailyPotDescription =>
-      'Gagnez des crédits chaque jour que vous contribuez';
-
-  @override
-  String get onboardingCloudSync => 'Synchronisation cloud';
+  String get onboardingCloudSync => 'Carte de couverture en direct';
 
   @override
   String get onboardingCloudSyncDescription =>
-      'Accédez à vos statistiques depuis n\'importe quel appareil';
+      'Regardez votre zone de couverture personnelle s\'agrandir en temps réel';
 
   @override
   String get onboardingFutureFeatures => 'Bientôt disponible';
 
   @override
   String get onboardingFutureDescription =>
-      'Classements, jalons et compétitions';
+      'Partage de revenus, analyses de données et jalons contributeurs';
 
   @override
   String onboardingPrivacyNotice(String privacyPolicy, String termsOfService) {
@@ -694,11 +686,29 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settingsDataDeletionDesc => 'Supprimer vos contributions';
 
   @override
-  String get referralInviteTitle => 'Inviter un ami';
+  String get settingsDataSection => 'Données';
+
+  @override
+  String settingsConsentDate(String date) {
+    return 'Consentement : $date';
+  }
+
+  @override
+  String get settingsDataRetention => 'Conservation : 7 jours (Gratuit)';
+
+  @override
+  String get onboardingDataCollectedTitle => 'Ce que nous collectons';
+
+  @override
+  String get onboardingDataCollectedDescription =>
+      'Lumière, mouvement, pression et position anonyme — agrégés avec 100 000+ appareils avant toute analyse.';
+
+  @override
+  String get referralInviteTitle => 'Développer le réseau';
 
   @override
   String get referralInviteDescription =>
-      'Gagnez des crédits bonus lorsque vos amis contribuent des données.';
+      'Invitez des contributeurs pour étendre la couverture. Vous gagnez des crédits bonus quand ils rejoignent.';
 
   @override
   String get referralLinkCopied => 'Lien de parrainage copié';

@@ -181,18 +181,18 @@ export async function uploadRoutes(fastify: FastifyInstance) {
           );
           if (result.rows.length > 0) {
             userId = result.rows[0].user_id;
-            console.log(`Authenticated via Device Secret. User: ${userId}`);
+            request.log.info({ userId }, 'Authenticated via Device Secret');
             // Update last_used_at
             await pool.query(
               'UPDATE device_secrets SET last_used_at = NOW() WHERE secret = $1',
               [deviceSecret]
             );
           } else {
-            console.warn('Invalid Device Secret provided');
+            request.log.warn('Invalid Device Secret provided');
             return reply.code(401).send({ error: 'Unauthorized', message: 'Invalid Device Secret' });
           }
         } catch (e) {
-          console.error('Device Secret verification failed:', e);
+          request.log.error({ err: e }, 'Device Secret verification failed');
           return reply.code(500).send({ error: 'Internal Server Error' });
         }
       } else {
@@ -200,13 +200,13 @@ export async function uploadRoutes(fastify: FastifyInstance) {
         try {
           userId = await verifyFirebaseToken(request, reply);
         } catch (e) {
-          console.warn('Auth check failed or missing:', e);
+          request.log.warn({ err: e }, 'Auth check failed or missing');
           // If the auth check sent a response (e.g. 401), stop here.
           if (reply.sent) return;
         }
       }
 
-      console.log(`Upload request received. User: ${userId || 'Anonymous/Legacy'}`);
+      request.log.info({ userId: userId ?? 'anonymous' }, 'Upload request received');
 
       try {
         // Decompress payload if needed
@@ -304,11 +304,11 @@ export async function uploadRoutes(fastify: FastifyInstance) {
           logData.location_accuracy_m = batch.location.accuracy_m;
         }
 
-        console.log('Stored sensor batch', logData);
+        request.log.info(logData, 'Stored sensor batch');
 
         return reply.code(202).send({ accepted_records: readingsCount });
       } catch (error) {
-        console.error('Upload error:', error);
+        request.log.error({ err: error }, 'Upload error');
         return reply.code(500).send({ error: 'Internal Server Error' });
       }
     }

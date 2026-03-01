@@ -97,7 +97,7 @@ export async function preferencesRoutes(fastify: FastifyInstance) {
       // Invalidate cache on update
       preferencesCache.delete(firebaseUid);
 
-      console.log(`Updated preferences for user ${firebaseUid}`);
+      request.log.info({ userId: firebaseUid }, 'Preferences updated');
 
       const response = {
         firebase_uid: firebaseUid,

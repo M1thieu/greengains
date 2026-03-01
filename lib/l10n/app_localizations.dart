@@ -101,13 +101,13 @@ abstract class AppLocalizations {
   /// No description provided for @onboardingWelcomeTitle.
   ///
   /// In en, this message translates to:
-  /// **'Your phone earns while you live'**
+  /// **'Your city, mapped block by block'**
   String get onboardingWelcomeTitle;
 
   /// No description provided for @onboardingWelcomeSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Install once, forget about it. We passively map environmental data in the background — you get rewarded for helping build a better picture of the world.'**
+  /// **'Your phone passively collects environmental data — light, pressure, movement — while you go about your day. You help build the sensor network cities can\'t afford. You get rewarded for it.'**
   String get onboardingWelcomeSubtitle;
 
   /// No description provided for @onboardingFeature1Title.
@@ -137,49 +137,37 @@ abstract class AppLocalizations {
   /// No description provided for @onboardingFeature3Title.
   ///
   /// In en, this message translates to:
-  /// **'Watch your impact grow'**
+  /// **'Real data, real impact'**
   String get onboardingFeature3Title;
 
   /// No description provided for @onboardingFeature3Description.
   ///
   /// In en, this message translates to:
-  /// **'Your coverage map expands with every trip. Every contribution helps researchers and cities understand their environment.'**
+  /// **'Your readings go into a live environmental map used by researchers and urban planners. Every street covered is data that didn\'t exist before.'**
   String get onboardingFeature3Description;
 
   /// No description provided for @onboardingSignInTitle.
   ///
   /// In en, this message translates to:
-  /// **'Unlock your rewards'**
+  /// **'Join the network'**
   String get onboardingSignInTitle;
 
   /// No description provided for @onboardingSignInSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Sign in once to sync your progress and start earning daily rewards.'**
+  /// **'Sign in to sync your contributions across devices and unlock daily contributor rewards.'**
   String get onboardingSignInSubtitle;
-
-  /// No description provided for @onboardingDailyPotRewards.
-  ///
-  /// In en, this message translates to:
-  /// **'Daily Rewards'**
-  String get onboardingDailyPotRewards;
-
-  /// No description provided for @onboardingDailyPotDescription.
-  ///
-  /// In en, this message translates to:
-  /// **'Earn credits every day you contribute'**
-  String get onboardingDailyPotDescription;
 
   /// No description provided for @onboardingCloudSync.
   ///
   /// In en, this message translates to:
-  /// **'Cloud Sync'**
+  /// **'Live Coverage Map'**
   String get onboardingCloudSync;
 
   /// No description provided for @onboardingCloudSyncDescription.
   ///
   /// In en, this message translates to:
-  /// **'Access your stats on any device'**
+  /// **'Watch your personal coverage area grow in real time'**
   String get onboardingCloudSyncDescription;
 
   /// No description provided for @onboardingFutureFeatures.
@@ -191,7 +179,7 @@ abstract class AppLocalizations {
   /// No description provided for @onboardingFutureDescription.
   ///
   /// In en, this message translates to:
-  /// **'Leaderboards, milestones, and competitions'**
+  /// **'Revenue sharing, data insights, and contributor milestones'**
   String get onboardingFutureDescription;
 
   /// No description provided for @onboardingPrivacyNotice.
@@ -1335,16 +1323,46 @@ abstract class AppLocalizations {
   /// **'Remove your contributions'**
   String get settingsDataDeletionDesc;
 
+  /// No description provided for @settingsDataSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Data'**
+  String get settingsDataSection;
+
+  /// No description provided for @settingsConsentDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Consented: {date}'**
+  String settingsConsentDate(String date);
+
+  /// No description provided for @settingsDataRetention.
+  ///
+  /// In en, this message translates to:
+  /// **'Retention: 7 days (Free)'**
+  String get settingsDataRetention;
+
+  /// No description provided for @onboardingDataCollectedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'What we collect'**
+  String get onboardingDataCollectedTitle;
+
+  /// No description provided for @onboardingDataCollectedDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Light, motion, pressure and anonymous location — aggregated with 100,000+ devices before any analysis.'**
+  String get onboardingDataCollectedDescription;
+
   /// No description provided for @referralInviteTitle.
   ///
   /// In en, this message translates to:
-  /// **'Invite a friend'**
+  /// **'Grow the network'**
   String get referralInviteTitle;
 
   /// No description provided for @referralInviteDescription.
   ///
   /// In en, this message translates to:
-  /// **'Earn bonus credits when friends contribute data.'**
+  /// **'Invite contributors to expand coverage. You earn bonus credits when they join.'**
   String get referralInviteDescription;
 
   /// No description provided for @referralLinkCopied.

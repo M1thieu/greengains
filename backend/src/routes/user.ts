@@ -1,6 +1,6 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { getPool } from '../database';
-import { verifyFirebaseToken } from '../utils/firebase-auth';
+import { requireFirebaseAuth } from '../middleware/auth';
 
 // Constants for tile grouping (temporary until H3 implementation)
 const TILE_PRECISION_DECIMALS = 3; // ~100m precision at mid-latitudes
@@ -18,15 +18,9 @@ export async function userRoutes(fastify: FastifyInstance) {
    */
   fastify.get(
     '/api/user/profile',
+    { preHandler: requireFirebaseAuth },
     async (request: FastifyRequest, reply: FastifyReply) => {
-      let userId: string | null = null;
-
-      try {
-        userId = await verifyFirebaseToken(request, reply);
-        if (reply.sent || !userId) return;
-      } catch (e) {
-        return reply.code(401).send({ error: 'Unauthorized', message: 'Invalid or missing authentication token' });
-      }
+      const userId = request.user!.uid;
 
       try {
         const pool = getPool();
@@ -159,7 +153,7 @@ export async function userRoutes(fastify: FastifyInstance) {
           },
         });
       } catch (error) {
-        console.error('Profile fetch error:', error);
+        request.log.error({ err: error }, 'Profile fetch error');
         return reply.code(500).send({ error: 'Internal Server Error' });
       }
     }
@@ -172,15 +166,9 @@ export async function userRoutes(fastify: FastifyInstance) {
    */
   fastify.get(
     '/api/user/tiles',
+    { preHandler: requireFirebaseAuth },
     async (request: FastifyRequest, reply: FastifyReply) => {
-      let userId: string | null = null;
-
-      try {
-        userId = await verifyFirebaseToken(request, reply);
-        if (reply.sent || !userId) return;
-      } catch (e) {
-        return reply.code(401).send({ error: 'Unauthorized', message: 'Invalid or missing authentication token' });
-      }
+      const userId = request.user!.uid;
 
       try {
         const { hours = 24 } = request.query as { hours?: number };
@@ -225,7 +213,7 @@ export async function userRoutes(fastify: FastifyInstance) {
 
         return reply.send({ tiles });
       } catch (error) {
-        console.error('Tiles fetch error:', error);
+        request.log.error({ err: error }, 'Tiles fetch error');
         return reply.code(500).send({ error: 'Internal Server Error' });
       }
     }
@@ -239,15 +227,9 @@ export async function userRoutes(fastify: FastifyInstance) {
    */
   fastify.post(
     '/api/user/consent',
+    { preHandler: requireFirebaseAuth },
     async (request: FastifyRequest, reply: FastifyReply) => {
-      let userId: string | null = null;
-
-      try {
-        userId = await verifyFirebaseToken(request, reply);
-        if (reply.sent || !userId) return;
-      } catch (e) {
-        return reply.code(401).send({ error: 'Unauthorized' });
-      }
+      const userId = request.user!.uid;
 
       try {
         const { platform, appVersion } = (request.body as any) ?? {};
@@ -268,7 +250,7 @@ export async function userRoutes(fastify: FastifyInstance) {
 
         return reply.send({ agreedAt: row.rows[0].agreed_at });
       } catch (error) {
-        console.error('Consent record error:', error);
+        request.log.error({ err: error }, 'Consent record error');
         return reply.code(500).send({ error: 'Internal Server Error' });
       }
     }

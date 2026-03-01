@@ -91,16 +91,16 @@ export async function deviceOrFirebaseAuth(
           'UPDATE device_secrets SET last_used_at = NOW() WHERE secret = $1',
           [deviceSecret]
         ).catch((err) => {
-          console.error('Failed to update device secret last_used_at:', err);
+          request.log.error({ err }, 'Failed to update device secret last_used_at');
         });
 
         return; // Successfully authenticated via device secret
       }
 
       // Invalid device secret - fall through to Firebase auth
-      console.warn('Invalid Device Secret provided:', deviceSecret.substring(0, 8) + '...');
+      request.log.warn({ prefix: deviceSecret.substring(0, 8) }, 'Invalid Device Secret');
     } catch (e) {
-      console.error('Device Secret verification failed:', e);
+      request.log.error({ err: e }, 'Device Secret verification failed');
       // Fall through to Firebase auth
     }
   }

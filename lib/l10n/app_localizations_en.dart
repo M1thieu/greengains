@@ -9,11 +9,11 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
-  String get onboardingWelcomeTitle => 'Your phone earns while you live';
+  String get onboardingWelcomeTitle => 'Your city, mapped block by block';
 
   @override
   String get onboardingWelcomeSubtitle =>
-      'Install once, forget about it. We passively map environmental data in the background — you get rewarded for helping build a better picture of the world.';
+      'Your phone passively collects environmental data — light, pressure, movement — while you go about your day. You help build the sensor network cities can\'t afford. You get rewarded for it.';
 
   @override
   String get onboardingFeature1Title => 'Runs silently';
@@ -30,39 +30,32 @@ class AppLocalizationsEn extends AppLocalizations {
       'Sensor readings are bundled with thousands of others before leaving your device. No personal data, ever.';
 
   @override
-  String get onboardingFeature3Title => 'Watch your impact grow';
+  String get onboardingFeature3Title => 'Real data, real impact';
 
   @override
   String get onboardingFeature3Description =>
-      'Your coverage map expands with every trip. Every contribution helps researchers and cities understand their environment.';
+      'Your readings go into a live environmental map used by researchers and urban planners. Every street covered is data that didn\'t exist before.';
 
   @override
-  String get onboardingSignInTitle => 'Unlock your rewards';
+  String get onboardingSignInTitle => 'Join the network';
 
   @override
   String get onboardingSignInSubtitle =>
-      'Sign in once to sync your progress and start earning daily rewards.';
+      'Sign in to sync your contributions across devices and unlock daily contributor rewards.';
 
   @override
-  String get onboardingDailyPotRewards => 'Daily Rewards';
-
-  @override
-  String get onboardingDailyPotDescription =>
-      'Earn credits every day you contribute';
-
-  @override
-  String get onboardingCloudSync => 'Cloud Sync';
+  String get onboardingCloudSync => 'Live Coverage Map';
 
   @override
   String get onboardingCloudSyncDescription =>
-      'Access your stats on any device';
+      'Watch your personal coverage area grow in real time';
 
   @override
   String get onboardingFutureFeatures => 'Coming Soon';
 
   @override
   String get onboardingFutureDescription =>
-      'Leaderboards, milestones, and competitions';
+      'Revenue sharing, data insights, and contributor milestones';
 
   @override
   String onboardingPrivacyNotice(String privacyPolicy, String termsOfService) {
@@ -688,11 +681,29 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsDataDeletionDesc => 'Remove your contributions';
 
   @override
-  String get referralInviteTitle => 'Invite a friend';
+  String get settingsDataSection => 'Data';
+
+  @override
+  String settingsConsentDate(String date) {
+    return 'Consented: $date';
+  }
+
+  @override
+  String get settingsDataRetention => 'Retention: 7 days (Free)';
+
+  @override
+  String get onboardingDataCollectedTitle => 'What we collect';
+
+  @override
+  String get onboardingDataCollectedDescription =>
+      'Light, motion, pressure and anonymous location — aggregated with 100,000+ devices before any analysis.';
+
+  @override
+  String get referralInviteTitle => 'Grow the network';
 
   @override
   String get referralInviteDescription =>
-      'Earn bonus credits when friends contribute data.';
+      'Invite contributors to expand coverage. You earn bonus credits when they join.';
 
   @override
   String get referralLinkCopied => 'Referral link copied';

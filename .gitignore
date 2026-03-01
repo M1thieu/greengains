@@ -1,17 +1,6 @@
-android/app/google-services.json
-lib/firebase_options.dart
+# Flutter / Dart
 .dart_tool/
 build/
-ios/Pods/
-macos/Pods/
-pubspec.lock
-**/.DS_Store
-.idea/
-.vscode/
-.gradle/
-**/DerivedData/
-**/xcuserdata/
-**/*.iml
 .packages
 .metadata
 .flutter-plugins
@@ -21,108 +10,41 @@ coverage/
 linux/flutter/ephemeral/
 windows/flutter/ephemeral/
 web/.dart_tool/
-venv/
-__pycache__/
-*.pyc
-.env
-.env.*
-uvicorn.log
-uvicorn_err.log
-.python-version
-.idea/.name
+pubspec.lock
 
-# Dart defines with API keys (local only)
-dart_defines.json
-
-# Firebase Admin SDK credentials
-*-adminsdk-*.json
-firebase-key.json
-
-# Node.js backend dependencies
-backend/node_modules/
-backend/.env
+# Android
 android/app/google-services.json
-lib/firebase_options.dart
-.dart_tool/
-build/
+.gradle/
+**/*.iml
+android/hs_err_*.log
+android/replay_*.log
+*.apk
+*.jks
+*-keystore.jks
+
+# iOS / macOS
 ios/Pods/
 macos/Pods/
-pubspec.lock
-**/.DS_Store
-.idea/
-.vscode/
-.gradle/
 **/DerivedData/
 **/xcuserdata/
-**/*.iml
-.packages
-.metadata
-.flutter-plugins
-.flutter-plugins-dependencies
-coverage/
-**/GeneratedPluginRegistrant.*
-linux/flutter/ephemeral/
-windows/flutter/ephemeral/
-web/.dart_tool/
-venv/
-__pycache__/
-*.pyc
-.env
-.env.*
-uvicorn.log
-uvicorn_err.log
-.python-version
+
+# IDE
+.idea/
 .idea/.name
+.vscode/
+**/.DS_Store
 
-# Dart defines with API keys (local only)
-dart_defines.json
-
-# Firebase Admin SDK credentials
+# Firebase
+lib/firebase_options.dart
 *-adminsdk-*.json
 firebase-key.json
 
-# Node.js backend dependencies
+# Backend
 backend/node_modules/
 backend/.env
 backend/dist/
 
-# Investigation notes (not for version control)
-LAST_RESORT_MIUI_FIX.md
-MIUI_FALLBACK_FIX.md
-*.apk
-tmp/
-
-#website
-
-# Debug logs
-*.txt
-\!SETUP*.txt
-\!README.txt
-\!SECURITY*.txt
-\!NATIVE*.txt
-
-# Auto-generated documentation (keep important ones like README.md, SETUP.md)
-*.md
-!README.md
-!SETUP.md
-!SETUP_DEV.md
-!SECURITY_SETUP.md
-!TESTING_GUIDE.md
-!BACKEND_WIRING.md
-!PREMIUM_FEATURES.md
-!REBRAND_CHECKLIST.md
-
-# Temporary files
-upload_monitor.log
-android/hs_err_*.log
-android/replay_*.log
-nul
-
-# Archive folders
-.archive/
-docs/archive/
-
-# Dashboard — local only, deploy directly to Hostinger (not via GitHub)
+# Dashboard (local only — deploy directly to Hostinger)
 dashboard-web/src/
 dashboard-web/public/
 dashboard-web/index.html
@@ -131,3 +53,40 @@ dashboard-web/out/
 dashboard-web/dist/
 dashboard-web/node_modules/
 dashboard-web/.env
+
+# Environment / secrets
+.env
+.env.*
+dart_defines.json
+
+# Python
+venv/
+__pycache__/
+*.pyc
+.python-version
+
+# Logs
+uvicorn.log
+uvicorn_err.log
+upload_monitor.log
+*.txt
+\!SETUP*.txt
+\!README.txt
+\!SECURITY*.txt
+\!NATIVE*.txt
+
+# Docs (keep only essential ones)
+*.md
+!README.md
+!SETUP.md
+!REBRAND_CHECKLIST.md
+
+# Temporary / archived
+tmp/
+.archive/
+docs/archive/
+nul
+
+# Investigation notes
+LAST_RESORT_MIUI_FIX.md
+MIUI_FALLBACK_FIX.md
