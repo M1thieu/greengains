@@ -54,4 +54,12 @@ object AppPrefs {
 
     /** ISO 8601 timestamp of the last successful upload, shown in the notification. */
     const val LAST_UPLOAD_AT = "flutter.flutter.last_upload_at"
+
+    // ── Daily count tracking (native-only, not shared with Flutter) ──────────
+
+    /** ISO date (YYYY-MM-DD) of the last counted upload — used to reset counter at midnight. */
+    const val UPLOADS_TODAY_DATE = "gg.uploads_today_date"
+
+    /** Number of successful uploads on the current day. Resets when date changes. */
+    const val UPLOADS_TODAY_COUNT = "gg.uploads_today_count"
 }

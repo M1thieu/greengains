@@ -115,7 +115,6 @@
       "Bash(\"C:\\\\Users\\\\mathi\\\\AppData\\\\Local\\\\Android\\\\Sdk\\\\platform-tools\\\\adb.exe\" install -r buildappoutputsflutter-apkapp-release.apk)",
       "Bash(\"C:\\\\Users\\\\mathi\\\\AppData\\\\Local\\\\Android\\\\Sdk\\\\platform-tools\\\\adb.exe\" install -r \"build/app/outputs/flutter-apk/app-release.apk\")",
       "Bash(\"C:\\\\Users\\\\mathi\\\\flutter\\\\bin\\\\flutter.bat\" clean)",
-      "Bash(\"C:\\\\Users\\\\mathi\\\\AppData\\\\Local\\\\Android\\\\Sdk\\\\platform-tools\\\\adb.exe\" logcat -v time -s GreenGainsFGService:* -t 200)",
       "Bash(\"C:\\\\Users\\\\mathi\\\\AppData\\\\Local\\\\Android\\\\Sdk\\\\platform-tools\\\\adb.exe\" install -r build/app/outputs/flutter-apk/app-release.apk)",
       "Bash(\"C:\\\\Users\\\\mathi\\\\flutter\\\\bin\\\\flutter.bat\" pub get)",
       "Bash(C:Usersmathiflutterbinflutter.bat build apk --release)",
@@ -130,7 +129,13 @@
       "Bash(git commit -m \"$\\(cat <<''EOF''\nAdd production-ready error tracking and monitoring\n\n- Add Sentry integration for automatic error tracking\n- Improve health check endpoint \\(tests database connectivity\\)\n- Add standardized error codes \\(Stripe-style API errors\\)\n- Add request IDs for tracing \\(UUID per request\\)\n- Create error utility with proper HTTP status mapping\n\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
       "Bash(npm install:*)",
       "Bash(git commit -m \"$\\(cat <<''EOF''\nFix: Add Sentry dependencies to package.json\n\nAdds @sentry/node and @sentry/profiling-node to dependencies to fix\nRender build failure. These packages were imported in index.ts but\nmissing from package.json.\n\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
-      "Bash(python -m json.tool:*)"
+      "Bash(python -m json.tool:*)",
+      "WebFetch(domain:uxpilot.ai)",
+      "WebFetch(domain:spdload.com)",
+      "WebFetch(domain:natively.dev)",
+      "WebFetch(domain:www.eleken.co)",
+      "Bash(C:/Users/mathi/flutter/bin/flutter.bat build apk:*)",
+      "Bash(test:*)"
     ],
     "deny": [],
     "ask": []

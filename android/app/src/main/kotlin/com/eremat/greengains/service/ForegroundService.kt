@@ -282,7 +282,7 @@ class ForegroundService : Service() {
         // Android 8+ requirement - call IMMEDIATELY before any other logic
         if (!running) {
             val lastUpload = NotificationsHelper.readLastUploadFromPrefs(this)
-            val notification = NotificationsHelper.buildNotification(this, lastUpload, trackingPausedState)
+            val notification = NotificationsHelper.buildNotification(this, lastUpload, trackingPausedState, readUploadsTodayFromPrefs())
             ServiceCompat.startForeground(
                 this,
                 NotificationsHelper.NOTIFICATION_ID_SERVICE,
@@ -341,7 +341,7 @@ class ForegroundService : Service() {
 
         // Start Notification
         val lastUpload = NotificationsHelper.readLastUploadFromPrefs(this)
-        val notification = NotificationsHelper.buildNotification(this, lastUpload, trackingPausedState)
+        val notification = NotificationsHelper.buildNotification(this, lastUpload, trackingPausedState, readUploadsTodayFromPrefs())
         ServiceCompat.startForeground(
             this,
             NotificationsHelper.NOTIFICATION_ID_SERVICE,
@@ -696,8 +696,33 @@ class ForegroundService : Service() {
         Log.d(TAG, "Native upload: ${event.type}")
         sendNativeUploadStatusToFlutter(event)
         if (event.type == NativeUploadEventType.SUCCESS && ::notificationManager.isInitialized) {
-            NotificationsHelper.notifyUpdate(this, notificationManager, event.timestamp, trackingPausedState)
+            val uploadsToday = incrementUploadsToday()
+            NotificationsHelper.notifyUpdate(this, notificationManager, event.timestamp, trackingPausedState, uploadsToday)
         }
+    }
+
+    /**
+     * Increments today's upload count, resetting at midnight.
+     * Stored in SharedPrefs so it survives service restarts within the same day.
+     */
+    private fun incrementUploadsToday(): Int {
+        val prefs = getSharedPreferences(AppPrefs.NAME, Context.MODE_PRIVATE)
+        val today = java.time.LocalDate.now().toString()
+        val storedDate = prefs.getString(AppPrefs.UPLOADS_TODAY_DATE, null)
+        val current = if (storedDate == today) prefs.getInt(AppPrefs.UPLOADS_TODAY_COUNT, 0) else 0
+        val newCount = current + 1
+        prefs.edit()
+            .putString(AppPrefs.UPLOADS_TODAY_DATE, today)
+            .putInt(AppPrefs.UPLOADS_TODAY_COUNT, newCount)
+            .apply()
+        return newCount
+    }
+
+    private fun readUploadsTodayFromPrefs(): Int {
+        val prefs = getSharedPreferences(AppPrefs.NAME, Context.MODE_PRIVATE)
+        val today = java.time.LocalDate.now().toString()
+        val storedDate = prefs.getString(AppPrefs.UPLOADS_TODAY_DATE, null)
+        return if (storedDate == today) prefs.getInt(AppPrefs.UPLOADS_TODAY_COUNT, 0) else 0
     }
 
     private fun sendNativeUploadStatusToFlutter(event: NativeUploadStatusEvent) {
@@ -810,7 +835,8 @@ class ForegroundService : Service() {
     private fun notifyTrackingState() {
         if (!::notificationManager.isInitialized) return
         val lastUpload = NotificationsHelper.readLastUploadFromPrefs(this)
-        NotificationsHelper.notifyUpdate(this, notificationManager, lastUpload, trackingPausedState)
+        val uploadsToday = readUploadsTodayFromPrefs()
+        NotificationsHelper.notifyUpdate(this, notificationManager, lastUpload, trackingPausedState, uploadsToday)
     }
 
     private fun sendTrackingPausedToFlutter(paused: Boolean) {

@@ -36,7 +36,12 @@ internal object NotificationsHelper {
         notificationManager.createNotificationChannel(channel)
     }
 
-    fun buildNotification(context: Context, lastUploadMillis: Long? = null, isPaused: Boolean = false): Notification {
+    fun buildNotification(
+        context: Context,
+        lastUploadMillis: Long? = null,
+        isPaused: Boolean = false,
+        uploadsToday: Int = 0,
+    ): Notification {
         val actionIntent = Intent(context, ForegroundService::class.java).apply {
             action = if (isPaused) {
                 ForegroundService.ACTION_RESUME_TRACKING
@@ -56,25 +61,32 @@ internal object NotificationsHelper {
             context.getString(R.string.notification_action_pause)
         }
 
-        // Body text: state only — no manually computed relative time.
-        // Android's SystemUI auto-updates the "X min. ago" header via setWhen(), so
-        // we never need a refresh loop and the display is always accurate.
+        // Title = status ("Contributing" or "Paused") — the bold first line users scan.
+        // Body  = count or instruction — secondary context below the title.
+        // setWhen: Android SystemUI auto-updates "X min. ago" — no refresh loop needed.
+        val title = if (isPaused) {
+            context.getString(R.string.notification_paused_title)
+        } else {
+            context.getString(R.string.notification_status_collecting)
+        }
+
         val body = when {
-            isPaused -> context.getString(R.string.notification_status_paused)
-            lastUploadMillis != null -> context.getString(R.string.notification_status_collecting)
+            isPaused -> context.getString(R.string.notification_paused_body)
+            uploadsToday > 0 -> context.resources.getQuantityString(
+                R.plurals.notification_readings_today, uploadsToday, uploadsToday
+            )
             else -> context.getString(R.string.notification_collecting_no_upload)
         }
 
         val builder = NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_ID)
-            .setContentTitle(context.getString(R.string.app_name))
+            .setContentTitle(title)
             .setContentText(body)
             .setSmallIcon(R.mipmap.ic_launcher)
             .setColor(Color.parseColor("#10B981"))
             .setOngoing(true)
-            // setWhen: Android shows "X min. ago" in the notification header, live-updated by SystemUI.
-            // Only shown when we have a real upload timestamp; hidden otherwise.
+            .setOnlyAlertOnce(true) // Don't buzz/sound on every count update
             .setWhen(lastUploadMillis ?: 0L)
-            .setShowWhen(lastUploadMillis != null)
+            .setShowWhen(lastUploadMillis != null && !isPaused)
             .addAction(R.mipmap.ic_launcher, actionLabel, actionPendingIntent)
             .setForegroundServiceBehavior(NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE)
             .setContentIntent(Intent(context, MainActivity::class.java).let { notificationIntent ->
@@ -90,8 +102,14 @@ internal object NotificationsHelper {
         return runCatching { Instant.parse(raw).toEpochMilli() }.getOrNull()
     }
 
-    fun notifyUpdate(context: Context, manager: NotificationManager, lastUpload: Long?, isPaused: Boolean) {
-        manager.notify(NOTIFICATION_ID_SERVICE, buildNotification(context, lastUpload, isPaused))
+    fun notifyUpdate(
+        context: Context,
+        manager: NotificationManager,
+        lastUpload: Long?,
+        isPaused: Boolean,
+        uploadsToday: Int = 0,
+    ) {
+        manager.notify(NOTIFICATION_ID_SERVICE, buildNotification(context, lastUpload, isPaused, uploadsToday))
     }
 
     fun buildWorkerNotification(context: Context): Notification {
