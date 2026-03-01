@@ -32,6 +32,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
 
   // Backend weekly data (7 ints: index 0 = 6 days ago, index 6 = today)
   List<int>? _weeklyData;
+  int? _daysActive;
   bool _isLoadingWeekly = true;
 
   StreamSubscription<UploadSuccessEvent>? _uploadSuccessSub;
@@ -81,8 +82,12 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
         final body = jsonDecode(response.body) as Map<String, dynamic>;
         final stats = body['stats'] as Map<String, dynamic>?;
         final raw = stats?['weekly'] as List<dynamic>?;
+        final daysActive = stats?['daysActive'] as int?;
         if (raw != null) {
-          setState(() => _weeklyData = raw.map((e) => e is num ? e.toInt() : 0).toList());
+          setState(() {
+            _weeklyData = raw.map((e) => e is num ? e.toInt() : 0).toList();
+            _daysActive = daysActive;
+          });
         }
       }
     } catch (_) {
@@ -129,13 +134,23 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
 
   Widget _buildQuickStatsGrid(ThemeData theme, bool isDark) {
     final l10n = context.l10n;
-    return Row(
+    return Column(
       children: [
-        Expanded(child: _buildQuickStatTile(l10n.statsTotal, '${_stats!.totalUploads}', Icons.eco, theme, isDark)),
-        const SizedBox(width: AppTheme.spaceMd),
-        Expanded(child: _buildQuickStatTile(l10n.statsToday, '${_stats!.uploadsToday}', Icons.today, theme, isDark)),
-        const SizedBox(width: AppTheme.spaceMd),
-        Expanded(child: _buildQuickStatTile(l10n.statsStreak, '${_stats!.currentStreak}d', Icons.local_fire_department, theme, isDark)),
+        Row(
+          children: [
+            Expanded(child: _buildQuickStatTile(l10n.statsTotal, '${_stats!.totalUploads}', Icons.eco, theme, isDark)),
+            const SizedBox(width: AppTheme.spaceMd),
+            Expanded(child: _buildQuickStatTile(l10n.statsToday, '${_stats!.uploadsToday}', Icons.today, theme, isDark)),
+          ],
+        ),
+        const SizedBox(height: AppTheme.spaceMd),
+        Row(
+          children: [
+            Expanded(child: _buildQuickStatTile(l10n.statsDaysActive, _daysActive != null ? '$_daysActive' : '—', Icons.calendar_month_outlined, theme, isDark)),
+            const SizedBox(width: AppTheme.spaceMd),
+            Expanded(child: _buildQuickStatTile(l10n.statsStreak, '${_stats!.currentStreak}d', Icons.local_fire_department, theme, isDark)),
+          ],
+        ),
       ],
     );
   }
@@ -364,7 +379,9 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
       padding: AppTheme.pagePadding,
       physics: const NeverScrollableScrollPhysics(),
       children: [
-        Row(children: List.generate(3, (_) => Expanded(child: Padding(padding: const EdgeInsets.symmetric(horizontal: 4), child: Container(height: 80, decoration: decoration))))),
+        Row(children: List.generate(2, (_) => Expanded(child: Padding(padding: const EdgeInsets.symmetric(horizontal: 4), child: Container(height: 80, decoration: decoration))))),
+        const SizedBox(height: AppTheme.spaceMd),
+        Row(children: List.generate(2, (_) => Expanded(child: Padding(padding: const EdgeInsets.symmetric(horizontal: 4), child: Container(height: 80, decoration: decoration))))),
         const SizedBox(height: AppTheme.spaceLg),
         Container(height: 20, width: 160, decoration: decoration),
         const SizedBox(height: AppTheme.spaceMd),

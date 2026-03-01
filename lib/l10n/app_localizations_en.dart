@@ -402,6 +402,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get statsStreak => 'Streak';
 
   @override
+  String get statsDaysActive => 'Days Active';
+
+  @override
   String get statsTotal => 'Total';
 
   @override

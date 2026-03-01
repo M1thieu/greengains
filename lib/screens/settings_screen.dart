@@ -9,6 +9,11 @@ import '../core/language_controller.dart';
 import '../core/app_preferences.dart';
 import 'webview_screen.dart';
 
+// Legal page URLs — single source of truth (update version paths here only)
+const _kPrivacyPolicyUrl = 'https://greengains.eremat.org/privacy-policy';
+const _kTermsUrl = 'https://greengains.eremat.org/terms-of-service';
+const _kDataDeletionUrl = 'https://greengains.eremat.org/data-deletion-request';
+
 /// Settings screen for Data & Privacy, Themes, and Legal
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -197,11 +202,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
             child: Wrap(
               alignment: WrapAlignment.center,
               children: [
-                _legalLink(context, l10n.privacyPolicy, 'https://greengains.eremat.org/privacy-policy', theme),
+                _legalLink(context, l10n.privacyPolicy, _kPrivacyPolicyUrl, theme),
                 Text(' · ', style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.outline)),
-                _legalLink(context, l10n.termsOfService, 'https://greengains.eremat.org/terms-of-service', theme),
+                _legalLink(context, l10n.termsOfService, _kTermsUrl, theme),
                 Text(' · ', style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.outline)),
-                _legalLink(context, l10n.settingsDataDeletion, 'https://greengains.eremat.org/data-deletion-request', theme),
+                _legalLink(context, l10n.settingsDataDeletion, _kDataDeletionUrl, theme),
               ],
             ),
           ),

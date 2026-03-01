@@ -818,6 +818,12 @@ abstract class AppLocalizations {
   /// **'Streak'**
   String get statsStreak;
 
+  /// No description provided for @statsDaysActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Days Active'**
+  String get statsDaysActive;
+
   /// No description provided for @statsTotal.
   ///
   /// In en, this message translates to:

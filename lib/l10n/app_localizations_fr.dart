@@ -404,6 +404,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get statsStreak => 'Série';
 
   @override
+  String get statsDaysActive => 'Jours actifs';
+
+  @override
   String get statsTotal => 'Total';
 
   @override
