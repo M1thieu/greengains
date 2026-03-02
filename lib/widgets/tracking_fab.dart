@@ -7,6 +7,16 @@ import '../services/location/foreground_location_service.dart';
 import '../services/location/location_service.dart';
 import '../utils/app_snackbars.dart';
 
+// ── FAB sizing / animation constants ─────────────────────────────────────────
+const _kFabSize              = AppTheme.spaceXxl + AppTheme.spaceXs;  // 48+8 = 56
+const _kFabIconSize          = 28.0;   // between AppIconSizes.md(24) and AppIconSizes.lg(32)
+const _kFabJellyDuration     = Duration(milliseconds: 420); // total squish→pop→settle
+const _kFabToggleDuration    = Duration(milliseconds: 220); // color/size transition
+const _kFabSwitchDuration    = Duration(milliseconds: 180); // icon crossfade
+const _kFabActiveShadowBlur  = 18.0;
+const _kFabIdleShadowBlur    = AppTheme.spaceXs;    // 8
+const _kFabActiveShadowSpread = AppTheme.spaceXxxs; // 2
+
 /// Compact 56×56 FAB with jelly press feedback.
 ///
 /// On tap: squish (0.88×) → pop (1.18×) → elastic settle (1.0×).
@@ -38,7 +48,7 @@ class _TrackingFabState extends State<TrackingFab>
 
     _jellyController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 420),
+      duration: _kFabJellyDuration,
     );
 
     // Squish → pop → elastic settle
@@ -140,24 +150,24 @@ class _TrackingFabState extends State<TrackingFab>
           child: Tooltip(
             message: tooltip,
             child: AnimatedContainer(
-              duration: const Duration(milliseconds: 220),
+              duration: _kFabToggleDuration,
               curve: Curves.easeInOut,
-              width: 56,
-              height: 56,
+              width: _kFabSize,
+              height: _kFabSize,
               decoration: BoxDecoration(
                 color: bgColor,
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
                     color: bgColor.withValues(alpha: isActive ? 0.45 : 0.25),
-                    blurRadius: isActive ? 18 : 8,
-                    spreadRadius: isActive ? 2 : 0,
-                    offset: const Offset(0, 4),
+                    blurRadius: isActive ? _kFabActiveShadowBlur : _kFabIdleShadowBlur,
+                    spreadRadius: isActive ? _kFabActiveShadowSpread : 0,
+                    offset: const Offset(0, AppTheme.spaceXxs),
                   ),
                 ],
               ),
               child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 180),
+                duration: _kFabSwitchDuration,
                 switchInCurve: Curves.easeOut,
                 switchOutCurve: Curves.easeIn,
                 transitionBuilder: (child, anim) => ScaleTransition(
@@ -168,7 +178,7 @@ class _TrackingFabState extends State<TrackingFab>
                   icon,
                   key: ValueKey(icon),
                   color: fgColor,
-                  size: 28,
+                  size: _kFabIconSize,
                 ),
               ),
             ),

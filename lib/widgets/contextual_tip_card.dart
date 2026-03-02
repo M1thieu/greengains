@@ -43,12 +43,12 @@ class ContextualTipCard extends StatelessWidget {
             padding: const EdgeInsets.all(AppTheme.spaceXs),
             decoration: BoxDecoration(
               color: AppColors.primaryAlpha(0.12),
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(AppTheme.radiusSm),
             ),
             child: Icon(
               icon,
               color: AppColors.primary,
-              size: 20,
+              size: AppIconSizes.sm,
             ),
           ),
           const SizedBox(width: AppTheme.spaceSm),
@@ -69,19 +69,19 @@ class ContextualTipCard extends StatelessWidget {
                       ),
                     ),
                     IconButton(
-                      icon: const Icon(Icons.close, size: 18),
+                      icon: const Icon(Icons.close, size: AppIconSizes.sm),
                       onPressed: onDismiss,
                       tooltip: context.l10n.tooltipDismiss,
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(
-                        minWidth: 48,
-                        minHeight: 48,
+                        minWidth: AppTheme.minTouchTarget,
+                        minHeight: AppTheme.minTouchTarget,
                       ),
                       color: AppColors.textSecondary(isDark),
                     ),
                   ],
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: AppTheme.spaceXxs),
                 Text(
                   message,
                   style: theme.textTheme.bodySmall?.copyWith(

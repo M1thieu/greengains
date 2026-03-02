@@ -14,6 +14,11 @@ import '../widgets/referral_invite_card.dart';
 import 'settings_screen.dart';
 import 'statistics_screen.dart';
 
+// ── Profile layout constants ──────────────────────────────────────────────────
+const _kProfileEmptyIconSize = 80.0;           // signed-out empty state icon
+const _kAvatarRadius         = 40.0;           // CircleAvatar radius (80px diameter)
+const _kAvatarFallbackSize   = AppIconSizes.xl; // 48 — fallback icon inside avatar
+
 /// Profile screen showing user information and quick stats
 /// REDESIGNED: Compact layout that fits without scrolling
 class ProfileScreen extends StatefulWidget {
@@ -79,7 +84,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         children: [
           Icon(
             Icons.account_circle_outlined,
-            size: 80,
+            size: _kProfileEmptyIconSize,
             color: theme.colorScheme.onSurfaceVariant,
           ),
           const SizedBox(height: AppTheme.spaceMd),
@@ -231,7 +236,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           children: [
             // Smaller avatar (40px radius instead of 48px)
             CircleAvatar(
-              radius: 40,
+              radius: _kAvatarRadius,
               backgroundImage: user.photoURL != null
                   ? NetworkImage(user.photoURL!)
                   : null,
@@ -241,7 +246,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     }
                   : null,
               child: user.photoURL == null
-                  ? const Icon(Icons.person, size: 40)
+                  ? const Icon(Icons.person, size: _kAvatarFallbackSize)
                   : null,
             ),
             const SizedBox(width: AppTheme.spaceMd),
@@ -292,15 +297,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
           );
         },
         leading: Container(
-          padding: const EdgeInsets.all(8),
+          padding: const EdgeInsets.all(AppTheme.spaceXs),
           decoration: BoxDecoration(
             color: AppColors.primaryAlpha(0.12),
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(AppTheme.radiusSm),
           ),
           child: Icon(
             Icons.bar_chart,
             color: AppColors.primary,
-            size: 24,
+            size: AppIconSizes.md,
           ),
         ),
         title: Text(
