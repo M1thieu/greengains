@@ -791,4 +791,19 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get locationPermBannerFix => 'Corriger';
+
+  @override
+  String get legendYou => 'Vous';
+
+  @override
+  String get legendCommunity => 'Communauté';
+
+  @override
+  String get referralStepShare => 'Partager';
+
+  @override
+  String get referralStepJoin => 'Ils rejoignent';
+
+  @override
+  String get referralStepEarn => 'Vous gagnez';
 }

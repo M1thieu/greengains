@@ -119,10 +119,17 @@ class _ReferralInviteCardState extends State<ReferralInviteCard> {
                   ),
               ],
             ),
-            const SizedBox(height: AppTheme.spaceSm),
-            Text(
-              context.l10n.referralInviteDescription,
-              style: theme.textTheme.bodyMedium,
+            const SizedBox(height: AppTheme.spaceMd),
+            // 3-step visual flow: Share → They join → You earn
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                _ReferralStep(icon: Icons.share_outlined, label: context.l10n.referralStepShare),
+                _ReferralStepArrow(),
+                _ReferralStep(icon: Icons.person_add_outlined, label: context.l10n.referralStepJoin),
+                _ReferralStepArrow(),
+                _ReferralStep(icon: Icons.attach_money, label: context.l10n.referralStepEarn),
+              ],
             ),
             if (_conversions != null) ...[
               const SizedBox(height: 4),
@@ -241,6 +248,54 @@ class _ReferralInviteCardState extends State<ReferralInviteCard> {
           label: Text(context.l10n.referralCopyLink),
         ),
       ],
+    );
+  }
+}
+
+class _ReferralStep extends StatelessWidget {
+  const _ReferralStep({required this.icon, required this.label});
+  final IconData icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            color: theme.colorScheme.primary.withValues(alpha: 0.1),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(icon, size: 20, color: theme.colorScheme.primary),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          label,
+          style: theme.textTheme.labelSmall?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _ReferralStepArrow extends StatelessWidget {
+  const _ReferralStepArrow();
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16, left: 6, right: 6),
+      child: Icon(
+        Icons.arrow_forward_ios,
+        size: 12,
+        color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
+      ),
     );
   }
 }

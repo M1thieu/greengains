@@ -348,5 +348,11 @@
   "batteryDialogError": "Unable to open battery settings",
 
   "locationPermBannerBody": "Set to 'Allow all the time' for 24/7 collection",
-  "locationPermBannerFix": "Fix"
+  "locationPermBannerFix": "Fix",
+
+  "legendYou": "You",
+  "legendCommunity": "Community",
+  "referralStepShare": "Share",
+  "referralStepJoin": "They join",
+  "referralStepEarn": "You earn"
 }

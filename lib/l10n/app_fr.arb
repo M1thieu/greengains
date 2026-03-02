@@ -348,5 +348,11 @@
   "batteryDialogError": "Impossible d'ouvrir les paramètres de la batterie",
 
   "locationPermBannerBody": "Choisissez 'Toujours autoriser' pour collecter en continu",
-  "locationPermBannerFix": "Corriger"
+  "locationPermBannerFix": "Corriger",
+
+  "legendYou": "Vous",
+  "legendCommunity": "Communauté",
+  "referralStepShare": "Partager",
+  "referralStepJoin": "Ils rejoignent",
+  "referralStepEarn": "Vous gagnez"
 }

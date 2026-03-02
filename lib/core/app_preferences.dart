@@ -248,6 +248,12 @@ class AppPreferences {
     await _sp.setString(PreferenceKeys.referralCode, value);
   }
 
+  /// Clears the cached referral code — called on sign-out so the next
+  /// signed-in account starts fresh (code is re-fetched after login).
+  Future<void> clearReferralCode() async {
+    await _sp.remove(PreferenceKeys.referralCode);
+  }
+
   /// Date the user explicitly consented to data collection (ISO string).
   DateTime? get consentDate {
     final raw = _sp.getString(PreferenceKeys.consentDate);

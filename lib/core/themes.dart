@@ -151,6 +151,12 @@ class AppColors {
   static Color shimmerBase(bool isDark) => isDark ? const Color(0xFF1A1A1A) : const Color(0xFFF0F0F0);
   static Color shimmerHighlight(bool isDark) => isDark ? const Color(0xFF2A2A2A) : const Color(0xFFFAFAFA);
 
+  // Sensor data visualization colors (used in charts, map tiles, sensor cards)
+  static const Color light    = Color(0xFFFBBF24); // Amber-400  — light sensor
+  static const Color movement = Color(0xFF14B8A6); // Teal-500   — movement/accel
+  static const Color pressure = Color(0xFF0EA5E9); // Sky-500    — air pressure
+  static const Color quality  = Color(0xFF10B981); // Emerald-500 — data quality
+
   // Accent colors for rewards and achievements (complementary to green)
   static const Color accentMagenta = Color(0xFFE91E63); // Material pink 500
   static const Color accentMagentaLight = Color(0xFFF06292); // Material pink 300

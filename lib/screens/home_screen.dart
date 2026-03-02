@@ -475,6 +475,21 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 },
               ),
             ),
+            // ── 1b. Map legend: green = personal, blue = community ────────
+            Positioned(
+              top: topPadding + 8,
+              right: 16,
+              child: ValueListenableBuilder<double>(
+                valueListenable: _fabOpacity,
+                builder: (_, opacity, child) => AnimatedOpacity(
+                  opacity: opacity,
+                  duration: const Duration(milliseconds: 150),
+                  child: child,
+                ),
+                child: _MapLegend(hasCommunityTiles: _globalTiles.isNotEmpty),
+              ),
+            ),
+
             // ── 2. Bottom sheet: stats + sensors ──────────────────────────
             DraggableScrollableSheet(
               controller: _sheetController,
@@ -711,6 +726,67 @@ class _BottomSheetContent extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Compact map legend: green dot = personal tiles, blue dot = community tiles.
+/// Only shows the community row once global tiles have loaded.
+/// Fades with the FABs when the bottom sheet expands.
+class _MapLegend extends StatelessWidget {
+  const _MapLegend({required this.hasCommunityTiles});
+  final bool hasCommunityTiles;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.65),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _LegendRow(color: AppColors.primary, label: l10n.legendYou),
+          if (hasCommunityTiles) ...[
+            const SizedBox(height: 4),
+            _LegendRow(color: AppColors.pressure, label: l10n.legendCommunity),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _LegendRow extends StatelessWidget {
+  const _LegendRow({required this.color, required this.label});
+  final Color color;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 8,
+          height: 8,
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+        ),
+        const SizedBox(width: 6),
+        Text(
+          label,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 11,
+            fontWeight: FontWeight.w500,
+            letterSpacing: 0.1,
+          ),
+        ),
+      ],
     );
   }
 }

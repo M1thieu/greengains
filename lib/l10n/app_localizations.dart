@@ -1496,6 +1496,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Fix'**
   String get locationPermBannerFix;
+
+  String get legendYou;
+  String get legendCommunity;
+  String get referralStepShare;
+  String get referralStepJoin;
+  String get referralStepEarn;
 }
 
 class _AppLocalizationsDelegate

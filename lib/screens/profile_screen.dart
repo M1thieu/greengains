@@ -6,6 +6,8 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../core/extensions/context_extensions.dart';
 import '../core/themes.dart';
 import '../l10n/app_localizations.dart';
+import '../core/app_preferences.dart';
+import '../data/repositories/contribution_repository.dart';
 import '../services/auth/auth_service.dart';
 import '../utils/app_snackbars.dart';
 import '../widgets/referral_invite_card.dart';
@@ -23,6 +25,20 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   bool _signingIn = false;
+  int? _localUploads;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadLocalStats();
+  }
+
+  Future<void> _loadLocalStats() async {
+    try {
+      final stats = await ContributionRepository().getStats();
+      if (mounted) setState(() => _localUploads = stats.totalUploads);
+    } catch (_) {}
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -294,7 +310,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ),
         subtitle: Text(
-          l10n.profileContributionsHint,
+          _localUploads != null && _localUploads! > 0
+              ? l10n.timesContributed(_localUploads!)
+              : l10n.profileContributionsHint,
           style: theme.textTheme.bodySmall?.copyWith(
             color: AppColors.textSecondary(isDark),
           ),
@@ -316,9 +334,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final l10n = context.l10n; // capture before async gap
     HapticFeedback.lightImpact();
     try {
+      // Clear account-specific cache before signing out
+      await AppPreferences.instance.clearReferralCode();
       await FirebaseAuth.instance.signOut();
       if (mounted) {
-        setState(() {});
+        setState(() => _localUploads = null);
         AppSnackbars.showSuccess(context, l10n.profileSignedOut);
       }
     } catch (e) {
