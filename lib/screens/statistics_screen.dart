@@ -32,7 +32,10 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
 
   // Backend weekly data (7 ints: index 0 = 6 days ago, index 6 = today)
   List<int>? _weeklyData;
+  // Backend lifetime stats — fallback when local SQLite is empty (fresh reinstall)
   int? _daysActive;
+  int? _backendTotalUploads;
+  int? _backendCurrentStreak;
   bool _isLoadingWeekly = true;
 
   StreamSubscription<UploadSuccessEvent>? _uploadSuccessSub;
@@ -83,10 +86,14 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
         final stats = body['stats'] as Map<String, dynamic>?;
         final raw = stats?['weekly'] as List<dynamic>?;
         final daysActive = stats?['daysActive'] as int?;
+        final totalUploads = stats?['totalUploads'] as int?;
+        final currentStreak = stats?['currentStreak'] as int?;
         if (raw != null) {
           setState(() {
             _weeklyData = raw.map((e) => e is num ? e.toInt() : 0).toList();
             _daysActive = daysActive;
+            _backendTotalUploads = totalUploads;
+            _backendCurrentStreak = currentStreak;
           });
         }
       }
@@ -134,11 +141,17 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
 
   Widget _buildQuickStatsGrid(ThemeData theme, bool isDark) {
     final l10n = context.l10n;
+    // Use local SQLite values when available; fall back to backend on fresh reinstall
+    final localTotal = _stats!.totalUploads;
+    final displayTotal = localTotal > 0 ? localTotal : (_backendTotalUploads ?? 0);
+    final localStreak = _stats!.currentStreak;
+    final displayStreak = localStreak > 0 ? localStreak : (_backendCurrentStreak ?? 0);
+
     return Column(
       children: [
         Row(
           children: [
-            Expanded(child: _buildQuickStatTile(l10n.statsTotal, '${_stats!.totalUploads}', Icons.eco, theme, isDark)),
+            Expanded(child: _buildQuickStatTile(l10n.statsTotal, '$displayTotal', Icons.eco, theme, isDark)),
             const SizedBox(width: AppTheme.spaceMd),
             Expanded(child: _buildQuickStatTile(l10n.statsToday, '${_stats!.uploadsToday}', Icons.today, theme, isDark)),
           ],
@@ -148,7 +161,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
           children: [
             Expanded(child: _buildQuickStatTile(l10n.statsDaysActive, _daysActive != null ? '$_daysActive' : '—', Icons.calendar_month_outlined, theme, isDark)),
             const SizedBox(width: AppTheme.spaceMd),
-            Expanded(child: _buildQuickStatTile(l10n.statsStreak, '${_stats!.currentStreak}d', Icons.local_fire_department, theme, isDark)),
+            Expanded(child: _buildQuickStatTile(l10n.statsStreak, '${displayStreak}d', Icons.local_fire_department, theme, isDark)),
           ],
         ),
       ],

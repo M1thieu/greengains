@@ -6,6 +6,37 @@ import { requireFirebaseAuth } from '../middleware/auth';
 const TILE_PRECISION_DECIMALS = 3; // ~100m precision at mid-latitudes
 const CONFIDENCE_SAMPLE_THRESHOLD = 100; // Samples needed for max confidence
 
+// ─── Geohash decoder (no extra dependency) ────────────────────────────────────
+const GH_BASE32 = '0123456789bcdefghjkmnpqrstuvwxyz';
+
+function decodeGeohash(hash: string): { lat: number; lon: number } | null {
+  if (!hash || hash.length === 0) return null;
+  let isLon = true;
+  const lat = [-90.0, 90.0];
+  const lon = [-180.0, 180.0];
+  for (const ch of hash) {
+    const idx = GH_BASE32.indexOf(ch);
+    if (idx === -1) return null;
+    for (let bit = 4; bit >= 0; bit--) {
+      const bitN = (idx >> bit) & 1;
+      if (isLon) {
+        const mid = (lon[0] + lon[1]) / 2;
+        if (bitN) lon[0] = mid; else lon[1] = mid;
+      } else {
+        const mid = (lat[0] + lat[1]) / 2;
+        if (bitN) lat[0] = mid; else lat[1] = mid;
+      }
+      isLon = !isLon;
+    }
+  }
+  return { lat: (lat[0] + lat[1]) / 2, lon: (lon[0] + lon[1]) / 2 };
+}
+
+// ─── In-memory cache for global tiles (5-min TTL, avoids per-request DB hits) ─
+interface TileCacheEntry { data: unknown; expiresAt: number; }
+const _globalTileCache = new Map<string, TileCacheEntry>();
+const GLOBAL_TILE_CACHE_TTL_MS = 5 * 60 * 1000;
+
 /**
  * User-specific endpoints (profile, H3 tiles, stats)
  * All endpoints require Firebase authentication
@@ -217,6 +248,74 @@ export async function userRoutes(fastify: FastifyInstance) {
         return reply.code(500).send({ error: 'Internal Server Error' });
       }
     }
+  );
+
+  /**
+   * GET /api/tiles/global
+   * Returns aggregated coverage tiles from all users (community map).
+   * Results are cached in-memory for 5 minutes to keep DB load minimal.
+   * Query params: ?hours=48 (optional, default 48)
+   */
+  fastify.get(
+    '/api/tiles/global',
+    { preHandler: requireFirebaseAuth },
+    async (request: FastifyRequest, reply: FastifyReply) => {
+      try {
+        const { hours = 48 } = request.query as { hours?: number };
+        const cacheKey = `global_${hours}`;
+
+        // Serve from cache if still fresh
+        const cached = _globalTileCache.get(cacheKey);
+        if (cached && cached.expiresAt > Date.now()) {
+          return reply.send(cached.data);
+        }
+
+        const pool = getPool();
+
+        const result = await pool.query<{
+          geohash: string;
+          device_count: number;
+          sample_count: number;
+          last_update: Date;
+        }>(
+          `SELECT
+             batch_json->>'geohash' AS geohash,
+             COUNT(DISTINCT device_hash)::int AS device_count,
+             COUNT(*)::int AS sample_count,
+             MAX(timestamp_utc) AS last_update
+           FROM sensor_batches
+           WHERE batch_json->>'geohash' IS NOT NULL
+             AND timestamp_utc > NOW() - ($1 || ' hours')::interval
+           GROUP BY batch_json->>'geohash'
+           ORDER BY sample_count DESC
+           LIMIT 2000`,
+          [hours],
+        );
+
+        const tiles = result.rows
+          .map(row => {
+            const centroid = decodeGeohash(row.geohash);
+            if (!centroid) return null;
+            return {
+              h3Index: row.geohash,
+              centroid,
+              confidence: Math.min(1.0, row.sample_count / CONFIDENCE_SAMPLE_THRESHOLD),
+              deviceCount: row.device_count,
+              sampleCount: row.sample_count,
+              lastUpdate: row.last_update,
+            };
+          })
+          .filter(Boolean);
+
+        const data = { tiles };
+        _globalTileCache.set(cacheKey, { data, expiresAt: Date.now() + GLOBAL_TILE_CACHE_TTL_MS });
+
+        return reply.send(data);
+      } catch (error) {
+        request.log.error({ err: error }, 'Global tiles fetch error');
+        return reply.code(500).send({ error: 'Internal Server Error' });
+      }
+    },
   );
 
   /**

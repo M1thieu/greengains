@@ -13,6 +13,8 @@ class H3Tile {
   final int sampleCount;
   final int deviceCount;
   final List<LatLng>? boundary; // Pre-computed boundary points
+  /// True for community/global tiles (other users); false for personal tiles.
+  final bool isGlobal;
 
   const H3Tile({
     required this.h3Index,
@@ -20,6 +22,7 @@ class H3Tile {
     required this.sampleCount,
     required this.deviceCount,
     this.boundary,
+    this.isGlobal = false,
   });
 }
 
@@ -108,6 +111,17 @@ class _CoverageMapWidgetState extends State<CoverageMapWidget> {
     _cachedPolygons = widget.tiles
         .where((tile) => tile.boundary != null && tile.boundary!.isNotEmpty)
         .map((tile) {
+      // Personal tiles: primary green, full opacity range
+      // Community tiles: pressure blue, muted (max 25% opacity)
+      if (tile.isGlobal) {
+        final opacity = (tile.confidence * 0.25).clamp(0.05, 0.25);
+        return Polygon(
+          points: tile.boundary!,
+          color: AppColors.pressure.withValues(alpha: opacity),
+          borderColor: AppColors.pressure.withValues(alpha: (opacity + 0.1).clamp(0.0, 0.35)),
+          borderStrokeWidth: 0.8,
+        );
+      }
       final opacity = (tile.confidence * 0.55).clamp(0.08, 0.55);
       return Polygon(
         points: tile.boundary!,

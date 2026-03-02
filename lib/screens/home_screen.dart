@@ -64,6 +64,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   StreamSubscription<LocationData>? _locationStreamSub;
   StreamSubscription<List<ConnectivityResult>>? _connectivitySub;
   List<H3Tile> _h3Tiles = [];
+  List<H3Tile> _globalTiles = [];
   bool _h3TilesLoading = true;
   double _sheetInitialSize = _kSheetInitialSize;
   Timer? _sheetSizeSaveDebounce;
@@ -82,6 +83,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     _loadTileCoverage();
     _loadStats();
     _loadH3Tiles();
+    _loadGlobalTiles();
     _loadUserLocation();
     _subscribeToLocationUpdates();
     _restoreSheetState();
@@ -359,6 +361,38 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     }
   }
 
+  /// Load community coverage tiles (all users, cached 5 min on server).
+  /// Loads silently in background — never blocks the loading spinner.
+  Future<void> _loadGlobalTiles() async {
+    try {
+      final response = await BackendClient.get('/api/tiles/global?hours=48');
+      if (response.statusCode != 200 || !mounted) return;
+      final data = jsonDecode(response.body) as Map<String, dynamic>;
+      final tilesData = data['tiles'] as List<dynamic>?;
+      final tiles = tilesData?.map((tile) {
+        final centroid = tile['centroid'] as Map<String, dynamic>?;
+        final lat = (centroid?['lat'] as num?)?.toDouble();
+        final lng = (centroid?['lng'] as num?)?.toDouble();
+        List<LatLng>? boundary;
+        if (lat != null && lng != null) {
+          const r = 0.001;
+          boundary = [for (var i = 0; i < 16; i++) LatLng(lat + r * cos(i * pi / 8), lng + r * sin(i * pi / 8))];
+        }
+        return H3Tile(
+          h3Index: tile['h3Index'] as String? ?? '',
+          confidence: (tile['confidence'] as num?)?.toDouble() ?? 0.3,
+          sampleCount: tile['sampleCount'] as int? ?? 0,
+          deviceCount: tile['deviceCount'] as int? ?? 1,
+          boundary: boundary,
+          isGlobal: true,
+        );
+      }).toList() ?? [];
+      if (mounted) setState(() => _globalTiles = tiles);
+    } catch (e) {
+      debugPrint('Failed to load global tiles: $e');
+    }
+  }
+
   Future<void> _loadUserLocation() async {
     try {
       final permission = await Geolocator.checkPermission();
@@ -405,7 +439,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             ValueListenableBuilder<LatLng?>(
               valueListenable: _userLocationNotifier,
               builder: (context, userLocation, _) => CoverageMapWidget(
-                tiles: _h3Tiles,
+                // Global (community) tiles rendered first so personal tiles appear on top
+                tiles: [..._globalTiles, ..._h3Tiles],
                 userLocation: userLocation,
                 fillScreen: true,
                 isLoading: _h3TilesLoading,
