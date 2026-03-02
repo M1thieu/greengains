@@ -1497,10 +1497,34 @@ abstract class AppLocalizations {
   /// **'Fix'**
   String get locationPermBannerFix;
 
+  /// No description provided for @legendYou.
+  ///
+  /// In en, this message translates to:
+  /// **'You'**
   String get legendYou;
+
+  /// No description provided for @legendCommunity.
+  ///
+  /// In en, this message translates to:
+  /// **'Community'**
   String get legendCommunity;
+
+  /// No description provided for @referralStepShare.
+  ///
+  /// In en, this message translates to:
+  /// **'Share'**
   String get referralStepShare;
+
+  /// No description provided for @referralStepJoin.
+  ///
+  /// In en, this message translates to:
+  /// **'They join'**
   String get referralStepJoin;
+
+  /// No description provided for @referralStepEarn.
+  ///
+  /// In en, this message translates to:
+  /// **'You earn'**
   String get referralStepEarn;
 }
 

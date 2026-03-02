@@ -151,30 +151,37 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
       children: [
         Row(
           children: [
-            Expanded(child: _buildQuickStatTile(l10n.statsTotal, '$displayTotal', Icons.eco, theme, isDark)),
+            Expanded(child: _buildQuickStatTile(l10n.statsTotal, '$displayTotal', Icons.eco, AppColors.primary, theme, isDark)),
             const SizedBox(width: AppTheme.spaceMd),
-            Expanded(child: _buildQuickStatTile(l10n.statsToday, '${_stats!.uploadsToday}', Icons.today, theme, isDark)),
+            Expanded(child: _buildQuickStatTile(l10n.statsToday, '${_stats!.uploadsToday}', Icons.today, AppColors.pressure, theme, isDark)),
           ],
         ),
         const SizedBox(height: AppTheme.spaceMd),
         Row(
           children: [
-            Expanded(child: _buildQuickStatTile(l10n.statsDaysActive, _daysActive != null ? '$_daysActive' : '—', Icons.calendar_month_outlined, theme, isDark)),
+            Expanded(child: _buildQuickStatTile(l10n.statsDaysActive, _daysActive != null ? '$_daysActive' : '—', Icons.calendar_month_outlined, AppColors.movement, theme, isDark)),
             const SizedBox(width: AppTheme.spaceMd),
-            Expanded(child: _buildQuickStatTile(l10n.statsStreak, '${displayStreak}d', Icons.local_fire_department, theme, isDark)),
+            Expanded(child: _buildQuickStatTile(l10n.statsStreak, '${displayStreak}d', Icons.local_fire_department, AppColors.warning, theme, isDark)),
           ],
         ),
       ],
     );
   }
 
-  Widget _buildQuickStatTile(String label, String value, IconData icon, ThemeData theme, bool isDark) {
+  Widget _buildQuickStatTile(String label, String value, IconData icon, Color iconColor, ThemeData theme, bool isDark) {
     return Container(
       padding: const EdgeInsets.all(AppTheme.spaceMd),
       decoration: AppTheme.surfaceContainer(isDark: isDark),
       child: Column(
         children: [
-          Icon(icon, size: 24, color: AppColors.primary),
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: iconColor.withValues(alpha: 0.12),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, size: 20, color: iconColor),
+          ),
           const SizedBox(height: AppTheme.spaceXs),
           Text(value, style: theme.textTheme.titleLarge?.copyWith(fontWeight: AppFontWeights.bold)),
           Text(label, style: theme.textTheme.bodySmall?.copyWith(color: AppColors.textSecondary(isDark))),
@@ -218,6 +225,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
     const maxBarH = 72.0;
     const minBarH = 4.0;
     final chartLocale = Localizations.localeOf(context).toString();
+    final trendDelta = (data[4] + data[5] + data[6]) - (data[0] + data[1] + data[2]);
 
     return Container(
       padding: const EdgeInsets.all(AppTheme.spaceMd),
@@ -235,9 +243,19 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                     l10n.statsActivityTrend,
                     style: theme.textTheme.titleMedium?.copyWith(fontWeight: AppFontWeights.semibold),
                   ),
-                  Text(
-                    l10n.statsWeeklyTotal(weeklyTotal),
-                    style: theme.textTheme.bodySmall?.copyWith(color: AppColors.textSecondary(isDark)),
+                  Row(
+                    children: [
+                      Text(
+                        l10n.statsWeeklyTotal(weeklyTotal),
+                        style: theme.textTheme.bodySmall?.copyWith(color: AppColors.textSecondary(isDark)),
+                      ),
+                      const SizedBox(width: 4),
+                      Icon(
+                        trendDelta > 0 ? Icons.trending_up : trendDelta < 0 ? Icons.trending_down : Icons.trending_flat,
+                        size: 14,
+                        color: trendDelta > 0 ? AppColors.primary : trendDelta < 0 ? AppColors.error : AppColors.textTertiary(isDark),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -355,14 +373,6 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                 ),
               ),
             ],
-          ),
-          const SizedBox(height: AppTheme.spaceMd),
-          Text(
-            l10n.statsHistoryNote,
-            style: theme.textTheme.labelSmall?.copyWith(
-              color: AppColors.textTertiary(isDark),
-              fontStyle: FontStyle.italic,
-            ),
           ),
         ],
       ),

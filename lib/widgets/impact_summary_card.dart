@@ -117,15 +117,41 @@ class ImpactSummaryCard extends StatelessWidget {
         ),
         const SizedBox(height: 6),
 
-        // Hero number + unit label
-        Text(
-          '${stats!.totalUploads}',
-          style: theme.textTheme.displaySmall?.copyWith(
-            fontWeight: AppFontWeights.bold,
-            color: AppColors.primary,
-            letterSpacing: -1,
-            height: 1,
-          ),
+        // Hero number + today badge
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Text(
+              '${stats!.totalUploads}',
+              style: theme.textTheme.displaySmall?.copyWith(
+                fontWeight: AppFontWeights.bold,
+                color: AppColors.primary,
+                letterSpacing: -1,
+                height: 1,
+              ),
+            ),
+            if (stats!.uploadsToday > 0) ...[
+              const SizedBox(width: 8),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 4),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryAlpha(0.12),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Text(
+                    '+${stats!.uploadsToday} ${l10n.statsToday.toLowerCase()}',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: AppColors.primary,
+                      fontWeight: AppFontWeights.semibold,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ],
         ),
         const SizedBox(height: 2),
         Text(
@@ -150,6 +176,7 @@ class ImpactSummaryCard extends StatelessWidget {
               value: _formatCoverageArea(),
               label: l10n.areaCovered,
               isDark: isDark,
+              iconColor: AppColors.pressure,
             ),
             Container(
               width: 1,
@@ -162,6 +189,7 @@ class ImpactSummaryCard extends StatelessWidget {
               value: _formatDaysActive(context),
               label: l10n.activeStreak,
               isDark: isDark,
+              iconColor: AppColors.warning,
             ),
           ],
         ),
@@ -212,12 +240,14 @@ class _ImpactMetric extends StatelessWidget {
   final String value;
   final String label;
   final bool isDark;
+  final Color? iconColor;
 
   const _ImpactMetric({
     required this.icon,
     required this.value,
     required this.label,
     required this.isDark,
+    this.iconColor,
   });
 
   @override
@@ -226,8 +256,7 @@ class _ImpactMetric extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        // textSecondary (#A0A0A0) → 5.7:1 on surfaceElevated — passes WCAG AA
-        Icon(icon, size: 15, color: AppColors.textSecondary(isDark)),
+        Icon(icon, size: 15, color: iconColor ?? AppColors.textSecondary(isDark)),
         const SizedBox(width: 7),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,

@@ -210,13 +210,15 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: AppTheme.spaceMd),
-            Text(
-              l10n.onboardingWelcomeSubtitle,
-              style: theme.textTheme.bodyLarge?.copyWith(
-                color: AppColors.textSecondary(isDark),
-              ),
-              textAlign: TextAlign.center,
+            const SizedBox(height: AppTheme.spaceLg),
+            Column(
+              children: [
+                _buildWelcomeFact(Icons.bedtime_outlined, l10n.onboardingFeature1Title, isDark, theme),
+                const SizedBox(height: AppTheme.spaceSm),
+                _buildWelcomeFact(Icons.shield_outlined, l10n.onboardingFeature2Title, isDark, theme),
+                const SizedBox(height: AppTheme.spaceSm),
+                _buildWelcomeFact(Icons.map_outlined, l10n.onboardingFeature3Title, isDark, theme),
+              ],
             ),
             const Spacer(),
           ],
@@ -297,30 +299,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             ),
             const SizedBox(height: AppTheme.spaceXl),
 
-            // Benefits list
-            _buildBenefit(
-              icon: Icons.sensors,
-              title: l10n.onboardingDataCollectedTitle,
-              description: l10n.onboardingDataCollectedDescription,
-              isDark: isDark,
-              theme: theme,
-            ),
-            const SizedBox(height: AppTheme.spaceMd),
-            _buildBenefit(
-              icon: Icons.cloud_sync,
-              title: l10n.onboardingCloudSync,
-              description: l10n.onboardingCloudSyncDescription,
-              isDark: isDark,
-              theme: theme,
-            ),
-            const SizedBox(height: AppTheme.spaceMd),
-            _buildBenefit(
-              icon: Icons.leaderboard,
-              title: l10n.onboardingFutureFeatures,
-              description: l10n.onboardingFutureDescription,
-              isDark: isDark,
-              theme: theme,
-            ),
+            // Feature pills — compact icon + label, no prose
+            _buildFeaturePills([
+              (Icons.sensors_outlined, l10n.onboardingDataCollectedTitle),
+              (Icons.map_outlined, l10n.onboardingCloudSync),
+              (Icons.emoji_events_outlined, l10n.onboardingFutureFeatures),
+            ], theme, isDark),
 
             const Spacer(),
 
@@ -436,6 +420,55 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildWelcomeFact(IconData icon, String text, bool isDark, ThemeData theme) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 16, color: AppColors.primary),
+        const SizedBox(width: 8),
+        Text(
+          text,
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: AppColors.textSecondary(isDark),
+            fontWeight: AppFontWeights.medium,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFeaturePills(List<(IconData, String)> items, ThemeData theme, bool isDark) {
+    return Wrap(
+      spacing: 10,
+      runSpacing: 10,
+      alignment: WrapAlignment.center,
+      children: items.map((item) {
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          decoration: BoxDecoration(
+            color: AppColors.primaryAlpha(0.08),
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: AppColors.primaryAlpha(0.18)),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(item.$1, size: 16, color: AppColors.primary),
+              const SizedBox(width: 6),
+              Text(
+                item.$2,
+                style: theme.textTheme.labelMedium?.copyWith(
+                  color: AppColors.textPrimary(isDark),
+                  fontWeight: AppFontWeights.medium,
+                ),
+              ),
+            ],
+          ),
+        );
+      }).toList(),
     );
   }
 
