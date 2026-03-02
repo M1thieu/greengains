@@ -25,11 +25,26 @@ export async function deviceRoutes(fastify: FastifyInstance) {
                     return reply.code(401).send({ error: 'Unauthorized', message: 'Invalid Firebase token' });
                 }
 
-                // 2. Generate Device Secret
+                // 2. Enforce max devices per user (prevents multi-device rate-limit bypass)
+                const pool = getPool();
+                const deviceCount = await pool.query<{ count: string }>(
+                    `SELECT COUNT(*)::text AS count
+                       FROM device_secrets
+                      WHERE user_id = $1
+                        AND device_id != $2`,
+                    [userId, device_id],
+                );
+                if (parseInt(deviceCount.rows[0]?.count ?? '0', 10) >= 5) {
+                    return reply.code(429).send({
+                        error: 'Too Many Devices',
+                        message: 'Maximum of 5 registered devices per account.',
+                    });
+                }
+
+                // 3. Generate Device Secret
                 const deviceSecret = crypto.randomBytes(32).toString('hex');
 
-                // 3. Store in DB
-                const pool = getPool();
+                // 4. Store in DB
                 await pool.query(
                     `INSERT INTO device_secrets (device_id, user_id, secret)
            VALUES ($1, $2, $3)

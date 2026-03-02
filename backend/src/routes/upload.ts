@@ -14,6 +14,7 @@ import {
 } from '../utils/sensor-analytics';
 import {
   checkDeviceRateLimit,
+  checkUserRateLimit,
   validateSensorRanges,
   checkGpsVelocity,
 } from '../utils/uploadValidation';
@@ -206,7 +207,12 @@ export async function uploadRoutes(fastify: FastifyInstance) {
         }
       }
 
-      request.log.info({ userId: userId ?? 'anonymous' }, 'Upload request received');
+      // Require authentication — no anonymous uploads accepted
+      if (userId === null) {
+        return reply.code(401).send({ error: 'Unauthorized', message: 'Authentication required' });
+      }
+
+      request.log.info({ userId }, 'Upload request received');
 
       try {
         // Decompress payload if needed
@@ -244,11 +250,19 @@ export async function uploadRoutes(fastify: FastifyInstance) {
 
         // ── Abuse prevention checks ───────────────────────────────────────────
 
-        // 1. Rate limit: max 120 batches per device per sliding hour
+        // 1a. Rate limit per device: max 120 batches per sliding hour
         if (await checkDeviceRateLimit(pool, deviceHash)) {
           return reply.code(429).send({
             error: 'Too Many Requests',
             message: 'Upload rate limit exceeded. Max 120 batches per hour per device.',
+          });
+        }
+
+        // 1b. Rate limit per user: max 300 batches/hour across all devices
+        if (await checkUserRateLimit(pool, userId)) {
+          return reply.code(429).send({
+            error: 'Too Many Requests',
+            message: 'Upload rate limit exceeded. Max 300 batches per hour per account.',
           });
         }
 

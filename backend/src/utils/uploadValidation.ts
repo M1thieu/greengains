@@ -5,6 +5,10 @@ import type { UploadBatch } from '../models/upload';
 // ~1 batch every 30s for a full hour — generous for real usage, blocks burst bots.
 const MAX_BATCHES_PER_HOUR = 120;
 
+// Max batches accepted per user (all their devices combined) per sliding hour window.
+// Allows ~2 active devices simultaneously without throttling legitimate users.
+const MAX_USER_BATCHES_PER_HOUR = 300;
+
 // Speed threshold for GPS velocity anomaly detection (m/s).
 // 300 m/s ≈ 1080 km/h — above any road/rail vehicle, well below commercial aircraft.
 const MAX_GPS_SPEED_MPS = 300;
@@ -27,6 +31,24 @@ export async function checkDeviceRateLimit(pool: Pool, deviceHash: string): Prom
   );
   const count = parseInt(result.rows[0]?.count ?? '0', 10);
   return count >= MAX_BATCHES_PER_HOUR;
+}
+
+/**
+ * Returns true if the user has exceeded the hourly upload rate limit across all their devices.
+ *
+ * Secondary guard against multi-device abuse: a single user with N devices
+ * is still capped at MAX_USER_BATCHES_PER_HOUR total.
+ */
+export async function checkUserRateLimit(pool: Pool, userId: string): Promise<boolean> {
+  const result = await pool.query<{ count: string }>(
+    `SELECT COUNT(*)::text AS count
+       FROM sensor_batches
+      WHERE user_id = $1
+        AND created_at > NOW() - INTERVAL '1 hour'`,
+    [userId],
+  );
+  const count = parseInt(result.rows[0]?.count ?? '0', 10);
+  return count >= MAX_USER_BATCHES_PER_HOUR;
 }
 
 // ─── Sensor Range Validation ──────────────────────────────────────────────────
