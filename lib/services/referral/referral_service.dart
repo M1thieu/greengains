@@ -29,7 +29,7 @@ class ReferralService {
     try {
       final response = await BackendClient.get(
         '/api/v1/referrals/code',
-        timeout: const Duration(seconds: 12),
+        timeout: const Duration(seconds: 30),
       );
       if (response.statusCode != 200) return null;
       final body = jsonDecode(response.body) as Map<String, dynamic>;
@@ -66,7 +66,7 @@ class ReferralService {
     try {
       final response = await BackendClient.get(
         '/api/v1/referrals/stats',
-        timeout: const Duration(seconds: 12),
+        timeout: const Duration(seconds: 30),
       );
       if (response.statusCode != 200) return null;
       final body = jsonDecode(response.body) as Map<String, dynamic>;

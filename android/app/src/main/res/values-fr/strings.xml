@@ -8,8 +8,8 @@
     <string name="notification_paused_body">Appuyez sur Reprendre</string>
     <string name="notification_collecting_no_upload">En attente du premier envoi</string>
     <plurals name="notification_readings_today">
-        <item quantity="one">1 relevé aujourd'hui</item>
-        <item quantity="other">%d relevés aujourd'hui</item>
+        <item quantity="one">1 relevé aujourd\'hui</item>
+        <item quantity="other">%d relevés aujourd\'hui</item>
     </plurals>
 
     <!-- Notification actions -->
