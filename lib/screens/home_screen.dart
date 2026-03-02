@@ -30,6 +30,32 @@ const double _kSheetMinSize = 0.14;
 const double _kSheetInitialSize = 0.30;
 const double _kSheetMaxSize = 0.72;
 
+// ── Layout sizing constants ───────────────────────────────────────────────────
+// FAB / location button fade thresholds (sheet size fractions).
+const double _kFadeStartSize = 0.48;
+const double _kFadeEndSize   = 0.36;
+// Bottom-of-screen offset for FAB row: min-sheet fraction × screen + gap.
+// _kSheetMinSize × screenHeight gives the sheet collapsed height;
+// adding spaceMd places the FAB just above it.
+// (computed inline as  screenHeight * _kSheetMinSize + AppTheme.spaceMd)
+
+// Snap animation duration — between fast (300) and medium (600).
+const _kSnapDuration = Duration(milliseconds: 320);
+
+// Bottom-sheet corner radius (Material 3 recommendation: 28dp; we use 20 for compactness).
+const _kSheetRadius = 20.0;
+
+// Map overlay elements.
+const _kMapLegendFontSize = 11.0; // below bodySmall (12); keeps legend compact
+const _kOfflineBannerFontSize = 13.0; // between bodySmall (12) and bodyMedium (14)
+
+// Drag handle dimensions (Material 3 spec: 32×4 dp, centered).
+const _kHandleW = AppTheme.spaceXl;   // 32
+const _kHandleH = AppTheme.spaceXxs;  // 4
+
+// My Location button: 48×48 standard touch target.
+const _kLocationBtnSize = AppTheme.minTouchTarget; // 48
+
 /// Home screen — map-as-background layout.
 ///
 /// Layer order (bottom → top):
@@ -111,8 +137,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   void _updateFabOpacity() {
     if (!_sheetController.isAttached) return;
     final size = _sheetController.size;
-    // Start fading at 38%, fully hidden at 52% (aligned with new snap points)
-    final opacity = ((0.48 - size) / (0.48 - 0.36)).clamp(0.0, 1.0);
+    // Start fading at _kFadeStartSize, fully hidden at _kFadeEndSize.
+    final opacity = ((_kFadeStartSize - size) / (_kFadeStartSize - _kFadeEndSize)).clamp(0.0, 1.0);
     _fabOpacity.value = opacity;
     _persistSheetState(size);
   }
@@ -447,16 +473,16 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 recenterTrigger: _recenterTrigger,
                 controlsPadding: EdgeInsets.only(
                   top: topPadding,
-                  bottom: screenHeight * 0.14 + 48,
+                  bottom: screenHeight * _kSheetMinSize + AppTheme.spaceXxl,
                 ),
               ),
             ),
 
             // ── 1. Top overlay: status chip ───────────────────────────────
             Positioned(
-              top: topPadding + 8,
-              left: 16,
-              right: 16,
+              top: topPadding + AppTheme.spaceXs,
+              left: AppTheme.spaceMd,
+              right: AppTheme.spaceMd,
               child: ListenableBuilder(
                 listenable: Listenable.merge([
                   _locationService.isRunning,
@@ -477,13 +503,13 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             ),
             // ── 1b. Map legend: green = personal, blue = community ────────
             Positioned(
-              top: topPadding + 8,
-              right: 16,
+              top: topPadding + AppTheme.spaceXs,
+              right: AppTheme.spaceMd,
               child: ValueListenableBuilder<double>(
                 valueListenable: _fabOpacity,
                 builder: (_, opacity, child) => AnimatedOpacity(
                   opacity: opacity,
-                  duration: const Duration(milliseconds: 150),
+                  duration: AppDurations.instant,
                   child: child,
                 ),
                 child: _MapLegend(hasCommunityTiles: _globalTiles.isNotEmpty),
@@ -497,8 +523,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               initialChildSize: _sheetInitialSize,
               maxChildSize: _kSheetMaxSize,   // expanded: sensors fully readable
               snap: true,
-              snapSizes: const [0.30, 0.72], // 2 natural positions (not 3)
-              snapAnimationDuration: const Duration(milliseconds: 320),
+              snapSizes: const [_kSheetInitialSize, _kSheetMaxSize],
+              snapAnimationDuration: _kSnapDuration,
               builder: (ctx, scrollController) => _BottomSheetContent(
                 scrollController: scrollController,
                 stats: _stats,
@@ -513,13 +539,13 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
             // ── 3. FAB (fades out when sheet is expanded) ─────────────────
             Positioned(
-              right: 16,
-              bottom: screenHeight * 0.14 + 16,
+              right: AppTheme.spaceMd,
+              bottom: screenHeight * _kSheetMinSize + AppTheme.spaceMd,
               child: ValueListenableBuilder<double>(
                 valueListenable: _fabOpacity,
                 builder: (_, opacity, child) => AnimatedOpacity(
                   opacity: opacity,
-                  duration: const Duration(milliseconds: 150),
+                  duration: AppDurations.instant,
                   child: child,
                 ),
                 child: Semantics(
@@ -538,13 +564,13 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               builder: (context, userLocation, _) {
                 if (userLocation == null) return const SizedBox.shrink();
                 return Positioned(
-                  left: 16,
-                  bottom: screenHeight * 0.14 + 16,
+                  left: AppTheme.spaceMd,
+                  bottom: screenHeight * _kSheetMinSize + AppTheme.spaceMd,
                   child: ValueListenableBuilder<double>(
                     valueListenable: _fabOpacity,
                     builder: (_, opacity, child) => AnimatedOpacity(
                       opacity: opacity,
-                      duration: const Duration(milliseconds: 150),
+                      duration: AppDurations.instant,
                       child: child,
                     ),
                     child: Semantics(
@@ -598,7 +624,7 @@ class _BottomSheetContent extends StatelessWidget {
         // surface (#1C1C1C) as base — cards inside use surfaceElevated (#262626)
         // so they properly float above the sheet (previously inverted and muddy).
         color: AppColors.surface(isDark),
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(_kSheetRadius)),
         boxShadow: [
           BoxShadow(
             color: AppColors.shadowDark(isDark ? 0.6 : 0.15),
@@ -615,18 +641,18 @@ class _BottomSheetContent extends StatelessWidget {
           child: CustomScrollView(
             controller: scrollController,
             slivers: [
-            // Drag handle — Material 3: 32dp wide, 4dp tall, white @20% opacity
+            // Drag handle — Material 3: 32dp wide, 4dp tall, centered
             SliverToBoxAdapter(
               child: Center(
                 child: Container(
-                  margin: const EdgeInsets.symmetric(vertical: 12),
-                  width: 32,
-                  height: 4,
+                  margin: const EdgeInsets.symmetric(vertical: AppTheme.spaceSm),
+                  width: _kHandleW,
+                  height: _kHandleH,
                   decoration: BoxDecoration(
                     color: isDark
                         ? AppColors.shadowLight(0.2)
                         : AppColors.shadowDark(0.15),
-                    borderRadius: BorderRadius.circular(2),
+                    borderRadius: BorderRadius.circular(AppTheme.spaceXxxs),
                   ),
                 ),
               ),
@@ -636,9 +662,9 @@ class _BottomSheetContent extends StatelessWidget {
             if (!isOnline)
               SliverToBoxAdapter(
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                  padding: const EdgeInsets.fromLTRB(AppTheme.spaceMd, 0, AppTheme.spaceMd, AppTheme.spaceXs),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceSm, vertical: AppTheme.spaceXs),
                     decoration: BoxDecoration(
                       color: AppColors.warning.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(AppTheme.radiusSm),
@@ -646,12 +672,12 @@ class _BottomSheetContent extends StatelessWidget {
                     ),
                     child: Row(
                       children: [
-                        Icon(Icons.wifi_off, size: 15, color: AppColors.warning),
-                        const SizedBox(width: 8),
+                        Icon(Icons.wifi_off, size: AppIconSizes.xs, color: AppColors.warning),
+                        const SizedBox(width: AppTheme.spaceXs),
                         Text(
                           context.l10n.offlineBannerMessage,
                           style: TextStyle(
-                            fontSize: 13,
+                            fontSize: _kOfflineBannerFontSize,
                             color: AppColors.warning,
                             fontWeight: AppFontWeights.medium,
                           ),
@@ -664,7 +690,7 @@ class _BottomSheetContent extends StatelessWidget {
 
             // Impact + stats card
             SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceMd),
               sliver: SliverToBoxAdapter(
                 child: ImpactSummaryCard(
                   stats: stats,
@@ -675,11 +701,11 @@ class _BottomSheetContent extends StatelessWidget {
               ),
             ),
 
-            const SliverToBoxAdapter(child: SizedBox(height: 8)),
+            const SliverToBoxAdapter(child: SizedBox(height: AppTheme.spaceXs)),
 
             // Contextual tip (dismissible)
             SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceMd),
               sliver: ListenableBuilder(
                 listenable: Listenable.merge([
                   locationService.isRunning,
@@ -705,11 +731,11 @@ class _BottomSheetContent extends StatelessWidget {
               ),
             ),
 
-            const SliverToBoxAdapter(child: SizedBox(height: 4)),
+            const SliverToBoxAdapter(child: SizedBox(height: AppTheme.spaceXxs)),
 
             // Live sensor readings (collapsible)
             SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceMd),
               sliver: SliverToBoxAdapter(
                 child: SensorSection(
                   locationService: locationService,
@@ -721,7 +747,7 @@ class _BottomSheetContent extends StatelessWidget {
             ),
 
             // Bottom padding (accounts for system nav bar)
-            const SliverToBoxAdapter(child: SizedBox(height: 24)),
+            const SliverToBoxAdapter(child: SizedBox(height: AppTheme.spaceLg)),
           ],
           ),
         ),
@@ -741,10 +767,10 @@ class _MapLegend extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+      padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceXs, vertical: AppTheme.spaceXxs),
       decoration: BoxDecoration(
         color: Colors.black.withValues(alpha: 0.65),
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(AppTheme.radiusSm),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -752,7 +778,7 @@ class _MapLegend extends StatelessWidget {
         children: [
           _LegendRow(color: AppColors.primary, label: l10n.legendYou),
           if (hasCommunityTiles) ...[
-            const SizedBox(height: 4),
+            const SizedBox(height: AppTheme.spaceXxs),
             _LegendRow(color: AppColors.pressure, label: l10n.legendCommunity),
           ],
         ],
@@ -772,16 +798,16 @@ class _LegendRow extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-          width: 8,
-          height: 8,
+          width: AppTheme.spaceXs,
+          height: AppTheme.spaceXs,
           decoration: BoxDecoration(color: color, shape: BoxShape.circle),
         ),
-        const SizedBox(width: 6),
+        const SizedBox(width: AppTheme.spaceXxs),
         Text(
           label,
           style: const TextStyle(
             color: Colors.white,
-            fontSize: 11,
+            fontSize: _kMapLegendFontSize,
             fontWeight: FontWeight.w500,
             letterSpacing: 0.1,
           ),
@@ -810,9 +836,9 @@ class _MyLocationButton extends StatelessWidget {
         },
         customBorder: const CircleBorder(),
         child: const SizedBox(
-          width: 48,
-          height: 48,
-          child: Icon(Icons.my_location, color: Colors.white, size: 22),
+          width: _kLocationBtnSize,
+          height: _kLocationBtnSize,
+          child: Icon(Icons.my_location, color: Colors.white, size: AppIconSizes.sm),
         ),
       ),
     );

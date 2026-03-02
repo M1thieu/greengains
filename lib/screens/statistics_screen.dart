@@ -11,6 +11,18 @@ import '../data/repositories/contribution_repository.dart';
 import '../core/events/app_events.dart';
 import '../services/network/backend_client.dart';
 
+// ── Chart / skeleton layout constants ────────────────────────────────────────
+// Named so that any future change touches ONE place, not scattered literals.
+const _kChartH         = 148.0; // height reserved for the bar chart + labels
+const _kBarMaxH        = 72.0;  // tallest bar at 100 % of the data range
+const _kBarMinH        = 4.0;   // floor so 0-count bars remain visible
+const _kBarLabelH      = AppTheme.spaceLg + AppTheme.spaceSm; // 36 px = label area below bars
+const _kBarAnimStagger = 40;    // ms added per bar for cascade entrance
+const _kBarLabelSize   = 10.0;  // day-of-week label below each bar (below bodySmall)
+const _kSkeletonTileH  = 80.0;  // height of each stat-tile skeleton rect
+const _kSkeletonTitleW = 160.0; // width of section-title skeleton rect
+const _kHeroIconSize   = 80.0;  // empty-state centre icon size
+
 /// Statistics screen — local stats (fast/offline) + server 7-day chart.
 ///
 /// Two data sources run in parallel:
@@ -175,12 +187,12 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
       child: Column(
         children: [
           Container(
-            padding: const EdgeInsets.all(8),
+            padding: const EdgeInsets.all(AppTheme.spaceXs),
             decoration: BoxDecoration(
               color: iconColor.withValues(alpha: 0.12),
               shape: BoxShape.circle,
             ),
-            child: Icon(icon, size: 20, color: iconColor),
+            child: Icon(icon, size: AppIconSizes.sm, color: iconColor),
           ),
           const SizedBox(height: AppTheme.spaceXs),
           Text(value, style: theme.textTheme.titleLarge?.copyWith(fontWeight: AppFontWeights.bold)),
@@ -198,12 +210,12 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
     if (_isLoadingWeekly && _weeklyData == null) {
       // Backend still loading — show skeleton placeholder
       return Container(
-        height: 148,
+        height: _kChartH,
         decoration: AppTheme.surfaceContainer(isDark: isDark),
         child: Center(
           child: SizedBox(
-            width: 20,
-            height: 20,
+            width: AppIconSizes.sm,
+            height: AppIconSizes.sm,
             child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary),
           ),
         ),
@@ -222,8 +234,6 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
     final data = _weeklyData!;
     final maxVal = data.fold(0, max).toDouble();
     final weeklyTotal = data.fold(0, (a, b) => a + b);
-    const maxBarH = 72.0;
-    const minBarH = 4.0;
     final chartLocale = Localizations.localeOf(context).toString();
     final trendDelta = (data[4] + data[5] + data[6]) - (data[0] + data[1] + data[2]);
 
@@ -249,10 +259,10 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                         l10n.statsWeeklyTotal(weeklyTotal),
                         style: theme.textTheme.bodySmall?.copyWith(color: AppColors.textSecondary(isDark)),
                       ),
-                      const SizedBox(width: 4),
+                      const SizedBox(width: AppTheme.spaceXxs),
                       Icon(
                         trendDelta > 0 ? Icons.trending_up : trendDelta < 0 ? Icons.trending_down : Icons.trending_flat,
-                        size: 14,
+                        size: AppIconSizes.xs,
                         color: trendDelta > 0 ? AppColors.primary : trendDelta < 0 ? AppColors.error : AppColors.textTertiary(isDark),
                       ),
                     ],
@@ -277,15 +287,15 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
           ),
           const SizedBox(height: AppTheme.spaceMd),
           SizedBox(
-            height: maxBarH + 36,
+            height: _kBarMaxH + _kBarLabelH,
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: List.generate(7, (i) {
                 final count = data[i];
                 final isToday = i == 6;
                 final barH = maxVal > 0
-                    ? (count / maxVal * maxBarH).clamp(minBarH, maxBarH)
-                    : minBarH;
+                    ? (count / maxVal * _kBarMaxH).clamp(_kBarMinH, _kBarMaxH)
+                    : _kBarMinH;
                 final date = DateTime.now().subtract(Duration(days: 6 - i));
                 final label = DateFormat('EEE', chartLocale).format(date);
 
@@ -294,22 +304,22 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
                       AnimatedContainer(
-                        duration: Duration(milliseconds: 300 + i * 40),
-                        curve: Curves.easeOut,
+                        duration: Duration(milliseconds: AppDurations.fast.inMilliseconds + i * _kBarAnimStagger),
+                        curve: AppMotion.decelerated,
                         height: barH,
-                        margin: const EdgeInsets.symmetric(horizontal: 3),
+                        margin: const EdgeInsets.symmetric(horizontal: AppTheme.spaceXxxs),
                         decoration: BoxDecoration(
                           color: isToday
                               ? AppColors.primary
                               : AppColors.primary.withValues(alpha: 0.25),
-                          borderRadius: BorderRadius.circular(3),
+                          borderRadius: BorderRadius.circular(AppTheme.radiusMin),
                         ),
                       ),
-                      const SizedBox(height: 6),
+                      const SizedBox(height: AppTheme.spaceXxs),
                       Text(
                         label,
                         style: TextStyle(
-                          fontSize: 10,
+                          fontSize: _kBarLabelSize,
                           color: isToday
                               ? AppColors.primary
                               : AppColors.textTertiary(isDark),
@@ -361,9 +371,9 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                   height: 1,
                 ),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: AppTheme.spaceXs),
               Padding(
-                padding: const EdgeInsets.only(bottom: 6),
+                padding: const EdgeInsets.only(bottom: AppTheme.spaceXxs),
                 child: Text(
                   l10n.statsToday.toLowerCase(),
                   style: theme.textTheme.titleMedium?.copyWith(
@@ -385,11 +395,11 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
     return Row(
       children: [
         Container(
-          width: 4,
-          height: 20,
-          decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(2)),
+          width: AppTheme.spaceXxs,
+          height: AppIconSizes.sm,
+          decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(AppTheme.spaceXxxs)),
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: AppTheme.spaceXs),
         Text(title, style: theme.textTheme.titleLarge?.copyWith(fontWeight: AppFontWeights.bold)),
       ],
     );
@@ -402,13 +412,13 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
       padding: AppTheme.pagePadding,
       physics: const NeverScrollableScrollPhysics(),
       children: [
-        Row(children: List.generate(2, (_) => Expanded(child: Padding(padding: const EdgeInsets.symmetric(horizontal: 4), child: Container(height: 80, decoration: decoration))))),
+        Row(children: List.generate(2, (_) => Expanded(child: Padding(padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceXxs), child: Container(height: _kSkeletonTileH, decoration: decoration))))),
         const SizedBox(height: AppTheme.spaceMd),
-        Row(children: List.generate(2, (_) => Expanded(child: Padding(padding: const EdgeInsets.symmetric(horizontal: 4), child: Container(height: 80, decoration: decoration))))),
+        Row(children: List.generate(2, (_) => Expanded(child: Padding(padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceXxs), child: Container(height: _kSkeletonTileH, decoration: decoration))))),
         const SizedBox(height: AppTheme.spaceLg),
-        Container(height: 20, width: 160, decoration: decoration),
+        Container(height: AppIconSizes.sm, width: _kSkeletonTitleW, decoration: decoration),
         const SizedBox(height: AppTheme.spaceMd),
-        Container(height: 148, decoration: decoration),
+        Container(height: _kChartH, decoration: decoration),
       ],
     );
   }
@@ -422,9 +432,9 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              padding: const EdgeInsets.all(32),
+              padding: const EdgeInsets.all(AppTheme.spaceXl),
               decoration: BoxDecoration(color: AppColors.primaryAlpha(0.08), shape: BoxShape.circle),
-              child: Icon(Icons.bar_chart_outlined, size: 80, color: AppColors.primary),
+              child: Icon(Icons.bar_chart_outlined, size: _kHeroIconSize, color: AppColors.primary),
             ),
             const SizedBox(height: AppTheme.spaceLg),
             Text(l10n.statsStartContributing, style: theme.textTheme.headlineSmall?.copyWith(fontWeight: AppFontWeights.semibold)),

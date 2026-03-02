@@ -14,6 +14,14 @@ import '../services/network/backend_client.dart';
 import '../utils/app_snackbars.dart';
 import 'webview_screen.dart';
 
+// ── Onboarding layout constants ───────────────────────────────────────────────
+// Hero icon sizes that don't map directly to AppIconSizes entries.
+const _kWelcomeHeroSize     = AppIconSizes.xl + AppTheme.spaceLg;    // 48+24 = 72 — eco icon
+const _kSignInIconSize      = AppIconSizes.xl + AppIconSizes.xs;     // 48+16 = 64 — hub icon
+const _kPillIconSize        = AppIconSizes.xs;                       // 16 — pill bullet icon
+const _kNavButtonBack       = 100.0;                                 // Previous button width
+const _kNavButtonNext       = AppTheme.tileTrailingButtonWidth;      // 120 — Next button width
+
 /// Enhanced onboarding with 4 pages:
 /// 1. Welcome
 /// 2. Features (Passive + Privacy)
@@ -120,7 +128,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
           // Bottom navigation
           Positioned(
-            bottom: 48,
+            bottom: AppTheme.spaceXxl,
             left: 0,
             right: 0,
             child: Column(
@@ -131,40 +139,40 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   children: List.generate(
                     3,
                     (index) => AnimatedContainer(
-                      duration: const Duration(milliseconds: 300),
-                      margin: const EdgeInsets.symmetric(horizontal: 4),
-                      height: 8,
-                      width: _currentPage == index ? 24 : 8,
+                      duration: AppDurations.fast,
+                      margin: const EdgeInsets.symmetric(horizontal: AppTheme.spaceXxs),
+                      height: AppTheme.spaceXs,
+                      width: _currentPage == index ? AppTheme.spaceLg : AppTheme.spaceXs,
                       decoration: BoxDecoration(
                         color: _currentPage == index
                             ? AppColors.primary
                             : AppColors.textTertiary(isDark),
-                        borderRadius: BorderRadius.circular(4),
+                        borderRadius: BorderRadius.circular(AppTheme.spaceXxs),
                       ),
                     ),
                   ),
                 ),
-                const SizedBox(height: 32),
+                const SizedBox(height: AppTheme.spaceXl),
 
                 // Navigation buttons (only for pages 0-2)
                 if (_currentPage < 2)
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 32),
+                    padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceXl),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         if (_currentPage > 0)
                           SizedBox(
-                            width: 100,
+                            width: _kNavButtonBack,
                             child: OutlinedButton(
                               onPressed: _previousPage,
                               child: Text(l10n.buttonPrevious),
                             ),
                           )
                         else
-                          const SizedBox(width: 100),
+                          const SizedBox(width: _kNavButtonBack),
                         SizedBox(
-                          width: 120,
+                          width: _kNavButtonNext,
                           child: FilledButton(
                             onPressed: _nextPage,
                             child: Text(l10n.buttonNext),
@@ -198,7 +206,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               ),
               child: const Icon(
                 Icons.eco,
-                size: 72,
+                size: _kWelcomeHeroSize,
                 color: AppColors.primary,
               ),
             ),
@@ -278,7 +286,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             const Spacer(),
             Icon(
               Icons.hub_outlined,
-              size: 64,
+              size: _kSignInIconSize,
               color: AppColors.primary,
             ),
             const SizedBox(height: AppTheme.spaceXl),
@@ -427,8 +435,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, size: 16, color: AppColors.primary),
-        const SizedBox(width: 8),
+        Icon(icon, size: _kPillIconSize, color: AppColors.primary),
+        const SizedBox(width: AppTheme.spaceXs),
         Text(
           text,
           style: theme.textTheme.bodyMedium?.copyWith(
@@ -442,22 +450,22 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   Widget _buildFeaturePills(List<(IconData, String)> items, ThemeData theme, bool isDark) {
     return Wrap(
-      spacing: 10,
-      runSpacing: 10,
+      spacing: AppTheme.spaceXs,
+      runSpacing: AppTheme.spaceXs,
       alignment: WrapAlignment.center,
       children: items.map((item) {
         return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceSm, vertical: AppTheme.spaceXs),
           decoration: BoxDecoration(
             color: AppColors.primaryAlpha(0.08),
-            borderRadius: BorderRadius.circular(24),
+            borderRadius: BorderRadius.circular(AppTheme.radiusXl),
             border: Border.all(color: AppColors.primaryAlpha(0.18)),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(item.$1, size: 16, color: AppColors.primary),
-              const SizedBox(width: 6),
+              Icon(item.$1, size: _kPillIconSize, color: AppColors.primary),
+              const SizedBox(width: AppTheme.spaceXxs),
               Text(
                 item.$2,
                 style: theme.textTheme.labelMedium?.copyWith(
@@ -482,15 +490,15 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     return Row(
       children: [
         Container(
-          padding: const EdgeInsets.all(10),
+          padding: const EdgeInsets.all(AppTheme.spaceXs),
           decoration: BoxDecoration(
             color: AppColors.primaryAlpha(0.12),
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(AppTheme.radiusSm),
           ),
           child: Icon(
             icon,
             color: AppColors.primary,
-            size: 22,
+            size: AppIconSizes.sm,
           ),
         ),
         const SizedBox(width: AppTheme.spaceMd),

@@ -3,6 +3,12 @@ import '../core/extensions/context_extensions.dart';
 import '../core/themes.dart';
 import '../data/models/contribution_stats.dart';
 
+// Badge / divider sizing — named constants so changes are in one place.
+const _kBadgePaddingH = AppTheme.spaceXs;  // horizontal badge padding (8)
+const _kBadgePaddingV = AppTheme.spaceXxxs; // vertical badge padding   (2)
+const _kMetricDividerH = AppTheme.spaceLg;  // divider line height       (24)
+const _kMetricIconSize = AppIconSizes.xs;   // secondary metric icon     (16)
+
 /// Impact summary card — Vercel/Linear-style KPI card.
 ///
 /// Design principles:
@@ -131,14 +137,14 @@ class ImpactSummaryCard extends StatelessWidget {
               ),
             ),
             if (stats!.uploadsToday > 0) ...[
-              const SizedBox(width: 8),
+              const SizedBox(width: AppTheme.spaceXs),
               Padding(
-                padding: const EdgeInsets.only(bottom: 4),
+                padding: const EdgeInsets.only(bottom: AppTheme.spaceXxs),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                  padding: const EdgeInsets.symmetric(horizontal: _kBadgePaddingH, vertical: _kBadgePaddingV),
                   decoration: BoxDecoration(
                     color: AppColors.primaryAlpha(0.12),
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(AppTheme.radiusSm),
                   ),
                   child: Text(
                     '+${stats!.uploadsToday} ${l10n.statsToday.toLowerCase()}',
@@ -180,7 +186,7 @@ class ImpactSummaryCard extends StatelessWidget {
             ),
             Container(
               width: 1,
-              height: 28,
+              height: _kMetricDividerH,
               margin: const EdgeInsets.symmetric(horizontal: AppTheme.spaceMd),
               color: AppColors.divider(isDark),
             ),
@@ -256,8 +262,8 @@ class _ImpactMetric extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, size: 15, color: iconColor ?? AppColors.textSecondary(isDark)),
-        const SizedBox(width: 7),
+        Icon(icon, size: _kMetricIconSize, color: iconColor ?? AppColors.textSecondary(isDark)),
+        const SizedBox(width: AppTheme.spaceXxs),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
