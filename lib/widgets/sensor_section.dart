@@ -283,6 +283,7 @@ class _SensorSectionState extends State<SensorSection> {
                   l10n: l10n,
                 ),
                 updatedAt: light?.dateTime,
+                accentColor: AppColors.light,
               );
             },
           ),
@@ -309,6 +310,7 @@ class _SensorSectionState extends State<SensorSection> {
                   l10n: l10n,
                 ),
                 updatedAt: mag?.dateTime,
+                accentColor: AppColors.accentPurple,
               );
             },
           ),
@@ -342,6 +344,7 @@ class _SensorSectionState extends State<SensorSection> {
                   l10n: l10n,
                 ),
                 updatedAt: accel?.dateTime,
+                accentColor: AppColors.movement,
               );
             },
           ),
@@ -366,6 +369,7 @@ class _SensorSectionState extends State<SensorSection> {
                   l10n: l10n,
                 ),
                 updatedAt: gyro?.dateTime,
+                accentColor: AppColors.movement,
               );
             },
           ),
@@ -390,6 +394,7 @@ class _SensorSectionState extends State<SensorSection> {
                   l10n: l10n,
                 ),
                 updatedAt: data?.dateTime,
+                accentColor: AppColors.pressure,
               );
             },
           ),

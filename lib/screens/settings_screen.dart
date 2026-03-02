@@ -92,8 +92,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
           ),
 
-          const SizedBox(height: AppTheme.spaceLg),
-
           _SettingsSectionContainer(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -136,8 +134,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
           ),
 
-          const SizedBox(height: AppTheme.spaceLg),
-
           _SettingsSectionContainer(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -172,8 +168,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
           ),
 
-          const SizedBox(height: AppTheme.spaceLg),
-
           _SettingsSectionContainer(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -181,6 +175,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 _SettingsSectionTitle(text: l10n.settingsDataSection),
                 _DataInfoRow(
                   icon: Icons.verified_user_outlined,
+                  iconColor: AppColors.primary,
                   label: () {
                     final d = _prefs.consentDate;
                     if (d == null) return l10n.settingsConsentDate('—');
@@ -191,6 +186,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 const SizedBox(height: AppTheme.spaceSm),
                 _DataInfoRow(
                   icon: Icons.schedule_outlined,
+                  iconColor: AppColors.movement,
                   label: l10n.settingsDataRetention,
                 ),
               ],
@@ -264,8 +260,8 @@ class _SettingsSectionTitle extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: AppTheme.spaceSm),
       child: Text(
         text,
-        style: theme.textTheme.titleLarge?.copyWith(
-          fontWeight: AppFontWeights.bold,
+        style: theme.textTheme.titleMedium?.copyWith(
+          fontWeight: AppFontWeights.semibold,
         ),
       ),
     );
@@ -351,10 +347,11 @@ class _SettingsToggleRow extends StatelessWidget {
 
 /// Read-only info row used in the Data section.
 class _DataInfoRow extends StatelessWidget {
-  const _DataInfoRow({required this.icon, required this.label});
+  const _DataInfoRow({required this.icon, required this.label, this.iconColor});
 
   final IconData icon;
   final String label;
+  final Color? iconColor;
 
   @override
   Widget build(BuildContext context) {
@@ -362,7 +359,7 @@ class _DataInfoRow extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
     return Row(
       children: [
-        Icon(icon, size: 20, color: AppColors.textTertiary(isDark)),
+        Icon(icon, size: 20, color: iconColor ?? AppColors.textTertiary(isDark)),
         const SizedBox(width: AppTheme.spaceSm),
         Text(
           label,

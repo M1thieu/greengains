@@ -13,6 +13,7 @@ class SensorDataCard extends StatefulWidget {
   final bool enabled;
   final String statusLabel;
   final DateTime? updatedAt;
+  final Color? accentColor;
 
   const SensorDataCard({
     super.key,
@@ -23,6 +24,7 @@ class SensorDataCard extends StatefulWidget {
     required this.enabled,
     required this.statusLabel,
     this.updatedAt,
+    this.accentColor,
   });
 
   @override
@@ -65,6 +67,8 @@ class _SensorDataCardState extends State<SensorDataCard>
     super.dispose();
   }
 
+  Color get _accent => widget.accentColor ?? AppColors.primary;
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -90,7 +94,7 @@ class _SensorDataCardState extends State<SensorDataCard>
             // Active: slightly more visible emerald border (informative, not decorative)
             // Inactive: standard border
             color: isActive
-                ? AppColors.primary.withValues(alpha: 0.35)
+                ? _accent.withValues(alpha: 0.35)
                 : AppColors.border(isDark),
             width: 1,
           ),
@@ -107,7 +111,7 @@ class _SensorDataCardState extends State<SensorDataCard>
                   // Flat icon bg: primary tint when active, surfaceActive when not.
                   // No gradient, no glow — Linear/Vercel flat icon style.
                   color: isActive
-                      ? AppColors.primaryAlpha(0.12)
+                      ? _accent.withValues(alpha: 0.12)
                       : AppColors.surfaceActive(isDark),
                   borderRadius: BorderRadius.circular(AppTheme.radiusSm),
                 ),
@@ -115,7 +119,7 @@ class _SensorDataCardState extends State<SensorDataCard>
                   widget.icon,
                   size: AppIconSizes.sm,
                   color: isActive
-                      ? AppColors.primary
+                      ? _accent
                       : AppColors.textSecondary(isDark),
                 ),
               ),
@@ -141,6 +145,7 @@ class _SensorDataCardState extends State<SensorDataCard>
                         _StatusBadge(
                           label: widget.statusLabel,
                           active: isActive,
+                          accentColor: _accent,
                         ),
                       ],
                     ),
@@ -153,7 +158,7 @@ class _SensorDataCardState extends State<SensorDataCard>
                               vertical: 2,
                             ),
                             decoration: BoxDecoration(
-                              color: isActive ? AppColors.primaryAlpha(0.05) : null,
+                              color: isActive ? _accent.withValues(alpha: 0.05) : null,
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: AnimatedDefaultTextStyle(
@@ -202,10 +207,11 @@ class _SensorDataCardState extends State<SensorDataCard>
 }
 
 class _StatusBadge extends StatelessWidget {
-  const _StatusBadge({required this.label, required this.active});
+  const _StatusBadge({required this.label, required this.active, required this.accentColor});
 
   final String label;
   final bool active;
+  final Color accentColor;
 
   @override
   Widget build(BuildContext context) {
@@ -218,14 +224,14 @@ class _StatusBadge extends StatelessWidget {
       ),
       decoration: BoxDecoration(
         color: active
-            ? AppColors.primaryAlpha(0.15)
+            ? accentColor.withValues(alpha: 0.15)
             : AppColors.border(isDark),
         borderRadius: BorderRadius.circular(AppTheme.radiusSm),
       ),
       child: Text(
         label,
         style: theme.textTheme.labelSmall?.copyWith(
-          color: active ? AppColors.primary : theme.colorScheme.outline,
+          color: active ? accentColor : theme.colorScheme.outline,
           fontWeight: AppFontWeights.semibold,
         ),
       ),
