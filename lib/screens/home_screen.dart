@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:math';
+import 'package:h3_dart/h3_dart.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -18,17 +18,15 @@ import '../models/sensor_models.dart';
 import '../core/events/app_events.dart';
 import '../utils/app_snackbars.dart';
 import '../core/app_preferences.dart';
-import '../widgets/contextual_tip_card.dart';
 import '../widgets/impact_summary_card.dart';
-import '../widgets/sensor_section.dart';
 import '../widgets/coverage_map_widget.dart';
 import '../widgets/tracking_status_chip.dart';
 import '../widgets/tracking_fab.dart';
 
 const double _kDefaultTileConfidence = 0.5;
 const double _kSheetMinSize = 0.14;
-const double _kSheetInitialSize = 0.30;
-const double _kSheetMaxSize = 0.72;
+const double _kSheetInitialSize = 0.35;
+const double _kSheetMaxSize = 0.55;
 
 // ── Layout sizing constants ───────────────────────────────────────────────────
 // FAB / location button fade thresholds (sheet size fractions).
@@ -74,8 +72,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   final _locationService = ForegroundLocationService.instance;
   final _contributionRepo = ContributionRepository();
   final _prefs = AppPreferences.instance;
-  final Set<String> _dismissedTips = {};
   final _sheetController = DraggableScrollableController();
+  final _h3 = const H3Factory().process();
   final _fabOpacity = ValueNotifier<double>(1.0);
   final _userLocationNotifier = ValueNotifier<LatLng?>(null);
   /// Incrementing recenter triggers CoverageMapWidget to move camera to user.
@@ -103,7 +101,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     _sheetController.addListener(_updateFabOpacity);
     _checkServiceStatus();
     _setupUploadSuccessListener();
-    _loadDismissedTips();
     _checkBatteryOptimization();
     _initConnectivity();
     _loadTileCoverage();
@@ -131,6 +128,15 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         setState(() => _isOnline = results.any((r) => r != ConnectivityResult.none));
       }
     });
+  }
+
+  /// Tap drag handle → toggle between peek and stats snap positions.
+  void _toggleSheet() {
+    if (!_sheetController.isAttached) return;
+    final target = _sheetController.size > (_kSheetMinSize + 0.05)
+        ? _kSheetMinSize
+        : _kSheetInitialSize;
+    _sheetController.animateTo(target, duration: _kSnapDuration, curve: Curves.easeInOut);
   }
 
   /// Fade the FAB + My Location out as sheet expands toward sensor view (70%).
@@ -199,21 +205,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       debugPrint("Failed to check battery optimization: '${e.message}'.");
     }
   }
-
-  void _loadDismissedTips() {
-    setState(() {
-      if (_prefs.isTipDismissed('expand_sensors')) {
-        _dismissedTips.add('expand_sensors');
-      }
-    });
-  }
-
-  Future<void> _dismissTip(String tipId) async {
-    await _prefs.dismissTip(tipId);
-    setState(() => _dismissedTips.add(tipId));
-  }
-
-  bool _shouldShowTip(String tipId) => !_dismissedTips.contains(tipId);
 
   void _setupUploadSuccessListener() {
     _uploadSuccessSub =
@@ -342,25 +333,17 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         final tilesData = data['tiles'] as List<dynamic>?;
 
         final tiles = tilesData?.map((tile) {
-          final centroid = tile['centroid'] as Map<String, dynamic>?;
-          final lat = (centroid?['lat'] as num?)?.toDouble();
-          final lng = (centroid?['lng'] as num?)?.toDouble();
-
+          final hexIndex = tile['h3Index'] as String? ?? '';
           List<LatLng>? boundary;
-          if (lat != null && lng != null) {
-            const tileRadiusDegrees = 0.001;
-            const circlePoints = 16;
-            boundary = [
-              for (var i = 0; i < circlePoints; i++)
-                LatLng(
-                  lat + tileRadiusDegrees * cos(i * pi / 8),
-                  lng + tileRadiusDegrees * sin(i * pi / 8),
-                ),
-            ];
+          if (hexIndex.isNotEmpty) {
+            try {
+              boundary = _h3.cellToBoundary(BigInt.parse(hexIndex, radix: 16))
+                  .map((c) => LatLng(c.lat, c.lon))
+                  .toList();
+            } catch (_) {}
           }
-
           return H3Tile(
-            h3Index: tile['h3Index'] as String? ?? '',
+            h3Index: hexIndex,
             confidence: (tile['confidence'] as num?)?.toDouble() ??
                 _kDefaultTileConfidence,
             sampleCount: tile['sampleCount'] as int? ?? 0,
@@ -396,16 +379,17 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       final data = jsonDecode(response.body) as Map<String, dynamic>;
       final tilesData = data['tiles'] as List<dynamic>?;
       final tiles = tilesData?.map((tile) {
-        final centroid = tile['centroid'] as Map<String, dynamic>?;
-        final lat = (centroid?['lat'] as num?)?.toDouble();
-        final lng = (centroid?['lng'] as num?)?.toDouble();
+        final hexIndex = tile['h3Index'] as String? ?? '';
         List<LatLng>? boundary;
-        if (lat != null && lng != null) {
-          const r = 0.001;
-          boundary = [for (var i = 0; i < 16; i++) LatLng(lat + r * cos(i * pi / 8), lng + r * sin(i * pi / 8))];
+        if (hexIndex.isNotEmpty) {
+          try {
+            boundary = _h3.cellToBoundary(BigInt.parse(hexIndex, radix: 16))
+                .map((c) => LatLng(c.lat, c.lon))
+                .toList();
+          } catch (_) {}
         }
         return H3Tile(
-          h3Index: tile['h3Index'] as String? ?? '',
+          h3Index: hexIndex,
           confidence: (tile['confidence'] as num?)?.toDouble() ?? 0.3,
           sampleCount: tile['sampleCount'] as int? ?? 0,
           deviceCount: tile['deviceCount'] as int? ?? 1,
@@ -519,21 +503,20 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             // ── 2. Bottom sheet: stats + sensors ──────────────────────────
             DraggableScrollableSheet(
               controller: _sheetController,
-              minChildSize: _kSheetMinSize,   // collapsed: just the handle
+              minChildSize: _kSheetMinSize,
               initialChildSize: _sheetInitialSize,
-              maxChildSize: _kSheetMaxSize,   // expanded: sensors fully readable
+              maxChildSize: _kSheetMaxSize,
               snap: true,
-              snapSizes: const [_kSheetInitialSize, _kSheetMaxSize],
+              snapSizes: const [_kSheetInitialSize],
               snapAnimationDuration: _kSnapDuration,
               builder: (ctx, scrollController) => _BottomSheetContent(
                 scrollController: scrollController,
                 stats: _stats,
                 tileCoverage: _tileCoverage,
-                locationService: _locationService,
-                shouldShowTip: _shouldShowTip,
-                onDismissTip: _dismissTip,
                 isOnline: _isOnline,
                 onRefresh: _refreshData,
+                communityTileCount: _globalTiles.length,
+                onHandleTap: _toggleSheet,
               ),
             ),
 
@@ -593,27 +576,25 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
 // ─── Private widgets ────────────────────────────────────────────────────────
 
-/// Draggable bottom sheet content: handle + ImpactSummaryCard + sensors.
+/// Draggable bottom sheet content: handle + ImpactSummaryCard.
 class _BottomSheetContent extends StatelessWidget {
   const _BottomSheetContent({
     required this.scrollController,
     required this.stats,
     required this.tileCoverage,
-    required this.locationService,
-    required this.shouldShowTip,
-    required this.onDismissTip,
     required this.isOnline,
     required this.onRefresh,
+    required this.communityTileCount,
+    this.onHandleTap,
   });
 
   final ScrollController scrollController;
   final ContributionStats? stats;
   final TileCoverageStats? tileCoverage;
-  final ForegroundLocationService locationService;
-  final bool Function(String) shouldShowTip;
-  final Future<void> Function(String) onDismissTip;
   final bool isOnline;
   final Future<void> Function() onRefresh;
+  final int communityTileCount;
+  final VoidCallback? onHandleTap;
 
   @override
   Widget build(BuildContext context) {
@@ -641,18 +622,23 @@ class _BottomSheetContent extends StatelessWidget {
           child: CustomScrollView(
             controller: scrollController,
             slivers: [
-            // Drag handle — Material 3: 32dp wide, 4dp tall, centered
+            // Drag handle — Material 3: 32dp wide, 4dp tall, centered.
+            // Full-width tap area toggles peek ↔ stats snap positions.
             SliverToBoxAdapter(
-              child: Center(
-                child: Container(
-                  margin: const EdgeInsets.symmetric(vertical: AppTheme.spaceSm),
-                  width: _kHandleW,
-                  height: _kHandleH,
-                  decoration: BoxDecoration(
-                    color: isDark
-                        ? AppColors.shadowLight(0.2)
-                        : AppColors.shadowDark(0.15),
-                    borderRadius: BorderRadius.circular(AppTheme.spaceXxxs),
+              child: GestureDetector(
+                onTap: onHandleTap,
+                behavior: HitTestBehavior.opaque,
+                child: Center(
+                  child: Container(
+                    margin: const EdgeInsets.symmetric(vertical: AppTheme.spaceSm),
+                    width: _kHandleW,
+                    height: _kHandleH,
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? AppColors.shadowLight(0.2)
+                          : AppColors.shadowDark(0.15),
+                      borderRadius: BorderRadius.circular(AppTheme.spaceXxxs),
+                    ),
                   ),
                 ),
               ),
@@ -688,61 +674,13 @@ class _BottomSheetContent extends StatelessWidget {
                 ),
               ),
 
-            // Impact + stats card
-            SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceMd),
-              sliver: SliverToBoxAdapter(
-                child: ImpactSummaryCard(
-                  stats: stats,
-                  tileCoverage: tileCoverage,
-                  // stats==null means API response not yet received → show skeleton
-                  isLoading: stats == null,
-                ),
-              ),
-            ),
-
-            const SliverToBoxAdapter(child: SizedBox(height: AppTheme.spaceXs)),
-
-            // Contextual tip (dismissible)
-            SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceMd),
-              sliver: ListenableBuilder(
-                listenable: Listenable.merge([
-                  locationService.isRunning,
-                  locationService.isPaused,
-                ]),
-                builder: (context, _) {
-                  final isActive = locationService.isRunning.value &&
-                      !locationService.isPaused.value;
-                  if (!isActive || !shouldShowTip('expand_sensors')) {
-                    return const SliverToBoxAdapter(child: SizedBox.shrink());
-                  }
-                  final l10n = context.l10n;
-                  return SliverToBoxAdapter(
-                    child: ContextualTipCard(
-                      tipId: 'expand_sensors',
-                      icon: Icons.expand_more,
-                      title: l10n.tipViewLiveDataTitle,
-                      message: l10n.tipViewLiveDataMessage,
-                      onDismiss: () => onDismissTip('expand_sensors'),
-                    ),
-                  );
-                },
-              ),
-            ),
-
-            const SliverToBoxAdapter(child: SizedBox(height: AppTheme.spaceXxs)),
-
-            // Live sensor readings (collapsible)
-            SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceMd),
-              sliver: SliverToBoxAdapter(
-                child: SensorSection(
-                  locationService: locationService,
-                  onExpansionChanged: () {
-                    // no-op: tip is hidden by shouldShowTip once dismissed
-                  },
-                ),
+            // Stats — no card chrome, content lives directly on the sheet surface
+            SliverToBoxAdapter(
+              child: ImpactSummaryCard(
+                stats: stats,
+                tileCoverage: tileCoverage,
+                isLoading: stats == null,
+                communityTileCount: communityTileCount,
               ),
             ),
 

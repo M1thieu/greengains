@@ -1,11 +1,25 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import '../core/extensions/context_extensions.dart';
 import '../core/events/app_events.dart';
+import '../core/extensions/context_extensions.dart';
 import '../core/themes.dart';
 import '../data/models/contribution_stats.dart';
 import '../data/repositories/contribution_repository.dart';
 import 'time_ago_text.dart';
+
+// ── ContributionStatsCard layout constants ────────────────────────────────────
+const _kStatIconPad          = AppTheme.spaceSm;                      // 12 — icon container padding
+const _kStatIconBgRadius     = AppTheme.radiusMd;                     // 12 — icon container radius
+const _kStatIconSize         = 22.0;                                  // main icon (between sm/lg)
+const _kStatStreakIconSize    = AppIconSizes.xs;                       // 16 — streak fire icon
+const _kStatDividerH         = AppTheme.spaceLg;                      // 24 — column divider height
+const _kStatNumberTracking   = -0.2;                                  // letterSpacing for numbers
+const _kStatSkeletonIconSize = AppTheme.spaceXl + AppTheme.spaceXxs;  // 36 — skeleton icon box
+const _kStatSkeletonValW     = AppTheme.spaceXl;                      // 32 — skeleton value width
+const _kStatSkeletonValH     = 18.0;                                  // skeleton value height
+const _kStatSkeletonLblW     = AppTheme.spaceXl - AppTheme.spaceXxs;  // 28 — skeleton label width
+const _kStatSkeletonLblH     = AppTheme.spaceSm;                      // 12 — skeleton label height
+const _kStatSkeletonRefreshW = AppIconSizes.sm;                       // 20 — skeleton refresh box
 
 /// Compact horizontal contribution stats bar
 /// Optimized for fast rendering and clean code
@@ -102,11 +116,11 @@ class ContributionStatsCardState extends State<ContributionStatsCard>
           children: [
             // Icon skeleton
             Container(
-              width: 36,
-              height: 36,
+              width: _kStatSkeletonIconSize,
+              height: _kStatSkeletonIconSize,
               decoration: BoxDecoration(
                 color: AppColors.surfaceElevated(isDark),
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(AppTheme.radiusSm),
               ),
             ),
             const SizedBox(width: AppTheme.spaceMd),
@@ -128,11 +142,11 @@ class ContributionStatsCardState extends State<ContributionStatsCard>
             const SizedBox(width: AppTheme.spaceXs),
             // Refresh button skeleton
             Container(
-              width: 20,
-              height: 20,
+              width: _kStatSkeletonRefreshW,
+              height: _kStatSkeletonRefreshW,
               decoration: BoxDecoration(
                 color: AppColors.surfaceElevated(isDark),
-                borderRadius: BorderRadius.circular(4),
+                borderRadius: BorderRadius.circular(AppTheme.radiusMin),
               ),
             ),
           ],
@@ -146,7 +160,7 @@ class ContributionStatsCardState extends State<ContributionStatsCard>
         padding: const EdgeInsets.all(AppTheme.spaceMd),
         decoration: BoxDecoration(
           color: AppColors.surface(isDark),
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(AppTheme.radiusMd),
           border: Border.all(
             color: AppColors.error.withValues(alpha: 0.3),
             width: 1,
@@ -161,12 +175,12 @@ class ContributionStatsCardState extends State<ContributionStatsCard>
               padding: const EdgeInsets.all(AppTheme.spaceXs),
               decoration: BoxDecoration(
                 color: AppColors.error.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(AppTheme.radiusSm),
               ),
               child: Icon(
                 Icons.error_outline,
                 color: AppColors.error,
-                size: 20,
+                size: AppIconSizes.sm,
               ),
             ),
             const SizedBox(width: AppTheme.spaceSm),
@@ -196,7 +210,7 @@ class ContributionStatsCardState extends State<ContributionStatsCard>
         padding: const EdgeInsets.all(AppTheme.spaceMd),
         decoration: BoxDecoration(
           color: AppColors.surface(isDark),
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(AppTheme.radiusMd),
           border: Border.all(
             color: AppColors.primary.withValues(alpha: 0.2),
             width: 1.5,
@@ -209,15 +223,15 @@ class ContributionStatsCardState extends State<ContributionStatsCard>
         child: Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(10),
+              padding: const EdgeInsets.all(AppTheme.spaceXs),
               decoration: BoxDecoration(
                 color: AppColors.primaryAlpha(0.12),
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(AppTheme.radiusSm),
               ),
               child: Icon(
                 Icons.eco_outlined,
                 color: AppColors.primary,
-                size: 24,
+                size: AppIconSizes.md,
               ),
             ),
             const SizedBox(width: AppTheme.spaceMd),
@@ -229,7 +243,7 @@ class ContributionStatsCardState extends State<ContributionStatsCard>
                     context.l10n.statsReadyToContribute,
                     style: AppTheme.smallHeader(theme),
                   ),
-                  const SizedBox(height: 2),
+                  const SizedBox(height: AppTheme.spaceXxxs),
                   Text(
                     context.l10n.statsFirstContributionHint,
                     style: theme.textTheme.bodySmall?.copyWith(
@@ -242,7 +256,7 @@ class ContributionStatsCardState extends State<ContributionStatsCard>
             Icon(
               Icons.arrow_downward,
               color: AppColors.primary,
-              size: 20,
+              size: AppIconSizes.sm,
             ),
           ],
         ),
@@ -297,7 +311,7 @@ class ContributionStatsCardState extends State<ContributionStatsCard>
         children: [
           // Icon with better visual treatment
           Container(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(_kStatIconPad),
             decoration: BoxDecoration(
               gradient: (isMilestone || isFirstUpload)
                   ? LinearGradient(
@@ -309,7 +323,7 @@ class ContributionStatsCardState extends State<ContributionStatsCard>
               color: (isMilestone || isFirstUpload)
                   ? null
                   : AppColors.primaryAlpha(0.12),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(_kStatIconBgRadius),
               boxShadow: (isMilestone || isFirstUpload)
                   ? AppColors.glowEffect(AppColors.primary, opacity: 0.3)
                   : null,
@@ -319,7 +333,7 @@ class ContributionStatsCardState extends State<ContributionStatsCard>
               color: (isMilestone || isFirstUpload)
                   ? Colors.white
                   : AppColors.primary,
-              size: 22,
+              size: _kStatIconSize,
             ),
           ),
           const SizedBox(width: AppTheme.spaceMd),
@@ -359,7 +373,7 @@ class ContributionStatsCardState extends State<ContributionStatsCard>
                   ],
                 ),
                 if (_stats.loadedAt != null) ...[
-                  const SizedBox(height: 6),
+                  const SizedBox(height: AppTheme.spaceXxs),
                   TimeAgoText(
                     timestamp: _stats.loadedAt!,
                     prefix: context.l10n.statsUpdatedPrefix,
@@ -380,7 +394,7 @@ class ContributionStatsCardState extends State<ContributionStatsCard>
   Widget _buildDivider(bool isDark) {
     return Container(
       width: 1,
-      height: 24,
+      height: _kStatDividerH,
       color: AppColors.divider(isDark),
     );
   }
@@ -397,23 +411,22 @@ class ContributionStatsCardState extends State<ContributionStatsCard>
       mainAxisSize: MainAxisSize.min,
       children: [
         if (icon != null) ...[
-          Icon(icon, size: 16, color: iconColor ?? AppColors.primary),
-          const SizedBox(height: 2),
+          Icon(icon, size: _kStatStreakIconSize, color: iconColor ?? AppColors.primary),
+          const SizedBox(height: AppTheme.spaceXxxs),
         ],
         Text(
           value,
           style: AppTheme.displayNumber(theme).copyWith(
             fontSize: theme.textTheme.headlineMedium?.fontSize,
             color: AppColors.textPrimary(isDark),
-            letterSpacing: -0.2,
+            letterSpacing: _kStatNumberTracking,
           ),
         ),
-        const SizedBox(height: 2),
+        const SizedBox(height: AppTheme.spaceXxxs),
         Text(
           label,
           style: theme.textTheme.bodySmall?.copyWith(
             color: AppColors.textSecondary(isDark),
-            fontSize: 12,
             fontWeight: AppFontWeights.medium,
           ),
         ),
@@ -426,20 +439,20 @@ class ContributionStatsCardState extends State<ContributionStatsCard>
       mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-          width: 32,
-          height: 18,
+          width: _kStatSkeletonValW,
+          height: _kStatSkeletonValH,
           decoration: BoxDecoration(
             color: AppColors.surfaceElevated(isDark),
-            borderRadius: BorderRadius.circular(4),
+            borderRadius: BorderRadius.circular(AppTheme.radiusMin),
           ),
         ),
-        const SizedBox(height: 2),
+        const SizedBox(height: AppTheme.spaceXxxs),
         Container(
-          width: 28,
-          height: 12,
+          width: _kStatSkeletonLblW,
+          height: _kStatSkeletonLblH,
           decoration: BoxDecoration(
             color: AppColors.surfaceElevated(isDark),
-            borderRadius: BorderRadius.circular(4),
+            borderRadius: BorderRadius.circular(AppTheme.radiusMin),
           ),
         ),
       ],

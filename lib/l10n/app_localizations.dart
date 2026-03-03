@@ -155,7 +155,7 @@ abstract class AppLocalizations {
   /// No description provided for @onboardingSignInSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Sign in to sync your contributions across devices and unlock daily contributor rewards.'**
+  /// **'Sign in to sync your contributions across devices and track your daily streak.'**
   String get onboardingSignInSubtitle;
 
   /// No description provided for @onboardingCloudSync.
@@ -713,13 +713,13 @@ abstract class AppLocalizations {
   /// No description provided for @profileSignInPrompt.
   ///
   /// In en, this message translates to:
-  /// **'Sign in with Google to unlock daily pot rewards and sync your data across devices.'**
+  /// **'Sign in with Google to track your streak and sync your contributions across devices.'**
   String get profileSignInPrompt;
 
   /// No description provided for @profileAnonymousNote.
   ///
   /// In en, this message translates to:
-  /// **'Using anonymously. Daily pot rewards unavailable.'**
+  /// **'Using anonymously. Sign in to track your streak.'**
   String get profileAnonymousNote;
 
   /// No description provided for @profileUserFallback.
@@ -998,6 +998,12 @@ abstract class AppLocalizations {
   /// **'YOUR CONTRIBUTIONS'**
   String get yourContributions;
 
+  /// No description provided for @impactCardContext.
+  ///
+  /// In en, this message translates to:
+  /// **'environmental readings — shared anonymously'**
+  String get impactCardContext;
+
   /// No description provided for @loadingStatsLabel.
   ///
   /// In en, this message translates to:
@@ -1019,7 +1025,7 @@ abstract class AppLocalizations {
   /// No description provided for @startContributingHint.
   ///
   /// In en, this message translates to:
-  /// **'Track your environment to build your coverage map'**
+  /// **'Your phone maps the city silently while you go about your day'**
   String get startContributingHint;
 
   /// No description provided for @areaCovered.
@@ -1368,7 +1374,7 @@ abstract class AppLocalizations {
   /// No description provided for @referralInviteDescription.
   ///
   /// In en, this message translates to:
-  /// **'Invite contributors to expand coverage. You earn bonus credits when they join.'**
+  /// **'Invite contributors to expand coverage. More contributors means better data.'**
   String get referralInviteDescription;
 
   /// No description provided for @referralLinkCopied.
@@ -1443,16 +1449,40 @@ abstract class AppLocalizations {
   /// **'{count} this week'**
   String statsWeeklyTotal(int count);
 
+  /// No description provided for @statsMilestoneLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Next reward'**
+  String get statsMilestoneLabel;
+
+  /// No description provided for @statsMilestoneHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Rewards unlock when you reach this milestone — keep contributing'**
+  String get statsMilestoneHint;
+
+  /// No description provided for @statsMilestoneElite.
+  ///
+  /// In en, this message translates to:
+  /// **'Elite contributor · all milestones reached'**
+  String get statsMilestoneElite;
+
+  /// No description provided for @statsCommunityAreas.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} areas mapped by community'**
+  String statsCommunityAreas(int count);
+
   /// No description provided for @batteryDialogTitle.
   ///
   /// In en, this message translates to:
-  /// **'Maximize Your Earnings'**
+  /// **'Maximize Your Impact'**
   String get batteryDialogTitle;
 
   /// No description provided for @batteryDialogBody.
   ///
   /// In en, this message translates to:
-  /// **'To earn 24/7, GreenGains needs to run in the background without being killed by the system.'**
+  /// **'To contribute 24/7, GreenGains needs to run in the background without being killed by the system.'**
   String get batteryDialogBody;
 
   /// No description provided for @batteryDialogBodyBold.
@@ -1526,6 +1556,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'You earn'**
   String get referralStepEarn;
+
+  /// No description provided for @settingsDiagnostics.
+  ///
+  /// In en, this message translates to:
+  /// **'Sensor Diagnostics'**
+  String get settingsDiagnostics;
+
+  /// No description provided for @settingsDiagnosticsDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Live readings from your device sensors'**
+  String get settingsDiagnosticsDesc;
 }
 
 class _AppLocalizationsDelegate

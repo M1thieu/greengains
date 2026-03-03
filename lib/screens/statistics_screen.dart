@@ -22,6 +22,12 @@ const _kBarLabelSize   = 10.0;  // day-of-week label below each bar (below bodyS
 const _kSkeletonTileH  = 80.0;  // height of each stat-tile skeleton rect
 const _kSkeletonTitleW = 160.0; // width of section-title skeleton rect
 const _kHeroIconSize   = 80.0;  // empty-state centre icon size
+const _kProgressH      = 6.0;   // milestone progress bar height
+
+// Reward milestones — thresholds at which rewards unlock.
+// Designed to feel achievable at each step (not a wall).
+const _kMilestones = [10, 50, 100, 250, 500, 1000, 5000];
+
 
 /// Statistics screen — local stats (fast/offline) + server 7-day chart.
 ///
@@ -139,6 +145,8 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                     padding: AppTheme.pagePadding,
                     children: [
                       _buildQuickStatsGrid(theme, isDark),
+                      const SizedBox(height: AppTheme.spaceMd),
+                      _buildMilestoneProgress(theme, isDark),
                       const SizedBox(height: AppTheme.spaceLg),
                       _buildSectionHeader(l10n.statsContributionTimeline, theme, isDark),
                       const SizedBox(height: AppTheme.spaceMd),
@@ -197,6 +205,93 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
           const SizedBox(height: AppTheme.spaceXs),
           Text(value, style: theme.textTheme.titleLarge?.copyWith(fontWeight: AppFontWeights.bold)),
           Text(label, style: theme.textTheme.bodySmall?.copyWith(color: AppColors.textSecondary(isDark))),
+        ],
+      ),
+    );
+  }
+
+  // ─── Milestone progress ─────────────────────────────────────────────────────
+
+  Widget _buildMilestoneProgress(ThemeData theme, bool isDark) {
+    final l10n = context.l10n;
+    final total = (_stats?.totalUploads ?? 0) > 0
+        ? _stats!.totalUploads
+        : (_backendTotalUploads ?? 0);
+
+    // Find the next milestone above the current total
+    final next = _kMilestones.cast<int?>().firstWhere(
+      (m) => m! > total,
+      orElse: () => null,
+    );
+
+    // All milestones reached — elite badge
+    if (next == null) {
+      return Container(
+        padding: const EdgeInsets.all(AppTheme.spaceMd),
+        decoration: AppTheme.surfaceContainer(isDark: isDark),
+        child: Row(
+          children: [
+            Icon(Icons.stars_rounded, color: AppColors.warning, size: AppIconSizes.md),
+            const SizedBox(width: AppTheme.spaceSm),
+            Expanded(
+              child: Text(
+                l10n.statsMilestoneElite,
+                style: theme.textTheme.titleSmall?.copyWith(fontWeight: AppFontWeights.semibold),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final progress = (total / next).clamp(0.0, 1.0);
+
+    return Container(
+      padding: const EdgeInsets.all(AppTheme.spaceMd),
+      decoration: AppTheme.surfaceContainer(isDark: isDark),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                l10n.statsMilestoneLabel,
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: AppFontWeights.semibold,
+                ),
+              ),
+              Text(
+                '$total / $next',
+                style: theme.textTheme.labelMedium?.copyWith(
+                  color: AppColors.primary,
+                  fontWeight: AppFontWeights.semibold,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppTheme.spaceSm),
+          TweenAnimationBuilder<double>(
+            tween: Tween(begin: 0, end: progress),
+            duration: AppDurations.medium,
+            curve: AppMotion.decelerated,
+            builder: (_, value, __) => ClipRRect(
+              borderRadius: BorderRadius.circular(AppTheme.spaceXxxs),
+              child: LinearProgressIndicator(
+                value: value,
+                minHeight: _kProgressH,
+                backgroundColor: AppColors.primaryAlpha(0.12),
+                valueColor: AlwaysStoppedAnimation(AppColors.primary),
+              ),
+            ),
+          ),
+          const SizedBox(height: AppTheme.spaceXs),
+          Text(
+            l10n.statsMilestoneHint,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: AppColors.textSecondary(isDark),
+            ),
+          ),
         ],
       ),
     );
@@ -452,3 +547,4 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
     );
   }
 }
+

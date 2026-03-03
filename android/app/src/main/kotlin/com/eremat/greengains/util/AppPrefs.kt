@@ -62,4 +62,7 @@ object AppPrefs {
 
     /** Number of successful uploads on the current day. Resets when date changes. */
     const val UPLOADS_TODAY_COUNT = "gg.uploads_today_count"
+
+    /** Lifetime total successful uploads — shown alongside today's count in the notification. */
+    const val UPLOADS_TOTAL_COUNT = "gg.uploads_total_count"
 }

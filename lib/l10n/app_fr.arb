@@ -10,7 +10,7 @@
   "onboardingFeature3Title": "Des données réelles, un impact réel",
   "onboardingFeature3Description": "Vos mesures alimentent une carte environnementale en direct utilisée par des chercheurs et des urbanistes. Chaque rue couverte est une donnée qui n'existait pas avant.",
   "onboardingSignInTitle": "Rejoindre le réseau",
-  "onboardingSignInSubtitle": "Connectez-vous pour synchroniser vos contributions et débloquer les récompenses quotidiennes des contributeurs.",
+  "onboardingSignInSubtitle": "Connectez-vous pour synchroniser vos contributions et suivre votre progression.",
   "onboardingCloudSync": "Carte de couverture en direct",
   "onboardingCloudSyncDescription": "Regardez votre zone de couverture personnelle s'agrandir en temps réel",
   "onboardingFutureFeatures": "Bientôt disponible",
@@ -168,8 +168,8 @@
   "error": "Erreur",
 
   "profileNotSignedIn": "Non connecté",
-  "profileSignInPrompt": "Connectez-vous avec Google pour débloquer les récompenses quotidiennes et synchroniser vos données sur tous vos appareils.",
-  "profileAnonymousNote": "Utilisation anonyme. Les récompenses quotidiennes ne sont pas disponibles.",
+  "profileSignInPrompt": "Connectez-vous avec Google pour suivre votre progression et synchroniser vos contributions.",
+  "profileAnonymousNote": "Utilisation anonyme. Connectez-vous pour suivre votre progression.",
   "profileUserFallback": "Utilisateur",
   "profileViewStats": "Voir les statistiques",
   "profileContributionsHint": "Suivez vos contributions",
@@ -221,10 +221,11 @@
   "mapCenterTooltip": "Centrer sur la position",
 
   "yourContributions": "VOS CONTRIBUTIONS",
+  "impactCardContext": "mesures environnementales — partagées anonymement",
   "loadingStatsLabel": "Chargement des statistiques",
   "noContributionsYet": "Aucune contribution pour le moment. Commencez le suivi.",
   "startContributingTitle": "Commencer à contribuer",
-  "startContributingHint": "Suivez votre environnement pour construire votre carte de couverture",
+  "startContributingHint": "Votre téléphone cartographie silencieusement la ville pendant vos déplacements",
   "areaCovered": "Zone couverte",
   "activeStreak": "Série active",
   "contributionStatsSemanticsLabel": "Vos contributions : {uploads}. Zone couverte : {area}. Série active : {streak}.",
@@ -310,7 +311,7 @@
   "onboardingDataCollectedDescription": "Lumière, mouvement, pression et position anonyme — agrégés avec 100\u202f000+ appareils avant toute analyse.",
 
   "referralInviteTitle": "Développer le réseau",
-  "referralInviteDescription": "Invitez des contributeurs pour étendre la couverture. Vous gagnez des crédits bonus quand ils rejoignent.",
+  "referralInviteDescription": "Invitez des contributeurs pour étendre la couverture. Plus de contributeurs, meilleures sont les données.",
   "referralLinkCopied": "Lien de parrainage copié",
   "referralCopyLink": "Copier le lien",
   "referralConversions": "{count, plural, =0{Aucun ami rejoint pour l'instant} =1{1 ami a rejoint} other{{count} amis ont rejoint}}",
@@ -333,14 +334,24 @@
   "statsWeeklyLabel": "7 JOURS",
 
   "statsWeeklyTotal": "{count} cette semaine",
+
+  "statsMilestoneLabel": "Prochain palier",
+  "statsMilestoneHint": "Les récompenses se débloquent à ce palier — continuez à contribuer",
+  "statsMilestoneElite": "Contributeur élite · tous les paliers atteints",
+  "statsCommunityAreas": "{count} zones cartographiées par la communauté",
+  "@statsCommunityAreas": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
   "@statsWeeklyTotal": {
     "placeholders": {
       "count": {"type": "int"}
     }
   },
 
-  "batteryDialogTitle": "Maximisez vos gains",
-  "batteryDialogBody": "Pour gagner 24h/24, GreenGains doit fonctionner en arrière-plan sans être arrêté par le système.",
+  "batteryDialogTitle": "Maximisez votre impact",
+  "batteryDialogBody": "Pour contribuer 24h/24, GreenGains doit fonctionner en arrière-plan sans être arrêté par le système.",
   "batteryDialogBodyBold": "Veuillez désactiver l'« Optimisation de la batterie » pour GreenGains dans l'écran suivant.",
   "batteryDialogDismissForever": "Ne plus afficher",
   "batteryDialogLater": "Plus tard",
@@ -354,5 +365,8 @@
   "legendCommunity": "Communauté",
   "referralStepShare": "Partager",
   "referralStepJoin": "Ils rejoignent",
-  "referralStepEarn": "Vous gagnez"
+  "referralStepEarn": "Vous gagnez",
+
+  "settingsDiagnostics": "Diagnostics capteurs",
+  "settingsDiagnosticsDesc": "Lectures en temps réel de vos capteurs"
 }

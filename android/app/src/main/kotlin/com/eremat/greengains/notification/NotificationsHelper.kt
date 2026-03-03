@@ -17,16 +17,22 @@ import java.time.Instant
 
 internal object NotificationsHelper {
 
-    private const val NOTIFICATION_CHANNEL_ID = "general_notification_channel"
+    // v2 channel — renames the user-visible label from "Location Tracking" to
+    // "Sensor Collection". Old channel is deleted on first run so Android picks up the new name.
+    private const val NOTIFICATION_CHANNEL_ID = "sensor_collection_v2"
+    private const val LEGACY_CHANNEL_ID       = "general_notification_channel"
     const val NOTIFICATION_ID_SERVICE = 1
     const val NOTIFICATION_ID_WORKER = 2
 
     fun createNotificationChannel(context: Context) {
         val notificationManager = context.getSystemService(Service.NOTIFICATION_SERVICE) as NotificationManager
 
+        // Remove the legacy channel so Android picks up the new user-visible name.
+        notificationManager.deleteNotificationChannel(LEGACY_CHANNEL_ID)
+
         val channel = NotificationChannel(
             NOTIFICATION_CHANNEL_ID,
-            "Location Tracking",
+            "Sensor Collection",           // was "Location Tracking" — clearer + less invasive
             NotificationManager.IMPORTANCE_LOW // Low importance = silent, no popup
         ).apply {
             enableVibration(false)
@@ -41,6 +47,7 @@ internal object NotificationsHelper {
         lastUploadMillis: Long? = null,
         isPaused: Boolean = false,
         uploadsToday: Int = 0,
+        totalUploads: Int = 0,
     ): Notification {
         val actionIntent = Intent(context, ForegroundService::class.java).apply {
             action = if (isPaused) {
@@ -72,8 +79,8 @@ internal object NotificationsHelper {
 
         val body = when {
             isPaused -> context.getString(R.string.notification_paused_body)
-            uploadsToday > 0 -> context.resources.getQuantityString(
-                R.plurals.notification_readings_today, uploadsToday, uploadsToday
+            uploadsToday > 0 -> context.getString(
+                R.string.notification_readings_with_total, uploadsToday, totalUploads
             )
             else -> context.getString(R.string.notification_collecting_no_upload)
         }
@@ -108,8 +115,9 @@ internal object NotificationsHelper {
         lastUpload: Long?,
         isPaused: Boolean,
         uploadsToday: Int = 0,
+        totalUploads: Int = 0,
     ) {
-        manager.notify(NOTIFICATION_ID_SERVICE, buildNotification(context, lastUpload, isPaused, uploadsToday))
+        manager.notify(NOTIFICATION_ID_SERVICE, buildNotification(context, lastUpload, isPaused, uploadsToday, totalUploads))
     }
 
     fun buildWorkerNotification(context: Context): Notification {

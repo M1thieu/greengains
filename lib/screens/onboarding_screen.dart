@@ -48,7 +48,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   void _nextPage() {
-    if (_currentPage < 2) {
+    if (_currentPage < 1) {
       _pageController.nextPage(
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
@@ -111,7 +111,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     return Scaffold(
       body: Stack(
         children: [
-          // PageView
+          // PageView — 2 pages: Welcome → Sign In
+          // Features page removed: facts shown on page 1, pills on sign-in.
           PageView(
             controller: _pageController,
             onPageChanged: (index) {
@@ -119,7 +120,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             },
             children: [
               _buildWelcomePage(theme, isDark, l10n),
-              _buildFeaturesPage(theme, isDark, l10n),
               _buildSignInPage(theme, isDark, l10n),
             ],
           ),
@@ -137,7 +137,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: List.generate(
-                    3,
+                    2,
                     (index) => AnimatedContainer(
                       duration: AppDurations.fast,
                       margin: const EdgeInsets.symmetric(horizontal: AppTheme.spaceXxs),
@@ -154,8 +154,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 ),
                 const SizedBox(height: AppTheme.spaceXl),
 
-                // Navigation buttons (only for pages 0-2)
-                if (_currentPage < 2)
+                // Navigation buttons (only on page 0 — page 1 is sign-in)
+                if (_currentPage < 1)
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceXl),
                     child: Row(
@@ -235,47 +235,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     );
   }
 
-  // Page 2: How it works
-  Widget _buildFeaturesPage(ThemeData theme, bool isDark, AppLocalizations l10n) {
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.all(AppTheme.spaceLg),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Spacer(),
-            _buildBenefit(
-              icon: Icons.bedtime_outlined,
-              title: l10n.onboardingFeature1Title,
-              description: l10n.onboardingFeature1Description,
-              isDark: isDark,
-              theme: theme,
-            ),
-            const SizedBox(height: AppTheme.spaceMd),
-            _buildBenefit(
-              icon: Icons.shield_outlined,
-              title: l10n.onboardingFeature2Title,
-              description: l10n.onboardingFeature2Description,
-              isDark: isDark,
-              theme: theme,
-            ),
-            const SizedBox(height: AppTheme.spaceMd),
-            _buildBenefit(
-              icon: Icons.map_outlined,
-              title: l10n.onboardingFeature3Title,
-              description: l10n.onboardingFeature3Description,
-              isDark: isDark,
-              theme: theme,
-            ),
-            const Spacer(),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // Page 3: Impact
-  // Page 3: Sign In
+  // Page 2: Sign In
   Widget _buildSignInPage(ThemeData theme, bool isDark, AppLocalizations l10n) {
     return SafeArea(
       child: Padding(
@@ -480,49 +440,4 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     );
   }
 
-  Widget _buildBenefit({
-    required IconData icon,
-    required String title,
-    required String description,
-    required bool isDark,
-    required ThemeData theme,
-  }) {
-    return Row(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(AppTheme.spaceXs),
-          decoration: BoxDecoration(
-            color: AppColors.primaryAlpha(0.12),
-            borderRadius: BorderRadius.circular(AppTheme.radiusSm),
-          ),
-          child: Icon(
-            icon,
-            color: AppColors.primary,
-            size: AppIconSizes.sm,
-          ),
-        ),
-        const SizedBox(width: AppTheme.spaceMd),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: theme.textTheme.titleSmall?.copyWith(
-                  fontWeight: AppFontWeights.semibold,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                description,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: AppColors.textSecondary(isDark),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
 }

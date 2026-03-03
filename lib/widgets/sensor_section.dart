@@ -174,7 +174,7 @@ class _SensorSectionState extends State<SensorSection> {
               ),
               child: Icon(
                 Icons.sensors,
-                size: 20,
+                size: AppIconSizes.sm,
                 color: AppColors.primary,
               ),
             ),
@@ -214,7 +214,7 @@ class _SensorSectionState extends State<SensorSection> {
                 color: AppColors.textSecondary(isDark).withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(AppTheme.radiusSm),
               ),
-              child: Icon(Icons.sensors_off, size: 20, color: AppColors.textSecondary(isDark)),
+              child: Icon(Icons.sensors_off, size: AppIconSizes.sm, color: AppColors.textSecondary(isDark)),
             ),
             const SizedBox(width: AppTheme.spaceSm),
             Expanded(

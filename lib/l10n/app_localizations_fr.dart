@@ -41,7 +41,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get onboardingSignInSubtitle =>
-      'Connectez-vous pour synchroniser vos contributions et débloquer les récompenses quotidiennes des contributeurs.';
+      'Connectez-vous pour synchroniser vos contributions et suivre votre progression.';
 
   @override
   String get onboardingCloudSync => 'Carte de couverture en direct';
@@ -348,11 +348,11 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get profileSignInPrompt =>
-      'Connectez-vous avec Google pour débloquer les récompenses quotidiennes et synchroniser vos données sur tous vos appareils.';
+      'Connectez-vous avec Google pour suivre votre progression et synchroniser vos contributions.';
 
   @override
   String get profileAnonymousNote =>
-      'Utilisation anonyme. Les récompenses quotidiennes ne sont pas disponibles.';
+      'Utilisation anonyme. Connectez-vous pour suivre votre progression.';
 
   @override
   String get profileUserFallback => 'Utilisateur';
@@ -501,6 +501,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get yourContributions => 'VOS CONTRIBUTIONS';
 
   @override
+  String get impactCardContext =>
+      'mesures environnementales — partagées anonymement';
+
+  @override
   String get loadingStatsLabel => 'Chargement des statistiques';
 
   @override
@@ -512,7 +516,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get startContributingHint =>
-      'Suivez votre environnement pour construire votre carte de couverture';
+      'Votre téléphone cartographie silencieusement la ville pendant vos déplacements';
 
   @override
   String get areaCovered => 'Zone couverte';
@@ -711,7 +715,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get referralInviteDescription =>
-      'Invitez des contributeurs pour étendre la couverture. Vous gagnez des crédits bonus quand ils rejoignent.';
+      'Invitez des contributeurs pour étendre la couverture. Plus de contributeurs, meilleures sont les données.';
 
   @override
   String get referralLinkCopied => 'Lien de parrainage copié';
@@ -762,11 +766,27 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get batteryDialogTitle => 'Maximisez vos gains';
+  String get statsMilestoneLabel => 'Prochain palier';
+
+  @override
+  String get statsMilestoneHint =>
+      'Les récompenses se débloquent à ce palier — continuez à contribuer';
+
+  @override
+  String get statsMilestoneElite =>
+      'Contributeur élite · tous les paliers atteints';
+
+  @override
+  String statsCommunityAreas(int count) {
+    return '$count zones cartographiées par la communauté';
+  }
+
+  @override
+  String get batteryDialogTitle => 'Maximisez votre impact';
 
   @override
   String get batteryDialogBody =>
-      'Pour gagner 24h/24, GreenGains doit fonctionner en arrière-plan sans être arrêté par le système.';
+      'Pour contribuer 24h/24, GreenGains doit fonctionner en arrière-plan sans être arrêté par le système.';
 
   @override
   String get batteryDialogBodyBold =>
@@ -806,4 +826,11 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get referralStepEarn => 'Vous gagnez';
+
+  @override
+  String get settingsDiagnostics => 'Diagnostics capteurs';
+
+  @override
+  String get settingsDiagnosticsDesc =>
+      'Lectures en temps réel de vos capteurs';
 }

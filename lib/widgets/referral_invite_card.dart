@@ -1,12 +1,22 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-
 import '../core/app_preferences.dart';
 import '../core/extensions/context_extensions.dart';
 import '../core/themes.dart';
 import '../services/referral/referral_service.dart';
 import '../utils/app_snackbars.dart';
+
+// ── ReferralInviteCard layout constants ───────────────────────────────────────
+const _kReferralAvatarSize = AppTheme.spaceXl + AppTheme.spaceXs;  // 40 — header icon circle
+const _kConvBadgePadH      = AppTheme.spaceXs;                     //  8 — conversions badge h-pad
+const _kConvBadgePadV      = AppTheme.spaceXxxs;                   //  2 — conversions badge v-pad
+const _kConvBadgeRadius    = AppTheme.radiusMd;                    // 12 — conversions badge radius
+const _kCodePad            = AppTheme.spaceSm;                     // 12 — code container padding
+const _kCodeRadius         = AppTheme.radiusMd;                    // 12 — code container radius
+const _kStepCircleSize     = AppTheme.spaceXl + AppTheme.spaceXs;  // 40 — step icon circle
+const _kStepArrowPad       = AppTheme.spaceXxs;                    //  4 — arrow left/right inset
+const _kStepArrowIconSize  = AppTheme.spaceSm;                     // 12 — chevron icon size
 
 class ReferralInviteCard extends StatefulWidget {
   const ReferralInviteCard({
@@ -90,12 +100,16 @@ class _ReferralInviteCardState extends State<ReferralInviteCard> {
           children: [
             Row(
               children: [
-                CircleAvatar(
-                  radius: 20,
-                  backgroundColor: theme.colorScheme.primary.withValues(alpha: 0.12),
-                  child: Icon(Icons.diversity_3, color: theme.colorScheme.primary),
+                Container(
+                  width: _kReferralAvatarSize,
+                  height: _kReferralAvatarSize,
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryAlpha(0.12),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(Icons.diversity_3, color: AppColors.primary, size: AppIconSizes.md),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: AppTheme.spaceSm),
                 Expanded(
                   child: Text(
                     context.l10n.referralInviteTitle,
@@ -104,15 +118,18 @@ class _ReferralInviteCardState extends State<ReferralInviteCard> {
                 ),
                 if (_conversions != null && _conversions! > 0)
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: _kConvBadgePadH,
+                      vertical: _kConvBadgePadV,
+                    ),
                     decoration: BoxDecoration(
-                      color: theme.colorScheme.primary.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(12),
+                      color: AppColors.primaryAlpha(0.12),
+                      borderRadius: BorderRadius.circular(_kConvBadgeRadius),
                     ),
                     child: Text(
                       '$_conversions',
                       style: theme.textTheme.labelSmall?.copyWith(
-                        color: theme.colorScheme.primary,
+                        color: AppColors.primary,
                         fontWeight: AppFontWeights.semibold,
                       ),
                     ),
@@ -132,7 +149,7 @@ class _ReferralInviteCardState extends State<ReferralInviteCard> {
               ],
             ),
             if (_conversions != null) ...[
-              const SizedBox(height: 4),
+              const SizedBox(height: AppTheme.spaceXxs),
               Text(
                 context.l10n.referralConversions(_conversions!),
                 style: theme.textTheme.bodySmall?.copyWith(
@@ -144,9 +161,9 @@ class _ReferralInviteCardState extends State<ReferralInviteCard> {
             ],
             const SizedBox(height: AppTheme.spaceSm),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+              padding: const EdgeInsets.all(_kCodePad),
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(_kCodeRadius),
                 color: theme.colorScheme.surfaceContainerHighest,
               ),
               child: _buildCodeBar(
@@ -157,7 +174,7 @@ class _ReferralInviteCardState extends State<ReferralInviteCard> {
               ),
             ),
             if (_hasLoadError && !_isLoading) ...[
-              const SizedBox(height: 6),
+              const SizedBox(height: AppTheme.spaceXxs),
               Text(
                 context.l10n.errorGeneric,
                 style: theme.textTheme.bodySmall?.copyWith(
@@ -198,7 +215,7 @@ class _ReferralInviteCardState extends State<ReferralInviteCard> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               codeText,
-              const SizedBox(height: 8),
+              const SizedBox(height: AppTheme.spaceXs),
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [actionButtons],
@@ -210,7 +227,7 @@ class _ReferralInviteCardState extends State<ReferralInviteCard> {
         return Row(
           children: [
             Expanded(child: codeText),
-            const SizedBox(width: 8),
+            const SizedBox(width: AppTheme.spaceXs),
             actionButtons,
           ],
         );
@@ -230,7 +247,7 @@ class _ReferralInviteCardState extends State<ReferralInviteCard> {
           IconButton(
             tooltip: context.l10n.buttonRetry,
             onPressed: _loadReferralData,
-            icon: const Icon(Icons.refresh, size: 18),
+            icon: const Icon(Icons.refresh, size: AppIconSizes.sm),
           ),
         TextButton.icon(
           onPressed: referralLink == null
@@ -244,7 +261,7 @@ class _ReferralInviteCardState extends State<ReferralInviteCard> {
                     AppSnackbars.showInfo(context, context.l10n.referralLinkCopied);
                   }
                 },
-          icon: const Icon(Icons.copy, size: 16),
+          icon: const Icon(Icons.copy, size: AppIconSizes.xs),
           label: Text(context.l10n.referralCopyLink),
         ),
       ],
@@ -264,15 +281,15 @@ class _ReferralStep extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-          width: 40,
-          height: 40,
+          width: _kStepCircleSize,
+          height: _kStepCircleSize,
           decoration: BoxDecoration(
-            color: theme.colorScheme.primary.withValues(alpha: 0.1),
+            color: AppColors.primaryAlpha(0.1),
             shape: BoxShape.circle,
           ),
-          child: Icon(icon, size: 20, color: theme.colorScheme.primary),
+          child: Icon(icon, size: AppIconSizes.sm, color: AppColors.primary),
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: AppTheme.spaceXxs),
         Text(
           label,
           style: theme.textTheme.labelSmall?.copyWith(
@@ -290,10 +307,14 @@ class _ReferralStepArrow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 16, left: 6, right: 6),
+      padding: const EdgeInsets.only(
+        bottom: AppTheme.spaceMd,
+        left: _kStepArrowPad,
+        right: _kStepArrowPad,
+      ),
       child: Icon(
         Icons.arrow_forward_ios,
-        size: 12,
+        size: _kStepArrowIconSize,
         color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
       ),
     );

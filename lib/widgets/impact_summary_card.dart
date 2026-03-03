@@ -22,12 +22,16 @@ class ImpactSummaryCard extends StatelessWidget {
   final ContributionStats? stats;
   final TileCoverageStats? tileCoverage;
   final bool isLoading;
+  /// Number of community-mapped tiles fetched from the global endpoint.
+  /// Shows a "X areas mapped by community" context row when > 0.
+  final int communityTileCount;
 
   const ImpactSummaryCard({
     super.key,
     this.stats,
     this.tileCoverage,
     this.isLoading = false,
+    this.communityTileCount = 0,
   });
 
   String _formatCoverageArea() {
@@ -62,13 +66,8 @@ class ImpactSummaryCard extends StatelessWidget {
       label: semanticLabel,
       container: true,
       child: ExcludeSemantics(
-        child: Container(
-          padding: const EdgeInsets.all(AppTheme.spaceLg),
-          decoration: BoxDecoration(
-            color: AppColors.surfaceElevated(isDark),
-            borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-            border: Border.all(color: AppColors.border(isDark), width: 1),
-          ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceMd, vertical: AppTheme.spaceSm),
           child: isLoading
               ? _buildSkeleton(isDark)
               : hasData
@@ -159,14 +158,13 @@ class ImpactSummaryCard extends StatelessWidget {
             ],
           ],
         ),
-        const SizedBox(height: 2),
+        const SizedBox(height: 3),
         Text(
-          l10n.totalUploads.toUpperCase(),
+          l10n.impactCardContext,
           style: TextStyle(
-            fontSize: 10,
-            fontWeight: AppFontWeights.semibold,
-            letterSpacing: 1.0,
-            color: AppColors.textSecondary(isDark),
+            fontSize: 11,
+            color: AppColors.textTertiary(isDark),
+            height: 1.2,
           ),
         ),
 
@@ -199,6 +197,25 @@ class ImpactSummaryCard extends StatelessWidget {
             ),
           ],
         ),
+
+        // Community context — shown once global tiles have loaded
+        if (communityTileCount > 0) ...[
+          const SizedBox(height: AppTheme.spaceSm),
+          Row(
+            children: [
+              Icon(Icons.public, size: _kMetricIconSize, color: AppColors.textTertiary(isDark)),
+              const SizedBox(width: AppTheme.spaceXxs),
+              Text(
+                l10n.statsCommunityAreas(communityTileCount),
+                style: TextStyle(
+                  fontSize: 11,
+                  color: AppColors.textTertiary(isDark),
+                  height: 1.2,
+                ),
+              ),
+            ],
+          ),
+        ],
       ],
     );
   }
@@ -210,7 +227,7 @@ class ImpactSummaryCard extends StatelessWidget {
         Icon(
           Icons.sensors_outlined,
           size: 28,
-          color: AppColors.textSecondary(isDark),
+          color: AppColors.primary,
         ),
         const SizedBox(width: 14),
         Expanded(

@@ -2,6 +2,17 @@ import 'package:flutter/material.dart';
 import '../core/themes.dart';
 import 'time_ago_text.dart';
 
+// ── SensorDataCard layout constants ──────────────────────────────────────────
+const _kSensorIconPad     = AppTheme.spaceXs;     //  8 — icon container padding
+const _kSensorValuePadH   = AppTheme.spaceXs;     //  8 — value pill h-padding
+const _kSensorValuePadV   = AppTheme.spaceXxxs;   //  2 — value pill v-padding
+const _kSensorValueRadius = AppTheme.radiusSm;    //  8 — value + shimmer pill radius
+const _kSensorUnitLineH   = 1.2;                  // line-height for unit text
+const _kSensorTimeSize    = 11.0;                 // font size for update timestamp
+const _kShimmerW          = 120.0;               // shimmer placeholder width
+const _kShimmerH          = AppTheme.spaceLg;     // 24 — shimmer placeholder height
+const _kShimmerDuration   = Duration(milliseconds: 1500);
+
 /// Reusable sensor data display card with live values
 /// Shows icon, title, current value, and unit
 /// Enhanced with subtle animations and better visual feedback
@@ -106,7 +117,7 @@ class _SensorDataCardState extends State<SensorDataCard>
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
-                padding: const EdgeInsets.all(10),
+                padding: const EdgeInsets.all(_kSensorIconPad),
                 decoration: BoxDecoration(
                   // Flat icon bg: primary tint when active, surfaceActive when not.
                   // No gradient, no glow — Linear/Vercel flat icon style.
@@ -154,12 +165,12 @@ class _SensorDataCardState extends State<SensorDataCard>
                     widget.value != null
                         ? Container(
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 2,
+                              horizontal: _kSensorValuePadH,
+                              vertical: _kSensorValuePadV,
                             ),
                             decoration: BoxDecoration(
                               color: isActive ? _accent.withValues(alpha: 0.05) : null,
-                              borderRadius: BorderRadius.circular(6),
+                              borderRadius: BorderRadius.circular(_kSensorValueRadius),
                             ),
                             child: AnimatedDefaultTextStyle(
                               duration: AppDurations.fast,
@@ -179,18 +190,17 @@ class _SensorDataCardState extends State<SensorDataCard>
                       widget.unit,
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: AppColors.textSecondary(isDark),
-                        fontSize: 12,
-                        height: 1.2,
+                        height: _kSensorUnitLineH,
                       ),
                     ),
                     // Timestamp display
                     if (widget.updatedAt != null) ...[
-                      const SizedBox(height: 2),
+                      const SizedBox(height: AppTheme.spaceXxxs),
                       TimeAgoText(
                         timestamp: widget.updatedAt!,
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: AppColors.textTertiary(isDark),
-                          fontSize: 11,
+                          fontSize: _kSensorTimeSize,
                         ),
                       ),
                     ],
@@ -258,7 +268,7 @@ class _ShimmerLoadingState extends State<_ShimmerLoading>
   void initState() {
     super.initState();
     _shimmerController = AnimationController(
-      duration: const Duration(milliseconds: 1500),
+      duration: _kShimmerDuration,
       vsync: this,
     )..repeat(reverse: true);
     _shimmerAnimation = Tween<double>(begin: 0.5, end: 1.0).animate(
@@ -280,11 +290,11 @@ class _ShimmerLoadingState extends State<_ShimmerLoading>
         return Opacity(
           opacity: _shimmerAnimation.value,
           child: Container(
-            height: 24,
-            width: 120,
+            height: _kShimmerH,
+            width: _kShimmerW,
             decoration: BoxDecoration(
               color: AppColors.shimmerBase(widget.isDark),
-              borderRadius: BorderRadius.circular(6),
+              borderRadius: BorderRadius.circular(_kSensorValueRadius),
             ),
           ),
         );

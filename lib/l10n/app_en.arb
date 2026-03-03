@@ -10,7 +10,7 @@
   "onboardingFeature3Title": "Real data, real impact",
   "onboardingFeature3Description": "Your readings go into a live environmental map used by researchers and urban planners. Every street covered is data that didn't exist before.",
   "onboardingSignInTitle": "Join the network",
-  "onboardingSignInSubtitle": "Sign in to sync your contributions across devices and unlock daily contributor rewards.",
+  "onboardingSignInSubtitle": "Sign in to sync your contributions across devices and track your daily streak.",
 "onboardingCloudSync": "Live Coverage Map",
   "onboardingCloudSyncDescription": "Watch your personal coverage area grow in real time",
   "onboardingFutureFeatures": "Coming Soon",
@@ -168,8 +168,8 @@
   "error": "Error",
 
   "profileNotSignedIn": "Not Signed In",
-  "profileSignInPrompt": "Sign in with Google to unlock daily pot rewards and sync your data across devices.",
-  "profileAnonymousNote": "Using anonymously. Daily pot rewards unavailable.",
+  "profileSignInPrompt": "Sign in with Google to track your streak and sync your contributions across devices.",
+  "profileAnonymousNote": "Using anonymously. Sign in to track your streak.",
   "profileUserFallback": "User",
   "profileViewStats": "View Statistics",
   "profileContributionsHint": "Track your contributions",
@@ -221,10 +221,11 @@
   "mapCenterTooltip": "Center on location",
 
   "yourContributions": "YOUR CONTRIBUTIONS",
+  "impactCardContext": "environmental readings — shared anonymously",
   "loadingStatsLabel": "Loading contribution stats",
   "noContributionsYet": "No contributions yet. Start tracking to begin.",
   "startContributingTitle": "Start contributing",
-  "startContributingHint": "Track your environment to build your coverage map",
+  "startContributingHint": "Your phone maps the city silently while you go about your day",
   "areaCovered": "Area covered",
   "activeStreak": "Active streak",
   "contributionStatsSemanticsLabel": "Your contributions: {uploads}. Area covered: {area}. Active streak: {streak}.",
@@ -310,7 +311,7 @@
   "onboardingDataCollectedDescription": "Light, motion, pressure and anonymous location — aggregated with 100,000+ devices before any analysis.",
 
   "referralInviteTitle": "Grow the network",
-  "referralInviteDescription": "Invite contributors to expand coverage. You earn bonus credits when they join.",
+  "referralInviteDescription": "Invite contributors to expand coverage. More contributors means better data.",
   "referralLinkCopied": "Referral link copied",
   "referralCopyLink": "Copy link",
   "referralConversions": "{count, plural, =0{No friends joined yet} =1{1 friend joined} other{{count} friends joined}}",
@@ -333,14 +334,24 @@
   "statsWeeklyLabel": "7 DAYS",
 
   "statsWeeklyTotal": "{count} this week",
+
+  "statsMilestoneLabel": "Next reward",
+  "statsMilestoneHint": "Rewards unlock when you reach this milestone — keep contributing",
+  "statsMilestoneElite": "Elite contributor · all milestones reached",
+  "statsCommunityAreas": "{count} areas mapped by community",
+  "@statsCommunityAreas": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
   "@statsWeeklyTotal": {
     "placeholders": {
       "count": {"type": "int"}
     }
   },
 
-  "batteryDialogTitle": "Maximize Your Earnings",
-  "batteryDialogBody": "To earn 24/7, GreenGains needs to run in the background without being killed by the system.",
+  "batteryDialogTitle": "Maximize Your Impact",
+  "batteryDialogBody": "To contribute 24/7, GreenGains needs to run in the background without being killed by the system.",
   "batteryDialogBodyBold": "Please disable \"Battery Optimization\" for GreenGains in the next screen.",
   "batteryDialogDismissForever": "Don't show again",
   "batteryDialogLater": "Later",
@@ -354,5 +365,8 @@
   "legendCommunity": "Community",
   "referralStepShare": "Share",
   "referralStepJoin": "They join",
-  "referralStepEarn": "You earn"
+  "referralStepEarn": "You earn",
+
+  "settingsDiagnostics": "Sensor Diagnostics",
+  "settingsDiagnosticsDesc": "Live readings from your device sensors"
 }

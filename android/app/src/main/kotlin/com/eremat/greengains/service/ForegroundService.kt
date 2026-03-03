@@ -282,7 +282,7 @@ class ForegroundService : Service() {
         // Android 8+ requirement - call IMMEDIATELY before any other logic
         if (!running) {
             val lastUpload = NotificationsHelper.readLastUploadFromPrefs(this)
-            val notification = NotificationsHelper.buildNotification(this, lastUpload, trackingPausedState, readUploadsTodayFromPrefs())
+            val notification = NotificationsHelper.buildNotification(this, lastUpload, trackingPausedState, readUploadsTodayFromPrefs(), readTotalUploadsFromPrefs())
             ServiceCompat.startForeground(
                 this,
                 NotificationsHelper.NOTIFICATION_ID_SERVICE,
@@ -341,7 +341,7 @@ class ForegroundService : Service() {
 
         // Start Notification
         val lastUpload = NotificationsHelper.readLastUploadFromPrefs(this)
-        val notification = NotificationsHelper.buildNotification(this, lastUpload, trackingPausedState, readUploadsTodayFromPrefs())
+        val notification = NotificationsHelper.buildNotification(this, lastUpload, trackingPausedState, readUploadsTodayFromPrefs(), readTotalUploadsFromPrefs())
         ServiceCompat.startForeground(
             this,
             NotificationsHelper.NOTIFICATION_ID_SERVICE,
@@ -697,25 +697,27 @@ class ForegroundService : Service() {
         sendNativeUploadStatusToFlutter(event)
         if (event.type == NativeUploadEventType.SUCCESS && ::notificationManager.isInitialized) {
             val uploadsToday = incrementUploadsToday()
-            NotificationsHelper.notifyUpdate(this, notificationManager, event.timestamp, trackingPausedState, uploadsToday)
+            val uploadsTotal = readTotalUploadsFromPrefs()
+            NotificationsHelper.notifyUpdate(this, notificationManager, event.timestamp, trackingPausedState, uploadsToday, uploadsTotal)
         }
     }
 
     /**
-     * Increments today's upload count, resetting at midnight.
-     * Stored in SharedPrefs so it survives service restarts within the same day.
+     * Increments today's upload count (resets at midnight) and lifetime total.
+     * Both are stored in SharedPrefs so they survive service restarts.
      */
     private fun incrementUploadsToday(): Int {
         val prefs = getSharedPreferences(AppPrefs.NAME, Context.MODE_PRIVATE)
         val today = java.time.LocalDate.now().toString()
         val storedDate = prefs.getString(AppPrefs.UPLOADS_TODAY_DATE, null)
-        val current = if (storedDate == today) prefs.getInt(AppPrefs.UPLOADS_TODAY_COUNT, 0) else 0
-        val newCount = current + 1
+        val currentToday = if (storedDate == today) prefs.getInt(AppPrefs.UPLOADS_TODAY_COUNT, 0) else 0
+        val currentTotal = prefs.getInt(AppPrefs.UPLOADS_TOTAL_COUNT, 0)
         prefs.edit()
             .putString(AppPrefs.UPLOADS_TODAY_DATE, today)
-            .putInt(AppPrefs.UPLOADS_TODAY_COUNT, newCount)
+            .putInt(AppPrefs.UPLOADS_TODAY_COUNT, currentToday + 1)
+            .putInt(AppPrefs.UPLOADS_TOTAL_COUNT, currentTotal + 1)
             .apply()
-        return newCount
+        return currentToday + 1
     }
 
     private fun readUploadsTodayFromPrefs(): Int {
@@ -723,6 +725,11 @@ class ForegroundService : Service() {
         val today = java.time.LocalDate.now().toString()
         val storedDate = prefs.getString(AppPrefs.UPLOADS_TODAY_DATE, null)
         return if (storedDate == today) prefs.getInt(AppPrefs.UPLOADS_TODAY_COUNT, 0) else 0
+    }
+
+    private fun readTotalUploadsFromPrefs(): Int {
+        val prefs = getSharedPreferences(AppPrefs.NAME, Context.MODE_PRIVATE)
+        return prefs.getInt(AppPrefs.UPLOADS_TOTAL_COUNT, 0)
     }
 
     private fun sendNativeUploadStatusToFlutter(event: NativeUploadStatusEvent) {
@@ -836,7 +843,8 @@ class ForegroundService : Service() {
         if (!::notificationManager.isInitialized) return
         val lastUpload = NotificationsHelper.readLastUploadFromPrefs(this)
         val uploadsToday = readUploadsTodayFromPrefs()
-        NotificationsHelper.notifyUpdate(this, notificationManager, lastUpload, trackingPausedState, uploadsToday)
+        val uploadsTotal = readTotalUploadsFromPrefs()
+        NotificationsHelper.notifyUpdate(this, notificationManager, lastUpload, trackingPausedState, uploadsToday, uploadsTotal)
     }
 
     private fun sendTrackingPausedToFlutter(paused: Boolean) {

@@ -264,7 +264,6 @@ class AppPreferences {
     await _sp.setString(PreferenceKeys.consentDate, dt.toIso8601String());
   }
 
-
   DateTime? get lastUploadAt {
     final raw = _sp.getString(PreferenceKeys.lastUploadAt) ??
         _sp.getString(PreferenceKeys._legacyLastUploadAt);

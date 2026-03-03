@@ -7,7 +7,7 @@ import 'core/themes.dart';
 import 'services/location/foreground_location_service.dart';
 
 /// Main navigation shell with bottom navigation bar.
-/// Uses IndexedStack to preserve each tab's UI state.
+/// Uses PageView + _KeepAlive so each tab keeps its state AND supports swipe.
 class AppShell extends StatefulWidget {
   const AppShell({super.key});
 
@@ -17,16 +17,13 @@ class AppShell extends StatefulWidget {
 
 class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
   int _currentIndex = 0;
+  late final PageController _pageController;
   final _locationService = ForegroundLocationService.instance;
-
-  static const _screens = [
-    HomeScreen(),
-    ProfileScreen(),
-  ];
 
   @override
   void initState() {
     super.initState();
+    _pageController = PageController();
     WidgetsBinding.instance.addObserver(this);
     TimeAgoService.instance.start();
     _locationService.isRunning.addListener(_rebuild);
@@ -36,6 +33,7 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
 
   @override
   void dispose() {
+    _pageController.dispose();
     WidgetsBinding.instance.removeObserver(this);
     _locationService.isRunning.removeListener(_rebuild);
     _locationService.isPaused.removeListener(_rebuild);
@@ -59,6 +57,11 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
 
   void _onDestinationSelected(int index) {
     setState(() => _currentIndex = index);
+    _pageController.animateToPage(
+      index,
+      duration: AppDurations.fast,
+      curve: AppMotion.standard,
+    );
   }
 
   @override
@@ -67,12 +70,13 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
         _locationService.isRunning.value && !_locationService.isPaused.value;
 
     return Scaffold(
-      body: Stack(
-        children: [
-          IndexedStack(
-            index: _currentIndex,
-            children: _screens,
-          ),
+      body: PageView(
+        controller: _pageController,
+        physics: const NeverScrollableScrollPhysics(),
+        onPageChanged: (index) => setState(() => _currentIndex = index),
+        children: const [
+          _KeepAlive(child: HomeScreen()),
+          _KeepAlive(child: ProfileScreen()),
         ],
       ),
       bottomNavigationBar: NavigationBar(
@@ -97,5 +101,26 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
         ],
       ),
     );
+  }
+}
+
+/// Keeps a tab's widget tree alive when swiping away from it.
+class _KeepAlive extends StatefulWidget {
+  final Widget child;
+  const _KeepAlive({required this.child});
+
+  @override
+  State<_KeepAlive> createState() => _KeepAliveState();
+}
+
+class _KeepAliveState extends State<_KeepAlive>
+    with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
+    return widget.child;
   }
 }

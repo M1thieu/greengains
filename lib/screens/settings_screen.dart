@@ -7,6 +7,7 @@ import '../core/themes.dart';
 import '../core/theme_controller.dart';
 import '../core/language_controller.dart';
 import '../core/app_preferences.dart';
+import 'diagnostics_screen.dart';
 import 'webview_screen.dart';
 
 // Legal page URLs — single source of truth (update version paths here only)
@@ -189,6 +190,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   iconColor: AppColors.movement,
                   label: l10n.settingsDataRetention,
                 ),
+                const SizedBox(height: AppTheme.spaceSm),
+                _SettingsNavRow(
+                  icon: Icons.sensors_outlined,
+                  title: l10n.settingsDiagnostics,
+                  subtitle: l10n.settingsDiagnosticsDesc,
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const DiagnosticsScreen(),
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
@@ -345,6 +357,62 @@ class _SettingsToggleRow extends StatelessWidget {
   }
 }
 
+/// Tappable nav row — navigates to another screen.
+class _SettingsNavRow extends StatelessWidget {
+  const _SettingsNavRow({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: AppTheme.spaceXs),
+        child: Row(
+          children: [
+            Icon(icon, size: AppIconSizes.sm, color: AppColors.textTertiary(isDark)),
+            const SizedBox(width: AppTheme.spaceSm),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    title,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: AppColors.textPrimary(isDark),
+                      fontWeight: AppFontWeights.semibold,
+                    ),
+                  ),
+                  Text(
+                    subtitle,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: AppColors.textSecondary(isDark),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(Icons.chevron_right, size: AppIconSizes.sm, color: AppColors.textTertiary(isDark)),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 /// Read-only info row used in the Data section.
 class _DataInfoRow extends StatelessWidget {
   const _DataInfoRow({required this.icon, required this.label, this.iconColor});
@@ -359,7 +427,7 @@ class _DataInfoRow extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
     return Row(
       children: [
-        Icon(icon, size: 20, color: iconColor ?? AppColors.textTertiary(isDark)),
+        Icon(icon, size: AppIconSizes.sm, color: iconColor ?? AppColors.textTertiary(isDark)),
         const SizedBox(width: AppTheme.spaceSm),
         Text(
           label,

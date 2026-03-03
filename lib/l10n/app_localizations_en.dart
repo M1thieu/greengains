@@ -41,7 +41,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get onboardingSignInSubtitle =>
-      'Sign in to sync your contributions across devices and unlock daily contributor rewards.';
+      'Sign in to sync your contributions across devices and track your daily streak.';
 
   @override
   String get onboardingCloudSync => 'Live Coverage Map';
@@ -346,11 +346,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get profileSignInPrompt =>
-      'Sign in with Google to unlock daily pot rewards and sync your data across devices.';
+      'Sign in with Google to track your streak and sync your contributions across devices.';
 
   @override
   String get profileAnonymousNote =>
-      'Using anonymously. Daily pot rewards unavailable.';
+      'Using anonymously. Sign in to track your streak.';
 
   @override
   String get profileUserFallback => 'User';
@@ -498,6 +498,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get yourContributions => 'YOUR CONTRIBUTIONS';
 
   @override
+  String get impactCardContext => 'environmental readings — shared anonymously';
+
+  @override
   String get loadingStatsLabel => 'Loading contribution stats';
 
   @override
@@ -509,7 +512,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get startContributingHint =>
-      'Track your environment to build your coverage map';
+      'Your phone maps the city silently while you go about your day';
 
   @override
   String get areaCovered => 'Area covered';
@@ -706,7 +709,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get referralInviteDescription =>
-      'Invite contributors to expand coverage. You earn bonus credits when they join.';
+      'Invite contributors to expand coverage. More contributors means better data.';
 
   @override
   String get referralLinkCopied => 'Referral link copied';
@@ -757,11 +760,27 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get batteryDialogTitle => 'Maximize Your Earnings';
+  String get statsMilestoneLabel => 'Next reward';
+
+  @override
+  String get statsMilestoneHint =>
+      'Rewards unlock when you reach this milestone — keep contributing';
+
+  @override
+  String get statsMilestoneElite =>
+      'Elite contributor · all milestones reached';
+
+  @override
+  String statsCommunityAreas(int count) {
+    return '$count areas mapped by community';
+  }
+
+  @override
+  String get batteryDialogTitle => 'Maximize Your Impact';
 
   @override
   String get batteryDialogBody =>
-      'To earn 24/7, GreenGains needs to run in the background without being killed by the system.';
+      'To contribute 24/7, GreenGains needs to run in the background without being killed by the system.';
 
   @override
   String get batteryDialogBodyBold =>
@@ -800,4 +819,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get referralStepEarn => 'You earn';
+
+  @override
+  String get settingsDiagnostics => 'Sensor Diagnostics';
+
+  @override
+  String get settingsDiagnosticsDesc =>
+      'Live readings from your device sensors';
 }
