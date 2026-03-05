@@ -10,7 +10,7 @@ import '../core/app_preferences.dart';
 import '../data/repositories/contribution_repository.dart';
 import '../services/auth/auth_service.dart';
 import '../utils/app_snackbars.dart';
-import '../widgets/referral_invite_card.dart';
+// import '../widgets/referral_invite_card.dart'; // BETA: referral deferred to v1.1
 import 'settings_screen.dart';
 import 'statistics_screen.dart';
 
@@ -174,10 +174,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
           const SizedBox(height: AppTheme.spaceMd),
 
-          // REFERRAL CARD (critical for monetization)
-          ReferralInviteCard(user: user),
-
-          const SizedBox(height: AppTheme.spaceMd),
+          // BETA: ReferralInviteCard deferred to v1.1 — uncomment when referral model is ready
+          // ReferralInviteCard(user: user),
+          // const SizedBox(height: AppTheme.spaceMd),
 
           // COMPACT STATISTICS NAVIGATION (~70px)
           _buildCompactStatsCard(theme, isDark, l10n),

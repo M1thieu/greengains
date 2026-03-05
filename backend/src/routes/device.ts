@@ -25,7 +25,8 @@ export async function deviceRoutes(fastify: FastifyInstance) {
                     return reply.code(401).send({ error: 'Unauthorized', message: 'Invalid Firebase token' });
                 }
 
-                // 2. Enforce max devices per user (prevents multi-device rate-limit bypass)
+                // 2. Enforce max devices per user — evict oldest if over limit
+                const MAX_DEVICES = 10;
                 const pool = getPool();
                 const deviceCount = await pool.query<{ count: string }>(
                     `SELECT COUNT(*)::text AS count
@@ -34,11 +35,22 @@ export async function deviceRoutes(fastify: FastifyInstance) {
                         AND device_id != $2`,
                     [userId, device_id],
                 );
-                if (parseInt(deviceCount.rows[0]?.count ?? '0', 10) >= 5) {
-                    return reply.code(429).send({
-                        error: 'Too Many Devices',
-                        message: 'Maximum of 5 registered devices per account.',
-                    });
+                if (parseInt(deviceCount.rows[0]?.count ?? '0', 10) >= MAX_DEVICES) {
+                    // Evict the oldest device instead of hard-blocking
+                    await pool.query(
+                        `DELETE FROM device_secrets
+                          WHERE user_id = $1
+                            AND device_id != $2
+                            AND device_id = (
+                                SELECT device_id FROM device_secrets
+                                 WHERE user_id = $1
+                                   AND device_id != $2
+                                 ORDER BY last_used_at ASC NULLS FIRST
+                                 LIMIT 1
+                            )`,
+                        [userId, device_id],
+                    );
+                    request.log.info({ userId }, 'Evicted oldest device (limit reached)');
                 }
 
                 // 3. Generate Device Secret

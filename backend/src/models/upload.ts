@@ -46,6 +46,10 @@ export const SensorReadingSchema = z.object({
 
 export const UploadBatchSchema = z.object({
   device_id: z.string().min(1).max(128),
+  /** Stable UUID frozen at batch creation on the client. Never changes on retry.
+   *  Stored in batch_json; the (device_hash, timestamp_utc) unique index deduplicates
+   *  retries as long as the client sends the same frozen timestamp. */
+  batch_id: z.string().uuid().optional(),
   timestamp: z.coerce.date(),
   batch: z.array(SensorReadingSchema).min(1),
   location: LocationDataSchema.optional(),

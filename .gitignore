@@ -35,7 +35,6 @@ macos/Pods/
 **/.DS_Store
 
 # Firebase
-lib/firebase_options.dart
 *-adminsdk-*.json
 firebase-key.json
 
@@ -80,6 +79,7 @@ upload_monitor.log
 !README.md
 !SETUP.md
 !REBRAND_CHECKLIST.md
+!docs/play-store-listing.md
 
 # Temporary / archived
 tmp/

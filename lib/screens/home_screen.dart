@@ -1,66 +1,38 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:h3_dart/h3_dart.dart';
-import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:in_app_review/in_app_review.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../data/models/contribution_stats.dart';
-import '../data/repositories/contribution_repository.dart';
 import '../core/extensions/context_extensions.dart';
 import '../core/themes.dart';
 import '../services/location/foreground_location_service.dart';
 import '../services/network/backend_client.dart';
-import '../models/sensor_models.dart';
 import '../core/events/app_events.dart';
 import '../utils/app_snackbars.dart';
 import '../core/app_preferences.dart';
-import '../widgets/impact_summary_card.dart';
 import '../widgets/coverage_map_widget.dart';
 import '../widgets/tracking_status_chip.dart';
 import '../widgets/tracking_fab.dart';
 
 const double _kDefaultTileConfidence = 0.5;
-const double _kSheetMinSize = 0.14;
-const double _kSheetInitialSize = 0.35;
-const double _kSheetMaxSize = 0.55;
-
-// ── Layout sizing constants ───────────────────────────────────────────────────
-// FAB / location button fade thresholds (sheet size fractions).
-const double _kFadeStartSize = 0.48;
-const double _kFadeEndSize   = 0.36;
-// Bottom-of-screen offset for FAB row: min-sheet fraction × screen + gap.
-// _kSheetMinSize × screenHeight gives the sheet collapsed height;
-// adding spaceMd places the FAB just above it.
-// (computed inline as  screenHeight * _kSheetMinSize + AppTheme.spaceMd)
-
-// Snap animation duration — between fast (300) and medium (600).
-const _kSnapDuration = Duration(milliseconds: 320);
-
-// Bottom-sheet corner radius (Material 3 recommendation: 28dp; we use 20 for compactness).
-const _kSheetRadius = 20.0;
 
 // Map overlay elements.
-const _kMapLegendFontSize = 11.0; // below bodySmall (12); keeps legend compact
-const _kOfflineBannerFontSize = 13.0; // between bodySmall (12) and bodyMedium (14)
-
-// Drag handle dimensions (Material 3 spec: 32×4 dp, centered).
-const _kHandleW = AppTheme.spaceXl;   // 32
-const _kHandleH = AppTheme.spaceXxs;  // 4
+const _kMapLegendFontSize = 11.0;
 
 // My Location button: 48×48 standard touch target.
 const _kLocationBtnSize = AppTheme.minTouchTarget; // 48
 
-/// Home screen — map-as-background layout.
+/// Home screen — full-screen map layout.
 ///
 /// Layer order (bottom → top):
 ///   0. CoverageMapWidget (edge-to-edge background)
 ///   1. Status chip (top overlay)
-///   2. DraggableScrollableSheet (stats + sensors, pull-to-refresh)
-///   3. TrackingFab + MyLocationButton (fades when sheet is expanded)
+///   2. Map legend (top-right overlay)
+///   3. TrackingFab + MyLocationButton (bottom overlay)
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -70,103 +42,37 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   final _locationService = ForegroundLocationService.instance;
-  final _contributionRepo = ContributionRepository();
   final _prefs = AppPreferences.instance;
-  final _sheetController = DraggableScrollableController();
   final _h3 = const H3Factory().process();
-  final _fabOpacity = ValueNotifier<double>(1.0);
   final _userLocationNotifier = ValueNotifier<LatLng?>(null);
   /// Incrementing recenter triggers CoverageMapWidget to move camera to user.
-  /// Provider-agnostic: HomeScreen never touches MapController directly.
   final _recenterTrigger = ValueNotifier<int>(0);
 
-  TileCoverageStats? _tileCoverage;
   bool _batteryPromptOpen = false;
-  bool _isOnline = true;
-  ContributionStats? _stats;
   StreamSubscription<UploadSuccessEvent>? _uploadSuccessSub;
-  StreamSubscription<LocationData>? _locationStreamSub;
-  StreamSubscription<List<ConnectivityResult>>? _connectivitySub;
+  StreamSubscription? _locationStreamSub;
   List<H3Tile> _h3Tiles = [];
   List<H3Tile> _globalTiles = [];
   bool _h3TilesLoading = true;
-  double _sheetInitialSize = _kSheetInitialSize;
-  Timer? _sheetSizeSaveDebounce;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _locationService.isRunning.addListener(_handleServiceRunningChange);
-    _sheetController.addListener(_updateFabOpacity);
     _checkServiceStatus();
     _setupUploadSuccessListener();
     _checkBatteryOptimization();
-    _initConnectivity();
-    _loadTileCoverage();
-    _loadStats();
     _loadH3Tiles();
     _loadGlobalTiles();
     _loadUserLocation();
     _subscribeToLocationUpdates();
-    _restoreSheetState();
   }
 
   void _handleServiceRunningChange() {
     if (_locationService.isRunning.value) {
       _checkBatteryOptimization();
     }
-  }
-
-  Future<void> _initConnectivity() async {
-    final results = await Connectivity().checkConnectivity();
-    if (mounted) {
-      setState(() => _isOnline = results.any((r) => r != ConnectivityResult.none));
-    }
-    _connectivitySub = Connectivity().onConnectivityChanged.listen((results) {
-      if (mounted) {
-        setState(() => _isOnline = results.any((r) => r != ConnectivityResult.none));
-      }
-    });
-  }
-
-  /// Tap drag handle → toggle between peek and stats snap positions.
-  void _toggleSheet() {
-    if (!_sheetController.isAttached) return;
-    final target = _sheetController.size > (_kSheetMinSize + 0.05)
-        ? _kSheetMinSize
-        : _kSheetInitialSize;
-    _sheetController.animateTo(target, duration: _kSnapDuration, curve: Curves.easeInOut);
-  }
-
-  /// Fade the FAB + My Location out as sheet expands toward sensor view (70%).
-  void _updateFabOpacity() {
-    if (!_sheetController.isAttached) return;
-    final size = _sheetController.size;
-    // Start fading at _kFadeStartSize, fully hidden at _kFadeEndSize.
-    final opacity = ((_kFadeStartSize - size) / (_kFadeStartSize - _kFadeEndSize)).clamp(0.0, 1.0);
-    _fabOpacity.value = opacity;
-    _persistSheetState(size);
-  }
-
-  Future<void> _restoreSheetState() async {
-    await _prefs.ensureInitialized();
-    final saved = _prefs.homeSheetSize;
-    if (saved == null) return;
-    final restored = saved.clamp(_kSheetMinSize, _kSheetMaxSize);
-    if (!mounted) return;
-    setState(() => _sheetInitialSize = restored);
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted || !_sheetController.isAttached) return;
-      _sheetController.jumpTo(restored);
-    });
-  }
-
-  void _persistSheetState(double size) {
-    _sheetSizeSaveDebounce?.cancel();
-    _sheetSizeSaveDebounce = Timer(const Duration(milliseconds: 300), () {
-      _prefs.setHomeSheetSize(size.clamp(_kSheetMinSize, _kSheetMaxSize));
-    });
   }
 
   Future<void> _checkBatteryOptimization() async {
@@ -214,18 +120,16 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   void _onUploadSuccess(UploadSuccessEvent event) {
     if (!mounted) return;
     AppSnackbars.showSuccess(context, context.l10n.uploadSuccessMessage);
-    _loadTileCoverage();
-    _loadStats().then((_) => _maybeRequestReview());
     _loadH3Tiles();
+    _maybeRequestReview();
   }
 
   /// Show the Play Store in-app review dialog once, after the user's 5th upload.
-  /// The OS controls whether the dialog actually appears (rate-limited by Android).
   Future<void> _maybeRequestReview() async {
     try {
-      final stats = _stats;
-      if (stats == null || stats.totalUploads < 5) return;
       final prefs = await SharedPreferences.getInstance();
+      final count = prefs.getInt('total_upload_count') ?? 0;
+      if (count < 5) return;
       if (prefs.getBool('review_requested') == true) return;
       final review = InAppReview.instance;
       if (await review.isAvailable()) {
@@ -240,12 +144,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     WidgetsBinding.instance.removeObserver(this);
     _locationStreamSub?.cancel();
     _uploadSuccessSub?.cancel();
-    _connectivitySub?.cancel();
     _locationService.isRunning.removeListener(_handleServiceRunningChange);
-    _sheetController.removeListener(_updateFabOpacity);
-    _sheetSizeSaveDebounce?.cancel();
-    _sheetController.dispose();
-    _fabOpacity.dispose();
     _recenterTrigger.dispose();
     _userLocationNotifier.dispose();
     super.dispose();
@@ -259,8 +158,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       }
       _checkServiceStatus();
       _reloadUploadStatus();
-      _loadTileCoverage();
-      _loadStats();
       _loadH3Tiles();
     }
   }
@@ -293,33 +190,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         await _locationService.start();
       }
     }
-  }
-
-  Future<void> _refreshData() async {
-    HapticFeedback.lightImpact();
-    if (_locationService.isRunning.value) {
-      await _locationService.flushSensorBuffers();
-    }
-    await _loadTileCoverage();
-    await _loadStats();
-    await _loadH3Tiles();
-    await Future.delayed(const Duration(milliseconds: 300));
-  }
-
-  Future<void> _loadTileCoverage() async {
-    try {
-      final stats = await _contributionRepo.getTodayTileCoverage();
-      if (mounted) {
-        setState(() => _tileCoverage = stats);
-      }
-    } catch (_) {}
-  }
-
-  Future<void> _loadStats() async {
-    try {
-      final stats = await _contributionRepo.getStats();
-      if (mounted) setState(() => _stats = stats);
-    } catch (_) {}
   }
 
   Future<void> _loadH3Tiles() async {
@@ -437,19 +307,17 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     final topPadding = MediaQuery.paddingOf(context).top;
-    final screenHeight = MediaQuery.sizeOf(context).height;
+    final bottomPadding = MediaQuery.paddingOf(context).bottom;
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle.light
-          .copyWith(statusBarColor: Colors.transparent),
+      value: SystemUiOverlayStyle.light.copyWith(statusBarColor: Colors.transparent),
       child: Scaffold(
         body: Stack(
           children: [
-            // ── 0. Full-screen map (edge-to-edge background) ──────────────
+            // ── 0. Full-screen map ────────────────────────────────────────
             ValueListenableBuilder<LatLng?>(
               valueListenable: _userLocationNotifier,
               builder: (context, userLocation, _) => CoverageMapWidget(
-                // Global (community) tiles rendered first so personal tiles appear on top
                 tiles: [..._globalTiles, ..._h3Tiles],
                 userLocation: userLocation,
                 fillScreen: true,
@@ -457,12 +325,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 recenterTrigger: _recenterTrigger,
                 controlsPadding: EdgeInsets.only(
                   top: topPadding,
-                  bottom: screenHeight * _kSheetMinSize + AppTheme.spaceXxl,
+                  bottom: bottomPadding + AppTheme.spaceXxl,
                 ),
               ),
             ),
 
-            // ── 1. Top overlay: status chip ───────────────────────────────
+            // ── 1. Status chip ────────────────────────────────────────────
             Positioned(
               top: topPadding + AppTheme.spaceXs,
               left: AppTheme.spaceMd,
@@ -485,83 +353,38 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 },
               ),
             ),
-            // ── 1b. Map legend: green = personal, blue = community ────────
+
+            // ── 2. Map legend ─────────────────────────────────────────────
             Positioned(
               top: topPadding + AppTheme.spaceXs,
               right: AppTheme.spaceMd,
-              child: ValueListenableBuilder<double>(
-                valueListenable: _fabOpacity,
-                builder: (_, opacity, child) => AnimatedOpacity(
-                  opacity: opacity,
-                  duration: AppDurations.instant,
-                  child: child,
-                ),
-                child: _MapLegend(hasCommunityTiles: _globalTiles.isNotEmpty),
-              ),
+              child: _MapLegend(hasCommunityTiles: _globalTiles.isNotEmpty),
             ),
 
-            // ── 2. Bottom sheet: stats + sensors ──────────────────────────
-            DraggableScrollableSheet(
-              controller: _sheetController,
-              minChildSize: _kSheetMinSize,
-              initialChildSize: _sheetInitialSize,
-              maxChildSize: _kSheetMaxSize,
-              snap: true,
-              snapSizes: const [_kSheetInitialSize],
-              snapAnimationDuration: _kSnapDuration,
-              builder: (ctx, scrollController) => _BottomSheetContent(
-                scrollController: scrollController,
-                stats: _stats,
-                tileCoverage: _tileCoverage,
-                isOnline: _isOnline,
-                onRefresh: _refreshData,
-                communityTileCount: _globalTiles.length,
-                onHandleTap: _toggleSheet,
-              ),
-            ),
-
-            // ── 3. FAB (fades out when sheet is expanded) ─────────────────
+            // ── 3. FAB ────────────────────────────────────────────────────
             Positioned(
               right: AppTheme.spaceMd,
-              bottom: screenHeight * _kSheetMinSize + AppTheme.spaceMd,
-              child: ValueListenableBuilder<double>(
-                valueListenable: _fabOpacity,
-                builder: (_, opacity, child) => AnimatedOpacity(
-                  opacity: opacity,
-                  duration: AppDurations.instant,
-                  child: child,
-                ),
-                child: Semantics(
-                  button: true,
-                  label: context.l10n.semanticsToggleTracking,
-                  child: const TrackingFab(),
-                ),
+              bottom: bottomPadding + AppTheme.spaceLg,
+              child: Semantics(
+                button: true,
+                label: context.l10n.semanticsToggleTracking,
+                child: const TrackingFab(),
               ),
             ),
 
-            // ── 4. My Location button (bottom-left, above sheet) ──────────
-            // Standard map UX: every major map app (Google Maps, Waze, Apple Maps)
-            // has a "recenter on me" button. Provider-agnostic via recenterTrigger.
+            // ── 4. My Location button ─────────────────────────────────────
             ValueListenableBuilder<LatLng?>(
               valueListenable: _userLocationNotifier,
               builder: (context, userLocation, _) {
                 if (userLocation == null) return const SizedBox.shrink();
                 return Positioned(
                   left: AppTheme.spaceMd,
-                  bottom: screenHeight * _kSheetMinSize + AppTheme.spaceMd,
-                  child: ValueListenableBuilder<double>(
-                    valueListenable: _fabOpacity,
-                    builder: (_, opacity, child) => AnimatedOpacity(
-                      opacity: opacity,
-                      duration: AppDurations.instant,
-                      child: child,
-                    ),
-                    child: Semantics(
-                      button: true,
-                      label: context.l10n.semanticsCenterOnMe,
-                      child: _MyLocationButton(
-                        onPressed: () => _recenterTrigger.value++,
-                      ),
+                  bottom: bottomPadding + AppTheme.spaceLg,
+                  child: Semantics(
+                    button: true,
+                    label: context.l10n.semanticsCenterOnMe,
+                    child: _MyLocationButton(
+                      onPressed: () => _recenterTrigger.value++,
                     ),
                   ),
                 );
@@ -576,127 +399,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
 // ─── Private widgets ────────────────────────────────────────────────────────
 
-/// Draggable bottom sheet content: handle + ImpactSummaryCard.
-class _BottomSheetContent extends StatelessWidget {
-  const _BottomSheetContent({
-    required this.scrollController,
-    required this.stats,
-    required this.tileCoverage,
-    required this.isOnline,
-    required this.onRefresh,
-    required this.communityTileCount,
-    this.onHandleTap,
-  });
-
-  final ScrollController scrollController;
-  final ContributionStats? stats;
-  final TileCoverageStats? tileCoverage;
-  final bool isOnline;
-  final Future<void> Function() onRefresh;
-  final int communityTileCount;
-  final VoidCallback? onHandleTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = context.isDarkMode;
-
-    return Container(
-      decoration: BoxDecoration(
-        // surface (#1C1C1C) as base — cards inside use surfaceElevated (#262626)
-        // so they properly float above the sheet (previously inverted and muddy).
-        color: AppColors.surface(isDark),
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(_kSheetRadius)),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.shadowDark(isDark ? 0.6 : 0.15),
-            blurRadius: 24,
-            offset: const Offset(0, -6),
-          ),
-        ],
-      ),
-      child: SafeArea(
-        bottom: false, // content allowed to go under nav bar gesture area
-        child: RefreshIndicator(
-          onRefresh: onRefresh,
-          color: AppColors.primary,
-          child: CustomScrollView(
-            controller: scrollController,
-            slivers: [
-            // Drag handle — Material 3: 32dp wide, 4dp tall, centered.
-            // Full-width tap area toggles peek ↔ stats snap positions.
-            SliverToBoxAdapter(
-              child: GestureDetector(
-                onTap: onHandleTap,
-                behavior: HitTestBehavior.opaque,
-                child: Center(
-                  child: Container(
-                    margin: const EdgeInsets.symmetric(vertical: AppTheme.spaceSm),
-                    width: _kHandleW,
-                    height: _kHandleH,
-                    decoration: BoxDecoration(
-                      color: isDark
-                          ? AppColors.shadowLight(0.2)
-                          : AppColors.shadowDark(0.15),
-                      borderRadius: BorderRadius.circular(AppTheme.spaceXxxs),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-
-            // Offline banner (connectivity_plus)
-            if (!isOnline)
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(AppTheme.spaceMd, 0, AppTheme.spaceMd, AppTheme.spaceXs),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceSm, vertical: AppTheme.spaceXs),
-                    decoration: BoxDecoration(
-                      color: AppColors.warning.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(AppTheme.radiusSm),
-                      border: Border.all(color: AppColors.warning.withValues(alpha: 0.3)),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(Icons.wifi_off, size: AppIconSizes.xs, color: AppColors.warning),
-                        const SizedBox(width: AppTheme.spaceXs),
-                        Text(
-                          context.l10n.offlineBannerMessage,
-                          style: TextStyle(
-                            fontSize: _kOfflineBannerFontSize,
-                            color: AppColors.warning,
-                            fontWeight: AppFontWeights.medium,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-
-            // Stats — no card chrome, content lives directly on the sheet surface
-            SliverToBoxAdapter(
-              child: ImpactSummaryCard(
-                stats: stats,
-                tileCoverage: tileCoverage,
-                isLoading: stats == null,
-                communityTileCount: communityTileCount,
-              ),
-            ),
-
-            // Bottom padding (accounts for system nav bar)
-            const SliverToBoxAdapter(child: SizedBox(height: AppTheme.spaceLg)),
-          ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 /// Compact map legend: green dot = personal tiles, blue dot = community tiles.
 /// Only shows the community row once global tiles have loaded.
-/// Fades with the FABs when the bottom sheet expands.
 class _MapLegend extends StatelessWidget {
   const _MapLegend({required this.hasCommunityTiles});
   final bool hasCommunityTiles;
@@ -756,8 +460,7 @@ class _LegendRow extends StatelessWidget {
 }
 
 /// My Location button — standard map UX (Google Maps / Waze / Apple Maps pattern).
-/// 48×48 circular dark button. Fades with TrackingFab as sheet expands.
-/// Fades together with TrackingFab as sheet expands.
+/// 48×48 circular dark button.
 class _MyLocationButton extends StatelessWidget {
   const _MyLocationButton({required this.onPressed});
   final VoidCallback onPressed;

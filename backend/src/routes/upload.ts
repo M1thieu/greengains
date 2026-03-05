@@ -307,6 +307,7 @@ export async function uploadRoutes(fastify: FastifyInstance) {
         const stats = sanitizedPayload.summary;
         const logData: any = {
           device_hash: deviceHash,
+          batch_id: batch.batch_id ?? null,  // trace retries: same batch_id on retry = expected
           batch_size: readingsCount,
           period_start: stats.period_start,
           period_end: stats.period_end,
