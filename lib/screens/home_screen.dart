@@ -20,11 +20,10 @@ import '../widgets/tracking_fab.dart';
 
 const double _kDefaultTileConfidence = 0.5;
 
-// Map overlay elements.
-const _kMapLegendFontSize = 11.0;
-
 // My Location button: 48×48 standard touch target.
 const _kLocationBtnSize = AppTheme.minTouchTarget; // 48
+// H3 resolution for live cell highlight (res 9 ≈ 174m edge length — city block scale)
+const _kLiveCellResolution = 9;
 
 /// Home screen — full-screen map layout.
 ///
@@ -54,6 +53,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   List<H3Tile> _h3Tiles = [];
   List<H3Tile> _globalTiles = [];
   bool _h3TilesLoading = true;
+  /// Boundary of the H3 cell the user is currently inside — shown as live amber
+  /// highlight on the map while tracking is active.
+  List<LatLng>? _currentH3Boundary;
 
   @override
   void initState() {
@@ -297,11 +299,33 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   void _subscribeToLocationUpdates() {
     _locationStreamSub =
         _locationService.locationStream.listen((locationData) {
-      if (mounted) {
-        _userLocationNotifier.value =
-            LatLng(locationData.latitude, locationData.longitude);
-      }
+      if (!mounted) return;
+      final pos = LatLng(locationData.latitude, locationData.longitude);
+      _userLocationNotifier.value = pos;
+      _updateCurrentH3Cell(pos);
     });
+  }
+
+  void _updateCurrentH3Cell(LatLng pos) {
+    try {
+      final cellIndex = _h3.geoToCell(
+        GeoCoord(lat: pos.latitude, lon: pos.longitude),
+        _kLiveCellResolution,
+      );
+      final boundary = _h3
+          .cellToBoundary(cellIndex)
+          .map((c) => LatLng(c.lat, c.lon))
+          .toList();
+      if (mounted) setState(() => _currentH3Boundary = boundary);
+    } catch (_) {}
+  }
+
+  void _onTileTap(H3Tile tile) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (_) => TileInfoSheet(tile: tile),
+    );
   }
 
   @override
@@ -314,20 +338,31 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       child: Scaffold(
         body: Stack(
           children: [
-            // ── 0. Full-screen map ────────────────────────────────────────
-            ValueListenableBuilder<LatLng?>(
-              valueListenable: _userLocationNotifier,
-              builder: (context, userLocation, _) => CoverageMapWidget(
-                tiles: [..._globalTiles, ..._h3Tiles],
-                userLocation: userLocation,
-                fillScreen: true,
-                isLoading: _h3TilesLoading,
-                recenterTrigger: _recenterTrigger,
-                controlsPadding: EdgeInsets.only(
-                  top: topPadding,
-                  bottom: bottomPadding + AppTheme.spaceXxl,
-                ),
-              ),
+            // ── 0. Full-screen heatmap ────────────────────────────────────
+            ListenableBuilder(
+              listenable: Listenable.merge([
+                _userLocationNotifier,
+                _locationService.isRunning,
+                _locationService.isPaused,
+              ]),
+              builder: (context, _) {
+                final isTracking = _locationService.isRunning.value &&
+                    !_locationService.isPaused.value;
+                return CoverageMapWidget(
+                  tiles: [..._globalTiles, ..._h3Tiles],
+                  userLocation: _userLocationNotifier.value,
+                  currentH3Boundary: _currentH3Boundary,
+                  isTracking: isTracking,
+                  onTileTap: _onTileTap,
+                  fillScreen: true,
+                  isLoading: _h3TilesLoading,
+                  recenterTrigger: _recenterTrigger,
+                  controlsPadding: EdgeInsets.only(
+                    top: topPadding,
+                    bottom: bottomPadding + AppTheme.spaceXxl,
+                  ),
+                );
+              },
             ),
 
             // ── 1. Status chip ────────────────────────────────────────────
@@ -354,11 +389,11 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               ),
             ),
 
-            // ── 2. Map legend ─────────────────────────────────────────────
+            // ── 2. Heatmap legend ─────────────────────────────────────────
             Positioned(
               top: topPadding + AppTheme.spaceXs,
               right: AppTheme.spaceMd,
-              child: _MapLegend(hasCommunityTiles: _globalTiles.isNotEmpty),
+              child: MapHeatmapLegend(hasCommunityTiles: _globalTiles.isNotEmpty),
             ),
 
             // ── 3. FAB ────────────────────────────────────────────────────
@@ -398,66 +433,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 }
 
 // ─── Private widgets ────────────────────────────────────────────────────────
-
-/// Compact map legend: green dot = personal tiles, blue dot = community tiles.
-/// Only shows the community row once global tiles have loaded.
-class _MapLegend extends StatelessWidget {
-  const _MapLegend({required this.hasCommunityTiles});
-  final bool hasCommunityTiles;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = context.l10n;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceXs, vertical: AppTheme.spaceXxs),
-      decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.65),
-        borderRadius: BorderRadius.circular(AppTheme.radiusSm),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _LegendRow(color: AppColors.primary, label: l10n.legendYou),
-          if (hasCommunityTiles) ...[
-            const SizedBox(height: AppTheme.spaceXxs),
-            _LegendRow(color: AppColors.pressure, label: l10n.legendCommunity),
-          ],
-        ],
-      ),
-    );
-  }
-}
-
-class _LegendRow extends StatelessWidget {
-  const _LegendRow({required this.color, required this.label});
-  final Color color;
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          width: AppTheme.spaceXs,
-          height: AppTheme.spaceXs,
-          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-        ),
-        const SizedBox(width: AppTheme.spaceXxs),
-        Text(
-          label,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: _kMapLegendFontSize,
-            fontWeight: FontWeight.w500,
-            letterSpacing: 0.1,
-          ),
-        ),
-      ],
-    );
-  }
-}
 
 /// My Location button — standard map UX (Google Maps / Waze / Apple Maps pattern).
 /// 48×48 circular dark button.

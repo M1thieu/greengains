@@ -237,6 +237,23 @@
     }
   },
 
+  "tileInfoPersonal": "Personnel",
+  "tileInfoCommunity": "Communauté",
+  "tileInfoSamples": "{count, plural, =1{1 mesure} other{{count} mesures}}",
+  "@tileInfoSamples": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "tileInfoConfidence": "Confiance",
+  "tileInfoDevices": "{count, plural, =1{1 contributeur} other{{count} contributeurs}}",
+  "@tileInfoDevices": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "tileScanningNow": "En cours de scan",
+
   "noCoverageYet": "Aucune couverture",
   "startTrackingToMap": "Commencez le suivi pour cartographier votre zone",
   "tilesCount": "{count} tuiles",

@@ -237,6 +237,23 @@
     }
   },
 
+  "tileInfoPersonal": "Personal",
+  "tileInfoCommunity": "Community",
+  "tileInfoSamples": "{count, plural, =1{1 sample} other{{count} samples}}",
+  "@tileInfoSamples": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "tileInfoConfidence": "Confidence",
+  "tileInfoDevices": "{count, plural, =1{1 contributor} other{{count} contributors}}",
+  "@tileInfoDevices": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "tileScanningNow": "Scanning now",
+
   "noCoverageYet": "No coverage yet",
   "startTrackingToMap": "Start tracking to map your area",
   "tilesCount": "{count} tiles",
