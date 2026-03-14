@@ -365,11 +365,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               },
             ),
 
-            // ── 1. Status chip ────────────────────────────────────────────
+            // ── 1. Status chip (intrinsic width, left-aligned) ────────────
             Positioned(
               top: topPadding + AppTheme.spaceXs,
               left: AppTheme.spaceMd,
-              right: AppTheme.spaceMd,
               child: ListenableBuilder(
                 listenable: Listenable.merge([
                   _locationService.isRunning,
@@ -384,6 +383,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     isPaused: _locationService.isRunning.value &&
                         _locationService.isPaused.value,
                     lastUpload: status.lastUpload,
+                    tileCount: _h3Tiles.length,
                   );
                 },
               ),

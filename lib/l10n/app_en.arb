@@ -237,6 +237,9 @@
     }
   },
 
+  "chipZones": "zones",
+  "tileInfoSamplesLabel": "samples",
+  "tileInfoDevicesLabel": "contributors",
   "tileInfoPersonal": "Personal",
   "tileInfoCommunity": "Community",
   "tileInfoSamples": "{count, plural, =1{1 sample} other{{count} samples}}",

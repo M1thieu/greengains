@@ -79,12 +79,25 @@ class _CoverageMapWidgetState extends State<CoverageMapWidget> {
   /// Fires when the user taps a polygon — holds the first hit tile.
   final LayerHitNotifier<H3Tile> _hitNotifier = LayerHitNotifier(null);
 
-  // Carto basemap — free, no API key, professional dark used by DePIN apps
+  // Location dot sizing (Nodle-style: small clean dot, no icon)
+  static const double _kLocationDotSize = 14.0;  // solid dot
+  static const double _kLocationDotArea = 32.0;  // touch target + halo ring
+
+  // CartoDB — free, no API key, unlimited
   static const _cartoDark =
       'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png';
   static const _cartoVoyager =
       'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png';
   static const _cartoSubdomains = ['a', 'b', 'c', 'd'];
+
+  // Color matrix: shifts CartoDB near-black → dark navy matching our theme (#111927).
+  // R×0.90, G×0.95, B×1.0 + offset 15 — subtle blue tint, keeps labels readable.
+  static const List<double> _kNavyTintMatrix = [
+    0.90, 0,    0, 0,  0,
+    0,    0.95, 0, 0,  0,
+    0,    0,    1, 0, 15,
+    0,    0,    0, 1,  0,
+  ];
 
   // ── Heatmap palette (cold → warm, mirrors app semantic colors) ─────────────
   // sampleCount 0   → transparent (no fill until data exists)
@@ -231,14 +244,29 @@ class _CoverageMapWidgetState extends State<CoverageMapWidget> {
           ),
           children: [
             // ── Base map ──────────────────────────────────────────────────
-            TileLayer(
-              urlTemplate: isDark ? _cartoDark : _cartoVoyager,
-              subdomains: _cartoSubdomains,
-              userAgentPackageName: 'com.eremat.greengains',
-              maxNativeZoom: 19,
-              keepBuffer: 5,
-              panBuffer: 2,
-            ),
+            // Dark: ColorFiltered shifts CartoDB near-black → navy (#111927)
+            // via color matrix. Free, no API key, zero provider change.
+            if (isDark)
+              ColorFiltered(
+                colorFilter: const ColorFilter.matrix(_kNavyTintMatrix),
+                child: TileLayer(
+                  urlTemplate: _cartoDark,
+                  subdomains: _cartoSubdomains,
+                  userAgentPackageName: 'com.eremat.greengains',
+                  maxNativeZoom: 20,
+                  keepBuffer: 5,
+                  panBuffer: 2,
+                ),
+              )
+            else
+              TileLayer(
+                urlTemplate: _cartoVoyager,
+                subdomains: _cartoSubdomains,
+                userAgentPackageName: 'com.eremat.greengains',
+                maxNativeZoom: 20,
+                keepBuffer: 5,
+                panBuffer: 2,
+              ),
 
             // ── Community + personal heatmap polygons ─────────────────────
             if (_hasPolygons)
@@ -260,34 +288,46 @@ class _CoverageMapWidgetState extends State<CoverageMapWidget> {
                 ],
               ),
 
-            // ── User location dot ─────────────────────────────────────────
+            // ── User location dot (Nodle-style: small clean dot, no icon) ──
             if (widget.userLocation != null)
               MarkerLayer(
                 markers: [
                   Marker(
                     point: widget.userLocation!,
-                    width: 40,
-                    height: 40,
+                    width: _kLocationDotArea,
+                    height: _kLocationDotArea,
                     child: GestureDetector(
                       onTap: widget.showControls ? _recenterOnUser : null,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: AppColors.primary,
-                          border: Border.all(color: Colors.white, width: 3),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.3),
-                              blurRadius: 8,
-                              spreadRadius: 1,
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          // Halo ring
+                          Container(
+                            width: _kLocationDotArea,
+                            height: _kLocationDotArea,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: AppColors.primary.withValues(alpha: 0.18),
                             ),
-                          ],
-                        ),
-                        child: const Icon(
-                          Icons.person,
-                          color: Colors.white,
-                          size: 20,
-                        ),
+                          ),
+                          // Solid dot
+                          Container(
+                            width: _kLocationDotSize,
+                            height: _kLocationDotSize,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: AppColors.primary,
+                              border: Border.all(color: Colors.white, width: 2),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppColors.primary.withValues(alpha: 0.5),
+                                  blurRadius: 6,
+                                  spreadRadius: 1,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
@@ -582,7 +622,7 @@ class TileInfoSheet extends StatelessWidget {
                 children: [
                   _StatItem(
                     value: '${tile.sampleCount}',
-                    label: l10n.tileInfoSamples(tile.sampleCount),
+                    label: l10n.tileInfoSamplesLabel,
                     isDark: isDark,
                   ),
                   _StatItem(
@@ -592,7 +632,7 @@ class TileInfoSheet extends StatelessWidget {
                   ),
                   _StatItem(
                     value: '${tile.deviceCount}',
-                    label: l10n.tileInfoDevices(tile.deviceCount),
+                    label: l10n.tileInfoDevicesLabel,
                     isDark: isDark,
                   ),
                 ],

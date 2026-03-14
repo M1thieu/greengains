@@ -28,13 +28,13 @@ class AppColors {
   static const Color lightBorder = Color(0xFFD8E0DB);
   static const Color lightDivider = Color(0xFFC8D2CC);
 
-  // Dark mode neutrals — GitHub Dark proportions: neutral grays, high contrast.
-  // bg→surface: +15, surface→elevated: +10, surface→border: +36 (key for legibility).
-  // Accent (Emerald) lives only on interactive elements, not backgrounds.
-  static const Color darkBackground = Color(0xFF0D0D0D);       // near-black (13)
-  static const Color darkSurface = Color(0xFF1C1C1C);          // card surface (28, +15)
-  static const Color darkSurfaceElevated = Color(0xFF262626);  // elevated sheet (38, +10)
-  static const Color darkSurfaceActive = Color(0xFF2E2E2E);    // pressed state (46)
+  // Dark mode neutrals — slightly blue-tinted navy (Nodle/Linear style).
+  // Lifted from pure black to reduce harshness; blue tint adds depth.
+  // bg→surface: +12 lightness, surface→elevated: +8, border: +36.
+  static const Color darkBackground = Color(0xFF111927);       // dark navy (not void black)
+  static const Color darkSurface = Color(0xFF1C2333);          // card surface (+12)
+  static const Color darkSurfaceElevated = Color(0xFF243044);  // elevated sheet (+8)
+  static const Color darkSurfaceActive = Color(0xFF2C3A52);    // pressed state
 
   static const Color darkTextPrimary = Color(0xFFF0F0F0);      // near-white
   static const Color darkTextSecondary = Color(0xFFA0A0A0);    // readable mid-gray

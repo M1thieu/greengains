@@ -24,11 +24,14 @@ class TrackingStatusChip extends StatelessWidget {
     required this.isTracking,
     required this.isPaused,
     this.lastUpload,
+    this.tileCount = 0,
   });
 
   final bool isTracking;
   final bool isPaused;
   final DateTime? lastUpload;
+  /// Personal H3 tile count — shown as "· N zones" when > 0 and tracking/paused.
+  final int tileCount;
 
   @override
   Widget build(BuildContext context) {
@@ -62,14 +65,32 @@ class TrackingStatusChip extends StatelessWidget {
                 letterSpacing: 0.1,
               ),
             ),
-            // Last upload (tracking or paused — hidden only when fully stopped)
+            // Tile count — shown when we have scanned zones
+            if ((isTracking || isPaused) && tileCount > 0) ...[
+              const SizedBox(width: AppTheme.spaceXxs),
+              Container(width: 1, height: _kChipDividerH, color: Colors.white24),
+              const SizedBox(width: AppTheme.spaceXxs),
+              Text(
+                '$tileCount',
+                style: TextStyle(
+                  color: dotColor.withValues(alpha: 0.9),
+                  fontSize: _kChipTimeSize,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(width: AppTheme.spaceXxxs),
+              Text(
+                context.l10n.chipZones,
+                style: const TextStyle(
+                  color: Colors.white54,
+                  fontSize: _kChipTimeSize,
+                ),
+              ),
+            ],
+            // Last upload timestamp
             if ((isTracking || isPaused) && lastUpload != null) ...[
               const SizedBox(width: AppTheme.spaceXxs),
-              Container(
-                width: 1,
-                height: _kChipDividerH,
-                color: Colors.white24,
-              ),
+              Container(width: 1, height: _kChipDividerH, color: Colors.white24),
               const SizedBox(width: AppTheme.spaceXxs),
               TimeAgoText(
                 timestamp: lastUpload!,
