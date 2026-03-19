@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
-import 'package:h3_dart/h3_dart.dart';
+import 'package:h3_flutter/h3_flutter.dart' as h3f;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
@@ -42,7 +42,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   final _locationService = ForegroundLocationService.instance;
   final _prefs = AppPreferences.instance;
-  final _h3 = const H3Factory().process();
+  final _h3 = const h3f.H3Factory().load();
   final _userLocationNotifier = ValueNotifier<LatLng?>(null);
   /// Incrementing recenter triggers CoverageMapWidget to move camera to user.
   final _recenterTrigger = ValueNotifier<int>(0);
@@ -198,7 +198,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     setState(() => _h3TilesLoading = true);
 
     try {
-      final response = await BackendClient.get('/api/user/tiles?hours=72');
+      final response = await BackendClient.get('/api/user/tiles');
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body) as Map<String, dynamic>;
@@ -207,11 +207,14 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         final tiles = tilesData?.map((tile) {
           final hexIndex = tile['h3Index'] as String? ?? '';
           List<LatLng>? boundary;
-          if (hexIndex.isNotEmpty) {
+          final rawBoundary = tile['boundary'] as List<dynamic>?;
+          if (rawBoundary != null && rawBoundary.isNotEmpty) {
             try {
-              boundary = _h3.cellToBoundary(BigInt.parse(hexIndex, radix: 16))
-                  .map((c) => LatLng(c.lat, c.lon))
-                  .toList();
+              // API returns [[lng, lat], ...] GeoJSON order — flip to LatLng(lat, lng)
+              boundary = rawBoundary.map((pt) {
+                final pair = pt as List<dynamic>;
+                return LatLng((pair[1] as num).toDouble(), (pair[0] as num).toDouble());
+              }).toList();
             } catch (_) {}
           }
           return H3Tile(
@@ -246,18 +249,21 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   /// Loads silently in background — never blocks the loading spinner.
   Future<void> _loadGlobalTiles() async {
     try {
-      final response = await BackendClient.get('/api/tiles/global?hours=48');
+      final response = await BackendClient.get('/api/tiles/global');
       if (response.statusCode != 200 || !mounted) return;
       final data = jsonDecode(response.body) as Map<String, dynamic>;
       final tilesData = data['tiles'] as List<dynamic>?;
       final tiles = tilesData?.map((tile) {
         final hexIndex = tile['h3Index'] as String? ?? '';
         List<LatLng>? boundary;
-        if (hexIndex.isNotEmpty) {
+        final rawBoundary = tile['boundary'] as List<dynamic>?;
+        if (rawBoundary != null && rawBoundary.isNotEmpty) {
           try {
-            boundary = _h3.cellToBoundary(BigInt.parse(hexIndex, radix: 16))
-                .map((c) => LatLng(c.lat, c.lon))
-                .toList();
+            // API returns [[lng, lat], ...] GeoJSON order — flip to LatLng(lat, lng)
+            boundary = rawBoundary.map((pt) {
+              final pair = pt as List<dynamic>;
+              return LatLng((pair[1] as num).toDouble(), (pair[0] as num).toDouble());
+            }).toList();
           } catch (_) {}
         }
         return H3Tile(
@@ -309,7 +315,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   void _updateCurrentH3Cell(LatLng pos) {
     try {
       final cellIndex = _h3.geoToCell(
-        GeoCoord(lat: pos.latitude, lon: pos.longitude),
+        h3f.GeoCoord(lat: pos.latitude, lon: pos.longitude),
         _kLiveCellResolution,
       );
       final boundary = _h3
@@ -359,7 +365,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                   recenterTrigger: _recenterTrigger,
                   controlsPadding: EdgeInsets.only(
                     top: topPadding,
-                    bottom: bottomPadding + AppTheme.spaceXxl,
+                    bottom: bottomPadding + AppTheme.floatingNavHeight + AppTheme.spaceLg,
                   ),
                 );
               },
@@ -383,38 +389,34 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     isPaused: _locationService.isRunning.value &&
                         _locationService.isPaused.value,
                     lastUpload: status.lastUpload,
-                    tileCount: _h3Tiles.length,
+                    tileCount: _h3Tiles.where((t) => t.boundary != null).length,
                   );
                 },
               ),
             ),
 
-            // ── 2. Heatmap legend ─────────────────────────────────────────
+            // ── 2. FAB (center-bottom, above floating nav bar) ───────────
             Positioned(
-              top: topPadding + AppTheme.spaceXs,
-              right: AppTheme.spaceMd,
-              child: MapHeatmapLegend(hasCommunityTiles: _globalTiles.isNotEmpty),
-            ),
-
-            // ── 3. FAB ────────────────────────────────────────────────────
-            Positioned(
-              right: AppTheme.spaceMd,
-              bottom: bottomPadding + AppTheme.spaceLg,
-              child: Semantics(
-                button: true,
-                label: context.l10n.semanticsToggleTracking,
-                child: const TrackingFab(),
+              left: 0,
+              right: 0,
+              bottom: bottomPadding + AppTheme.floatingNavHeight + AppTheme.spaceLg,
+              child: Center(
+                child: Semantics(
+                  button: true,
+                  label: context.l10n.semanticsToggleTracking,
+                  child: const TrackingFab(),
+                ),
               ),
             ),
 
-            // ── 4. My Location button ─────────────────────────────────────
+            // ── 3. My Location button (bottom-left) ───────────────────────
             ValueListenableBuilder<LatLng?>(
               valueListenable: _userLocationNotifier,
               builder: (context, userLocation, _) {
                 if (userLocation == null) return const SizedBox.shrink();
                 return Positioned(
                   left: AppTheme.spaceMd,
-                  bottom: bottomPadding + AppTheme.spaceLg,
+                  bottom: bottomPadding + AppTheme.floatingNavHeight + AppTheme.spaceLg,
                   child: Semantics(
                     button: true,
                     label: context.l10n.semanticsCenterOnMe,
