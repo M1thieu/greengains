@@ -1,36 +1,12 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
+import { latLngToCell, cellToBoundary, cellToLatLng, cellToParent } from 'h3-js';
 import { getPool } from '../database';
 import { requireFirebaseAuth } from '../middleware/auth';
+import { decodeGeohash } from '../utils/geo';
 
-// Constants for tile grouping (temporary until H3 implementation)
-const TILE_PRECISION_DECIMALS = 3; // ~100m precision at mid-latitudes
-const CONFIDENCE_SAMPLE_THRESHOLD = 100; // Samples needed for max confidence
-
-// ─── Geohash decoder (no extra dependency) ────────────────────────────────────
-const GH_BASE32 = '0123456789bcdefghjkmnpqrstuvwxyz';
-
-function decodeGeohash(hash: string): { lat: number; lon: number } | null {
-  if (!hash || hash.length === 0) return null;
-  let isLon = true;
-  const lat = [-90.0, 90.0];
-  const lon = [-180.0, 180.0];
-  for (const ch of hash) {
-    const idx = GH_BASE32.indexOf(ch);
-    if (idx === -1) return null;
-    for (let bit = 4; bit >= 0; bit--) {
-      const bitN = (idx >> bit) & 1;
-      if (isLon) {
-        const mid = (lon[0] + lon[1]) / 2;
-        if (bitN) lon[0] = mid; else lon[1] = mid;
-      } else {
-        const mid = (lat[0] + lat[1]) / 2;
-        if (bitN) lat[0] = mid; else lat[1] = mid;
-      }
-      isLon = !isLon;
-    }
-  }
-  return { lat: (lat[0] + lat[1]) / 2, lon: (lon[0] + lon[1]) / 2 };
-}
+// Confidence thresholds
+const CONFIDENCE_BATCH_THRESHOLD  = 10;  // personal tiles: 10 batches = max confidence
+const CONFIDENCE_SAMPLE_THRESHOLD = 100; // global tiles: 100 readings = max confidence
 
 // ─── In-memory cache for global tiles (5-min TTL, avoids per-request DB hits) ─
 interface TileCacheEntry { data: unknown; expiresAt: number; }
@@ -78,7 +54,7 @@ export async function userRoutes(fastify: FastifyInstance) {
               daysActive: 0,
               currentStreak: 0,
               longestStreak: 0,
-              areaCovered: 0.0,
+              coverageCells: 0,
               deviceCount: 0,
               firstUploadDate: null,
               lastUploadDate: null,
@@ -145,6 +121,15 @@ export async function userRoutes(fastify: FastifyInstance) {
         const longestStreak = streakResult.rows[0]?.longest_streak || 0;
         const currentStreak = streakResult.rows[0]?.current_streak || 0;
 
+        // Distinct coverage cells (h3_res9 precision — ~174m hexagons)
+        const coverageResult = await pool.query(
+          `SELECT COUNT(DISTINCT h3_res9)::int as coverage_cells
+           FROM sensor_batches
+           WHERE user_id = $1 AND h3_res9 IS NOT NULL`,
+          [userId]
+        );
+        const coverageCells = coverageResult.rows[0]?.coverage_cells || 0;
+
         // 7-day upload history (last 7 days, index 0 = 6 days ago, index 6 = today)
         const weeklyResult = await pool.query(
           `SELECT
@@ -177,6 +162,7 @@ export async function userRoutes(fastify: FastifyInstance) {
             daysActive,
             currentStreak,
             longestStreak,
+            coverageCells,
             deviceCount: parseInt(row.device_count, 10),
             firstUploadDate: row.first_upload_date,
             lastUploadDate: row.last_upload_date,
@@ -192,7 +178,8 @@ export async function userRoutes(fastify: FastifyInstance) {
 
   /**
    * GET /api/user/tiles
-   * Returns H3 tiles with boundaries for coverage map
+   * Returns personal H3 coverage tiles (res 9, ~174m edge).
+   * Queries sensor_batches directly by h3_res9 column — no JSONB extraction.
    * Query params: ?hours=24 (optional, default 24)
    */
   fastify.get(
@@ -202,45 +189,43 @@ export async function userRoutes(fastify: FastifyInstance) {
       const userId = request.user!.uid;
 
       try {
-        const { hours = 24 } = request.query as { hours?: number };
         const pool = getPool();
 
-        // Extract location data and group by approximate location
-        // Temporary grouping until H3 implementation
+        // Personal tiles = lifetime map — no time filter.
+        // A user's coverage map should show every route they've ever contributed,
+        // not just a rolling window. This is how Silencio/Nodle/Helium work.
+        // LIMIT 5000 distinct cells is a safe upper bound (a city-scale contributor
+        // generates ~2000–3000 cells over years of daily commuting).
         const tilesResult = await pool.query(
           `SELECT
-            ROUND((batch_json->'location'->>'lat')::numeric, $3) as lat,
-            ROUND((batch_json->'location'->>'lon')::numeric, $3) as lon,
-            AVG((batch_json->'location'->>'accuracy_m')::float) as avg_accuracy_m,
-            COUNT(*) as sample_count,
-            MAX(timestamp_utc) as last_update,
-            AVG((batch_json->'summary'->'light'->>'avg')::float) as avg_light,
-            AVG((batch_json->'summary'->>'accel_rms')::float) as avg_accel_rms
-          FROM sensor_batches
-          WHERE user_id = $1
-          AND timestamp_utc > NOW() - ($2 || ' hours')::interval
-          AND batch_json->'location' IS NOT NULL
-          GROUP BY ROUND((batch_json->'location'->>'lat')::numeric, $3),
-                   ROUND((batch_json->'location'->>'lon')::numeric, $3)
-          ORDER BY last_update DESC`,
-          [userId, hours, TILE_PRECISION_DECIMALS]
+             h3_res9,
+             COUNT(*)::int                AS batch_count,
+             COUNT(DISTINCT device_hash)::int AS device_count,
+             MAX(timestamp_utc)           AS last_update
+           FROM sensor_batches
+           WHERE user_id = $1
+             AND h3_res9 IS NOT NULL
+           GROUP BY h3_res9
+           ORDER BY batch_count DESC
+           LIMIT 5000`,
+          [userId],
         );
 
-        // Transform to tile format
-        // Generate simple tile ID from rounded lat/lon until we add h3-js library
-        const tiles = tilesResult.rows.map(row => ({
-          h3Index: `tile_${row.lat}_${row.lon}`, // Temporary tile ID
-          centroid: {
-            lat: parseFloat(row.lat),
-            lng: parseFloat(row.lon),
-          },
-          confidence: Math.min(1.0, (parseInt(row.sample_count, 10) / CONFIDENCE_SAMPLE_THRESHOLD)),
-          sampleCount: parseInt(row.sample_count, 10),
-          deviceCount: 1,
-          lastUpdate: row.last_update,
-          avgLight: row.avg_light ? parseFloat(row.avg_light) : null,
-          avgAccelRms: row.avg_accel_rms ? parseFloat(row.avg_accel_rms) : null,
-        }));
+        const tiles = tilesResult.rows.map(row => {
+          const h3Index = row.h3_res9 as string;
+          // cellToBoundary(h3, true) → [lng, lat][] GeoJSON order, ring auto-closed
+          const boundary = cellToBoundary(h3Index, true) as [number, number][];
+          const [lat, lng] = cellToLatLng(h3Index);
+          return {
+            h3Index,
+            boundary,
+            centroid: { lat, lng },
+            confidence: Math.min(1.0, row.batch_count / CONFIDENCE_BATCH_THRESHOLD),
+            sampleCount: row.batch_count,
+            deviceCount: row.device_count,
+            lastUpdate: row.last_update,
+          };
+        });
 
         return reply.send({ tiles });
       } catch (error) {
@@ -252,8 +237,10 @@ export async function userRoutes(fastify: FastifyInstance) {
 
   /**
    * GET /api/tiles/global
-   * Returns aggregated coverage tiles from all users (community map).
-   * Results are cached in-memory for 5 minutes to keep DB load minimal.
+   * Returns global H3 coverage tiles (res 8, ~461m edge) from all users.
+   * Queries sensor_aggregates_5m (pre-computed) — not raw sensor_batches.
+   * Uses h3_index column when available; falls back to geohash decode for old rows.
+   * Results cached 5 min in-memory.
    * Query params: ?hours=48 (optional, default 48)
    */
   fastify.get(
@@ -261,10 +248,10 @@ export async function userRoutes(fastify: FastifyInstance) {
     { preHandler: requireFirebaseAuth },
     async (request: FastifyRequest, reply: FastifyReply) => {
       try {
-        const { hours = 48 } = request.query as { hours?: number };
+        // Global tiles: 30-day window — community coverage should feel populated.
+        const hours = 720;
         const cacheKey = `global_${hours}`;
 
-        // Serve from cache if still fresh
         const cached = _globalTileCache.get(cacheKey);
         if (cached && cached.expiresAt > Date.now()) {
           return reply.send(cached.data);
@@ -274,31 +261,43 @@ export async function userRoutes(fastify: FastifyInstance) {
 
         const result = await pool.query<{
           geohash: string;
-          device_count: number;
+          h3_index: string | null;
           sample_count: number;
+          device_count: number;
           last_update: Date;
         }>(
           `SELECT
-             batch_json->>'geohash' AS geohash,
-             COUNT(DISTINCT device_hash)::int AS device_count,
-             COUNT(*)::int AS sample_count,
-             MAX(timestamp_utc) AS last_update
-           FROM sensor_batches
-           WHERE batch_json->>'geohash' IS NOT NULL
-             AND timestamp_utc > NOW() - ($1 || ' hours')::interval
-           GROUP BY batch_json->>'geohash'
+             geohash,
+             h3_index,
+             SUM(samples_count)::int AS sample_count,
+             SUM(device_count)::int  AS device_count,
+             MAX(window_end)         AS last_update
+           FROM sensor_aggregates_5m
+           WHERE window_start > NOW() - ($1 || ' hours')::interval
+           GROUP BY geohash, h3_index
            ORDER BY sample_count DESC
            LIMIT 2000`,
           [hours],
         );
 
+        const seenGlobal = new Set<string>();
         const tiles = result.rows
           .map(row => {
-            const centroid = decodeGeohash(row.geohash);
-            if (!centroid) return null;
+            // Prefer pre-computed h3_index; fall back to geohash decode for old rows
+            let h3Res9: string | null = row.h3_index;
+            if (!h3Res9) {
+              const centroid = decodeGeohash(row.geohash);
+              if (!centroid) return null;
+              h3Res9 = latLngToCell(centroid.lat, centroid.lon, 9);
+            }
+            // Coarsen to res 8 for global view (neighbourhood scale)
+            const h3Index = cellToParent(h3Res9, 8);
+            if (seenGlobal.has(h3Index)) return null;
+            seenGlobal.add(h3Index);
+            const boundary = cellToBoundary(h3Index, true) as [number, number][];
             return {
-              h3Index: row.geohash,
-              centroid,
+              h3Index,
+              boundary,
               confidence: Math.min(1.0, row.sample_count / CONFIDENCE_SAMPLE_THRESHOLD),
               deviceCount: row.device_count,
               sampleCount: row.sample_count,
@@ -313,6 +312,81 @@ export async function userRoutes(fastify: FastifyInstance) {
         return reply.send(data);
       } catch (error) {
         request.log.error({ err: error }, 'Global tiles fetch error');
+        return reply.code(500).send({ error: 'Internal Server Error' });
+      }
+    },
+  );
+
+  /**
+   * GET /api/tiles/public
+   * Unauthenticated global coverage tiles — same data as /api/tiles/global,
+   * shares the same 5-min in-memory cache. Used by the public coverage explorer.
+   */
+  fastify.get(
+    '/api/tiles/public',
+    async (request: FastifyRequest, reply: FastifyReply) => {
+      try {
+        const hours = 720; // 30-day window — community coverage should feel populated
+        const cacheKey = `global_${hours}`;
+
+        const cached = _globalTileCache.get(cacheKey);
+        if (cached && cached.expiresAt > Date.now()) {
+          return reply.send(cached.data);
+        }
+
+        const pool = getPool();
+
+        const result = await pool.query<{
+          geohash: string;
+          h3_index: string | null;
+          sample_count: number;
+          device_count: number;
+          last_update: Date;
+        }>(
+          `SELECT
+             geohash,
+             h3_index,
+             SUM(samples_count)::int AS sample_count,
+             SUM(device_count)::int  AS device_count,
+             MAX(window_end)         AS last_update
+           FROM sensor_aggregates_5m
+           WHERE window_start > NOW() - ($1 || ' hours')::interval
+           GROUP BY geohash, h3_index
+           ORDER BY sample_count DESC
+           LIMIT 2000`,
+          [hours],
+        );
+
+        const seenGlobal = new Set<string>();
+        const tiles = result.rows
+          .map(row => {
+            let h3Res9: string | null = row.h3_index;
+            if (!h3Res9) {
+              const centroid = decodeGeohash(row.geohash);
+              if (!centroid) return null;
+              h3Res9 = latLngToCell(centroid.lat, centroid.lon, 9);
+            }
+            const h3Index = cellToParent(h3Res9, 8);
+            if (seenGlobal.has(h3Index)) return null;
+            seenGlobal.add(h3Index);
+            const boundary = cellToBoundary(h3Index, true) as [number, number][];
+            return {
+              h3Index,
+              boundary,
+              confidence: Math.min(1.0, row.sample_count / CONFIDENCE_SAMPLE_THRESHOLD),
+              deviceCount: row.device_count,
+              sampleCount: row.sample_count,
+              lastUpdate: row.last_update,
+            };
+          })
+          .filter(Boolean);
+
+        const data = { tiles };
+        _globalTileCache.set(cacheKey, { data, expiresAt: Date.now() + GLOBAL_TILE_CACHE_TTL_MS });
+
+        return reply.send(data);
+      } catch (error) {
+        request.log.error({ err: error }, 'Public tiles fetch error');
         return reply.code(500).send({ error: 'Internal Server Error' });
       }
     },
