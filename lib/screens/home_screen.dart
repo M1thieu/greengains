@@ -242,6 +242,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     } catch (e) {
       debugPrint('Failed to load H3 tiles: $e');
       if (mounted) setState(() => _h3TilesLoading = false);
+      // Retry once after 4 s — catches Render cold-start connection aborts
+      await Future.delayed(const Duration(seconds: 4));
+      if (mounted && _h3Tiles.isEmpty) _loadH3Tiles();
     }
   }
 
@@ -278,6 +281,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       if (mounted) setState(() => _globalTiles = tiles);
     } catch (e) {
       debugPrint('Failed to load global tiles: $e');
+      // Retry once after 5 s — catches Render cold-start connection aborts
+      await Future.delayed(const Duration(seconds: 5));
+      if (mounted && _globalTiles.isEmpty) _loadGlobalTiles();
     }
   }
 

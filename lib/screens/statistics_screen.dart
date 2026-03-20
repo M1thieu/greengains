@@ -61,6 +61,8 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
   int? _daysActive;
   int? _backendTotalUploads;
   int? _coverageCells; // distinct H3 res-9 cells ever contributed
+  int? _currentStreak;
+  int? _longestStreak;
   bool _isLoadingWeekly = true;
 
   StreamSubscription<UploadSuccessEvent>? _uploadSuccessSub;
@@ -113,12 +115,16 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
         final daysActive = stats?['daysActive'] as int?;
         final totalUploads = stats?['totalUploads'] as int?;
         final coverageCells = stats?['coverageCells'] as int?;
+        final currentStreak = stats?['currentStreak'] as int?;
+        final longestStreak = stats?['longestStreak'] as int?;
         if (raw != null) {
           setState(() {
             _weeklyData = raw.map((e) => e is num ? e.toInt() : 0).toList();
             _daysActive = daysActive;
             _backendTotalUploads = totalUploads;
             _coverageCells = coverageCells;
+            _currentStreak = currentStreak;
+            _longestStreak = longestStreak;
           });
         }
       }
@@ -224,18 +230,31 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                       ),
                     ],
                   ),
-                  if (next != null)
-                    Positioned(
-                      top: 0,
-                      right: 0,
-                      child: Text(
-                        '$total / $next',
-                        style: theme.textTheme.labelMedium?.copyWith(
-                          color: theme.colorScheme.tertiary,
-                          fontWeight: AppFontWeights.medium,
-                        ),
-                      ),
+                  Positioned(
+                    top: 0,
+                    right: 0,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        if (next != null)
+                          Text(
+                            '$total / $next',
+                            style: theme.textTheme.labelMedium?.copyWith(
+                              color: theme.colorScheme.tertiary,
+                              fontWeight: AppFontWeights.medium,
+                            ),
+                          ),
+                        if (_longestStreak != null && _longestStreak! > 0)
+                          Text(
+                            l10n.statsStreakBest(_longestStreak!),
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              color: AppColors.textTertiary(isDark),
+                              letterSpacing: _kLetterSpacingSection,
+                            ),
+                          ),
+                      ],
                     ),
+                  ),
                 ],
               ),
             ),
@@ -261,6 +280,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
 
   Widget _buildSupportingTrio(ThemeData theme, bool isDark) {
     final l10n = context.l10n;
+    final streak = _currentStreak ?? _stats?.currentStreak ?? 0;
     final tiles = [
       (
         value: '${_stats?.uploadsToday ?? 0}',
@@ -268,8 +288,8 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
         color: AppColors.pressure,
       ),
       (
-        value: _daysActive != null ? '$_daysActive' : '—',
-        label: l10n.statsDaysActive,
+        value: streak > 0 ? '$streak' : (_daysActive != null ? '$_daysActive' : '—'),
+        label: streak > 0 ? l10n.statsStreak : l10n.statsDaysActive,
         color: AppColors.movement,
       ),
       (

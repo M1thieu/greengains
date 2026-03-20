@@ -407,6 +407,11 @@ class AppLocalizationsFr extends AppLocalizations {
   String get statsStreak => 'Série';
 
   @override
+  String statsStreakBest(int days) {
+    return 'RECORD ${days}J';
+  }
+
+  @override
   String get statsDaysActive => 'Jours actifs';
 
   @override

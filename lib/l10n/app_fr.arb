@@ -190,6 +190,10 @@
   "statsScreenTitle": "Statistiques",
   "statsToday": "Aujourd'hui",
   "statsStreak": "Série",
+  "statsStreakBest": "RECORD {days}J",
+  "@statsStreakBest": {
+    "placeholders": { "days": { "type": "int" } }
+  },
   "statsDaysActive": "Jours actifs",
   "statsTotal": "Total",
   "statsCoverage": "Zones",

@@ -190,6 +190,10 @@
   "statsScreenTitle": "Statistics",
   "statsToday": "Today",
   "statsStreak": "Streak",
+  "statsStreakBest": "BEST {days}D",
+  "@statsStreakBest": {
+    "placeholders": { "days": { "type": "int" } }
+  },
   "statsDaysActive": "Days Active",
   "statsTotal": "Total",
   "statsCoverage": "Zones",

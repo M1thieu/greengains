@@ -824,6 +824,12 @@ abstract class AppLocalizations {
   /// **'Streak'**
   String get statsStreak;
 
+  /// No description provided for @statsStreakBest.
+  ///
+  /// In en, this message translates to:
+  /// **'BEST {days}D'**
+  String statsStreakBest(int days);
+
   /// No description provided for @statsDaysActive.
   ///
   /// In en, this message translates to:
