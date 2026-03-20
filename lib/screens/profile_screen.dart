@@ -1,23 +1,24 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../core/extensions/context_extensions.dart';
+import '../services/network/backend_client.dart';
 import '../core/themes.dart';
 import '../l10n/app_localizations.dart';
 import '../core/app_preferences.dart';
-import '../data/repositories/contribution_repository.dart';
 import '../services/auth/auth_service.dart';
 import '../utils/app_snackbars.dart';
 // import '../widgets/referral_invite_card.dart'; // BETA: referral deferred to v1.1
 import 'settings_screen.dart';
-import 'statistics_screen.dart';
 
 // ── Profile layout constants ──────────────────────────────────────────────────
-const _kProfileEmptyIconSize = 80.0;           // signed-out empty state icon
-const _kAvatarRadius         = 40.0;           // CircleAvatar radius (80px diameter)
-const _kAvatarFallbackSize   = AppIconSizes.xl; // 48 — fallback icon inside avatar
+const _kProfileEmptyIconSize = 80.0;
+const _kAvatarRadius         = 48.0;           // 96px diameter — prominent header
+const _kAvatarFallbackSize   = AppIconSizes.xl;
+const _kAvatarRingWidth      = 2.5;            // gradient ring around avatar
 
 /// Profile screen showing user information and quick stats
 /// REDESIGNED: Compact layout that fits without scrolling
@@ -30,18 +31,29 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   bool _signingIn = false;
-  int? _localUploads;
+
+  int? _totalUploads;
+  int? _daysActive;
+  int? _coverageCells;
 
   @override
   void initState() {
     super.initState();
-    _loadLocalStats();
+    _loadProfileStats();
   }
 
-  Future<void> _loadLocalStats() async {
+  Future<void> _loadProfileStats() async {
     try {
-      final stats = await ContributionRepository().getStats();
-      if (mounted) setState(() => _localUploads = stats.totalUploads);
+      final response = await BackendClient.get('/api/user/profile');
+      if (response.statusCode == 200 && mounted) {
+        final body = jsonDecode(response.body) as Map<String, dynamic>;
+        final stats = body['stats'] as Map<String, dynamic>?;
+        setState(() {
+          _totalUploads = stats?['totalUploads'] as int?;
+          _daysActive = stats?['daysActive'] as int?;
+          _coverageCells = stats?['coverageCells'] as int?;
+        });
+      }
     } catch (_) {}
   }
 
@@ -171,30 +183,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
         children: [
           // COMPACT USER HEADER (~100px)
           _buildCompactUserHeader(user, theme, isDark, l10n),
-
           const SizedBox(height: AppTheme.spaceMd),
+          _buildImpactRow(theme, isDark, l10n),
 
-          // BETA: ReferralInviteCard deferred to v1.1 — uncomment when referral model is ready
-          // ReferralInviteCard(user: user),
-          // const SizedBox(height: AppTheme.spaceMd),
-
-          // COMPACT STATISTICS NAVIGATION (~70px)
-          _buildCompactStatsCard(theme, isDark, l10n),
-
-          const Spacer(), // Pushes sign out to bottom if screen is taller
+          const Spacer(),
 
           const SizedBox(height: AppTheme.spaceMd),
 
           // SIGN OUT BUTTON (bottom pinned)
           if (!user.isAnonymous)
-            OutlinedButton.icon(
+            TextButton.icon(
               onPressed: _handleSignOut,
-              icon: const Icon(Icons.logout),
+              icon: Icon(Icons.logout, size: AppIconSizes.sm),
               label: Text(l10n.profileSignOut),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: AppColors.error,
-                side: BorderSide(color: AppColors.error.withValues(alpha: 0.5)),
-                minimumSize: const Size.fromHeight(56),
+              style: TextButton.styleFrom(
+                foregroundColor: AppColors.error.withValues(alpha: 0.75),
+                minimumSize: const Size.fromHeight(48),
               ),
             )
           else
@@ -226,105 +230,140 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  /// COMPACT USER HEADER: Horizontal layout, smaller avatar, inline member badge
+  /// 3-column impact stat row shown below the user header
+  Widget _buildImpactRow(ThemeData theme, bool isDark, AppLocalizations l10n) {
+    final tiles = [
+      (
+        value: _totalUploads != null ? '$_totalUploads' : '—',
+        label: l10n.statsTotal.toUpperCase(),
+      ),
+      (
+        value: _daysActive != null ? '$_daysActive' : '—',
+        label: l10n.statsDaysActive.toUpperCase(),
+      ),
+      (
+        value: _coverageCells != null ? '$_coverageCells' : '—',
+        label: l10n.statsCoverage.toUpperCase(),
+      ),
+    ];
+
+    return Row(
+      children: tiles.map((tile) {
+        final isLast = tile == tiles.last;
+        return Expanded(
+          child: Padding(
+            padding: EdgeInsets.only(right: isLast ? 0 : AppTheme.spaceSm),
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppTheme.spaceSm,
+                vertical: AppTheme.spaceSm + AppTheme.spaceXxs,
+              ),
+              decoration: BoxDecoration(
+                color: AppColors.surface(isDark),
+                borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    tile.value,
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      fontWeight: AppFontWeights.bold,
+                      letterSpacing: -0.5,
+                      height: 1.0,
+                    ),
+                  ),
+                  Text(
+                    tile.label,
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      fontSize: 9.0,
+                      color: AppColors.textTertiary(isDark),
+                      letterSpacing: 1.0,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  /// Premium centered user header with gradient avatar ring
   Widget _buildCompactUserHeader(User user, ThemeData theme, bool isDark, AppLocalizations l10n) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(AppTheme.spaceMd),
-        child: Row(
-          children: [
-            // Smaller avatar (40px radius instead of 48px)
-            CircleAvatar(
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: AppTheme.spaceXl),
+      child: Column(
+        children: [
+          // Avatar with gradient ring
+          Container(
+            padding: const EdgeInsets.all(_kAvatarRingWidth),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [AppColors.primary, AppColors.pressure],
+              ),
+            ),
+            child: CircleAvatar(
               radius: _kAvatarRadius,
               backgroundImage: user.photoURL != null
                   ? NetworkImage(user.photoURL!)
                   : null,
               onBackgroundImageError: user.photoURL != null
-                  ? (exception, stackTrace) {
-                      // Log error silently, fallback to icon child
-                    }
+                  ? (exception, stackTrace) {}
                   : null,
               child: user.photoURL == null
                   ? const Icon(Icons.person, size: _kAvatarFallbackSize)
                   : null,
             ),
-            const SizedBox(width: AppTheme.spaceMd),
+          ),
+          const SizedBox(height: AppTheme.spaceMd),
 
-            // Compact info column
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Name (single line)
-                  Text(
-                    user.displayName ?? l10n.profileUserFallback,
-                    style: theme.textTheme.titleLarge?.copyWith(
-                      fontWeight: AppFontWeights.semibold,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: AppTheme.spaceXxs),
-
-                  // Inline member since (no container, just text)
-                  if (user.metadata.creationTime != null)
-                    Text(
-                      l10n.profileMemberSince(_formatDate(user.metadata.creationTime!)),
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                ],
+          Text(
+            user.displayName ?? l10n.profileUserFallback,
+            style: theme.textTheme.titleLarge?.copyWith(
+              fontWeight: AppFontWeights.bold,
+              letterSpacing: -0.3,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          if (user.email != null) ...[
+            const SizedBox(height: AppTheme.spaceXxxs),
+            Text(
+              user.email!,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: AppColors.textSecondary(isDark),
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-
-  /// COMPACT STATISTICS NAVIGATION: Single-line ListTile instead of multi-line card
-  Widget _buildCompactStatsCard(ThemeData theme, bool isDark, AppLocalizations l10n) {
-    return Card(
-      child: ListTile(
-        onTap: () {
-          HapticFeedback.lightImpact();
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (context) => const StatisticsScreen(),
+          if (user.metadata.creationTime != null) ...[
+            const SizedBox(height: AppTheme.spaceXs),
+            Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppTheme.spaceSm,
+                vertical: AppTheme.spaceTiny,
+              ),
+              decoration: BoxDecoration(
+                color: AppColors.primaryAlpha(0.10),
+                borderRadius: BorderRadius.circular(AppTheme.radiusPill),
+              ),
+              child: Text(
+                l10n.profileMemberSince(_formatDate(user.metadata.creationTime!)),
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: AppColors.primary,
+                  fontWeight: AppFontWeights.semibold,
+                  letterSpacing: 0.3,
+                ),
+              ),
             ),
-          );
-        },
-        leading: Container(
-          padding: const EdgeInsets.all(AppTheme.spaceXs),
-          decoration: BoxDecoration(
-            color: AppColors.primaryAlpha(0.12),
-            borderRadius: BorderRadius.circular(AppTheme.radiusSm),
-          ),
-          child: Icon(
-            Icons.bar_chart,
-            color: AppColors.primary,
-            size: AppIconSizes.md,
-          ),
-        ),
-        title: Text(
-          l10n.profileViewStats,
-          style: theme.textTheme.titleMedium?.copyWith(
-            fontWeight: AppFontWeights.semibold,
-          ),
-        ),
-        subtitle: Text(
-          _localUploads != null && _localUploads! > 0
-              ? l10n.timesContributed(_localUploads!)
-              : l10n.profileContributionsHint,
-          style: theme.textTheme.bodySmall?.copyWith(
-            color: AppColors.textSecondary(isDark),
-          ),
-        ),
-        trailing: Icon(
-          Icons.chevron_right,
-          color: AppColors.textTertiary(isDark),
-        ),
+          ],
+        ],
       ),
     );
   }
@@ -342,7 +381,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       await AppPreferences.instance.clearReferralCode();
       await FirebaseAuth.instance.signOut();
       if (mounted) {
-        setState(() => _localUploads = null);
+        setState(() {});
         AppSnackbars.showSuccess(context, l10n.profileSignedOut);
       }
     } catch (e) {

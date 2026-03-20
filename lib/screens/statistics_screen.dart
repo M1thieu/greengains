@@ -19,7 +19,6 @@ const _kBarMinH        = 4.0;   // floor so 0-count bars remain visible
 const _kBarLabelH      = AppTheme.spaceLg + AppTheme.spaceSm; // 36 px = label area below bars
 const _kBarAnimStagger = 40;    // ms added per bar for cascade entrance
 const _kBarLabelSize   = 10.0;  // day-of-week label below each bar (below bodySmall)
-const _kSkeletonTileH  = 80.0;  // height of each stat-tile skeleton rect
 const _kSkeletonTitleW = 160.0; // width of section-title skeleton rect
 const _kHeroIconSize   = 80.0;  // empty-state centre icon size
 const _kProgressH      = 6.0;   // milestone progress bar height
@@ -53,7 +52,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
   // Backend lifetime stats — fallback when local SQLite is empty (fresh reinstall)
   int? _daysActive;
   int? _backendTotalUploads;
-  int? _backendCurrentStreak;
+  int? _coverageCells; // distinct H3 res-9 cells ever contributed
   bool _isLoadingWeekly = true;
 
   StreamSubscription<UploadSuccessEvent>? _uploadSuccessSub;
@@ -105,13 +104,13 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
         final raw = stats?['weekly'] as List<dynamic>?;
         final daysActive = stats?['daysActive'] as int?;
         final totalUploads = stats?['totalUploads'] as int?;
-        final currentStreak = stats?['currentStreak'] as int?;
+        final coverageCells = stats?['coverageCells'] as int?;
         if (raw != null) {
           setState(() {
             _weeklyData = raw.map((e) => e is num ? e.toInt() : 0).toList();
             _daysActive = daysActive;
             _backendTotalUploads = totalUploads;
-            _backendCurrentStreak = currentStreak;
+            _coverageCells = coverageCells;
           });
         }
       }
@@ -144,9 +143,9 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                   child: ListView(
                     padding: AppTheme.pagePadding,
                     children: [
-                      _buildQuickStatsGrid(theme, isDark),
-                      const SizedBox(height: AppTheme.spaceMd),
-                      _buildMilestoneProgress(theme, isDark),
+                      _buildHeroCard(theme, isDark, l10n),
+                      const SizedBox(height: AppTheme.spaceSm),
+                      _buildSupportingTrio(theme, isDark),
                       const SizedBox(height: AppTheme.spaceLg),
                       _buildSectionHeader(l10n.statsContributionTimeline, theme, isDark),
                       const SizedBox(height: AppTheme.spaceMd),
@@ -157,143 +156,164 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
     );
   }
 
-  // ─── Quick stats ────────────────────────────────────────────────────────────
+  // ─── Hero card ───────────────────────────────────────────────────────────────
 
-  Widget _buildQuickStatsGrid(ThemeData theme, bool isDark) {
-    final l10n = context.l10n;
-    // Use local SQLite values when available; fall back to backend on fresh reinstall
+  Widget _buildHeroCard(ThemeData theme, bool isDark, AppLocalizations l10n) {
     final localTotal = _stats!.totalUploads;
-    final displayTotal = localTotal > 0 ? localTotal : (_backendTotalUploads ?? 0);
-    final localStreak = _stats!.currentStreak;
-    final displayStreak = localStreak > 0 ? localStreak : (_backendCurrentStreak ?? 0);
-
-    return Column(
-      children: [
-        Row(
-          children: [
-            Expanded(child: _buildQuickStatTile(l10n.statsTotal, '$displayTotal', Icons.eco, AppColors.primary, theme, isDark)),
-            const SizedBox(width: AppTheme.spaceMd),
-            Expanded(child: _buildQuickStatTile(l10n.statsToday, '${_stats!.uploadsToday}', Icons.today, AppColors.pressure, theme, isDark)),
-          ],
-        ),
-        const SizedBox(height: AppTheme.spaceMd),
-        Row(
-          children: [
-            Expanded(child: _buildQuickStatTile(l10n.statsDaysActive, _daysActive != null ? '$_daysActive' : '—', Icons.calendar_month_outlined, AppColors.movement, theme, isDark)),
-            const SizedBox(width: AppTheme.spaceMd),
-            Expanded(child: _buildQuickStatTile(l10n.statsStreak, '${displayStreak}d', Icons.local_fire_department, AppColors.warning, theme, isDark)),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _buildQuickStatTile(String label, String value, IconData icon, Color iconColor, ThemeData theme, bool isDark) {
-    return Container(
-      padding: const EdgeInsets.all(AppTheme.spaceMd),
-      decoration: AppTheme.surfaceContainer(isDark: isDark),
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(AppTheme.spaceXs),
-            decoration: BoxDecoration(
-              color: iconColor.withValues(alpha: 0.12),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(icon, size: AppIconSizes.sm, color: iconColor),
-          ),
-          const SizedBox(height: AppTheme.spaceXs),
-          Text(value, style: theme.textTheme.titleLarge?.copyWith(fontWeight: AppFontWeights.bold)),
-          Text(label, style: theme.textTheme.bodySmall?.copyWith(color: AppColors.textSecondary(isDark))),
-        ],
-      ),
-    );
-  }
-
-  // ─── Milestone progress ─────────────────────────────────────────────────────
-
-  Widget _buildMilestoneProgress(ThemeData theme, bool isDark) {
-    final l10n = context.l10n;
-    final total = (_stats?.totalUploads ?? 0) > 0
-        ? _stats!.totalUploads
-        : (_backendTotalUploads ?? 0);
+    final total = localTotal > 0 ? localTotal : (_backendTotalUploads ?? 0);
 
     // Find the next milestone above the current total
     final next = _kMilestones.cast<int?>().firstWhere(
       (m) => m! > total,
       orElse: () => null,
     );
+    final progress = next != null ? (total / next).clamp(0.0, 1.0) : 1.0;
 
-    // All milestones reached — elite badge
-    if (next == null) {
-      return Container(
-        padding: const EdgeInsets.all(AppTheme.spaceMd),
-        decoration: AppTheme.surfaceContainer(isDark: isDark),
-        child: Row(
+    final surfaceColor = AppColors.surface(isDark);
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+      child: Container(
+        color: surfaceColor,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(Icons.stars_rounded, color: AppColors.warning, size: AppIconSizes.md),
-            const SizedBox(width: AppTheme.spaceSm),
-            Expanded(
-              child: Text(
-                l10n.statsMilestoneElite,
-                style: theme.textTheme.titleSmall?.copyWith(fontWeight: AppFontWeights.semibold),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppTheme.spaceMd,
+                AppTheme.spaceMd,
+                AppTheme.spaceMd,
+                AppTheme.spaceMd,
+              ),
+              child: Stack(
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '$total',
+                        style: theme.textTheme.displayLarge?.copyWith(
+                          fontWeight: AppFontWeights.bold,
+                          letterSpacing: -2,
+                          height: 1.0,
+                        ),
+                      ),
+                      const SizedBox(height: AppTheme.spaceXxs),
+                      Text(
+                        l10n.statsTotal.toUpperCase(),
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: AppColors.primary,
+                          letterSpacing: 2.0,
+                          fontWeight: AppFontWeights.semibold,
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (next != null)
+                    Positioned(
+                      top: 0,
+                      right: 0,
+                      child: Text(
+                        '$total / $next',
+                        style: theme.textTheme.labelMedium?.copyWith(
+                          color: theme.colorScheme.tertiary,
+                          fontWeight: AppFontWeights.medium,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            TweenAnimationBuilder<double>(
+              tween: Tween(begin: 0, end: progress),
+              duration: AppDurations.medium,
+              curve: AppMotion.decelerated,
+              builder: (_, value, __) => LinearProgressIndicator(
+                value: value,
+                minHeight: _kProgressH,
+                backgroundColor: AppColors.primaryAlpha(0.10),
+                valueColor: AlwaysStoppedAnimation(AppColors.primary),
+                borderRadius: BorderRadius.zero,
               ),
             ),
           ],
         ),
-      );
-    }
-
-    final progress = (total / next).clamp(0.0, 1.0);
-
-    return Container(
-      padding: const EdgeInsets.all(AppTheme.spaceMd),
-      decoration: AppTheme.surfaceContainer(isDark: isDark),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                l10n.statsMilestoneLabel,
-                style: theme.textTheme.titleSmall?.copyWith(
-                  fontWeight: AppFontWeights.semibold,
-                ),
-              ),
-              Text(
-                '$total / $next',
-                style: theme.textTheme.labelMedium?.copyWith(
-                  color: AppColors.primary,
-                  fontWeight: AppFontWeights.semibold,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: AppTheme.spaceSm),
-          TweenAnimationBuilder<double>(
-            tween: Tween(begin: 0, end: progress),
-            duration: AppDurations.medium,
-            curve: AppMotion.decelerated,
-            builder: (_, value, __) => ClipRRect(
-              borderRadius: BorderRadius.circular(AppTheme.spaceXxxs),
-              child: LinearProgressIndicator(
-                value: value,
-                minHeight: _kProgressH,
-                backgroundColor: AppColors.primaryAlpha(0.12),
-                valueColor: AlwaysStoppedAnimation(AppColors.primary),
-              ),
-            ),
-          ),
-          const SizedBox(height: AppTheme.spaceXs),
-          Text(
-            l10n.statsMilestoneHint,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: AppColors.textSecondary(isDark),
-            ),
-          ),
-        ],
       ),
+    );
+  }
+
+  // ─── Supporting trio ─────────────────────────────────────────────────────────
+
+  Widget _buildSupportingTrio(ThemeData theme, bool isDark) {
+    final l10n = context.l10n;
+    final tiles = [
+      (
+        value: '${_stats!.uploadsToday}',
+        label: l10n.statsToday,
+        color: AppColors.pressure,
+      ),
+      (
+        value: _daysActive != null ? '$_daysActive' : '—',
+        label: l10n.statsDaysActive,
+        color: AppColors.movement,
+      ),
+      (
+        value: _coverageCells != null ? '$_coverageCells' : '—',
+        label: l10n.statsCoverage,
+        color: AppColors.quality,
+      ),
+    ];
+
+    return Row(
+      children: tiles.map((tile) {
+        final isLast = tile == tiles.last;
+        return Expanded(
+          child: Padding(
+            padding: EdgeInsets.only(right: isLast ? 0 : AppTheme.spaceSm),
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppTheme.spaceSm,
+                vertical: AppTheme.spaceSm,
+              ),
+              decoration: BoxDecoration(
+                color: AppColors.surface(isDark),
+                borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: AppTheme.spaceXs,
+                    height: AppTheme.spaceXs,
+                    decoration: BoxDecoration(
+                      color: tile.color,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  const SizedBox(height: AppTheme.spaceXxs),
+                  Text(
+                    tile.value,
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      fontWeight: AppFontWeights.bold,
+                      letterSpacing: -0.5,
+                      height: 1.0,
+                    ),
+                  ),
+                  Text(
+                    tile.label,
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      fontSize: 10,
+                      color: AppColors.textSecondary(isDark),
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      }).toList(),
     );
   }
 
@@ -404,10 +424,17 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                         height: barH,
                         margin: const EdgeInsets.symmetric(horizontal: AppTheme.spaceXxxs),
                         decoration: BoxDecoration(
-                          color: isToday
-                              ? AppColors.primary
-                              : AppColors.primary.withValues(alpha: 0.25),
-                          borderRadius: BorderRadius.circular(AppTheme.radiusMin),
+                          gradient: isToday
+                              ? LinearGradient(
+                                  begin: Alignment.bottomCenter,
+                                  end: Alignment.topCenter,
+                                  colors: [AppColors.primary, AppColors.primary.withValues(alpha: 0.65)],
+                                )
+                              : null,
+                          color: isToday ? null : AppColors.primary.withValues(alpha: 0.25),
+                          borderRadius: const BorderRadius.vertical(
+                            top: Radius.circular(AppTheme.radiusSm),
+                          ),
                         ),
                       ),
                       const SizedBox(height: AppTheme.spaceXxs),
@@ -487,16 +514,13 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
   // ─── Shared section widgets ──────────────────────────────────────────────────
 
   Widget _buildSectionHeader(String title, ThemeData theme, bool isDark) {
-    return Row(
-      children: [
-        Container(
-          width: AppTheme.spaceXxs,
-          height: AppIconSizes.sm,
-          decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(AppTheme.spaceXxxs)),
-        ),
-        const SizedBox(width: AppTheme.spaceXs),
-        Text(title, style: theme.textTheme.titleLarge?.copyWith(fontWeight: AppFontWeights.bold)),
-      ],
+    return Text(
+      title.toUpperCase(),
+      style: theme.textTheme.labelSmall?.copyWith(
+        color: AppColors.textTertiary(isDark),
+        letterSpacing: 1.2,
+        fontWeight: AppFontWeights.semibold,
+      ),
     );
   }
 
@@ -507,9 +531,9 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
       padding: AppTheme.pagePadding,
       physics: const NeverScrollableScrollPhysics(),
       children: [
-        Row(children: List.generate(2, (_) => Expanded(child: Padding(padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceXxs), child: Container(height: _kSkeletonTileH, decoration: decoration))))),
-        const SizedBox(height: AppTheme.spaceMd),
-        Row(children: List.generate(2, (_) => Expanded(child: Padding(padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceXxs), child: Container(height: _kSkeletonTileH, decoration: decoration))))),
+        Container(height: 96, decoration: decoration),
+        const SizedBox(height: AppTheme.spaceSm),
+        Row(children: List.generate(3, (_) => Expanded(child: Padding(padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceXxs), child: Container(height: 72, decoration: decoration))))),
         const SizedBox(height: AppTheme.spaceLg),
         Container(height: AppIconSizes.sm, width: _kSkeletonTitleW, decoration: decoration),
         const SizedBox(height: AppTheme.spaceMd),
