@@ -121,7 +121,7 @@ fastify.get('/health', async (request, reply) => {
     health.status = 'unhealthy';
     health.checks.database = {
       status: 'down',
-      error: error instanceof Error ? error.message : 'Unknown error',
+      error: 'Connection failed',
     };
     // Return 503 Service Unavailable if DB is down
     reply.status(503);

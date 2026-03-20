@@ -2,9 +2,8 @@ import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import type { Pool } from 'pg';
 import { latLngToCell } from 'h3-js';
 import { decompressPayload, UnsupportedEncodingError } from '../utils/compression';
-import { verifyApiKey } from '../utils/security';
-import { verifyFirebaseToken } from '../utils/firebase-auth';
-import { hashDeviceId } from '../utils/security';
+import { verifyApiKey, hashDeviceId } from '../utils/security';
+import { deviceOrFirebaseAuth } from '../middleware/auth';
 import { getPool } from '../database';
 import { UploadBatchSchema, UploadBatch, SensorReading } from '../models/upload';
 import {
@@ -165,54 +164,9 @@ export async function uploadRoutes(fastify: FastifyInstance) {
 
   fastify.post(
     '/upload',
-    {
-      preHandler: verifyApiKey,
-    },
+    { preHandler: [verifyApiKey, deviceOrFirebaseAuth] },
     async (request: FastifyRequest, reply: FastifyReply) => {
-      // 1. Verify Auth (Device Secret OR Firebase Token)
-      let userId: string | null = null;
-      const deviceSecret = request.headers['x-device-secret'] as string;
-
-      if (deviceSecret) {
-        // Verify Device Secret
-        try {
-          const pool = getPool();
-          const result = await pool.query(
-            'SELECT user_id FROM device_secrets WHERE secret = $1',
-            [deviceSecret]
-          );
-          if (result.rows.length > 0) {
-            userId = result.rows[0].user_id;
-            request.log.info({ userId }, 'Authenticated via Device Secret');
-            // Update last_used_at
-            await pool.query(
-              'UPDATE device_secrets SET last_used_at = NOW() WHERE secret = $1',
-              [deviceSecret]
-            );
-          } else {
-            request.log.warn('Invalid Device Secret provided');
-            return reply.code(401).send({ error: 'Unauthorized', message: 'Invalid Device Secret' });
-          }
-        } catch (e) {
-          request.log.error({ err: e }, 'Device Secret verification failed');
-          return reply.code(500).send({ error: 'Internal Server Error' });
-        }
-      } else {
-        // Fallback to Firebase Token
-        try {
-          userId = await verifyFirebaseToken(request, reply);
-        } catch (e) {
-          request.log.warn({ err: e }, 'Auth check failed or missing');
-          // If the auth check sent a response (e.g. 401), stop here.
-          if (reply.sent) return;
-        }
-      }
-
-      // Require authentication — no anonymous uploads accepted
-      if (userId === null) {
-        return reply.code(401).send({ error: 'Unauthorized', message: 'Authentication required' });
-      }
-
+      const userId = request.user!.uid;
       request.log.info({ userId }, 'Upload request received');
 
       try {
@@ -253,7 +207,7 @@ export async function uploadRoutes(fastify: FastifyInstance) {
 
         // 1a. Rate limit per device: max 120 batches per sliding hour
         if (await checkDeviceRateLimit(pool, deviceHash)) {
-          return reply.code(429).send({
+          return reply.code(429).header('Retry-After', '3600').send({
             error: 'Too Many Requests',
             message: 'Upload rate limit exceeded. Max 120 batches per hour per device.',
           });
@@ -261,7 +215,7 @@ export async function uploadRoutes(fastify: FastifyInstance) {
 
         // 1b. Rate limit per user: max 300 batches/hour across all devices
         if (await checkUserRateLimit(pool, userId)) {
-          return reply.code(429).send({
+          return reply.code(429).header('Retry-After', '3600').send({
             error: 'Too Many Requests',
             message: 'Upload rate limit exceeded. Max 300 batches per hour per account.',
           });

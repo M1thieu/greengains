@@ -199,6 +199,15 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
     try {
       final response = await BackendClient.get('/api/user/tiles');
+      debugPrint('Tiles: HTTP ${response.statusCode} (${response.body.length}B)');
+
+      if (response.statusCode == 401) {
+        // Auth not ready yet — retry once after a short delay
+        debugPrint('Tiles: 401 (auth race?), retrying in 2s');
+        await Future.delayed(const Duration(seconds: 2));
+        if (mounted) _loadH3Tiles();
+        return;
+      }
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body) as Map<String, dynamic>;
@@ -253,6 +262,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   Future<void> _loadGlobalTiles() async {
     try {
       final response = await BackendClient.get('/api/tiles/global');
+      debugPrint('Global tiles: HTTP ${response.statusCode} (${response.body.length}B)');
+      if (response.statusCode == 401) {
+        await Future.delayed(const Duration(seconds: 2));
+        if (mounted && _globalTiles.isEmpty) _loadGlobalTiles();
+        return;
+      }
       if (response.statusCode != 200 || !mounted) return;
       final data = jsonDecode(response.body) as Map<String, dynamic>;
       final tilesData = data['tiles'] as List<dynamic>?;

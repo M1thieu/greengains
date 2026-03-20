@@ -68,13 +68,6 @@ export class QueryBuilder {
     };
   }
 
-  /**
-   * Add a LIMIT parameter and return the full param reference
-   */
-  addLimit(limit: number): string {
-    this.params.push(limit);
-    return `$${this.paramIndex++}`;
-  }
 }
 
 /**

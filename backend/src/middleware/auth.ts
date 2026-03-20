@@ -98,7 +98,7 @@ export async function deviceOrFirebaseAuth(
       }
 
       // Invalid device secret - fall through to Firebase auth
-      request.log.warn({ prefix: deviceSecret.substring(0, 8) }, 'Invalid Device Secret');
+      request.log.warn('Invalid Device Secret');
     } catch (e) {
       request.log.error({ err: e }, 'Device Secret verification failed');
       // Fall through to Firebase auth

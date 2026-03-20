@@ -8,6 +8,13 @@ export const AGGREGATION_WINDOW_MINUTES = 5;
 const WINDOW_MS = AGGREGATION_WINDOW_MINUTES * 60 * 1000;
 const JOB_INTERVAL_MS = 60 * 1000; // run once a minute
 
+// Movement score: deviation from gravitational baseline (phone at rest ≈ 9.81 m/s²).
+// 5 m/s² above/below resting = full score of 1.0.
+const MOVEMENT_GRAVITY_BASELINE = 9.81;
+const MOVEMENT_THRESHOLD = 5.0;
+const movementScore = (accelRms: number) =>
+  Math.min(1, Math.max(0, Math.abs(accelRms - MOVEMENT_GRAVITY_BASELINE) / MOVEMENT_THRESHOLD));
+
 type WindowKey = string;
 type DayKey = string;
 
@@ -250,10 +257,7 @@ export async function runAggregationJob(): Promise<void> {
     const lightMax = bucket.lightMax === Number.NEGATIVE_INFINITY ? null : bucket.lightMax;
     const avgAccelRms = bucket.accelRmsSum / samples;
     const avgGyroRms = bucket.gyroRmsSum / samples;
-    // Fix: accelRms includes gravity (~9.81 when still). Normalize by deviation from
-    // gravity baseline so a stationary phone scores 0, not 1.
-    // 5 m/s² of extra acceleration above/below resting = full movement score.
-    const movementScore = Math.min(1, Math.max(0, Math.abs(avgAccelRms - 9.81) / 5.0));
+    const windowMovementScore = movementScore(avgAccelRms);
     const batteryAvg =
       bucket.batterySamples > 0 ? bucket.batterySum / bucket.batterySamples : null;
     const locationShare = samples > 0 ? bucket.locationSamples / samples : 0;
@@ -275,7 +279,7 @@ export async function runAggregationJob(): Promise<void> {
       lightMax,
       avgAccelRms,
       avgGyroRms,
-      movementScore,
+      movementScore: windowMovementScore,
       batteryAvg,
       locationShare,
       qualitySamples,
@@ -504,7 +508,7 @@ async function upsertDailyResults(
       bucket.lightMax === Number.NEGATIVE_INFINITY ? null : bucket.lightMax;
     const accelRms = bucket.accelRmsSum / samples;
     const gyroRms = bucket.gyroRmsSum / samples;
-    const movementScore = Math.min(1, Math.max(0, Math.abs(accelRms - 9.81) / 5.0));
+    const dayMovementScore = movementScore(accelRms);
     const batteryAvg =
       bucket.batterySamples > 0 ? bucket.batterySum / bucket.batterySamples : null;
     const locationShare = samples > 0 ? bucket.locationSamples / samples : 0;
@@ -525,7 +529,7 @@ async function upsertDailyResults(
     lightMaxes.push(lightMax);
     avgAccelRms.push(accelRms);
     avgGyroRms.push(gyroRms);
-    movementScores.push(movementScore);
+    movementScores.push(dayMovementScore);
     batteryAvgs.push(batteryAvg);
     locationShares.push(locationShare);
     deviceHours.push(deviceHour);

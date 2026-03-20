@@ -319,7 +319,11 @@ export async function dataRoutes(fastify: FastifyInstance) {
                 .map((h) => {
                   const val = row[h];
                   if (val === null || val === undefined) return '';
-                  if (typeof val === 'string' && val.includes(',')) return `"${val}"`;
+                  if (typeof val === 'string') {
+                    // Quote all strings; escape internal quotes; strip leading =+-@ to prevent formula injection
+                    const safe = val.replace(/^[=+\-@\t\r]/, "'$&");
+                    return `"${safe.replace(/"/g, '""')}"`;
+                  }
                   return val;
                 })
                 .join(',')

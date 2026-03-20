@@ -51,7 +51,7 @@ export const UploadBatchSchema = z.object({
    *  retries as long as the client sends the same frozen timestamp. */
   batch_id: z.string().uuid().optional(),
   timestamp: z.coerce.date(),
-  batch: z.array(SensorReadingSchema).min(1),
+  batch: z.array(SensorReadingSchema).min(1).max(500),
   location: LocationDataSchema.optional(),
   geohash: z.string().max(12).optional(),
   battery_level: z.number().min(-1).max(100).optional(),

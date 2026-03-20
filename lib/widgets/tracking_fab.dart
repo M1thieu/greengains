@@ -13,9 +13,11 @@ const _kFabIconSize          = 32.0;
 const _kFabJellyDuration     = Duration(milliseconds: 420); // total squish→pop→settle
 const _kFabToggleDuration    = Duration(milliseconds: 220); // color/size transition
 const _kFabSwitchDuration    = Duration(milliseconds: 180); // icon crossfade
-const _kFabActiveShadowBlur   = 18.0;
-const _kFabIdleShadowBlur     = AppTheme.spaceXs;    // 8
-const _kFabActiveShadowSpread = AppTheme.spaceXxxs;  // 2
+const _kFabActiveShadowBlur    = 18.0;
+const _kFabIdleShadowBlur      = AppTheme.spaceXs;    // 8
+const _kFabActiveShadowSpread  = AppTheme.spaceXxxs;  // 2
+const _kFabActiveGlowBlur      = 40.0;  // outer ambient glow radius
+const _kFabActiveGlowSpread    = 4.0;
 
 /// Compact 56×56 FAB with jelly press feedback.
 ///
@@ -162,6 +164,14 @@ class _TrackingFabState extends State<TrackingFab>
                 gradient: gradient,
                 shape: BoxShape.circle,
                 boxShadow: [
+                  // Outer ambient glow — only when active (Contributing state)
+                  if (isActive)
+                    BoxShadow(
+                      color: bgColor.withValues(alpha: 0.22),
+                      blurRadius: _kFabActiveGlowBlur,
+                      spreadRadius: _kFabActiveGlowSpread,
+                    ),
+                  // Inner focused shadow — always present
                   BoxShadow(
                     color: bgColor.withValues(alpha: isActive ? 0.50 : 0.30),
                     blurRadius: isActive ? _kFabActiveShadowBlur : _kFabIdleShadowBlur,

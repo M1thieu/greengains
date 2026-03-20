@@ -8,10 +8,76 @@ import { decodeGeohash } from '../utils/geo';
 const CONFIDENCE_BATCH_THRESHOLD  = 10;  // personal tiles: 10 batches = max confidence
 const CONFIDENCE_SAMPLE_THRESHOLD = 100; // global tiles: 100 readings = max confidence
 
+// Global tiles: 30-day window — community coverage should feel populated.
+const GLOBAL_TILE_HOURS = 720;
+
 // ─── In-memory cache for global tiles (5-min TTL, avoids per-request DB hits) ─
 interface TileCacheEntry { data: unknown; expiresAt: number; }
 const _globalTileCache = new Map<string, TileCacheEntry>();
 const GLOBAL_TILE_CACHE_TTL_MS = 5 * 60 * 1000;
+
+// ─── Shared global tile query ─────────────────────────────────────────────────
+
+/**
+ * Fetches global community tiles from sensor_aggregates_5m.
+ * Results are cached 5 min in-memory (shared between /global and /public).
+ * Falls back to geohash decode for rows without h3_index.
+ */
+async function fetchGlobalTiles(): Promise<unknown> {
+  const cacheKey = `global_${GLOBAL_TILE_HOURS}`;
+  const cached = _globalTileCache.get(cacheKey);
+  if (cached && cached.expiresAt > Date.now()) return cached.data;
+
+  const pool = getPool();
+  const result = await pool.query<{
+    geohash: string;
+    h3_index: string | null;
+    sample_count: number;
+    device_count: number;
+    last_update: Date;
+  }>(
+    `SELECT
+       geohash,
+       h3_index,
+       SUM(samples_count)::int AS sample_count,
+       SUM(device_count)::int  AS device_count,
+       MAX(window_end)         AS last_update
+     FROM sensor_aggregates_5m
+     WHERE window_start > NOW() - ($1 || ' hours')::interval
+     GROUP BY geohash, h3_index
+     ORDER BY sample_count DESC
+     LIMIT 2000`,
+    [GLOBAL_TILE_HOURS],
+  );
+
+  const seen = new Set<string>();
+  const tiles = result.rows
+    .map(row => {
+      let h3Res9: string | null = row.h3_index;
+      if (!h3Res9) {
+        const centroid = decodeGeohash(row.geohash);
+        if (!centroid) return null;
+        h3Res9 = latLngToCell(centroid.lat, centroid.lon, 9);
+      }
+      const h3Index = cellToParent(h3Res9, 8); // coarsen to res 8 for global view
+      if (seen.has(h3Index)) return null;
+      seen.add(h3Index);
+      const boundary = cellToBoundary(h3Index, true) as [number, number][];
+      return {
+        h3Index,
+        boundary,
+        confidence: Math.min(1.0, row.sample_count / CONFIDENCE_SAMPLE_THRESHOLD),
+        deviceCount: row.device_count,
+        sampleCount: row.sample_count,
+        lastUpdate: row.last_update,
+      };
+    })
+    .filter(Boolean);
+
+  const data = { tiles };
+  _globalTileCache.set(cacheKey, { data, expiresAt: Date.now() + GLOBAL_TILE_CACHE_TTL_MS });
+  return data;
+}
 
 /**
  * User-specific endpoints (profile, H3 tiles, stats)
@@ -21,7 +87,8 @@ export async function userRoutes(fastify: FastifyInstance) {
 
   /**
    * GET /api/user/profile
-   * Returns user stats aggregated across all their devices
+   * Returns user stats aggregated across all their devices.
+   * Runs 2 queries: one CTE for all scalar stats, one for 7-day weekly breakdown.
    */
   fastify.get(
     '/api/user/profile',
@@ -32,21 +99,29 @@ export async function userRoutes(fastify: FastifyInstance) {
       try {
         const pool = getPool();
 
-        // Query sensor_batches directly — source of truth for user_id attribution.
-        // user_stats.user_id can be stale if ANDROID_ID changed across reinstalls.
-        // Indexed on (user_id, timestamp_utc DESC) so this is fast at current scale.
-        // TODO: once 20260320_backfill_user_id_and_stats_cache.sql has run on prod,
-        //       switch back to user_stats (O(1) cache) and drop sensor_batches queries
-        //       here. Keep sensor_batches for weekly/today/coverage as those need raw data.
-        const statsResult = await pool.query(
+        // Single query for all scalar stats — avoids 5 round-trips.
+        // Queries sensor_batches directly (source of truth for user_id attribution;
+        // user_stats.user_id can be stale if device was reinstalled).
+        const statsResult = await pool.query<{
+          total_batches: number;
+          uploads_today: number;
+          days_active: number;
+          device_count: number;
+          coverage_cells: number;
+          first_upload_date: Date | null;
+          last_upload_date: Date | null;
+        }>(
           `SELECT
-            COUNT(*)::int                      AS total_batches,
-            COUNT(DISTINCT device_hash)::int   AS device_count,
-            MIN(timestamp_utc)                 AS first_upload_date,
-            MAX(timestamp_utc)                 AS last_upload_date
-          FROM sensor_batches
-          WHERE user_id = $1`,
-          [userId]
+             COUNT(*)::int                                                 AS total_batches,
+             COUNT(*) FILTER (WHERE DATE(timestamp_utc) = CURRENT_DATE)::int AS uploads_today,
+             COUNT(DISTINCT DATE(timestamp_utc))::int                     AS days_active,
+             COUNT(DISTINCT device_hash)::int                             AS device_count,
+             COUNT(DISTINCT h3_res9) FILTER (WHERE h3_res9 IS NOT NULL)::int AS coverage_cells,
+             MIN(timestamp_utc)                                           AS first_upload_date,
+             MAX(timestamp_utc)                                           AS last_upload_date
+           FROM sensor_batches
+           WHERE user_id = $1`,
+          [userId],
         );
 
         const row = statsResult.rows[0];
@@ -69,92 +144,69 @@ export async function userRoutes(fastify: FastifyInstance) {
           });
         }
 
-        // Count uploads today
-        const todayResult = await pool.query(
-          `SELECT COUNT(*)::int as uploads_today
-          FROM sensor_batches
-          WHERE user_id = $1
-          AND DATE(timestamp_utc) = CURRENT_DATE`,
-          [userId]
-        );
-        const uploadsToday = todayResult.rows[0]?.uploads_today || 0;
-
-        // Calculate days active (distinct upload dates)
-        const daysActiveResult = await pool.query(
-          `SELECT COUNT(DISTINCT DATE(timestamp_utc))::int as days_active
-          FROM sensor_batches
-          WHERE user_id = $1`,
-          [userId]
-        );
-        const daysActive = daysActiveResult.rows[0]?.days_active || 0;
-
-        // Calculate streaks (consecutive days with uploads)
-        const streakResult = await pool.query(
-          `WITH daily_uploads AS (
-            SELECT DISTINCT DATE(timestamp_utc) as upload_date
-            FROM sensor_batches
-            WHERE user_id = $1
-            ORDER BY upload_date DESC
-          ),
-          date_diff AS (
-            SELECT
-              upload_date,
-              upload_date - LAG(upload_date, 1, upload_date) OVER (ORDER BY upload_date DESC) as gap
-            FROM daily_uploads
-          ),
-          streak_groups AS (
-            SELECT
-              upload_date,
-              SUM(CASE WHEN gap < -1 THEN 1 ELSE 0 END) OVER (ORDER BY upload_date DESC) as streak_id
-            FROM date_diff
-          )
-          SELECT
-            MAX(streak_length) as longest_streak,
-            CASE WHEN MIN(upload_date) = CURRENT_DATE THEN current_streak ELSE 0 END as current_streak
-          FROM (
-            SELECT
-              streak_id,
-              COUNT(*) as streak_length,
-              MIN(upload_date) as min_date,
-              MAX(CASE WHEN upload_date >= CURRENT_DATE THEN COUNT(*) ELSE 0 END) as current_streak
-            FROM streak_groups
-            GROUP BY streak_id
-          ) t`,
-          [userId]
+        // Streak calculation — gaps-and-islands algorithm (no nested aggregates).
+        // Groups consecutive upload dates by subtracting their row number from the
+        // date: consecutive dates produce the same value → same group.
+        // Current streak = length of the latest group, but only if it includes
+        // today or yesterday (grace period so streak survives through the day).
+        const streakResult = await pool.query<{
+          longest_streak: number;
+          current_streak: number;
+        }>(
+          `WITH daily AS (
+             SELECT DISTINCT DATE(timestamp_utc) AS d
+             FROM sensor_batches
+             WHERE user_id = $1
+           ),
+           numbered AS (
+             SELECT d, ROW_NUMBER() OVER (ORDER BY d DESC)::int AS rn
+             FROM daily
+           ),
+           groups AS (
+             SELECT (d + rn) AS grp, COUNT(*)::int AS len, MAX(d) AS latest_day
+             FROM numbered
+             GROUP BY grp
+           )
+           SELECT
+             MAX(len)                                              AS longest_streak,
+             COALESCE(
+               (SELECT len FROM groups
+                WHERE latest_day >= CURRENT_DATE - 1
+                ORDER BY latest_day DESC LIMIT 1),
+               0
+             )                                                     AS current_streak
+           FROM groups`,
+          [userId],
         );
 
-        const longestStreak = streakResult.rows[0]?.longest_streak || 0;
-        const currentStreak = streakResult.rows[0]?.current_streak || 0;
+        const longestStreak = streakResult.rows[0]?.longest_streak ?? 0;
+        const currentStreak = streakResult.rows[0]?.current_streak ?? 0;
 
-        // Distinct coverage cells (h3_res9 precision — ~174m hexagons)
-        const coverageResult = await pool.query(
-          `SELECT COUNT(DISTINCT h3_res9)::int as coverage_cells
-           FROM sensor_batches
-           WHERE user_id = $1 AND h3_res9 IS NOT NULL`,
-          [userId]
-        );
-        const coverageCells = coverageResult.rows[0]?.coverage_cells || 0;
-
-        // 7-day upload history (last 7 days, index 0 = 6 days ago, index 6 = today)
-        const weeklyResult = await pool.query(
+        // 7-day upload history (index 0 = 6 days ago, index 6 = today)
+        const weeklyResult = await pool.query<{
+          upload_date: Date;
+          count: number;
+        }>(
           `SELECT
-            DATE(timestamp_utc) as upload_date,
-            COUNT(*)::int as count
-          FROM sensor_batches
-          WHERE user_id = $1
-            AND timestamp_utc >= CURRENT_DATE - INTERVAL '6 days'
-          GROUP BY DATE(timestamp_utc)
-          ORDER BY upload_date ASC`,
-          [userId]
+             DATE(timestamp_utc) AS upload_date,
+             COUNT(*)::int       AS count
+           FROM sensor_batches
+           WHERE user_id = $1
+             AND timestamp_utc >= CURRENT_DATE - INTERVAL '6 days'
+           GROUP BY DATE(timestamp_utc)
+           ORDER BY upload_date ASC`,
+          [userId],
         );
 
         const weekly: number[] = Array(7).fill(0);
-        const todayMidnight = new Date();
-        todayMidnight.setUTCHours(0, 0, 0, 0);
+        const todayMs = Date.UTC(
+          new Date().getUTCFullYear(),
+          new Date().getUTCMonth(),
+          new Date().getUTCDate(),
+        );
         for (const wr of weeklyResult.rows) {
           const d = new Date(wr.upload_date);
-          d.setUTCHours(0, 0, 0, 0);
-          const daysAgo = Math.round((todayMidnight.getTime() - d.getTime()) / 86400000);
+          const daysAgo = Math.round((todayMs - d.getTime()) / 86_400_000);
           if (daysAgo >= 0 && daysAgo < 7) weekly[6 - daysAgo] = wr.count;
         }
 
@@ -163,11 +215,11 @@ export async function userRoutes(fastify: FastifyInstance) {
           createdAt: row.first_upload_date,
           stats: {
             totalUploads: row.total_batches,
-            uploadsToday,
-            daysActive,
+            uploadsToday: row.uploads_today,
+            daysActive: row.days_active,
             currentStreak,
             longestStreak,
-            coverageCells,
+            coverageCells: row.coverage_cells,
             deviceCount: row.device_count,
             firstUploadDate: row.first_upload_date,
             lastUploadDate: row.last_upload_date,
@@ -178,14 +230,13 @@ export async function userRoutes(fastify: FastifyInstance) {
         request.log.error({ err: error }, 'Profile fetch error');
         return reply.code(500).send({ error: 'Internal Server Error' });
       }
-    }
+    },
   );
 
   /**
    * GET /api/user/tiles
    * Returns personal H3 coverage tiles (res 9, ~174m edge).
-   * Queries sensor_batches directly by h3_res9 column — no JSONB extraction.
-   * Query params: ?hours=24 (optional, default 24)
+   * Includes geohash fallback for rows uploaded before the h3_res9 migration.
    */
   fastify.get(
     '/api/user/tiles',
@@ -196,125 +247,85 @@ export async function userRoutes(fastify: FastifyInstance) {
       try {
         const pool = getPool();
 
-        // Personal tiles = lifetime map — no time filter.
-        // A user's coverage map should show every route they've ever contributed,
-        // not just a rolling window. This is how Silencio/Nodle/Helium work.
-        // LIMIT 5000 distinct cells is a safe upper bound (a city-scale contributor
-        // generates ~2000–3000 cells over years of daily commuting).
-        const tilesResult = await pool.query(
+        // Include rows with h3_res9 OR a geohash fallback — handles pre-migration data.
+        const tilesResult = await pool.query<{
+          h3_res9: string | null;
+          geohash: string | null;
+          batch_count: number;
+          device_count: number;
+          last_update: Date;
+        }>(
           `SELECT
              h3_res9,
-             COUNT(*)::int                AS batch_count,
+             batch_json->>'geohash'           AS geohash,
+             COUNT(*)::int                    AS batch_count,
              COUNT(DISTINCT device_hash)::int AS device_count,
-             MAX(timestamp_utc)           AS last_update
+             MAX(timestamp_utc)               AS last_update
            FROM sensor_batches
            WHERE user_id = $1
-             AND h3_res9 IS NOT NULL
-           GROUP BY h3_res9
+             AND (h3_res9 IS NOT NULL OR batch_json->>'geohash' IS NOT NULL)
+           GROUP BY h3_res9, batch_json->>'geohash'
            ORDER BY batch_count DESC
            LIMIT 5000`,
           [userId],
         );
 
-        const tiles = tilesResult.rows.map(row => {
-          const h3Index = row.h3_res9 as string;
-          // cellToBoundary(h3, true) → [lng, lat][] GeoJSON order, ring auto-closed
-          const boundary = cellToBoundary(h3Index, true) as [number, number][];
-          const [lat, lng] = cellToLatLng(h3Index);
-          return {
-            h3Index,
-            boundary,
-            centroid: { lat, lng },
-            confidence: Math.min(1.0, row.batch_count / CONFIDENCE_BATCH_THRESHOLD),
-            sampleCount: row.batch_count,
-            deviceCount: row.device_count,
-            lastUpdate: row.last_update,
-          };
-        });
+        // Resolve each row to a final h3 cell. Rows mapping to the same cell are merged.
+        const tileMap = new Map<string, { batchCount: number; deviceCount: number; lastUpdate: Date }>();
+        for (const row of tilesResult.rows) {
+          let h3Index: string | null = row.h3_res9;
+          if (!h3Index && row.geohash) {
+            const centroid = decodeGeohash(row.geohash);
+            if (!centroid) continue;
+            h3Index = latLngToCell(centroid.lat, centroid.lon, 9);
+          }
+          if (!h3Index) continue;
+          const existing = tileMap.get(h3Index);
+          if (existing) {
+            existing.batchCount += row.batch_count;
+            existing.deviceCount = Math.max(existing.deviceCount, row.device_count);
+            if (row.last_update > existing.lastUpdate) existing.lastUpdate = row.last_update;
+          } else {
+            tileMap.set(h3Index, { batchCount: row.batch_count, deviceCount: row.device_count, lastUpdate: row.last_update });
+          }
+        }
 
+        const tiles = Array.from(tileMap.entries())
+          .sort((a, b) => b[1].batchCount - a[1].batchCount)
+          .slice(0, 5000)
+          .map(([h3Index, stats]) => {
+            const boundary = cellToBoundary(h3Index, true) as [number, number][];
+            const [lat, lng] = cellToLatLng(h3Index);
+            return {
+              h3Index,
+              boundary,
+              centroid: { lat, lng },
+              confidence: Math.min(1.0, stats.batchCount / CONFIDENCE_BATCH_THRESHOLD),
+              sampleCount: stats.batchCount,
+              deviceCount: stats.deviceCount,
+              lastUpdate: stats.lastUpdate,
+            };
+          });
+
+        request.log.info({ tileCount: tiles.length, userId }, 'User tiles fetched');
         return reply.send({ tiles });
       } catch (error) {
         request.log.error({ err: error }, 'Tiles fetch error');
         return reply.code(500).send({ error: 'Internal Server Error' });
       }
-    }
+    },
   );
 
   /**
    * GET /api/tiles/global
-   * Returns global H3 coverage tiles (res 8, ~461m edge) from all users.
-   * Queries sensor_aggregates_5m (pre-computed) — not raw sensor_batches.
-   * Uses h3_index column when available; falls back to geohash decode for old rows.
-   * Results cached 5 min in-memory.
-   * Query params: ?hours=48 (optional, default 48)
+   * Global H3 coverage tiles (res 8). Requires auth. Cached 5 min.
    */
   fastify.get(
     '/api/tiles/global',
     { preHandler: requireFirebaseAuth },
     async (request: FastifyRequest, reply: FastifyReply) => {
       try {
-        // Global tiles: 30-day window — community coverage should feel populated.
-        const hours = 720;
-        const cacheKey = `global_${hours}`;
-
-        const cached = _globalTileCache.get(cacheKey);
-        if (cached && cached.expiresAt > Date.now()) {
-          return reply.send(cached.data);
-        }
-
-        const pool = getPool();
-
-        const result = await pool.query<{
-          geohash: string;
-          h3_index: string | null;
-          sample_count: number;
-          device_count: number;
-          last_update: Date;
-        }>(
-          `SELECT
-             geohash,
-             h3_index,
-             SUM(samples_count)::int AS sample_count,
-             SUM(device_count)::int  AS device_count,
-             MAX(window_end)         AS last_update
-           FROM sensor_aggregates_5m
-           WHERE window_start > NOW() - ($1 || ' hours')::interval
-           GROUP BY geohash, h3_index
-           ORDER BY sample_count DESC
-           LIMIT 2000`,
-          [hours],
-        );
-
-        const seenGlobal = new Set<string>();
-        const tiles = result.rows
-          .map(row => {
-            // Prefer pre-computed h3_index; fall back to geohash decode for old rows
-            let h3Res9: string | null = row.h3_index;
-            if (!h3Res9) {
-              const centroid = decodeGeohash(row.geohash);
-              if (!centroid) return null;
-              h3Res9 = latLngToCell(centroid.lat, centroid.lon, 9);
-            }
-            // Coarsen to res 8 for global view (neighbourhood scale)
-            const h3Index = cellToParent(h3Res9, 8);
-            if (seenGlobal.has(h3Index)) return null;
-            seenGlobal.add(h3Index);
-            const boundary = cellToBoundary(h3Index, true) as [number, number][];
-            return {
-              h3Index,
-              boundary,
-              confidence: Math.min(1.0, row.sample_count / CONFIDENCE_SAMPLE_THRESHOLD),
-              deviceCount: row.device_count,
-              sampleCount: row.sample_count,
-              lastUpdate: row.last_update,
-            };
-          })
-          .filter(Boolean);
-
-        const data = { tiles };
-        _globalTileCache.set(cacheKey, { data, expiresAt: Date.now() + GLOBAL_TILE_CACHE_TTL_MS });
-
-        return reply.send(data);
+        return reply.send(await fetchGlobalTiles());
       } catch (error) {
         request.log.error({ err: error }, 'Global tiles fetch error');
         return reply.code(500).send({ error: 'Internal Server Error' });
@@ -324,72 +335,13 @@ export async function userRoutes(fastify: FastifyInstance) {
 
   /**
    * GET /api/tiles/public
-   * Unauthenticated global coverage tiles — same data as /api/tiles/global,
-   * shares the same 5-min in-memory cache. Used by the public coverage explorer.
+   * Unauthenticated global coverage tiles — same data as /global, shares cache.
    */
   fastify.get(
     '/api/tiles/public',
     async (request: FastifyRequest, reply: FastifyReply) => {
       try {
-        const hours = 720; // 30-day window — community coverage should feel populated
-        const cacheKey = `global_${hours}`;
-
-        const cached = _globalTileCache.get(cacheKey);
-        if (cached && cached.expiresAt > Date.now()) {
-          return reply.send(cached.data);
-        }
-
-        const pool = getPool();
-
-        const result = await pool.query<{
-          geohash: string;
-          h3_index: string | null;
-          sample_count: number;
-          device_count: number;
-          last_update: Date;
-        }>(
-          `SELECT
-             geohash,
-             h3_index,
-             SUM(samples_count)::int AS sample_count,
-             SUM(device_count)::int  AS device_count,
-             MAX(window_end)         AS last_update
-           FROM sensor_aggregates_5m
-           WHERE window_start > NOW() - ($1 || ' hours')::interval
-           GROUP BY geohash, h3_index
-           ORDER BY sample_count DESC
-           LIMIT 2000`,
-          [hours],
-        );
-
-        const seenGlobal = new Set<string>();
-        const tiles = result.rows
-          .map(row => {
-            let h3Res9: string | null = row.h3_index;
-            if (!h3Res9) {
-              const centroid = decodeGeohash(row.geohash);
-              if (!centroid) return null;
-              h3Res9 = latLngToCell(centroid.lat, centroid.lon, 9);
-            }
-            const h3Index = cellToParent(h3Res9, 8);
-            if (seenGlobal.has(h3Index)) return null;
-            seenGlobal.add(h3Index);
-            const boundary = cellToBoundary(h3Index, true) as [number, number][];
-            return {
-              h3Index,
-              boundary,
-              confidence: Math.min(1.0, row.sample_count / CONFIDENCE_SAMPLE_THRESHOLD),
-              deviceCount: row.device_count,
-              sampleCount: row.sample_count,
-              lastUpdate: row.last_update,
-            };
-          })
-          .filter(Boolean);
-
-        const data = { tiles };
-        _globalTileCache.set(cacheKey, { data, expiresAt: Date.now() + GLOBAL_TILE_CACHE_TTL_MS });
-
-        return reply.send(data);
+        return reply.send(await fetchGlobalTiles());
       } catch (error) {
         request.log.error({ err: error }, 'Public tiles fetch error');
         return reply.code(500).send({ error: 'Internal Server Error' });
@@ -416,14 +368,14 @@ export async function userRoutes(fastify: FastifyInstance) {
         await pool.query(
           `INSERT INTO user_consent_agreements (user_id, platform, app_version)
            VALUES ($1, $2, $3)`,
-          [userId, platform ?? null, appVersion ?? null]
+          [userId, platform ?? null, appVersion ?? null],
         );
 
         const row = await pool.query(
           `SELECT agreed_at FROM user_consent_agreements
            WHERE user_id = $1
            ORDER BY agreed_at DESC LIMIT 1`,
-          [userId]
+          [userId],
         );
 
         return reply.send({ agreedAt: row.rows[0].agreed_at });
@@ -431,6 +383,6 @@ export async function userRoutes(fastify: FastifyInstance) {
         request.log.error({ err: error }, 'Consent record error');
         return reply.code(500).send({ error: 'Internal Server Error' });
       }
-    }
+    },
   );
 }

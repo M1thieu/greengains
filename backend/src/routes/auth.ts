@@ -1,6 +1,6 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { getPool } from '../database';
-import { verifyFirebaseToken } from '../utils/firebase-auth';
+import { requireFirebaseAuth } from '../middleware/auth';
 import { getOrgSubscriptionTier, ensureUserTier, TIER_HISTORY_DAYS } from '../utils/tier-utils';
 
 /**
@@ -24,9 +24,9 @@ export async function authRoutes(fastify: FastifyInstance) {
    */
   fastify.get(
     '/api/v1/auth/me',
-    { preHandler: (req, reply) => verifyFirebaseToken(req, reply) },
+    { preHandler: requireFirebaseAuth },
     async (request: FastifyRequest, reply: FastifyReply) => {
-      const userId = (request as any).user?.uid;
+      const userId = request.user!.uid;
       if (!userId) {
         return reply.code(401).send({ error: 'Unauthorized' });
       }
