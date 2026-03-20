@@ -13,15 +13,23 @@ import '../services/network/backend_client.dart';
 
 // ── Chart / skeleton layout constants ────────────────────────────────────────
 // Named so that any future change touches ONE place, not scattered literals.
-const _kChartH         = 148.0; // height reserved for the bar chart + labels
-const _kBarMaxH        = 72.0;  // tallest bar at 100 % of the data range
-const _kBarMinH        = 4.0;   // floor so 0-count bars remain visible
-const _kBarLabelH      = AppTheme.spaceLg + AppTheme.spaceSm; // 36 px = label area below bars
-const _kBarAnimStagger = 40;    // ms added per bar for cascade entrance
-const _kBarLabelSize   = 10.0;  // day-of-week label below each bar (below bodySmall)
-const _kSkeletonTitleW = 160.0; // width of section-title skeleton rect
-const _kHeroIconSize   = 80.0;  // empty-state centre icon size
-const _kProgressH      = 6.0;   // milestone progress bar height
+const _kChartH            = 148.0; // height reserved for the bar chart + labels
+const _kBarMaxH           = 72.0;  // tallest bar at 100 % of the data range
+const _kBarMinH           = 4.0;   // floor so 0-count bars remain visible
+const _kBarLabelH         = AppTheme.spaceLg + AppTheme.spaceSm; // 36 px = label area below bars
+const _kBarAnimStagger    = 40;    // ms added per bar for cascade entrance
+const _kBarLabelSize      = 10.0;  // day-of-week label below each bar (below bodySmall)
+const _kSkeletonTitleW    = 160.0; // width of section-title skeleton rect
+const _kSkeletonHeroH     = 96.0;  // height of hero card skeleton placeholder
+const _kHeroIconSize      = 80.0;  // empty-state centre icon size
+const _kProgressH         = 6.0;   // milestone progress bar height
+const _kTrioLabelSize     = 10.0;  // small label inside supporting trio tiles
+// ── Typography constants ──────────────────────────────────────────────────────
+const _kLetterSpacingDisplay  = -2.0;  // tight tracking for displayLarge hero number
+const _kLetterSpacingHero     = -0.5;  // tight tracking for titleLarge in tiles
+const _kLetterSpacingCaps     = 2.0;   // wide tracking for uppercase LABEL badges
+const _kLetterSpacingSection  = 1.2;   // small-caps section header tracking
+const _kLineHeightTight       = 1.0;   // tight line-height for numeric displays
 
 // Reward milestones — thresholds at which rewards unlock.
 // Designed to feel achievable at each step (not a wall).
@@ -201,8 +209,8 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                         '$total',
                         style: theme.textTheme.displayLarge?.copyWith(
                           fontWeight: AppFontWeights.bold,
-                          letterSpacing: -2,
-                          height: 1.0,
+                          letterSpacing: _kLetterSpacingDisplay,
+                          height: _kLineHeightTight,
                         ),
                       ),
                       const SizedBox(height: AppTheme.spaceXxs),
@@ -210,7 +218,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                         l10n.statsTotal.toUpperCase(),
                         style: theme.textTheme.labelSmall?.copyWith(
                           color: AppColors.primary,
-                          letterSpacing: 2.0,
+                          letterSpacing: _kLetterSpacingCaps,
                           fontWeight: AppFontWeights.semibold,
                         ),
                       ),
@@ -302,14 +310,14 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                     tile.value,
                     style: theme.textTheme.titleLarge?.copyWith(
                       fontWeight: AppFontWeights.bold,
-                      letterSpacing: -0.5,
-                      height: 1.0,
+                      letterSpacing: _kLetterSpacingHero,
+                      height: _kLineHeightTight,
                     ),
                   ),
                   Text(
                     tile.label,
                     style: theme.textTheme.labelSmall?.copyWith(
-                      fontSize: 10,
+                      fontSize: _kTrioLabelSize,
                       color: AppColors.textSecondary(isDark),
                     ),
                     maxLines: 1,
@@ -527,7 +535,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
       title.toUpperCase(),
       style: theme.textTheme.labelSmall?.copyWith(
         color: AppColors.textTertiary(isDark),
-        letterSpacing: 1.2,
+        letterSpacing: _kLetterSpacingSection,
         fontWeight: AppFontWeights.semibold,
       ),
     );
@@ -540,7 +548,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
       padding: AppTheme.pagePadding,
       physics: const NeverScrollableScrollPhysics(),
       children: [
-        Container(height: 96, decoration: decoration),
+        Container(height: _kSkeletonHeroH, decoration: decoration),
         const SizedBox(height: AppTheme.spaceSm),
         Row(children: List.generate(3, (_) => Expanded(child: Padding(padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceXxs), child: Container(height: 72, decoration: decoration))))),
         const SizedBox(height: AppTheme.spaceLg),
@@ -568,12 +576,6 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
             Text(l10n.statsStartContributing, style: theme.textTheme.headlineSmall?.copyWith(fontWeight: AppFontWeights.semibold)),
             const SizedBox(height: AppTheme.spaceXs),
             Text(l10n.statsEmptyDescription, textAlign: TextAlign.center, style: theme.textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary(isDark))),
-            const SizedBox(height: AppTheme.spaceLg),
-            FilledButton.icon(
-              onPressed: () => Navigator.pop(context),
-              icon: const Icon(Icons.play_arrow),
-              label: Text(l10n.startTracking),
-            ),
           ],
         ),
       ),

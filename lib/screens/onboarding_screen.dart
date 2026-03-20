@@ -17,8 +17,6 @@ import 'webview_screen.dart';
 // ── Onboarding layout constants ───────────────────────────────────────────────
 // Hero icon sizes that don't map directly to AppIconSizes entries.
 const _kWelcomeHeroSize = AppIconSizes.xl + AppTheme.spaceLg; // 48+24 = 72 — eco icon
-const _kSignInIconSize  = AppIconSizes.xl + AppIconSizes.xs;  // 48+16 = 64 — unused, retained
-const _kPillIconSize    = AppIconSizes.xs;                    // 16 — retained for reference
 
 /// Onboarding — 2 pages: Welcome → Sign In
 /// Typography-first premium redesign (Stripe/Linear/Vercel aesthetic).
@@ -45,17 +43,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   void _nextPage() {
     if (_currentPage < 1) {
       _pageController.nextPage(
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
+        duration: AppDurations.fast,
+        curve: AppMotion.standard,
       );
     }
-  }
-
-  void _previousPage() {
-    _pageController.previousPage(
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeInOut,
-    );
   }
 
   Future<void> _handleGoogleSignIn() async {
@@ -84,7 +75,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       );
 
       AppSnackbars.showSuccess(context, l10n.signInSuccess);
-      await Future.delayed(const Duration(milliseconds: 500));
+      await Future.delayed(AppDurations.medium);
       if (!mounted) return;
       widget.onComplete();
     } catch (e) {

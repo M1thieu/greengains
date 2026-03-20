@@ -11,6 +11,7 @@ import 'diagnostics_screen.dart';
 import 'webview_screen.dart';
 
 // Legal page URLs — single source of truth (update version paths here only)
+const _kSectionHeaderTracking = 1.2; // letter-spacing for small-caps section headers
 const _kPrivacyPolicyUrl = 'https://greengains.eremat.org/privacy-policy';
 const _kTermsUrl = 'https://greengains.eremat.org/terms-of-service';
 const _kDataDeletionUrl = 'https://greengains.eremat.org/data-deletion-request';
@@ -277,7 +278,7 @@ class _SettingsSectionTitle extends StatelessWidget {
         text.toUpperCase(),
         style: theme.textTheme.labelSmall?.copyWith(
           color: AppColors.textTertiary(isDark),
-          letterSpacing: 1.2,
+          letterSpacing: _kSectionHeaderTracking,
           fontWeight: AppFontWeights.semibold,
         ),
       ),
