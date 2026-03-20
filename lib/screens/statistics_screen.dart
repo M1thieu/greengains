@@ -131,11 +131,18 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
     final isDark = theme.brightness == Brightness.dark;
     final l10n = context.l10n;
 
+    // Use backend total as fallback when local SQLite is empty (e.g. after reinstall)
+    final effectiveTotal = (_stats?.totalUploads ?? 0) > 0
+        ? _stats!.totalUploads
+        : (_backendTotalUploads ?? 0);
+    // Show skeleton while either local OR backend is still loading (first render)
+    final stillLoading = _isLoading || (_isLoadingWeekly && _backendTotalUploads == null && effectiveTotal == 0);
+
     return Scaffold(
       appBar: AppBar(title: Text(l10n.statsScreenTitle)),
-      body: _isLoading
+      body: stillLoading
           ? _buildLoadingSkeleton(isDark)
-          : _stats == null || _stats!.totalUploads == 0
+          : effectiveTotal == 0
               ? _buildEmptyState(context, theme, isDark)
               : RefreshIndicator(
                   onRefresh: _refresh,
@@ -159,7 +166,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
   // ─── Hero card ───────────────────────────────────────────────────────────────
 
   Widget _buildHeroCard(ThemeData theme, bool isDark, AppLocalizations l10n) {
-    final localTotal = _stats!.totalUploads;
+    final localTotal = _stats?.totalUploads ?? 0;
     final total = localTotal > 0 ? localTotal : (_backendTotalUploads ?? 0);
 
     // Find the next milestone above the current total
@@ -248,7 +255,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
     final l10n = context.l10n;
     final tiles = [
       (
-        value: '${_stats!.uploadsToday}',
+        value: '${_stats?.uploadsToday ?? 0}',
         label: l10n.statsToday,
         color: AppColors.pressure,
       ),
@@ -346,7 +353,9 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
   }
 
   Widget _buildWeeklyBarChart(ThemeData theme, bool isDark, AppLocalizations l10n) {
-    final data = _weeklyData!;
+    // Ensure exactly 7 elements — pad/trim defensively
+    final raw7 = _weeklyData!;
+    final data = List<int>.generate(7, (i) => i < raw7.length ? raw7[i] : 0);
     final maxVal = data.fold(0, max).toDouble();
     final weeklyTotal = data.fold(0, (a, b) => a + b);
     final chartLocale = Localizations.localeOf(context).toString();

@@ -1,13 +1,22 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'screens/home_screen.dart';
 import 'screens/profile_screen.dart';
+import 'screens/statistics_screen.dart';
 import 'core/extensions/context_extensions.dart';
 import 'core/services/time_ago_service.dart';
 import 'core/themes.dart';
 import 'services/location/foreground_location_service.dart';
 
-/// Main navigation shell with bottom navigation bar.
-/// Uses PageView + _KeepAlive so each tab keeps its state AND supports swipe.
+// ── Floating nav bar constants ─────────────────────────────────────────────────
+const _kNavBackgroundAlpha = 0.60;
+const _kNavBorderAlpha     = 0.08;
+const _kNavShadowAlpha     = 0.40;
+const _kNavShadowBlur      = 32.0;
+const _kNavShadowOffsetY   = 12.0;
+
+/// Main navigation shell with floating bottom nav bar (Silencio-style).
+/// extendBody: true — map/content bleeds to full screen height behind the nav.
 class AppShell extends StatefulWidget {
   const AppShell({super.key});
 
@@ -55,7 +64,7 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
     if (mounted) setState(() {});
   }
 
-  void _onDestinationSelected(int index) {
+  void _onTabSelected(int index) {
     setState(() => _currentIndex = index);
     _pageController.animateToPage(
       index,
@@ -68,37 +77,148 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     final isTracking =
         _locationService.isRunning.value && !_locationService.isPaused.value;
+    final bottomPadding = MediaQuery.paddingOf(context).bottom;
 
     return Scaffold(
+      // Map extends to full screen height — nav floats on top.
+      extendBody: true,
       body: PageView(
         controller: _pageController,
         physics: const NeverScrollableScrollPhysics(),
         onPageChanged: (index) => setState(() => _currentIndex = index),
         children: const [
           _KeepAlive(child: HomeScreen()),
+          _KeepAlive(child: StatisticsScreen()),
           _KeepAlive(child: ProfileScreen()),
         ],
       ),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _currentIndex,
-        onDestinationSelected: _onDestinationSelected,
-        destinations: [
-          NavigationDestination(
-            // Show a live dot on the Home icon when tracking is active
-            icon: Badge(
-              isLabelVisible: isTracking && _currentIndex != 0,
-              backgroundColor: AppColors.primary,
-              child: const Icon(Icons.home_outlined),
+      // Floating pill nav bar — RepaintBoundary isolates it from page rebuilds.
+      bottomNavigationBar: RepaintBoundary(
+        child: Padding(
+        padding: EdgeInsets.only(
+          left: AppTheme.spaceLg,
+          right: AppTheme.spaceLg,
+          bottom: bottomPadding + AppTheme.spaceSm,
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(AppTheme.radiusPill),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(
+              sigmaX: AppTheme.glassBlurSigma,
+              sigmaY: AppTheme.glassBlurSigma,
             ),
-            selectedIcon: const Icon(Icons.home),
-            label: context.l10n.navHome,
+            child: Container(
+          height: AppTheme.floatingNavHeight,
+          // No borderRadius here — ClipRRect already clips the shape.
+          decoration: AppColors.glassDecoration(
+            backgroundAlpha: _kNavBackgroundAlpha,
+            borderAlpha: _kNavBorderAlpha,
+          ).copyWith(
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: _kNavShadowAlpha),
+                blurRadius: _kNavShadowBlur,
+                offset: const Offset(0, _kNavShadowOffsetY),
+              ),
+            ],
           ),
-          NavigationDestination(
-            icon: const Icon(Icons.person_outline),
-            selectedIcon: const Icon(Icons.person),
-            label: context.l10n.navProfile,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              _NavItem(
+                icon: Icons.home_outlined,
+                selectedIcon: Icons.home,
+                label: context.l10n.navHome,
+                selected: _currentIndex == 0,
+                badge: isTracking && _currentIndex != 0,
+                onTap: () => _onTabSelected(0),
+              ),
+              _NavItem(
+                icon: Icons.bar_chart_outlined,
+                selectedIcon: Icons.bar_chart,
+                label: context.l10n.navStats,
+                selected: _currentIndex == 1,
+                onTap: () => _onTabSelected(1),
+              ),
+              _NavItem(
+                icon: Icons.person_outline,
+                selectedIcon: Icons.person,
+                label: context.l10n.navProfile,
+                selected: _currentIndex == 2,
+                onTap: () => _onTabSelected(2),
+              ),
+            ],
           ),
-        ],
+        ),
+          ),
+        ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Single icon tab inside the floating nav bar.
+class _NavItem extends StatelessWidget {
+  const _NavItem({
+    required this.icon,
+    required this.selectedIcon,
+    required this.label,
+    required this.selected,
+    required this.onTap,
+    this.badge = false,
+  });
+
+  final IconData icon;
+  final IconData selectedIcon;
+  final String label;
+  final bool selected;
+  final bool badge;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = selected ? AppColors.primary : Colors.white54;
+
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        behavior: HitTestBehavior.opaque,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Badge(
+              isLabelVisible: badge,
+              backgroundColor: AppColors.primary,
+              child: Icon(
+                selected ? selectedIcon : icon,
+                color: color,
+                size: AppIconSizes.md,
+              ),
+            ),
+            const SizedBox(height: AppTheme.spaceXxxs),
+            Text(
+              label,
+              style: TextStyle(
+                color: color,
+                fontSize: AppTheme.fontSizeNavLabel,
+                fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+                letterSpacing: 0.2,
+              ),
+            ),
+            const SizedBox(height: AppTheme.spaceXxxs),
+            AnimatedContainer(
+              duration: AppDurations.fast,
+              curve: AppMotion.emphasized,
+              width: selected ? AppTheme.spaceSm : 0,
+              height: AppTheme.spaceXxxs,
+              decoration: BoxDecoration(
+                color: AppColors.primary,
+                borderRadius: BorderRadius.circular(AppTheme.radiusPill),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

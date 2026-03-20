@@ -28,6 +28,7 @@ import { authRoutes } from './routes/auth';
 import { dataRoutes } from './routes/data';
 import { referralRoutes } from './routes/referral';
 import { startAggregationJob, stopAggregationJob } from './jobs/aggregator';
+import { runH3Backfill } from './jobs/h3-backfill';
 import { ErrorCodes, createErrorResponse } from './utils/errors';
 
 const fastify = Fastify({
@@ -172,6 +173,12 @@ const start = async () => {
 
     // Initialize Firebase
     initFirebase();
+
+    // One-time H3 backfill — populates h3_res9/h3_res8/h3_index for existing rows.
+    // No-op if all rows are already populated. Runs before the aggregation job.
+    runH3Backfill().catch((error) =>
+      fastify.log.error({ err: error }, 'H3 backfill failed (non-fatal)'),
+    );
 
     // Start aggregation job
     startAggregationJob().catch((error) =>

@@ -30,6 +30,7 @@
   "signInError": "Sign-in cancelled or failed",
 
   "navHome": "Home",
+  "navStats": "Stats",
   "navProfile": "Profile",
   "navSettings": "Settings",
 
@@ -191,6 +192,7 @@
   "statsStreak": "Streak",
   "statsDaysActive": "Days Active",
   "statsTotal": "Total",
+  "statsCoverage": "Zones",
   "statsTotalContributions": "Total Contributions",
   "statsKeepContributing": "Keep contributing to track trends",
   "statsActivityTrend": "Activity Trend",

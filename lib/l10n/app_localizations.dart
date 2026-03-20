@@ -230,6 +230,12 @@ abstract class AppLocalizations {
   /// **'Home'**
   String get navHome;
 
+  /// No description provided for @navStats.
+  ///
+  /// In en, this message translates to:
+  /// **'Stats'**
+  String get navStats;
+
   /// No description provided for @navProfile.
   ///
   /// In en, this message translates to:
@@ -830,6 +836,12 @@ abstract class AppLocalizations {
   /// **'Total'**
   String get statsTotal;
 
+  /// No description provided for @statsCoverage.
+  ///
+  /// In en, this message translates to:
+  /// **'Zones'**
+  String get statsCoverage;
+
   /// No description provided for @statsTotalContributions.
   ///
   /// In en, this message translates to:
@@ -1046,6 +1058,60 @@ abstract class AppLocalizations {
   /// **'Your contributions: {uploads}. Area covered: {area}. Active streak: {streak}.'**
   String contributionStatsSemanticsLabel(
       String uploads, String area, String streak);
+
+  /// No description provided for @chipZones.
+  ///
+  /// In en, this message translates to:
+  /// **'zones'**
+  String get chipZones;
+
+  /// No description provided for @tileInfoSamplesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'samples'**
+  String get tileInfoSamplesLabel;
+
+  /// No description provided for @tileInfoDevicesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'contributors'**
+  String get tileInfoDevicesLabel;
+
+  /// No description provided for @tileInfoPersonal.
+  ///
+  /// In en, this message translates to:
+  /// **'Personal'**
+  String get tileInfoPersonal;
+
+  /// No description provided for @tileInfoCommunity.
+  ///
+  /// In en, this message translates to:
+  /// **'Community'**
+  String get tileInfoCommunity;
+
+  /// No description provided for @tileInfoSamples.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 sample} other{{count} samples}}'**
+  String tileInfoSamples(int count);
+
+  /// No description provided for @tileInfoConfidence.
+  ///
+  /// In en, this message translates to:
+  /// **'Confidence'**
+  String get tileInfoConfidence;
+
+  /// No description provided for @tileInfoDevices.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 contributor} other{{count} contributors}}'**
+  String tileInfoDevices(int count);
+
+  /// No description provided for @tileScanningNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Scanning now'**
+  String get tileScanningNow;
 
   /// No description provided for @noCoverageYet.
   ///

@@ -1,5 +1,6 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import type { Pool } from 'pg';
+import { latLngToCell } from 'h3-js';
 import { decompressPayload, UnsupportedEncodingError } from '../utils/compression';
 import { verifyApiKey } from '../utils/security';
 import { verifyFirebaseToken } from '../utils/firebase-auth';
@@ -289,12 +290,17 @@ export async function uploadRoutes(fastify: FastifyInstance) {
         const sanitizedPayload = buildStoragePayload(batch);
         const payloadJson = JSON.stringify(sanitizedPayload);
 
+        // Compute H3 indices at ingest — stored as indexed columns for fast tile queries.
+        // Industry pattern: Helium/Nodle/Hivemapper all index by H3 cell at ingest, never at query time.
+        const h3Res9 = batch.location ? latLngToCell(batch.location.lat, batch.location.lon, 9) : null;
+        const h3Res8 = batch.location ? latLngToCell(batch.location.lat, batch.location.lon, 8) : null;
+
         // Store in database — ON CONFLICT DO NOTHING deduplicates retried uploads
         const insertResult = await pool.query(
-          `INSERT INTO sensor_batches (device_hash, timestamp_utc, batch_json, user_id)
-           VALUES ($1, $2, $3::jsonb, $4)
+          `INSERT INTO sensor_batches (device_hash, timestamp_utc, batch_json, user_id, h3_res9, h3_res8)
+           VALUES ($1, $2, $3::jsonb, $4, $5, $6)
            ON CONFLICT (device_hash, timestamp_utc) DO NOTHING`,
-          [deviceHash, batch.timestamp, payloadJson, userId],
+          [deviceHash, batch.timestamp, payloadJson, userId, h3Res9, h3Res8],
         );
 
         // Duplicate batch (same device + timestamp already stored) — accept silently

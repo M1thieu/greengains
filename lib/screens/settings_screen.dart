@@ -152,7 +152,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     });
                   },
                 ),
-                const SizedBox(height: AppTheme.spaceSm),
+                const Divider(height: AppTheme.spaceLg, thickness: 0.5),
                 _SettingsToggleRow(
                   icon: Icons.podcasts_outlined,
                   title: l10n.settingsMobileData,
@@ -184,13 +184,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     return l10n.settingsConsentDate(DateFormat('MMM d, y', locale).format(d.toLocal()));
                   }(),
                 ),
-                const SizedBox(height: AppTheme.spaceSm),
+                const Divider(height: AppTheme.spaceLg, thickness: 0.5),
                 _DataInfoRow(
                   icon: Icons.schedule_outlined,
                   iconColor: AppColors.movement,
                   label: l10n.settingsDataRetention,
                 ),
-                const SizedBox(height: AppTheme.spaceSm),
+                const Divider(height: AppTheme.spaceLg, thickness: 0.5),
                 _SettingsNavRow(
                   icon: Icons.sensors_outlined,
                   title: l10n.settingsDiagnostics,
@@ -229,6 +229,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
             ),
           ),
+
+          const SizedBox(height: AppTheme.spaceXl),
         ],
       ),
     );
@@ -268,11 +270,14 @@ class _SettingsSectionTitle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     return Padding(
-      padding: const EdgeInsets.only(bottom: AppTheme.spaceSm),
+      padding: const EdgeInsets.only(bottom: AppTheme.spaceSm, top: AppTheme.spaceSm),
       child: Text(
-        text,
-        style: theme.textTheme.titleMedium?.copyWith(
+        text.toUpperCase(),
+        style: theme.textTheme.labelSmall?.copyWith(
+          color: AppColors.textTertiary(isDark),
+          letterSpacing: 1.2,
           fontWeight: AppFontWeights.semibold,
         ),
       ),
@@ -286,12 +291,8 @@ class _SettingsSectionContainer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    return Container(
-      margin: const EdgeInsets.only(bottom: AppTheme.spaceLg),
-      padding: const EdgeInsets.all(AppTheme.spaceMd),
-      decoration: AppTheme.surfaceContainer(isDark: isDark),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppTheme.spaceLg),
       child: child,
     );
   }
@@ -319,14 +320,7 @@ class _SettingsToggleRow extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Container(
-          padding: const EdgeInsets.all(AppTheme.spaceSm),
-          decoration: AppTheme.iconContainer(isDark: isDark, active: value),
-          child: Icon(
-            icon,
-            color: value ? AppColors.primary : AppColors.textTertiary(isDark),
-          ),
-        ),
+        Icon(icon, size: AppIconSizes.sm, color: value ? AppColors.primary : AppColors.textTertiary(isDark)),
         const SizedBox(width: AppTheme.spaceMd),
         Expanded(
           child: Column(
@@ -334,7 +328,7 @@ class _SettingsToggleRow extends StatelessWidget {
             children: [
               Text(
                 title,
-                style: theme.textTheme.titleMedium?.copyWith(
+                style: theme.textTheme.bodyMedium?.copyWith(
                   fontWeight: AppFontWeights.semibold,
                 ),
               ),
@@ -439,4 +433,3 @@ class _DataInfoRow extends StatelessWidget {
     );
   }
 }
-

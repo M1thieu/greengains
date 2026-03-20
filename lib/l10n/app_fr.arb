@@ -30,6 +30,7 @@
   "signInError": "Connexion annulée ou échouée",
 
   "navHome": "Accueil",
+  "navStats": "Stats",
   "navProfile": "Profil",
   "navSettings": "Paramètres",
 
@@ -191,6 +192,7 @@
   "statsStreak": "Série",
   "statsDaysActive": "Jours actifs",
   "statsTotal": "Total",
+  "statsCoverage": "Zones",
   "statsTotalContributions": "Total des contributions",
   "statsKeepContributing": "Continuez à contribuer pour suivre les tendances",
   "statsActivityTrend": "Tendance d'activité",

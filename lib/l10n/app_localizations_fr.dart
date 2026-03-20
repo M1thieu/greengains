@@ -84,6 +84,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get navHome => 'Accueil';
 
   @override
+  String get navStats => 'Stats';
+
+  @override
   String get navProfile => 'Profil';
 
   @override
@@ -410,6 +413,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get statsTotal => 'Total';
 
   @override
+  String get statsCoverage => 'Zones';
+
+  @override
   String get statsTotalContributions => 'Total des contributions';
 
   @override
@@ -529,6 +535,49 @@ class AppLocalizationsFr extends AppLocalizations {
       String uploads, String area, String streak) {
     return 'Vos contributions : $uploads. Zone couverte : $area. Série active : $streak.';
   }
+
+  @override
+  String get chipZones => 'zones';
+
+  @override
+  String get tileInfoSamplesLabel => 'mesures';
+
+  @override
+  String get tileInfoDevicesLabel => 'contributeurs';
+
+  @override
+  String get tileInfoPersonal => 'Personnel';
+
+  @override
+  String get tileInfoCommunity => 'Communauté';
+
+  @override
+  String tileInfoSamples(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count mesures',
+      one: '1 mesure',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tileInfoConfidence => 'Confiance';
+
+  @override
+  String tileInfoDevices(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count contributeurs',
+      one: '1 contributeur',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tileScanningNow => 'En cours de scan';
 
   @override
   String get noCoverageYet => 'Aucune couverture';

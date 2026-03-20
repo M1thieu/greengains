@@ -137,6 +137,17 @@ class AppColors {
     ];
   }
 
+  /// Frosted-glass BoxDecoration — pair with ClipRRect + BackdropFilter(glassBlurSigma).
+  /// Keeps the blur/border/opacity system consistent across all glass overlays.
+  static BoxDecoration glassDecoration({
+    double backgroundAlpha = 0.50,
+    double borderAlpha = 0.10,
+  }) =>
+      BoxDecoration(
+        color: Colors.black.withValues(alpha: backgroundAlpha),
+        border: Border.all(color: Colors.white.withValues(alpha: borderAlpha)),
+      );
+
   static List<BoxShadow> glowEffect(Color color, {double opacity = 0.4}) {
     return [
       BoxShadow(
@@ -230,6 +241,17 @@ class AppGradients {
     ],
   );
 
+  /// Button/FAB gradient: top-left light → bottom-right darkened.
+  /// Gives depth without needing a separate shadow pass.
+  static LinearGradient darkBottomGradient(Color base) => LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [
+      base.withValues(alpha: 0.95),
+      Color.lerp(base, Colors.black, 0.20)!,
+    ],
+  );
+
   /// Subtle neutral surface gradient — NO color tint.
   /// Used sparingly for depth; prefer flat colors for most surfaces.
   static LinearGradient surfaceGlow(bool isDark) => LinearGradient(
@@ -293,6 +315,7 @@ class AppIconSizes {
 class AppTheme {
   // Spacing scale (comprehensive)
   static const double spaceXxxs = 2;  // Micro spacing
+  static const double spaceTiny = 3;  // Between spaceXxxs and spaceXxs (badge padding etc.)
   static const double spaceXxs = 4;
   static const double spaceXs = 8;
   static const double spaceSm = 12;
@@ -317,6 +340,13 @@ class AppTheme {
 
   // Touch targets (accessibility)
   static const double minTouchTarget = 48;
+
+  // Floating nav bar
+  static const double floatingNavHeight = 64;
+  static const double fontSizeNavLabel  = 10.0; // sub-caption, below bodySmall(12)
+
+  // Glass UI constants (BackdropFilter + frosted container)
+  static const double glassBlurSigma = 16.0; // consistent across all glass overlays
 
   // Onboarding hero sizing
   static const double onboardingHeroMin = 280;

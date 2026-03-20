@@ -1,5 +1,7 @@
 <resources>
     <string name="app_name">GreenGains</string>
+    <!-- MapLibre GL requires a non-empty token; Protomaps auth is handled via URL key -->
+    <string name="mapbox_access_token">maplibre_no_token_needed</string>
 
     <!-- Foreground service notification — title = status, body = count or instruction -->
     <string name="notification_status_collecting">Contributing</string>

@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:firebase_auth/firebase_auth.dart';
@@ -48,8 +49,55 @@ class BackendClient {
     );
   }
 
+  /// Singleton Dio instance with Firebase auth interceptor.
+  /// Adds Bearer token on every request; retries once on 401 with a fresh token.
+  static final Dio _dio = _buildDio();
+
+  static Dio _buildDio() {
+    final dio = Dio(BaseOptions(
+      baseUrl: kBackendBaseUrl,
+      connectTimeout: const Duration(seconds: 12),
+      receiveTimeout: const Duration(seconds: 12),
+      headers: {HttpHeaders.acceptHeader: 'application/json'},
+    ));
+
+    dio.interceptors.add(QueuedInterceptorsWrapper(
+      onRequest: (options, handler) async {
+        try {
+          final token = await FirebaseAuth.instance.currentUser?.getIdToken();
+          if (token != null) {
+            options.headers[HttpHeaders.authorizationHeader] = 'Bearer $token';
+          }
+        } catch (e) {
+          debugPrint('Auth token fetch failed: $e');
+        }
+        handler.next(options);
+      },
+      onError: (err, handler) async {
+        // On 401, refresh the token once and retry
+        if (err.response?.statusCode == 401) {
+          try {
+            final token = await FirebaseAuth.instance.currentUser
+                ?.getIdToken(true); // force refresh
+            if (token != null) {
+              err.requestOptions.headers[HttpHeaders.authorizationHeader] =
+                  'Bearer $token';
+              final retried = await _dio.fetch(err.requestOptions);
+              return handler.resolve(retried);
+            }
+          } catch (e) {
+            debugPrint('Token refresh failed: $e');
+          }
+        }
+        handler.next(err);
+      },
+    ));
+
+    return dio;
+  }
+
   /// Adds Firebase ID token to [headers] if the user is signed in.
-  /// Silent on failure — anonymous/legacy uploads are allowed.
+  /// Used by uploadBatch() which keeps the http.Client for gzip support.
   static Future<void> _addAuthHeaders(Map<String, String> headers) async {
     try {
       final token = await FirebaseAuth.instance.currentUser?.getIdToken();
@@ -95,33 +143,38 @@ class BackendClient {
     _client.close();
   }
 
-  /// Static helper for GET requests.
+  /// Static GET via Dio — auth header added automatically by interceptor.
+  /// Returns an [http.Response]-compatible wrapper so all call sites are unchanged.
   static Future<http.Response> get(
     String path, {
     Duration timeout = const Duration(seconds: 12),
   }) async {
-    final uri = Uri.parse('$kBackendBaseUrl$path');
-    final headers = <String, String>{
-      HttpHeaders.acceptHeader: 'application/json',
-      HttpHeaders.contentTypeHeader: 'application/json',
-    };
-    await _addAuthHeaders(headers);
-    return await http.get(uri, headers: headers).timeout(timeout);
+    final res = await _dio.get<String>(
+      path,
+      options: Options(
+        receiveTimeout: timeout,
+        responseType: ResponseType.plain,
+      ),
+    );
+    return http.Response(res.data ?? '', res.statusCode ?? 200);
   }
 
-  /// Static helper for POST requests.
+  /// Static POST via Dio — auth header added automatically by interceptor.
   static Future<http.Response> post(
     String path,
     Map<String, dynamic> body, {
     Duration timeout = const Duration(seconds: 12),
   }) async {
-    final uri = Uri.parse('$kBackendBaseUrl$path');
-    final headers = <String, String>{
-      HttpHeaders.contentTypeHeader: 'application/json',
-    };
-    await _addAuthHeaders(headers);
-    return await http.post(uri, headers: headers, body: jsonEncode(body))
-        .timeout(timeout);
+    final res = await _dio.post<String>(
+      path,
+      data: jsonEncode(body),
+      options: Options(
+        receiveTimeout: timeout,
+        responseType: ResponseType.plain,
+        headers: {HttpHeaders.contentTypeHeader: 'application/json'},
+      ),
+    );
+    return http.Response(res.data ?? '', res.statusCode ?? 200);
   }
 
   Future<List<CoverageTile>> fetchCoverage({

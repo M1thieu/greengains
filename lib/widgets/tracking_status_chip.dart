@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../core/extensions/context_extensions.dart';
 import '../core/themes.dart';
@@ -5,12 +6,14 @@ import '../l10n/app_localizations.dart';
 import '../widgets/time_ago_text.dart';
 
 // ── Chip layout constants ─────────────────────────────────────────────────────
-const _kChipDotSize   = AppTheme.spaceXs;    // 8 — solid dot diameter
-const _kChipDotArea   = AppTheme.spaceMd;    // 16 — reserved area for pulse ring (2× dot)
-const _kChipDividerH  = AppTheme.spaceSm;    // 12 — separator line height
-const _kChipLabelSize = 13.0;               // between bodySmall(12) and bodyMedium(14)
-const _kChipTimeSize  = 12.0;               // matches bodySmall
-const _kPulseCycle    = Duration(milliseconds: 1400); // one pulse cycle
+const _kChipDotSize         = AppTheme.spaceXs;   // 8 — solid dot diameter
+const _kChipDotArea         = AppTheme.spaceMd;   // 16 — pulse ring reserved area
+const _kChipDividerH        = AppTheme.spaceSm;   // 12 — separator line height
+const _kChipLabelSize       = 13.0;               // between bodySmall(12) and bodyMedium(14)
+const _kChipTimeSize        = 12.0;               // matches bodySmall
+const _kChipBackgroundAlpha = 0.45;               // frosted glass background opacity
+const _kChipBorderAlpha     = 0.10;               // frosted glass border opacity
+const _kPulseCycle          = Duration(milliseconds: 1400);
 
 /// Compact status pill shown as a map overlay.
 /// Flat, semi-transparent dark background — no blur (reduces render cost on map).
@@ -40,67 +43,73 @@ class TrackingStatusChip extends StatelessWidget {
     final isActive = isTracking && !isPaused;
 
     return IntrinsicWidth(
-      child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppTheme.spaceSm,
-          vertical: AppTheme.spaceXs,
-        ),
-        decoration: BoxDecoration(
-          color: Colors.black.withValues(alpha: 0.65),
-          borderRadius: BorderRadius.circular(AppTheme.radiusPill),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Live pulse dot — animates when actively tracking
-            _PulseDot(color: dotColor, active: isActive),
-            const SizedBox(width: AppTheme.spaceXs),
-            // State label
-            Text(
-              label,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: _kChipLabelSize,
-                fontWeight: FontWeight.w600,
-                letterSpacing: 0.1,
-              ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(AppTheme.radiusPill),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(
+            sigmaX: AppTheme.glassBlurSigma,
+            sigmaY: AppTheme.glassBlurSigma,
+          ),
+          child: Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppTheme.spaceSm,
+              vertical: AppTheme.spaceXs,
             ),
-            // Tile count — shown when we have scanned zones
-            if ((isTracking || isPaused) && tileCount > 0) ...[
-              const SizedBox(width: AppTheme.spaceXxs),
-              Container(width: 1, height: _kChipDividerH, color: Colors.white24),
-              const SizedBox(width: AppTheme.spaceXxs),
-              Text(
-                '$tileCount',
-                style: TextStyle(
-                  color: dotColor.withValues(alpha: 0.9),
-                  fontSize: _kChipTimeSize,
-                  fontWeight: FontWeight.w600,
+            // No borderRadius here — ClipRRect already clips the shape.
+            decoration: AppColors.glassDecoration(
+              backgroundAlpha: _kChipBackgroundAlpha,
+              borderAlpha: _kChipBorderAlpha,
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _PulseDot(color: dotColor, active: isActive),
+                const SizedBox(width: AppTheme.spaceXs),
+                Text(
+                  label,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: _kChipLabelSize,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 0.1,
+                  ),
                 ),
-              ),
-              const SizedBox(width: AppTheme.spaceXxxs),
-              Text(
-                context.l10n.chipZones,
-                style: const TextStyle(
-                  color: Colors.white54,
-                  fontSize: _kChipTimeSize,
-                ),
-              ),
-            ],
-            // Last upload timestamp
-            if ((isTracking || isPaused) && lastUpload != null) ...[
-              const SizedBox(width: AppTheme.spaceXxs),
-              Container(width: 1, height: _kChipDividerH, color: Colors.white24),
-              const SizedBox(width: AppTheme.spaceXxs),
-              TimeAgoText(
-                timestamp: lastUpload!,
-                style: const TextStyle(
-                  color: Colors.white60,
-                  fontSize: _kChipTimeSize,
-                ),
-              ),
-            ],
-          ],
+                if ((isTracking || isPaused) && tileCount > 0) ...[
+                  const SizedBox(width: AppTheme.spaceXxs),
+                  Container(width: 1, height: _kChipDividerH, color: Colors.white24),
+                  const SizedBox(width: AppTheme.spaceXxs),
+                  Text(
+                    '$tileCount',
+                    style: TextStyle(
+                      color: dotColor.withValues(alpha: 0.9),
+                      fontSize: _kChipTimeSize,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(width: AppTheme.spaceXxxs),
+                  Text(
+                    context.l10n.chipZones,
+                    style: const TextStyle(
+                      color: Colors.white54,
+                      fontSize: _kChipTimeSize,
+                    ),
+                  ),
+                ],
+                if ((isTracking || isPaused) && lastUpload != null) ...[
+                  const SizedBox(width: AppTheme.spaceXxs),
+                  Container(width: 1, height: _kChipDividerH, color: Colors.white24),
+                  const SizedBox(width: AppTheme.spaceXxs),
+                  TimeAgoText(
+                    timestamp: lastUpload!,
+                    style: const TextStyle(
+                      color: Colors.white60,
+                      fontSize: _kChipTimeSize,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
         ),
       ),
     );
