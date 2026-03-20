@@ -78,6 +78,7 @@ upload_monitor.log
 *.md
 !README.md
 !SETUP.md
+!CLAUDE.md
 !REBRAND_CHECKLIST.md
 !docs/play-store-listing.md
 
