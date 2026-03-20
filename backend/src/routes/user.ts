@@ -32,8 +32,12 @@ export async function userRoutes(fastify: FastifyInstance) {
       try {
         const pool = getPool();
 
-        // Aggregate stats from sensor_batches — source of truth for user_id attribution.
-        // user_stats can have stale/missing user_id if device fingerprint changed across reinstalls.
+        // Query sensor_batches directly — source of truth for user_id attribution.
+        // user_stats.user_id can be stale if ANDROID_ID changed across reinstalls.
+        // Indexed on (user_id, timestamp_utc DESC) so this is fast at current scale.
+        // TODO: once 20260320_backfill_user_id_and_stats_cache.sql has run on prod,
+        //       switch back to user_stats (O(1) cache) and drop sensor_batches queries
+        //       here. Keep sensor_batches for weekly/today/coverage as those need raw data.
         const statsResult = await pool.query(
           `SELECT
             COUNT(*)::int                      AS total_batches,
