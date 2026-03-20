@@ -16,17 +16,12 @@ import 'webview_screen.dart';
 
 // ── Onboarding layout constants ───────────────────────────────────────────────
 // Hero icon sizes that don't map directly to AppIconSizes entries.
-const _kWelcomeHeroSize     = AppIconSizes.xl + AppTheme.spaceLg;    // 48+24 = 72 — eco icon
-const _kSignInIconSize      = AppIconSizes.xl + AppIconSizes.xs;     // 48+16 = 64 — hub icon
-const _kPillIconSize        = AppIconSizes.xs;                       // 16 — pill bullet icon
-const _kNavButtonBack       = 100.0;                                 // Previous button width
-const _kNavButtonNext       = AppTheme.tileTrailingButtonWidth;      // 120 — Next button width
+const _kWelcomeHeroSize = AppIconSizes.xl + AppTheme.spaceLg; // 48+24 = 72 — eco icon
+const _kSignInIconSize  = AppIconSizes.xl + AppIconSizes.xs;  // 48+16 = 64 — unused, retained
+const _kPillIconSize    = AppIconSizes.xs;                    // 16 — retained for reference
 
-/// Enhanced onboarding with 4 pages:
-/// 1. Welcome
-/// 2. Features (Passive + Privacy)
-/// 3. Impact tracking
-/// 4. Google Sign In (with skip option)
+/// Onboarding — 2 pages: Welcome → Sign In
+/// Typography-first premium redesign (Stripe/Linear/Vercel aesthetic).
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key, required this.onComplete});
 
@@ -112,7 +107,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       body: Stack(
         children: [
           // PageView — 2 pages: Welcome → Sign In
-          // Features page removed: facts shown on page 1, pills on sign-in.
           PageView(
             controller: _pageController,
             onPageChanged: (index) {
@@ -124,16 +118,15 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             ],
           ),
 
-          // Skip button removed - all users must sign in
-
-          // Bottom navigation
+          // Bottom navigation — dots + conditional full-width CTA
           Positioned(
-            bottom: AppTheme.spaceXxl,
+            bottom: 0,
             left: 0,
             right: 0,
             child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                // Page indicators
+                // Animated pill dot indicators
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: List.generate(
@@ -152,35 +145,20 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     ),
                   ),
                 ),
-                const SizedBox(height: AppTheme.spaceXl),
-
-                // Navigation buttons (only on page 0 — page 1 is sign-in)
-                if (_currentPage < 1)
+                if (_currentPage == 0) ...[
+                  const SizedBox(height: AppTheme.spaceXl),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceXl),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        if (_currentPage > 0)
-                          SizedBox(
-                            width: _kNavButtonBack,
-                            child: OutlinedButton(
-                              onPressed: _previousPage,
-                              child: Text(l10n.buttonPrevious),
-                            ),
-                          )
-                        else
-                          const SizedBox(width: _kNavButtonBack),
-                        SizedBox(
-                          width: _kNavButtonNext,
-                          child: FilledButton(
-                            onPressed: _nextPage,
-                            child: Text(l10n.buttonNext),
-                          ),
-                        ),
-                      ],
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: FilledButton(
+                        onPressed: _nextPage,
+                        child: Text(l10n.buttonNext),
+                      ),
                     ),
                   ),
+                ],
+                const SizedBox(height: AppTheme.spaceXxl),
               ],
             ),
           ),
@@ -189,44 +167,37 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     );
   }
 
-  // Page 1: Welcome
+  // ── Page 1: Welcome ─────────────────────────────────────────────────────────
   Widget _buildWelcomePage(ThemeData theme, bool isDark, AppLocalizations l10n) {
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.all(AppTheme.spaceLg),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             const Spacer(),
-            Container(
-              padding: const EdgeInsets.all(AppTheme.spaceXl),
-              decoration: BoxDecoration(
-                color: AppColors.primaryAlpha(0.12),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.eco,
-                size: _kWelcomeHeroSize,
-                color: AppColors.primary,
-              ),
+            Icon(
+              Icons.eco,
+              size: _kWelcomeHeroSize,
+              color: AppColors.primary,
             ),
             const SizedBox(height: AppTheme.spaceXl),
             Text(
               l10n.onboardingWelcomeTitle,
-              style: theme.textTheme.headlineMedium?.copyWith(
-                fontWeight: FontWeight.bold,
+              style: theme.textTheme.headlineLarge?.copyWith(
+                fontWeight: AppFontWeights.bold,
+                letterSpacing: -0.5,
               ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: AppTheme.spaceLg),
-            Column(
-              children: [
-                _buildWelcomeFact(Icons.bedtime_outlined, l10n.onboardingFeature1Title, isDark, theme),
-                const SizedBox(height: AppTheme.spaceSm),
-                _buildWelcomeFact(Icons.shield_outlined, l10n.onboardingFeature2Title, isDark, theme),
-                const SizedBox(height: AppTheme.spaceSm),
-                _buildWelcomeFact(Icons.map_outlined, l10n.onboardingFeature3Title, isDark, theme),
-              ],
+            const SizedBox(height: AppTheme.spaceMd),
+            Text(
+              '${l10n.onboardingFeature1Title} · ${l10n.onboardingFeature2Title} · ${l10n.onboardingFeature3Title}',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: AppColors.textSecondary(isDark),
+              ),
+              textAlign: TextAlign.center,
             ),
             const Spacer(),
           ],
@@ -235,50 +206,37 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     );
   }
 
-  // Page 2: Sign In
+  // ── Page 2: Sign In ──────────────────────────────────────────────────────────
   Widget _buildSignInPage(ThemeData theme, bool isDark, AppLocalizations l10n) {
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.all(AppTheme.spaceLg),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             const Spacer(),
-            Icon(
-              Icons.hub_outlined,
-              size: _kSignInIconSize,
-              color: AppColors.primary,
-            ),
-            const SizedBox(height: AppTheme.spaceXl),
             Text(
               l10n.onboardingSignInTitle,
-              style: theme.textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.bold,
+              style: theme.textTheme.headlineLarge?.copyWith(
+                fontWeight: AppFontWeights.bold,
+                letterSpacing: -0.5,
               ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: AppTheme.spaceMd),
             Text(
               l10n.onboardingSignInSubtitle,
-              style: theme.textTheme.bodyLarge?.copyWith(
+              style: theme.textTheme.bodyMedium?.copyWith(
                 color: AppColors.textSecondary(isDark),
               ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: AppTheme.spaceXl),
-
-            // Feature pills — compact icon + label, no prose
-            _buildFeaturePills([
-              (Icons.sensors_outlined, l10n.onboardingDataCollectedTitle),
-              (Icons.map_outlined, l10n.onboardingCloudSync),
-              (Icons.emoji_events_outlined, l10n.onboardingFutureFeatures),
-            ], theme, isDark),
-
             const Spacer(),
 
-            // Privacy Policy link — split-placeholder pattern:
+            // Privacy Policy / TOS — split-placeholder pattern:
             // pass sentinel tokens into the localized template, then split
-            // on them to extract the surrounding prose segments.
+            // on them to extract surrounding prose segments.
             // This preserves correct word order for every locale.
             Builder(builder: (context) {
               const ppToken = '__PP__';
@@ -289,8 +247,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               final betweenLinks = rest.split(tosToken)[0];
               final afterTOS = rest.split(tosToken)[1];
               return Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: AppTheme.spaceSm),
+                padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceSm),
                 child: RichText(
                   textAlign: TextAlign.center,
                   text: TextSpan(
@@ -310,8 +267,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           ..onTap = () {
                             Navigator.of(context).push(MaterialPageRoute(
                               builder: (_) => WebViewScreen(
-                                url:
-                                    'https://greengains.eremat.org/privacy-policy',
+                                url: 'https://greengains.eremat.org/privacy-policy',
                                 title: l10n.privacyPolicy,
                               ),
                             ));
@@ -329,8 +285,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           ..onTap = () {
                             Navigator.of(context).push(MaterialPageRoute(
                               builder: (_) => WebViewScreen(
-                                url:
-                                    'https://greengains.eremat.org/terms-of-service',
+                                url: 'https://greengains.eremat.org/terms-of-service',
                                 title: l10n.termsOfService,
                               ),
                             ));
@@ -345,99 +300,48 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
             const SizedBox(height: AppTheme.spaceLg),
 
-            // Official Google Sign-In Button
-            InkWell(
-              onTap: _signingIn ? null : _handleGoogleSignIn,
-              borderRadius: BorderRadius.circular(4),
-              child: _signingIn
-                  ? Container(
-                      height: 56,
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        color: isDark ? AppColors.darkSurfaceElevated : Colors.white,
-                        borderRadius: BorderRadius.circular(4),
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.shadowDark(0.15),
-                            blurRadius: 4,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: const SizedBox(
-                        width: 24,
-                        height: 24,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 3,
-                          valueColor: AlwaysStoppedAnimation(AppColors.primary),
+            // Official Google Sign-In Button — full-width
+            SizedBox(
+              width: double.infinity,
+              child: InkWell(
+                onTap: _signingIn ? null : _handleGoogleSignIn,
+                borderRadius: BorderRadius.circular(4),
+                child: _signingIn
+                    ? Container(
+                        height: AppTheme.authButtonHeight,
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          color: isDark ? AppColors.darkSurfaceElevated : Colors.white,
+                          borderRadius: BorderRadius.circular(4),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.shadowDark(0.15),
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
                         ),
+                        child: const SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 3,
+                            valueColor: AlwaysStoppedAnimation(AppColors.primary),
+                          ),
+                        ),
+                      )
+                    : SvgPicture.asset(
+                        AppTheme.googleButtonAsset(theme.brightness),
+                        height: AppTheme.authButtonHeight,
+                        fit: BoxFit.contain,
                       ),
-                    )
-                  : SvgPicture.asset(
-                      AppTheme.googleButtonAsset(theme.brightness),
-                      height: 56,
-                      fit: BoxFit.contain,
-                    ),
+              ),
             ),
 
-            const SizedBox(height: AppTheme.spaceMd),
-
-            // Anonymous mode removed - Google Sign In required for all users
-
-            const SizedBox(height: AppTheme.spaceLg),
+            const SizedBox(height: AppTheme.spaceXxl),
           ],
         ),
       ),
     );
   }
-
-  Widget _buildWelcomeFact(IconData icon, String text, bool isDark, ThemeData theme) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(icon, size: _kPillIconSize, color: AppColors.primary),
-        const SizedBox(width: AppTheme.spaceXs),
-        Text(
-          text,
-          style: theme.textTheme.bodyMedium?.copyWith(
-            color: AppColors.textSecondary(isDark),
-            fontWeight: AppFontWeights.medium,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildFeaturePills(List<(IconData, String)> items, ThemeData theme, bool isDark) {
-    return Wrap(
-      spacing: AppTheme.spaceXs,
-      runSpacing: AppTheme.spaceXs,
-      alignment: WrapAlignment.center,
-      children: items.map((item) {
-        return Container(
-          padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceSm, vertical: AppTheme.spaceXs),
-          decoration: BoxDecoration(
-            color: AppColors.primaryAlpha(0.08),
-            borderRadius: BorderRadius.circular(AppTheme.radiusXl),
-            border: Border.all(color: AppColors.primaryAlpha(0.18)),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(item.$1, size: _kPillIconSize, color: AppColors.primary),
-              const SizedBox(width: AppTheme.spaceXxs),
-              Text(
-                item.$2,
-                style: theme.textTheme.labelMedium?.copyWith(
-                  color: AppColors.textPrimary(isDark),
-                  fontWeight: AppFontWeights.medium,
-                ),
-              ),
-            ],
-          ),
-        );
-      }).toList(),
-    );
-  }
-
 }

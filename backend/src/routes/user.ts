@@ -32,20 +32,22 @@ export async function userRoutes(fastify: FastifyInstance) {
       try {
         const pool = getPool();
 
-        // Aggregate stats across all user's devices
+        // Aggregate stats from sensor_batches — source of truth for user_id attribution.
+        // user_stats can have stale/missing user_id if device fingerprint changed across reinstalls.
         const statsResult = await pool.query(
           `SELECT
-            COALESCE(SUM(samples_count), 0)::bigint as total_uploads,
-            COALESCE(SUM(valid_samples), 0)::bigint as valid_samples,
-            COUNT(DISTINCT device_hash) as device_count,
-            MIN(created_at) as first_upload_date,
-            MAX(last_upload_at) as last_upload_date
-          FROM user_stats
+            COUNT(*)::int                      AS total_batches,
+            COUNT(DISTINCT device_hash)::int   AS device_count,
+            MIN(timestamp_utc)                 AS first_upload_date,
+            MAX(timestamp_utc)                 AS last_upload_date
+          FROM sensor_batches
           WHERE user_id = $1`,
           [userId]
         );
 
-        if (statsResult.rows.length === 0 || !statsResult.rows[0].total_uploads) {
+        const row = statsResult.rows[0];
+
+        if (!row || row.total_batches === 0) {
           return reply.send({
             uid: userId,
             stats: {
@@ -58,11 +60,10 @@ export async function userRoutes(fastify: FastifyInstance) {
               deviceCount: 0,
               firstUploadDate: null,
               lastUploadDate: null,
+              weekly: Array(7).fill(0),
             },
           });
         }
-
-        const row = statsResult.rows[0];
 
         // Count uploads today
         const todayResult = await pool.query(
@@ -157,13 +158,13 @@ export async function userRoutes(fastify: FastifyInstance) {
           uid: userId,
           createdAt: row.first_upload_date,
           stats: {
-            totalUploads: parseInt(row.total_uploads, 10),
+            totalUploads: row.total_batches,
             uploadsToday,
             daysActive,
             currentStreak,
             longestStreak,
             coverageCells,
-            deviceCount: parseInt(row.device_count, 10),
+            deviceCount: row.device_count,
             firstUploadDate: row.first_upload_date,
             lastUploadDate: row.last_upload_date,
             weekly,
