@@ -209,7 +209,7 @@ class _NavItem extends StatelessWidget {
             const SizedBox(height: AppTheme.spaceXxxs),
             AnimatedContainer(
               duration: AppDurations.fast,
-              curve: AppMotion.emphasized,
+              curve: AppMotion.decelerated, // easeOutBack overshoots to negative width → crash
               width: selected ? AppTheme.spaceSm : 0,
               height: AppTheme.spaceXxxs,
               decoration: BoxDecoration(
