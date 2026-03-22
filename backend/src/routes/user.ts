@@ -362,7 +362,8 @@ export async function userRoutes(fastify: FastifyInstance) {
       const userId = request.user!.uid;
 
       try {
-        const { platform, appVersion } = (request.body as any) ?? {};
+        const body = (request.body ?? {}) as { platform?: string; appVersion?: string };
+        const { platform, appVersion } = body;
         const pool = getPool();
 
         await pool.query(
