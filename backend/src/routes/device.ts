@@ -7,6 +7,9 @@ import { DeviceRegistrationSchema, DeviceRegistration } from '../models/device';
 export async function deviceRoutes(fastify: FastifyInstance) {
     fastify.post(
         '/register-device',
+        {
+            config: { rateLimit: { max: 5, timeWindow: '1 hour' } },
+        },
         async (request: FastifyRequest, reply: FastifyReply) => {
             try {
                 let bodyData = request.body;
