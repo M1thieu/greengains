@@ -30,6 +30,7 @@ import { referralRoutes } from './routes/referral';
 import { startAggregationJob, stopAggregationJob } from './jobs/aggregator';
 import { runH3Backfill } from './jobs/h3-backfill';
 import { ErrorCodes, createErrorResponse } from './utils/errors';
+import './middleware/auth'; // import FastifyRequest augmentation (user field)
 
 const fastify = Fastify({
   logger: {
@@ -54,7 +55,7 @@ fastify.setErrorHandler((error, request, reply) => {
       },
     },
     user: {
-      id: (request as any).user?.uid,
+      id: request.user?.uid,
     },
   });
 

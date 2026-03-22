@@ -37,7 +37,7 @@ export async function authRoutes(fastify: FastifyInstance) {
 
         return reply.send({
           uid: userId,
-          email: (request as any).user?.email ?? null,
+          email: request.user?.email ?? null,
           tier,
           data_retention_days: TIER_HISTORY_DAYS[tier],
         });

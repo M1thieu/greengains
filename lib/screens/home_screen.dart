@@ -243,8 +243,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             _h3TilesLoading = false;
           });
         }
-      } else if (response.statusCode == 401) {
-        if (mounted) setState(() => _h3TilesLoading = false);
       } else {
         throw Exception('Failed to load tiles: ${response.statusCode}');
       }

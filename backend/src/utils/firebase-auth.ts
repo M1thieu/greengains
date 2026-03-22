@@ -100,7 +100,7 @@ export async function verifyFirebaseToken(
   try {
     const decodedToken = await admin.auth().verifyIdToken(token);
     // Attach user to request so route handlers can access it
-    (request as any).user = { uid: decodedToken.uid };
+    request.user = { uid: decodedToken.uid, email: decodedToken.email };
     return decodedToken.uid;
   } catch (error: any) {
     if (error.code === 'auth/id-token-expired') {
