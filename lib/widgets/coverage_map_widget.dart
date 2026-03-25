@@ -83,6 +83,11 @@ class H3Tile {
   });
 }
 
+// ── Timing constants ──────────────────────────────────────────────────────────
+/// Camera-idle debounce before recomputing the ghost grid.
+/// 500ms is intentional — slower than UI animations to avoid thrashing FFI.
+const _kGridDebounce = Duration(milliseconds: 500);
+
 // ── Layer / source ID constants ───────────────────────────────────────────────
 const _kSourceGrid      = 'gg-grid';
 const _kSourceTiles     = 'gg-tiles';
@@ -439,7 +444,7 @@ class _CoverageMapWidgetState extends State<CoverageMapWidget> {
     // ── Populate sources ──
     await _refreshAllSources();
     // Wait for MapLibre camera + viewport to fully settle before grid
-    await Future<void>.delayed(const Duration(milliseconds: 600));
+    await Future<void>.delayed(AppDurations.medium);
     await _refreshGrid();
     debugPrint('MapLibre: initial grid + sources populated');
   }
@@ -512,7 +517,7 @@ class _CoverageMapWidgetState extends State<CoverageMapWidget> {
 
   void _scheduleGridRefresh() {
     _gridTimer?.cancel();
-    _gridTimer = Timer(const Duration(milliseconds: 500), _refreshGrid);
+    _gridTimer = Timer(_kGridDebounce, _refreshGrid);
   }
 
   void _onMapTap(Point<double> point, LatLng coords) async {

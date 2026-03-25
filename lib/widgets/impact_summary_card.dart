@@ -322,7 +322,7 @@ class _SkeletonBox extends StatelessWidget {
       height: h,
       decoration: BoxDecoration(
         color: color,
-        borderRadius: BorderRadius.circular(4),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMin),
       ),
     );
   }

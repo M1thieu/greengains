@@ -134,9 +134,10 @@ class _TrackingFabState extends State<TrackingFab>
     final isPaused = _locationService.isPaused.value;
     final isActive = isRunning && !isPaused;
 
+    // FAB floats over the dark map — colours intentionally use isDark: true.
     final l10n = context.l10n;
     final (icon, bgColor, fgColor, tooltip) = switch (true) {
-      _ when _isToggling => (Icons.hourglass_empty, AppColors.surfaceElevated(true), Colors.white54, l10n.trackingFabStarting),
+      _ when _isToggling => (Icons.hourglass_empty, AppColors.surfaceElevated(true), AppColors.textSecondary(true), l10n.trackingFabStarting),
       _ when isActive    => (Icons.pause,            AppColors.primary,              Colors.white,   l10n.trackingFabPause),
       _ when isPaused    => (Icons.play_arrow,        AppColors.warning,              Colors.white,   l10n.trackingFabResume),
       _                  => (Icons.play_arrow,        AppColors.primary,              Colors.white,   l10n.trackingFabStart),

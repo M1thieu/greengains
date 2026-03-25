@@ -120,17 +120,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
           // Google Sign In Button
           InkWell(
             onTap: _signingIn ? null : _handleGoogleSignIn,
-            borderRadius: BorderRadius.circular(4),
+            borderRadius: BorderRadius.circular(AppTheme.radiusMin),
             child: _signingIn
                 ? Container(
                     height: 56,
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
-                      color: isDark ? const Color(0xFF1F1F1F) : Colors.white,
-                      borderRadius: BorderRadius.circular(4),
+                      color: AppColors.surfaceElevated(isDark),
+                      borderRadius: BorderRadius.circular(AppTheme.radiusMin),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.15),
+                          color: AppColors.shadowDark(0.15),
                           blurRadius: 4,
                           offset: const Offset(0, 2),
                         ),

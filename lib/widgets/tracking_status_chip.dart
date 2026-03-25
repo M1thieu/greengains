@@ -56,7 +56,9 @@ class TrackingStatusChip extends StatelessWidget {
               vertical: AppTheme.spaceXs,
             ),
             // No borderRadius here — ClipRRect already clips the shape.
+            // Chip always floats over the dark map — always dark glass.
             decoration: AppColors.glassDecoration(
+              isDark: true,
               backgroundAlpha: _kChipBackgroundAlpha,
               borderAlpha: _kChipBorderAlpha,
             ),
@@ -70,7 +72,7 @@ class TrackingStatusChip extends StatelessWidget {
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: _kChipLabelSize,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: AppFontWeights.semibold,
                     letterSpacing: 0.1,
                   ),
                 ),
@@ -83,7 +85,7 @@ class TrackingStatusChip extends StatelessWidget {
                     style: TextStyle(
                       color: dotColor.withValues(alpha: 0.9),
                       fontSize: _kChipTimeSize,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: AppFontWeights.semibold,
                     ),
                   ),
                   const SizedBox(width: AppTheme.spaceXxxs),

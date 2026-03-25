@@ -78,7 +78,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   }
 
   Future<void> _checkBatteryOptimization() async {
-    await Future.delayed(const Duration(milliseconds: 300));
+    await Future.delayed(AppDurations.fast);
     if (!mounted) return;
     if (_batteryPromptOpen) return;
 

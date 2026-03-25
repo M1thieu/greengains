@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../core/app_preferences.dart';
 import '../core/extensions/context_extensions.dart';
+import '../core/themes.dart';
 import '../utils/app_snackbars.dart';
 
 class BatteryOptimizationDialog extends StatelessWidget {
@@ -51,7 +52,7 @@ class BatteryOptimizationDialog extends StatelessWidget {
             const SizedBox(height: 10),
             Text(
               l10n.batteryDialogBodyBold,
-              style: const TextStyle(fontWeight: FontWeight.bold),
+              style: const TextStyle(fontWeight: AppFontWeights.bold),
             ),
           ],
         ),

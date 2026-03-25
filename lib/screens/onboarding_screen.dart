@@ -296,14 +296,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               width: double.infinity,
               child: InkWell(
                 onTap: _signingIn ? null : _handleGoogleSignIn,
-                borderRadius: BorderRadius.circular(4),
+                borderRadius: BorderRadius.circular(AppTheme.radiusMin),
                 child: _signingIn
                     ? Container(
                         height: AppTheme.authButtonHeight,
                         alignment: Alignment.center,
                         decoration: BoxDecoration(
-                          color: isDark ? AppColors.darkSurfaceElevated : Colors.white,
-                          borderRadius: BorderRadius.circular(4),
+                          color: AppColors.surfaceElevated(isDark),
+                          borderRadius: BorderRadius.circular(AppTheme.radiusMin),
                           boxShadow: [
                             BoxShadow(
                               color: AppColors.shadowDark(0.15),

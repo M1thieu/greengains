@@ -75,6 +75,7 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final isTracking =
         _locationService.isRunning.value && !_locationService.isPaused.value;
     final bottomPadding = MediaQuery.paddingOf(context).bottom;
@@ -111,6 +112,7 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
           height: AppTheme.floatingNavHeight,
           // No borderRadius here — ClipRRect already clips the shape.
           decoration: AppColors.glassDecoration(
+            isDark: isDark,
             backgroundAlpha: _kNavBackgroundAlpha,
             borderAlpha: _kNavBorderAlpha,
           ).copyWith(
@@ -178,7 +180,8 @@ class _NavItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = selected ? AppColors.primary : Colors.white54;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final color = selected ? AppColors.primary : AppColors.textSecondary(isDark);
 
     return Expanded(
       child: GestureDetector(

@@ -139,13 +139,18 @@ class AppColors {
 
   /// Frosted-glass BoxDecoration — pair with ClipRRect + BackdropFilter(glassBlurSigma).
   /// Keeps the blur/border/opacity system consistent across all glass overlays.
+  /// Pass [isDark] to adapt the tint and border for light vs dark mode.
+  /// For overlays always on dark backgrounds (map chip, FAB), pass isDark: true.
   static BoxDecoration glassDecoration({
+    required bool isDark,
     double backgroundAlpha = 0.50,
     double borderAlpha = 0.10,
   }) =>
       BoxDecoration(
-        color: Colors.black.withValues(alpha: backgroundAlpha),
-        border: Border.all(color: Colors.white.withValues(alpha: borderAlpha)),
+        color: (isDark ? Colors.black : Colors.white).withValues(alpha: backgroundAlpha),
+        border: Border.all(
+          color: (isDark ? Colors.white : Colors.black).withValues(alpha: borderAlpha),
+        ),
       );
 
   static List<BoxShadow> glowEffect(Color color, {double opacity = 0.4}) {

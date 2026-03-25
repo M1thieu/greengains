@@ -166,7 +166,19 @@ process.on('SIGINT', () => shutdown('SIGINT'));
 // Start server
 const start = async () => {
   try {
-    // Initialize database
+    // Bind port first — Render health checks start immediately after deploy.
+    // DB init runs after so a slow Supabase warmup doesn't fail the health check.
+    await fastify.listen({
+      port: config.port,
+      host: '0.0.0.0',
+    });
+
+    fastify.log.info({
+      port: config.port,
+      env: config.nodeEnv,
+    }, 'HTTP server listening — initializing DB...');
+
+    // Initialize database (retries with backoff — see database.ts)
     await initDatabase();
 
     // Run pending migrations
@@ -174,6 +186,10 @@ const start = async () => {
 
     // Initialize Firebase
     initFirebase();
+
+    fastify.log.info({
+      firebase: isFirebaseInitialized() ? 'enabled' : 'disabled',
+    }, 'GreenGains backend ready');
 
     // One-time H3 backfill — populates h3_res9/h3_res8/h3_index for existing rows.
     // No-op if all rows are already populated. Runs before the aggregation job.
@@ -185,18 +201,6 @@ const start = async () => {
     startAggregationJob().catch((error) =>
       fastify.log.error({ err: error }, 'Failed to start aggregation job'),
     );
-
-    // Start listening
-    await fastify.listen({
-      port: config.port,
-      host: '0.0.0.0',
-    });
-
-    fastify.log.info({
-      port: config.port,
-      env: config.nodeEnv,
-      firebase: isFirebaseInitialized() ? 'enabled' : 'disabled',
-    }, 'GreenGains backend running');
   } catch (error) {
     fastify.log.error({ err: error }, 'Failed to start server');
     process.exit(1);
