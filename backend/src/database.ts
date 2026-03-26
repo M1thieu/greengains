@@ -8,12 +8,14 @@ export async function initDatabase(): Promise<void> {
 
   pool = new Pool({
     connectionString: config.databaseUrl,
-    min: 1,
-    max: 5,
+    min: 2,
+    max: 10,
     idleTimeoutMillis: 30000,
     connectionTimeoutMillis: 10000,
-    keepAlive: true,
-    keepAliveInitialDelayMillis: 10000,
+    // keepAlive must be off for Transaction pooler (PgBouncer) — it resets
+    // the server-side connection after each transaction, making keepalive packets
+    // arrive on a different backend socket than the one that sent them.
+    keepAlive: false,
     ssl: {
       rejectUnauthorized: false, // Supabase pooler requires SSL
     },
