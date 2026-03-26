@@ -5,7 +5,7 @@ import { decompressPayload, UnsupportedEncodingError } from '../utils/compressio
 import { verifyApiKey, hashDeviceId } from '../utils/security';
 import { deviceOrFirebaseAuth } from '../middleware/auth';
 import { getPool } from '../database';
-import { UploadBatchSchema, UploadBatch, SensorReading } from '../models/upload';
+import { UploadBatchSchema, UploadBatch, SensorReading, StoragePayload } from '../models/upload';
 import {
   vectorMagnitude,
   analyzeQuality,
@@ -83,30 +83,19 @@ function summarizeBatch(readings: SensorReading[]): Summary {
   };
 }
 
-function buildStoragePayload(batch: UploadBatch): any {
+function buildStoragePayload(batch: UploadBatch): StoragePayload {
   const summary = summarizeBatch(batch.batch);
 
-  const payload: any = {
+  const payload: StoragePayload = {
     timestamp: batch.timestamp,
     summary,
     batch: batch.batch,
   };
 
-  if (batch.location) {
-    payload.location = batch.location;
-  }
-
-  if (batch.geohash) {
-    payload.geohash = batch.geohash;
-  }
-
-  if (batch.battery_level !== undefined) {
-    payload.battery_level = batch.battery_level;
-  }
-
-  if (batch.is_charging !== undefined) {
-    payload.is_charging = batch.is_charging;
-  }
+  if (batch.location) payload.location = batch.location;
+  if (batch.geohash) payload.geohash = batch.geohash;
+  if (batch.battery_level !== undefined) payload.battery_level = batch.battery_level;
+  if (batch.is_charging !== undefined) payload.is_charging = batch.is_charging;
 
   return payload;
 }
@@ -189,11 +178,12 @@ export async function uploadRoutes(fastify: FastifyInstance) {
         try {
           const parsed = JSON.parse(decompressed.toString('utf-8'));
           batch = UploadBatchSchema.parse(parsed);
-        } catch (error: any) {
+        } catch (error: unknown) {
+          const zodError = error as { issues?: unknown; message?: string };
           return reply.code(422).send({
             error: 'Unprocessable Entity',
             message: 'Validation failed',
-            details: error.issues || error.message,
+            details: zodError.issues ?? zodError.message,
           });
         }
 
@@ -265,7 +255,7 @@ export async function uploadRoutes(fastify: FastifyInstance) {
 
         // Log with stats
         const stats = sanitizedPayload.summary;
-        const logData: any = {
+        const logData: Record<string, unknown> = {
           device_hash: deviceHash,
           batch_id: batch.batch_id ?? null,  // trace retries: same batch_id on retry = expected
           batch_size: readingsCount,

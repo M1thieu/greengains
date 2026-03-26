@@ -100,7 +100,11 @@ fastify.register(rateLimit, {
 
 // Health check endpoint - tests database connectivity
 fastify.get('/health', async (request, reply) => {
-  const health: any = {
+  const health: {
+    status: string;
+    timestamp: string;
+    checks: Record<string, { status: string; latency_ms?: number; error?: string }>;
+  } = {
     status: 'healthy',
     timestamp: new Date().toISOString(),
     checks: {},

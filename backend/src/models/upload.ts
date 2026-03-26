@@ -62,3 +62,23 @@ export type LocationData = z.infer<typeof LocationDataSchema>;
 export type SensorReading = z.infer<typeof SensorReadingSchema>;
 export type QualityMetadata = z.infer<typeof QualityMetadataSchema>;
 export type UploadBatch = z.infer<typeof UploadBatchSchema>;
+
+/** Shape of the JSONB payload stored in sensor_batches.batch_json */
+export interface StoragePayload {
+  timestamp: Date;
+  summary: {
+    count: number;
+    period_start: Date;
+    period_end: Date;
+    light?: { avg: number; min: number; max: number };
+    accel_rms: number;
+    gyro_rms: number;
+    pressure?: { avg: number; min: number; max: number };
+    magnetic_magnitude?: { avg: number; min: number; max: number };
+  };
+  batch: SensorReading[];
+  location?: LocationData;
+  geohash?: string;
+  battery_level?: number;
+  is_charging?: boolean;
+}

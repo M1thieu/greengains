@@ -3,6 +3,7 @@ import { latLngToCell } from 'h3-js';
 import { getPool } from '../database';
 import { analyzeQuality, QualityCounters } from '../utils/sensor-analytics';
 import { decodeGeohash } from '../utils/geo';
+import { StoragePayload } from '../models/upload';
 
 export const AGGREGATION_WINDOW_MINUTES = 5;
 const WINDOW_MS = AGGREGATION_WINDOW_MINUTES * 60 * 1000;
@@ -121,7 +122,7 @@ export async function runAggregationJob(): Promise<void> {
   const rows = await pool.query<{
     device_hash: string;
     timestamp_utc: Date;
-    batch_json: any;
+    batch_json: StoragePayload;
     h3_res9: string | null;
   }>(
     `SELECT device_hash, timestamp_utc, batch_json, h3_res9

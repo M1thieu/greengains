@@ -55,8 +55,8 @@ export async function referralRoutes(fastify: FastifyInstance) {
           [uid, code],
         );
         if (row.rows.length > 0) return row.rows[0].referral_code;
-      } catch (err: any) {
-        if (err?.code === '23505') continue; // referral_code collision — retry
+      } catch (err: unknown) {
+        if ((err as { code?: string })?.code === '23505') continue; // referral_code collision — retry
         throw err;
       }
     }

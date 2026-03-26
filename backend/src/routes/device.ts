@@ -76,10 +76,11 @@ export async function deviceRoutes(fastify: FastifyInstance) {
                 // 4. Return Secret
                 return reply.code(200).send({ device_secret: deviceSecret });
 
-            } catch (error: any) {
+            } catch (error: unknown) {
                 request.log.error({ err: error }, 'Device registration error');
-                if (error.issues) {
-                    return reply.code(422).send({ error: 'Validation Error', details: error.issues });
+                const zodError = error as { issues?: unknown };
+                if (zodError.issues) {
+                    return reply.code(422).send({ error: 'Validation Error', details: zodError.issues });
                 }
                 return reply.code(500).send({ error: 'Internal Server Error' });
             }

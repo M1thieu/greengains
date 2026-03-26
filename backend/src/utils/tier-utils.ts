@@ -1,3 +1,5 @@
+import { Pool } from 'pg';
+
 /**
  * Subscription tier helpers — single source of truth for tier limits.
  * Uses user_tiers table (simple: user_id → tier).
@@ -28,7 +30,7 @@ function isTier(value: unknown): value is SubscriptionTier {
  * Returns 'free' if no row exists or if the query fails.
  */
 export async function getOrgSubscriptionTier(
-  pool: any,
+  pool: Pool,
   userId: string
 ): Promise<SubscriptionTier> {
   try {

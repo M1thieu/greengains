@@ -5,6 +5,8 @@
  * Used by both upload route (real-time) and aggregation job (batch processing).
  */
 
+import { SensorReading } from '../models/upload';
+
 export interface QualityCounters {
   total: number;
   valid: number;
@@ -42,7 +44,7 @@ export function vectorMagnitude(vector: number[]): number {
  * @param readings Array of sensor readings with optional quality metadata
  * @returns Quality counters for the batch
  */
-export function analyzeQuality(readings: any[]): QualityCounters {
+export function analyzeQuality(readings: SensorReading[]): QualityCounters {
   const counters: QualityCounters = {
     total: 0,
     valid: 0,

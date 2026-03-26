@@ -102,13 +102,14 @@ export async function verifyFirebaseToken(
     // Attach user to request so route handlers can access it
     request.user = { uid: decodedToken.uid, email: decodedToken.email };
     return decodedToken.uid;
-  } catch (error: any) {
-    if (error.code === 'auth/id-token-expired') {
+  } catch (error: unknown) {
+    const firebaseCode = (error as { code?: string }).code;
+    if (firebaseCode === 'auth/id-token-expired') {
       reply.code(401).send({
         error: 'Unauthorized',
         message: 'Firebase token expired',
       });
-    } else if (error.code === 'auth/argument-error') {
+    } else if (firebaseCode === 'auth/argument-error') {
       reply.code(401).send({
         error: 'Unauthorized',
         message: 'Invalid Firebase token',

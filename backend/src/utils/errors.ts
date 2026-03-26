@@ -34,20 +34,15 @@ export function createErrorResponse(
   code: ErrorCode,
   message: string,
   requestId?: string,
-  details?: any
-) {
-  const response: any = {
+  details?: unknown
+): { error: ErrorCode; message: string; requestId?: string; details?: unknown } {
+  const response: { error: ErrorCode; message: string; requestId?: string; details?: unknown } = {
     error: code,
     message,
   };
 
-  if (requestId) {
-    response.requestId = requestId;
-  }
-
-  if (details) {
-    response.details = details;
-  }
+  if (requestId) response.requestId = requestId;
+  if (details !== undefined) response.details = details;
 
   return response;
 }
