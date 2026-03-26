@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'package:h3_flutter/h3_flutter.dart' as h3f;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -17,8 +16,6 @@ import '../core/app_preferences.dart';
 import '../widgets/coverage_map_widget.dart';
 import '../widgets/tracking_status_chip.dart';
 import '../widgets/tracking_fab.dart';
-
-const double _kDefaultTileConfidence = 0.5;
 
 // My Location button: 48×48 standard touch target.
 const _kLocationBtnSize = AppTheme.minTouchTarget; // 48
@@ -196,60 +193,25 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   Future<void> _loadH3Tiles() async {
     setState(() => _h3TilesLoading = true);
-
     try {
-      final response = await BackendClient.get('/api/user/tiles');
-      debugPrint('Tiles: HTTP ${response.statusCode} (${response.body.length}B)');
-
-      if (response.statusCode == 401) {
-        // Auth not ready yet — retry once after a short delay
-        debugPrint('Tiles: 401 (auth race?), retrying in 2s');
+      final data = await BackendClient.get('/api/user/tiles');
+      final response = UserTilesResponse.fromJson(data);
+      debugPrint('Tiles: ${response.tiles.length} personal tiles');
+      if (mounted) setState(() { _h3Tiles = response.tiles; _h3TilesLoading = false; });
+    } on ApiException catch (e) {
+      debugPrint('Tiles: ApiException ${e.statusCode}');
+      if (e.isUnauthorized) {
+        // Auth race on cold start — retry once after 2s
         await Future.delayed(const Duration(seconds: 2));
         if (mounted) _loadH3Tiles();
         return;
       }
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body) as Map<String, dynamic>;
-        final tilesData = data['tiles'] as List<dynamic>?;
-
-        final tiles = tilesData?.map((tile) {
-          final hexIndex = tile['h3Index'] as String? ?? '';
-          List<LatLng>? boundary;
-          final rawBoundary = tile['boundary'] as List<dynamic>?;
-          if (rawBoundary != null && rawBoundary.isNotEmpty) {
-            try {
-              // API returns [[lng, lat], ...] GeoJSON order — flip to LatLng(lat, lng)
-              boundary = rawBoundary.map((pt) {
-                final pair = pt as List<dynamic>;
-                return LatLng((pair[1] as num).toDouble(), (pair[0] as num).toDouble());
-              }).toList();
-            } catch (_) {}
-          }
-          return H3Tile(
-            h3Index: hexIndex,
-            confidence: (tile['confidence'] as num?)?.toDouble() ??
-                _kDefaultTileConfidence,
-            sampleCount: tile['sampleCount'] as int? ?? 0,
-            deviceCount: tile['deviceCount'] as int? ?? 1,
-            boundary: boundary,
-          );
-        }).toList() ??
-            [];
-
-        if (mounted) {
-          setState(() {
-            _h3Tiles = tiles;
-            _h3TilesLoading = false;
-          });
-        }
-      } else {
-        throw Exception('Failed to load tiles: ${response.statusCode}');
-      }
+      if (mounted) setState(() => _h3TilesLoading = false);
+      await Future.delayed(const Duration(seconds: 4));
+      if (mounted && _h3Tiles.isEmpty) _loadH3Tiles();
     } catch (e) {
       debugPrint('Failed to load H3 tiles: $e');
       if (mounted) setState(() => _h3TilesLoading = false);
-      // Retry once after 4 s — catches Render cold-start connection aborts
       await Future.delayed(const Duration(seconds: 4));
       if (mounted && _h3Tiles.isEmpty) _loadH3Tiles();
     }
@@ -259,42 +221,21 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   /// Loads silently in background — never blocks the loading spinner.
   Future<void> _loadGlobalTiles() async {
     try {
-      final response = await BackendClient.get('/api/tiles/global');
-      debugPrint('Global tiles: HTTP ${response.statusCode} (${response.body.length}B)');
-      if (response.statusCode == 401) {
+      final data = await BackendClient.get('/api/tiles/global');
+      final response = GlobalTilesResponse.fromJson(data);
+      debugPrint('Global tiles: ${response.tiles.length} community tiles');
+      if (mounted) setState(() => _globalTiles = response.tiles);
+    } on ApiException catch (e) {
+      debugPrint('Global tiles: ApiException ${e.statusCode}');
+      if (e.isUnauthorized) {
         await Future.delayed(const Duration(seconds: 2));
         if (mounted && _globalTiles.isEmpty) _loadGlobalTiles();
         return;
       }
-      if (response.statusCode != 200 || !mounted) return;
-      final data = jsonDecode(response.body) as Map<String, dynamic>;
-      final tilesData = data['tiles'] as List<dynamic>?;
-      final tiles = tilesData?.map((tile) {
-        final hexIndex = tile['h3Index'] as String? ?? '';
-        List<LatLng>? boundary;
-        final rawBoundary = tile['boundary'] as List<dynamic>?;
-        if (rawBoundary != null && rawBoundary.isNotEmpty) {
-          try {
-            // API returns [[lng, lat], ...] GeoJSON order — flip to LatLng(lat, lng)
-            boundary = rawBoundary.map((pt) {
-              final pair = pt as List<dynamic>;
-              return LatLng((pair[1] as num).toDouble(), (pair[0] as num).toDouble());
-            }).toList();
-          } catch (_) {}
-        }
-        return H3Tile(
-          h3Index: hexIndex,
-          confidence: (tile['confidence'] as num?)?.toDouble() ?? 0.3,
-          sampleCount: tile['sampleCount'] as int? ?? 0,
-          deviceCount: tile['deviceCount'] as int? ?? 1,
-          boundary: boundary,
-          isGlobal: true,
-        );
-      }).toList() ?? [];
-      if (mounted) setState(() => _globalTiles = tiles);
+      await Future.delayed(const Duration(seconds: 5));
+      if (mounted && _globalTiles.isEmpty) _loadGlobalTiles();
     } catch (e) {
       debugPrint('Failed to load global tiles: $e');
-      // Retry once after 5 s — catches Render cold-start connection aborts
       await Future.delayed(const Duration(seconds: 5));
       if (mounted && _globalTiles.isEmpty) _loadGlobalTiles();
     }

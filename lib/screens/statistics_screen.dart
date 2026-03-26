@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -107,26 +106,17 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
   Future<void> _loadWeeklyStats() async {
     setState(() => _isLoadingWeekly = true);
     try {
-      final response = await BackendClient.get('/api/user/profile');
-      if (response.statusCode == 200 && mounted) {
-        final body = jsonDecode(response.body) as Map<String, dynamic>;
-        final stats = body['stats'] as Map<String, dynamic>?;
-        final raw = stats?['weekly'] as List<dynamic>?;
-        final daysActive = stats?['daysActive'] as int?;
-        final totalUploads = stats?['totalUploads'] as int?;
-        final coverageCells = stats?['coverageCells'] as int?;
-        final currentStreak = stats?['currentStreak'] as int?;
-        final longestStreak = stats?['longestStreak'] as int?;
-        if (raw != null) {
-          setState(() {
-            _weeklyData = raw.map((e) => e is num ? e.toInt() : 0).toList();
-            _daysActive = daysActive;
-            _backendTotalUploads = totalUploads;
-            _coverageCells = coverageCells;
-            _currentStreak = currentStreak;
-            _longestStreak = longestStreak;
-          });
-        }
+      final data = await BackendClient.get('/api/user/profile');
+      final profile = UserProfileResponse.fromJson(data);
+      if (mounted) {
+        setState(() {
+          _weeklyData = profile.weekly;
+          _daysActive = profile.daysActive;
+          _backendTotalUploads = profile.totalUploads;
+          _coverageCells = profile.coverageCells;
+          _currentStreak = profile.currentStreak;
+          _longestStreak = profile.longestStreak;
+        });
       }
     } catch (_) {
       // Silently fail — local stats still visible

@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import '../network/backend_client.dart';
 import '../../core/app_preferences.dart';
@@ -27,14 +26,12 @@ class ReferralService {
 
   Future<String?> _fetchAndCacheCode() async {
     try {
-      final response = await BackendClient.get(
+      final data = await BackendClient.get(
         '/api/v1/referrals/code',
         timeout: const Duration(seconds: 30),
       );
-      if (response.statusCode != 200) return null;
-      final body = jsonDecode(response.body) as Map<String, dynamic>;
-      final code = body['referralCode']?.toString();
-      if (code == null || code.isEmpty) return null;
+      final code = ReferralCodeResponse.fromJson(data).referralCode;
+      if (code.isEmpty) return null;
       await AppPreferences.instance.setReferralCode(code);
       return code;
     } catch (e) {
@@ -64,16 +61,12 @@ class ReferralService {
   /// Returns null on error — callers should handle gracefully.
   Future<({int invitesShared, int conversions})?> fetchStats() async {
     try {
-      final response = await BackendClient.get(
+      final data = await BackendClient.get(
         '/api/v1/referrals/stats',
         timeout: const Duration(seconds: 30),
       );
-      if (response.statusCode != 200) return null;
-      final body = jsonDecode(response.body) as Map<String, dynamic>;
-      return (
-        invitesShared: (body['invitesShared'] as num?)?.toInt() ?? 0,
-        conversions: (body['conversions'] as num?)?.toInt() ?? 0,
-      );
+      final stats = ReferralStatsResponse.fromJson(data);
+      return (invitesShared: stats.invitesShared, conversions: stats.conversions);
     } catch (e) {
       debugPrint('Referral stats fetch failed: $e');
       return null;

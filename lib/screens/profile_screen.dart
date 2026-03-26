@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
@@ -44,14 +43,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> _loadProfileStats() async {
     try {
-      final response = await BackendClient.get('/api/user/profile');
-      if (response.statusCode == 200 && mounted) {
-        final body = jsonDecode(response.body) as Map<String, dynamic>;
-        final stats = body['stats'] as Map<String, dynamic>?;
+      final data = await BackendClient.get('/api/user/profile');
+      final profile = UserProfileResponse.fromJson(data);
+      if (mounted) {
         setState(() {
-          _totalUploads = stats?['totalUploads'] as int?;
-          _daysActive = stats?['daysActive'] as int?;
-          _coverageCells = stats?['coverageCells'] as int?;
+          _totalUploads = profile.totalUploads;
+          _daysActive = profile.daysActive;
+          _coverageCells = profile.coverageCells;
         });
       }
     } catch (_) {}

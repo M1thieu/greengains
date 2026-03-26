@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -64,9 +63,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         BackendClient.post('/api/user/consent', {
           'platform': Platform.isIOS ? 'ios' : 'android',
           'appVersion': '1.1.0',
-        }).then((res) async {
-          final body = jsonDecode(res.body) as Map<String, dynamic>?;
-          final rawDate = body?['agreedAt'];
+        }).then((body) async {
+          final rawDate = body['agreedAt'];
           final dt = rawDate != null ? DateTime.tryParse(rawDate.toString()) : DateTime.now();
           await AppPreferences.instance.setConsentDate(dt ?? DateTime.now());
         }).catchError((_) {

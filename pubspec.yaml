@@ -44,7 +44,6 @@ dependencies:
   webview_flutter: ^4.8.0
   shared_preferences: ^2.2.2
   crypto: ^3.0.3
-  http: ^1.2.1
   connectivity_plus: ^7.0.0
   uuid: ^4.4.0
   geolocator: ^11.0.0

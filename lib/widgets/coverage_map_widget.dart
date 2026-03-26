@@ -8,6 +8,9 @@ import 'package:h3_flutter/h3_flutter.dart' as h3f;
 import 'package:latlong2/latlong.dart' as ll;
 import '../core/extensions/context_extensions.dart';
 import '../core/themes.dart';
+import '../data/models/h3_tile.dart';
+
+export '../data/models/h3_tile.dart';
 
 // ── Background isolate grid computation ──────────────────────────────────────
 
@@ -61,26 +64,6 @@ Map<String, dynamic> _buildGrid(_GridInput input) {
     };
   }).toList();
   return {'type': 'FeatureCollection', 'features': features};
-}
-
-/// H3 hexagon tile model
-class H3Tile {
-  final String h3Index;
-  final double confidence; // 0.0–1.0
-  final int sampleCount;
-  final int deviceCount;
-  final List<ll.LatLng>? boundary;
-  /// True for community/global tiles (other users); false for personal tiles.
-  final bool isGlobal;
-
-  const H3Tile({
-    required this.h3Index,
-    required this.confidence,
-    required this.sampleCount,
-    required this.deviceCount,
-    this.boundary,
-    this.isGlobal = false,
-  });
 }
 
 // ── Timing constants ──────────────────────────────────────────────────────────

@@ -1,10 +1,10 @@
 import 'dart:convert';
 import 'dart:io';
-
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
-import 'package:http/http.dart' as http;
 import 'package:firebase_auth/firebase_auth.dart';
+
+export 'api_models.dart';
 
 const String kBackendBaseUrl = String.fromEnvironment(
   'BACKEND_URL',
@@ -15,6 +15,21 @@ const String kBackendApiKey = String.fromEnvironment(
   'BACKEND_API_KEY',
   defaultValue: '', // API key must be provided via dart_defines.json or --dart-define
 );
+
+/// Thrown by [BackendClient] for any non-2xx response or network error.
+class ApiException implements Exception {
+  final int statusCode;
+  final String message;
+
+  const ApiException(this.statusCode, this.message);
+
+  bool get isUnauthorized => statusCode == 401;
+  bool get isNotFound => statusCode == 404;
+  bool get isServerError => statusCode >= 500;
+
+  @override
+  String toString() => 'ApiException($statusCode): $message';
+}
 
 class BackendClient {
   BackendClient({String? apiKey})
@@ -98,41 +113,58 @@ class BackendClient {
     );
   }
 
-  /// Static GET via Dio — auth header added automatically by interceptor.
-  /// Returns an [http.Response]-compatible wrapper so all call sites are unchanged.
-  static Future<http.Response> get(
+  /// GET request — returns decoded JSON body.
+  /// Throws [ApiException] on non-2xx or network failure.
+  static Future<Map<String, dynamic>> get(
     String path, {
     Duration timeout = const Duration(seconds: 12),
   }) async {
-    final res = await _dio.get<String>(
-      path,
-      options: Options(
-        receiveTimeout: timeout,
-        responseType: ResponseType.plain,
-      ),
-    );
-    return http.Response(res.data ?? '', res.statusCode ?? 200);
+    try {
+      final res = await _dio.get<Map<String, dynamic>>(
+        path,
+        options: Options(
+          receiveTimeout: timeout,
+          responseType: ResponseType.json,
+        ),
+      );
+      return res.data ?? {};
+    } on DioException catch (e) {
+      throw ApiException(
+        e.response?.statusCode ?? 0,
+        e.message ?? 'GET $path failed',
+      );
+    }
   }
 
-  /// Static POST via Dio — auth header added automatically by interceptor.
-  static Future<http.Response> post(
+  /// POST request — returns decoded JSON body.
+  /// Throws [ApiException] on non-2xx or network failure.
+  static Future<Map<String, dynamic>> post(
     String path,
     Map<String, dynamic> body, {
     Duration timeout = const Duration(seconds: 12),
   }) async {
-    final res = await _dio.post<String>(
-      path,
-      data: jsonEncode(body),
-      options: Options(
-        receiveTimeout: timeout,
-        responseType: ResponseType.plain,
-        headers: {HttpHeaders.contentTypeHeader: 'application/json'},
-      ),
-    );
-    return http.Response(res.data ?? '', res.statusCode ?? 200);
+    try {
+      final res = await _dio.post<Map<String, dynamic>>(
+        path,
+        data: body,
+        options: Options(
+          receiveTimeout: timeout,
+          responseType: ResponseType.json,
+          headers: {HttpHeaders.contentTypeHeader: 'application/json'},
+        ),
+      );
+      return res.data ?? {};
+    } on DioException catch (e) {
+      throw ApiException(
+        e.response?.statusCode ?? 0,
+        e.message ?? 'POST $path failed',
+      );
+    }
   }
 }
 
+/// Legacy exception type — kept for any external callers.
+/// Prefer [ApiException] for new code.
 class BackendException implements Exception {
   BackendException(this.message, {this.statusCode});
 

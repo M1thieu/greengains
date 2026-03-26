@@ -2,11 +2,11 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 import 'package:crypto/crypto.dart';
+import 'package:dio/dio.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:flutter/foundation.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:http/http.dart' as http;
 import '../../core/app_preferences.dart';
 import '../../services/network/backend_client.dart';
 
@@ -155,27 +155,25 @@ class AuthService {
       final deviceId = await appPrefs.getOrCreateDeviceId();
 
       debugPrint('Registering device with backend...');
-      final response = await http.post(
-        Uri.parse('$kBackendBaseUrl/register-device'),
-        headers: {
-          'Content-Type': 'application/json',
-          'X-API-Key': kBackendApiKey,
-        },
-        body: jsonEncode({
-          'device_id': deviceId,
-          'firebase_token': token,
-        }),
+      final dio = Dio();
+      final response = await dio.post<Map<String, dynamic>>(
+        '$kBackendBaseUrl/register-device',
+        data: {'device_id': deviceId, 'firebase_token': token},
+        options: Options(
+          headers: {'X-API-Key': kBackendApiKey},
+          responseType: ResponseType.json,
+          validateStatus: (s) => s != null && s < 500,
+        ),
       );
 
       if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        final secret = data['device_secret'] as String?;
+        final secret = (response.data)?['device_secret'] as String?;
         if (secret != null) {
           await appPrefs.setDeviceSecret(secret);
           debugPrint('Device registered successfully. Secret saved.');
         }
       } else {
-        debugPrint('Failed to register device: ${response.statusCode} ${response.body}');
+        debugPrint('Failed to register device: ${response.statusCode}');
       }
     } catch (e) {
       debugPrint('Error registering device: $e');
