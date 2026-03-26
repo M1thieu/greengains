@@ -4,6 +4,10 @@ import 'package:latlong2/latlong.dart';
 class H3Tile {
   final String h3Index;
   final double confidence; // 0.0–1.0
+  /// Composite data quality score: sampleConfidence × quality_valid_ratio.
+  /// Only populated for global tiles (null for personal tiles which lack
+  /// aggregated quality_valid_ratio). Range 0.0–1.0.
+  final double? qualityScore;
   final int sampleCount;
   final int deviceCount;
   final List<LatLng>? boundary;
@@ -14,6 +18,7 @@ class H3Tile {
   const H3Tile({
     required this.h3Index,
     required this.confidence,
+    this.qualityScore,
     required this.sampleCount,
     required this.deviceCount,
     this.boundary,
@@ -37,6 +42,7 @@ class H3Tile {
     return H3Tile(
       h3Index: hexIndex,
       confidence: (json['confidence'] as num?)?.toDouble() ?? 0.5,
+      qualityScore: (json['qualityScore'] as num?)?.toDouble(),
       sampleCount: (json['sampleCount'] as num?)?.toInt() ?? 0,
       deviceCount: (json['deviceCount'] as num?)?.toInt() ?? 1,
       boundary: boundary,

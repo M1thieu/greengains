@@ -229,7 +229,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     } on ApiException catch (e) {
       debugPrint('Global tiles: ApiException ${e.statusCode}');
       if (e.isUnauthorized) {
-        await Future.delayed(const Duration(seconds: 2));
+        await Future.delayed(kRetryDelay401);
         if (mounted && _globalTiles.isEmpty) _loadGlobalTiles();
         return;
       }

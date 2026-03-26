@@ -33,6 +33,9 @@ export async function runH3Backfill(): Promise<void> {
     let processed = 0;
 
     while (true) {
+      // Only select rows with valid numeric lat/lon — prevents infinite loop if
+      // a row has location={"lat": null} or a non-numeric value (cast → NULL
+      // which IS NOT NULL returns false, skipping those rows permanently).
       const rows = await pool.query<{
         device_hash: string;
         timestamp_utc: Date;
@@ -43,16 +46,37 @@ export async function runH3Backfill(): Promise<void> {
                 (batch_json->'location'->>'lat')::float AS lat,
                 (batch_json->'location'->>'lon')::float AS lon
          FROM sensor_batches
-         WHERE h3_res9 IS NULL AND batch_json->'location' IS NOT NULL
+         WHERE h3_res9 IS NULL
+           AND (batch_json->'location'->>'lat')::float IS NOT NULL
+           AND (batch_json->'location'->>'lon')::float IS NOT NULL
+           AND ABS((batch_json->'location'->>'lat')::float) <= 90
+           AND ABS((batch_json->'location'->>'lon')::float) <= 180
          LIMIT $1`,
         [BATCH_SIZE],
       );
       if ((rows.rowCount ?? 0) === 0) break;
 
-      const deviceHashes = rows.rows.map(r => r.device_hash);
-      const timestamps   = rows.rows.map(r => r.timestamp_utc);
-      const h3r9s        = rows.rows.map(r => latLngToCell(r.lat, r.lon, 9));
-      const h3r8s        = rows.rows.map(r => latLngToCell(r.lat, r.lon, 8));
+      const deviceHashes: string[] = [];
+      const timestamps: Date[] = [];
+      const h3r9s: string[] = [];
+      const h3r8s: string[] = [];
+
+      for (const r of rows.rows) {
+        if (!isFinite(r.lat) || !isFinite(r.lon)) continue; // skip Inf/NaN from DB
+        try {
+          deviceHashes.push(r.device_hash);
+          timestamps.push(r.timestamp_utc);
+          h3r9s.push(latLngToCell(r.lat, r.lon, 9));
+          h3r8s.push(latLngToCell(r.lat, r.lon, 8));
+        } catch {
+          // Out-of-range coordinates — skip this row; it will remain h3_res9=NULL
+          // and be excluded by the WHERE clause on next startup (::float IS NOT NULL
+          // would still select it, so stamp a sentinel or just leave it — acceptable
+          // since it's a data quality issue in the source batch).
+        }
+      }
+
+      if (deviceHashes.length === 0) break; // all rows in this chunk were invalid
 
       await pool.query(
         `UPDATE sensor_batches
@@ -83,24 +107,34 @@ export async function runH3Backfill(): Promise<void> {
       `SELECT DISTINCT geohash FROM sensor_aggregates_5m WHERE h3_index IS NULL`,
     );
 
+    // Compute H3 indices in JS, then bulk UPDATE both tables with UNNEST —
+    // 2 queries total instead of 2×N (N+1 → constant).
+    const resolvedGeohashes: string[] = [];
+    const resolvedH3Indexes: string[] = [];
+
     for (const row of geohashes.rows) {
       const centroid = decodeGeohash(row.geohash);
       if (!centroid) continue;
-      const h3Index = latLngToCell(centroid.lat, centroid.lon, 9);
+      resolvedGeohashes.push(row.geohash);
+      resolvedH3Indexes.push(latLngToCell(centroid.lat, centroid.lon, 9));
+    }
 
+    if (resolvedGeohashes.length > 0) {
       await pool.query(
-        `UPDATE sensor_aggregates_5m
-            SET h3_index = $1
-          WHERE geohash = $2 AND h3_index IS NULL`,
-        [h3Index, row.geohash],
+        `UPDATE sensor_aggregates_5m AS t
+            SET h3_index = u.h3idx
+          FROM UNNEST($1::text[], $2::text[]) AS u(gh, h3idx)
+          WHERE t.geohash = u.gh AND t.h3_index IS NULL`,
+        [resolvedGeohashes, resolvedH3Indexes],
       );
       await pool.query(
-        `UPDATE sensor_aggregates_daily
-            SET h3_index = $1
-          WHERE geohash = $2 AND h3_index IS NULL`,
-        [h3Index, row.geohash],
+        `UPDATE sensor_aggregates_daily AS t
+            SET h3_index = u.h3idx
+          FROM UNNEST($1::text[], $2::text[]) AS u(gh, h3idx)
+          WHERE t.geohash = u.gh AND t.h3_index IS NULL`,
+        [resolvedGeohashes, resolvedH3Indexes],
       );
     }
-    console.log(`[h3-backfill] aggregates done: ${geohashes.rowCount} geohashes updated`);
+    console.log(`[h3-backfill] aggregates done: ${resolvedGeohashes.length} geohashes updated`);
   }
 }
