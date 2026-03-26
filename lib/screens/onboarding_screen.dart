@@ -61,6 +61,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
       // Fire-and-forget: record explicit consent to backend + cache locally.
       final packageInfo = await PackageInfo.fromPlatform();
+      if (!mounted) return;
       unawaited(
         BackendClient.post('/api/user/consent', {
           'platform': Platform.isIOS ? 'ios' : 'android',
