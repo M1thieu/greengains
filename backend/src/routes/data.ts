@@ -36,8 +36,6 @@ const exportSchema = z.object({
 
 
 export async function dataRoutes(fastify: FastifyInstance) {
-  const pool = getPool();
-
   /**
    * GET /api/v1/data/aggregated
    * Get aggregated sensor data with quality filtering
@@ -50,6 +48,7 @@ export async function dataRoutes(fastify: FastifyInstance) {
       const userId = request.user!.uid;
 
       try {
+        const pool = getPool();
         const query = dataAggregatesSchema.parse(request.query);
 
         // Get user's subscription tier
@@ -162,6 +161,7 @@ export async function dataRoutes(fastify: FastifyInstance) {
       const userId = request.user!.uid;
 
       try {
+        const pool = getPool();
         const { sensor } = request.params as { sensor: string };
         const query = dataAggregatesSchema.parse(request.query);
 
@@ -240,6 +240,7 @@ export async function dataRoutes(fastify: FastifyInstance) {
       const userId = request.user!.uid;
 
       try {
+        const pool = getPool();
         const query = exportSchema.parse(request.body);
 
         // Get user's subscription tier
@@ -357,6 +358,7 @@ export async function dataRoutes(fastify: FastifyInstance) {
       const userId = request.user!.uid;
 
       try {
+        const pool = getPool();
         const query = z.object({
           hours: z.coerce.number().int().min(1).max(2190).default(24),
           min_devices: z.coerce.number().int().min(0).default(0),

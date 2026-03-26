@@ -9,8 +9,6 @@ import { getOrgSubscriptionTier, ensureUserTier, TIER_HISTORY_DAYS } from '../ut
  * Creates a free-tier row on first call if one doesn't exist yet.
  */
 export async function authRoutes(fastify: FastifyInstance) {
-  const pool = getPool();
-
   /**
    * GET /api/v1/auth/me
    * Get current user profile + organizations + subscription tier
@@ -32,6 +30,7 @@ export async function authRoutes(fastify: FastifyInstance) {
       }
 
       try {
+        const pool = getPool();
         await ensureUserTier(pool, userId);
         const tier = await getOrgSubscriptionTier(pool, userId);
 

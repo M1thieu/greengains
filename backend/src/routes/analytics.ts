@@ -27,9 +27,8 @@ const deviceStatsQuerySchema = z.object({
 });
 
 export async function analyticsRoutes(fastify: FastifyInstance) {
-  const pool = getPool();
-
   fastify.get('/analytics/aggregates', { preHandler: verifyAnalyticsApiKey }, async (request) => {
+    const pool = getPool();
     const query = aggregatesQuerySchema.parse(request.query);
     const table = query.bucket === 'day' ? 'sensor_aggregates_daily' : 'sensor_aggregates_5m';
     const timeColumn = query.bucket === 'day' ? 'day' : 'window_start';
@@ -89,6 +88,7 @@ export async function analyticsRoutes(fastify: FastifyInstance) {
   });
 
   fastify.get('/analytics/coverage', { preHandler: verifyAnalyticsApiKey }, async (request) => {
+    const pool = getPool();
     const query = coverageQuerySchema.parse(request.query);
     const now = new Date();
     const from = new Date(now.getTime() - query.hours * 60 * 60 * 1000);
@@ -141,6 +141,7 @@ export async function analyticsRoutes(fastify: FastifyInstance) {
   });
 
   fastify.get('/analytics/device-stats', { preHandler: verifyAnalyticsApiKey }, async (request) => {
+    const pool = getPool();
     const query = deviceStatsQuerySchema.parse(request.query);
 
     const qb = new QueryBuilder();

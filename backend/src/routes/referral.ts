@@ -13,7 +13,6 @@ import { MAX_REFERRAL_CODE_RETRIES, PG_UNIQUE_VIOLATION } from '../constants';
  *   'convert' — appended when a new user signs up via a referral link
  */
 export async function referralRoutes(fastify: FastifyInstance) {
-  const pool = getPool();
   const REFERRAL_CODE_PATTERN = /^GG-[A-Z0-9]{5}$/;
   // Unambiguous alphabet: no 0/O, 1/I confusion
   const CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -36,6 +35,7 @@ export async function referralRoutes(fastify: FastifyInstance) {
    * Uses the 'code' event_type row in the unified referrals table.
    */
   async function getOrCreateCode(uid: string): Promise<string> {
+    const pool = getPool();
     // Fast path: code already exists
     const existing = await pool.query<{ referral_code: string }>(
       `SELECT referral_code FROM referrals WHERE owner_uid = $1 AND event_type = 'code'`,
@@ -99,6 +99,7 @@ export async function referralRoutes(fastify: FastifyInstance) {
       if (!code) return reply.code(400).send({ error: 'Invalid referralCode format' });
 
       try {
+        const pool = getPool();
         // Verify the code belongs to the caller — prevent spoofing
         const owns = await pool.query(
           `SELECT 1 FROM referrals WHERE owner_uid = $1 AND referral_code = $2 AND event_type = 'code'`,
@@ -136,6 +137,7 @@ export async function referralRoutes(fastify: FastifyInstance) {
       if (!code) return reply.code(400).send({ error: 'Invalid referralCode format' });
 
       try {
+        const pool = getPool();
         const owner = await pool.query<{ owner_uid: string }>(
           `SELECT owner_uid FROM referrals WHERE referral_code = $1 AND event_type = 'code'`,
           [code],
@@ -169,6 +171,7 @@ export async function referralRoutes(fastify: FastifyInstance) {
     async (req: FastifyRequest, reply: FastifyReply) => {
       const uid = req.user!.uid;
       try {
+        const pool = getPool();
         const { rows } = await pool.query(
           `SELECT
              COUNT(*) FILTER (WHERE event_type = 'invite')  AS invites_shared,
