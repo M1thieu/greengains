@@ -38,6 +38,16 @@ export const EARTH_RADIUS_METERS = 6_371_000;
 /** Minimum motion_confidence score to consider a reading "in motion". */
 export const MOTION_CONFIDENCE_THRESHOLD = 0.2;
 
+// ─── Aggregation Job ─────────────────────────────────────────────────────────
+/** Bucket width for the 5-minute aggregate table. */
+export const AGGREGATION_WINDOW_MINUTES = 5;
+/** How often the aggregation job polls for new batches (1 minute). */
+export const AGGREGATION_JOB_INTERVAL_MS = 60_000;
+/** Accelerometer reading when phone is at rest (gravity component, m/s²). */
+export const MOVEMENT_GRAVITY_BASELINE = 9.81;
+/** Deviation above/below rest that maps to movement_score = 1.0. */
+export const MOVEMENT_THRESHOLD = 5.0;
+
 // ─── Referral ─────────────────────────────────────────────────────────────────
 /** Max collision retry attempts when generating a unique referral code. */
 export const MAX_REFERRAL_CODE_RETRIES = 8;

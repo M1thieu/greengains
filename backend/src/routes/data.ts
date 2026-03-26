@@ -6,6 +6,7 @@ import { QueryBuilder, generateCursor, parseCursor } from '../utils/pagination';
 import { numOrNull } from '../utils/response-utils';
 import {
   getOrgSubscriptionTier,
+  requireTier,
   TIER_HISTORY_DAYS,
   TIER_EXPORT_ROWS,
   type SubscriptionTier,
@@ -234,7 +235,8 @@ export async function dataRoutes(fastify: FastifyInstance) {
    */
   fastify.post(
     '/api/v1/data/export',
-    { preHandler: requireFirebaseAuth },
+    // requireTier('pro') gates at preHandler level (DIMO pattern) — defense in depth
+    { preHandler: [requireFirebaseAuth, requireTier('pro')] },
     async (request: FastifyRequest, reply: FastifyReply) => {
       const userId = request.user!.uid;
 
@@ -242,16 +244,8 @@ export async function dataRoutes(fastify: FastifyInstance) {
         const pool = getPool();
         const query = exportSchema.parse(request.body);
 
-        // Get user's subscription tier
+        // Get user's subscription tier (still needed for row-limit enforcement)
         const tier = await getOrgSubscriptionTier(pool, userId);
-
-        // Check export permission
-        if (tier === 'free') {
-          return reply.code(403).send({
-            error: 'Export not available on free tier',
-            message: 'Upgrade to Pro to export data',
-          });
-        }
 
         const maxRows = TIER_EXPORT_ROWS[tier] ?? 0;
 

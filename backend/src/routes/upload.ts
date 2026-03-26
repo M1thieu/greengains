@@ -10,6 +10,7 @@ import { H3_RES_PERSONAL, H3_RES_GLOBAL } from '../constants';
 import {
   vectorMagnitude,
   analyzeQuality,
+  filterOutliersMad,
   calculateUptimeSeconds,
   Summary,
 } from '../utils/sensor-analytics';
@@ -21,8 +22,10 @@ import {
 } from '../utils/uploadValidation';
 
 function summarizeBatch(readings: SensorReading[]): Summary {
-  // Handle optional light data
-  const lightReadings = readings.filter(r => r.light !== undefined).map(r => r.light!);
+  // Light — filter statistical outliers (MAD method) before averaging.
+  // E.g. a single 65535 lux spike from sensor glitch won't skew the window average.
+  const lightRaw = readings.filter(r => r.light !== undefined).map(r => r.light!);
+  const lightReadings = filterOutliersMad(lightRaw);
   const lightSummary = lightReadings.length > 0
     ? {
         avg: lightReadings.reduce((a, b) => a + b, 0) / lightReadings.length,
@@ -31,23 +34,25 @@ function summarizeBatch(readings: SensorReading[]): Summary {
       }
     : undefined;
 
-  // Handle optional accel data
+  // Accel / gyro — outlier filter applied to magnitudes (spikes from drops/taps)
   const accelReadings = readings.filter(r => r.accel !== undefined);
-  const accelMagnitudes = accelReadings.length > 0
+  const accelMagnitudesRaw = accelReadings.length > 0
     ? accelReadings.map(r => vectorMagnitude(r.accel!))
     : [];
+  const accelMagnitudes = filterOutliersMad(accelMagnitudesRaw);
 
-  // Handle optional gyro data
   const gyroReadings = readings.filter(r => r.gyro !== undefined);
-  const gyroMagnitudes = gyroReadings.length > 0
+  const gyroMagnitudesRaw = gyroReadings.length > 0
     ? gyroReadings.map(r => vectorMagnitude(r.gyro!))
     : [];
+  const gyroMagnitudes = filterOutliersMad(gyroMagnitudesRaw);
 
   const periodStart = new Date(Math.min(...readings.map(r => r.t.getTime())));
   const periodEnd = new Date(Math.max(...readings.map(r => r.t.getTime())));
 
-  // Handle optional pressure data
-  const pressureReadings = readings.filter(r => r.pressure !== undefined).map(r => r.pressure!);
+  // Pressure — filter spikes (sensor glitches produce implausible hPa values)
+  const pressureRaw = readings.filter(r => r.pressure !== undefined).map(r => r.pressure!);
+  const pressureReadings = filterOutliersMad(pressureRaw);
   const pressureSummary = pressureReadings.length > 0
     ? {
         avg: pressureReadings.reduce((a, b) => a + b, 0) / pressureReadings.length,
@@ -56,10 +61,11 @@ function summarizeBatch(readings: SensorReading[]): Summary {
       }
     : undefined;
 
-  // Handle optional magnetic data — index [3] is pre-computed magnitude [x,y,z,mag]
-  const magneticMagnitudes = readings
+  // Magnetic — index [3] is pre-computed magnitude [x,y,z,mag]
+  const magneticRaw = readings
     .filter(r => r.magnetic !== undefined && r.magnetic.length === 4)
     .map(r => r.magnetic![3]);
+  const magneticMagnitudes = filterOutliersMad(magneticRaw);
   const magneticSummary = magneticMagnitudes.length > 0
     ? {
         avg: magneticMagnitudes.reduce((a, b) => a + b, 0) / magneticMagnitudes.length,

@@ -26,6 +26,36 @@ export interface Summary {
 }
 
 /**
+ * Median Absolute Deviation outlier filter (openSenseMap/MAD pattern).
+ *
+ * Returns the subset of values within `multiplier × MAD` of the median.
+ * If fewer than 4 values are provided, or if MAD is 0 (all identical),
+ * the original array is returned unchanged (no false positives on flat signals).
+ *
+ * Reference: openSenseMap outlierTransformer uses 3σ-equivalent MAD threshold.
+ */
+export function filterOutliersMad(values: number[], multiplier = 3): number[] {
+  if (values.length < 4) return values;
+
+  const sorted = [...values].sort((a, b) => a - b);
+  const mid = sorted.length / 2;
+  const median = sorted.length % 2 === 0
+    ? (sorted[mid - 1] + sorted[mid]) / 2
+    : sorted[Math.floor(mid)];
+
+  const deviations = values.map(v => Math.abs(v - median)).sort((a, b) => a - b);
+  const devMid = deviations.length / 2;
+  const mad = deviations.length % 2 === 0
+    ? (deviations[devMid - 1] + deviations[devMid]) / 2
+    : deviations[Math.floor(devMid)];
+
+  if (mad === 0) return values; // flat signal — every value is the median, no outliers
+
+  const threshold = multiplier * mad;
+  return values.filter(v => Math.abs(v - median) <= threshold);
+}
+
+/**
  * Calculate the magnitude of a 3D vector (e.g., accelerometer, gyroscope)
  * @param vector Array of [x, y, z] components
  * @returns Magnitude (sqrt(x² + y² + z²))

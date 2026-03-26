@@ -1,4 +1,6 @@
 import { Pool } from 'pg';
+import { FastifyRequest, FastifyReply } from 'fastify';
+import { getPool } from '../database';
 
 /**
  * Subscription tier helpers — single source of truth for tier limits.
@@ -49,12 +51,44 @@ export async function getOrgSubscriptionTier(
 /**
  * Ensure a user_tiers row exists for this user (upsert to free if missing).
  */
-export async function ensureUserTier(pool: any, userId: string): Promise<void> {
+export async function ensureUserTier(pool: Pool, userId: string): Promise<void> {
   await pool.query(
     `INSERT INTO user_tiers (user_id, tier) VALUES ($1, 'free')
      ON CONFLICT (user_id) DO NOTHING`,
     [userId]
   )
+}
+
+/** Numeric rank for tier comparison: free < pro < enterprise. */
+const TIER_RANK: Record<SubscriptionTier, number> = { free: 0, pro: 1, enterprise: 2 };
+
+/**
+ * Fastify preHandler factory that enforces a minimum subscription tier.
+ * Must run after requireFirebaseAuth so that request.user is populated.
+ *
+ * Usage: { preHandler: [requireFirebaseAuth, requireTier('pro')] }
+ *
+ * Inspired by DIMO data-sdk: declare access requirements at the route
+ * definition level, not inline inside handler logic.
+ */
+export function requireTier(minTier: SubscriptionTier) {
+  return async function tierPreHandler(request: FastifyRequest, reply: FastifyReply): Promise<void> {
+    const userId = request.user?.uid;
+    if (!userId) {
+      reply.code(401).send({ error: 'Unauthorized' });
+      return;
+    }
+    const pool = getPool();
+    const tier = await getOrgSubscriptionTier(pool, userId);
+    if (TIER_RANK[tier] < TIER_RANK[minTier]) {
+      reply.code(403).send({
+        error: 'Subscription required',
+        required_tier: minTier,
+        current_tier: tier,
+        message: `This endpoint requires a ${minTier} subscription or higher.`,
+      });
+    }
+  };
 }
 
 export function getMaxHistoryDays(tier: SubscriptionTier): number {

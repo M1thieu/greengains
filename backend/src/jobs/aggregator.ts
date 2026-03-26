@@ -4,15 +4,19 @@ import { getPool } from '../database';
 import { analyzeQuality, QualityCounters } from '../utils/sensor-analytics';
 import { decodeGeohash } from '../utils/geo';
 import { StoragePayload } from '../models/upload';
+import {
+  AGGREGATION_WINDOW_MINUTES,
+  AGGREGATION_JOB_INTERVAL_MS,
+  MOVEMENT_GRAVITY_BASELINE,
+  MOVEMENT_THRESHOLD,
+} from '../constants';
 
-export const AGGREGATION_WINDOW_MINUTES = 5;
+export { AGGREGATION_WINDOW_MINUTES };
+
 const WINDOW_MS = AGGREGATION_WINDOW_MINUTES * 60 * 1000;
-const JOB_INTERVAL_MS = 60 * 1000; // run once a minute
 
 // Movement score: deviation from gravitational baseline (phone at rest ≈ 9.81 m/s²).
-// 5 m/s² above/below resting = full score of 1.0.
-const MOVEMENT_GRAVITY_BASELINE = 9.81;
-const MOVEMENT_THRESHOLD = 5.0;
+// MOVEMENT_THRESHOLD m/s² above/below resting = full score of 1.0.
 const movementScore = (accelRms: number) =>
   Math.min(1, Math.max(0, Math.abs(accelRms - MOVEMENT_GRAVITY_BASELINE) / MOVEMENT_THRESHOLD));
 
@@ -70,7 +74,7 @@ export async function startAggregationJob(): Promise<void> {
     runAggregationJob().catch((error) =>
       console.error('[aggregation] scheduled run failed:', error),
     );
-  }, JOB_INTERVAL_MS);
+  }, AGGREGATION_JOB_INTERVAL_MS);
 }
 
 export async function stopAggregationJob(): Promise<void> {
