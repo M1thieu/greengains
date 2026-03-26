@@ -24,8 +24,9 @@ const GLOBAL_TILE_CACHE_TTL_MS = 5 * 60 * 1000;
 // ─── Shared global tile query ─────────────────────────────────────────────────
 
 /**
- * Fetches global community tiles from sensor_aggregates_5m.
- * Results are cached 5 min in-memory (shared between /global and /public).
+ * Fetches global community tiles from sensor_aggregates_daily.
+ * Uses the daily table for the 30-day window — 288x fewer rows than 5m table,
+ * same data quality for a coverage map. Results are cached 5 min in-memory.
  * Falls back to geohash decode for rows without h3_index.
  */
 async function fetchGlobalTiles(): Promise<unknown> {
@@ -34,25 +35,30 @@ async function fetchGlobalTiles(): Promise<unknown> {
   if (cached && cached.expiresAt > Date.now()) return cached.data;
 
   const pool = getPool();
+  // Daily table has ≤30 rows per geohash vs 8,640 rows in 5m table for 30d window.
+  // MAX(h3_index) picks the non-null value when both null and non-null rows exist.
+  const windowDays = Math.ceil(GLOBAL_TILE_WINDOW_HOURS / 24);
   const result = await pool.query<{
     geohash: string;
     h3_index: string | null;
     sample_count: number;
     device_count: number;
+    quality_valid_ratio: number | null;
     last_update: Date;
   }>(
     `SELECT
        geohash,
-       h3_index,
-       SUM(samples_count)::int AS sample_count,
-       SUM(device_count)::int  AS device_count,
-       MAX(window_end)         AS last_update
-     FROM sensor_aggregates_5m
-     WHERE window_start > NOW() - ($1 || ' hours')::interval
-     GROUP BY geohash, h3_index
+       MAX(h3_index)                          AS h3_index,
+       SUM(samples_count)::int                AS sample_count,
+       MAX(device_count)::int                 AS device_count,
+       AVG(quality_valid_ratio)               AS quality_valid_ratio,
+       MAX(day)                               AS last_update
+     FROM sensor_aggregates_daily
+     WHERE day > CURRENT_DATE - $1
+     GROUP BY geohash
      ORDER BY sample_count DESC
      LIMIT ${MAX_GLOBAL_TILES}`,
-    [GLOBAL_TILE_WINDOW_HOURS],
+    [windowDays],
   );
 
   const seen = new Set<string>();
@@ -68,10 +74,16 @@ async function fetchGlobalTiles(): Promise<unknown> {
       if (seen.has(h3Index)) return null;
       seen.add(h3Index);
       const boundary = cellToBoundary(h3Index, true) as [number, number][];
+      // Composite quality score: blend sample confidence + data validity ratio.
+      // qualityValidRatio=1.0 means all readings passed quality checks (not pocket, not noise).
+      const sampleConfidence = Math.min(1.0, row.sample_count / CONFIDENCE_SAMPLE_THRESHOLD);
+      const qualityValidRatio = row.quality_valid_ratio ?? 1.0;
+      const qualityScore = Math.round(sampleConfidence * qualityValidRatio * 100) / 100;
       return {
         h3Index,
         boundary,
-        confidence: Math.min(1.0, row.sample_count / CONFIDENCE_SAMPLE_THRESHOLD),
+        confidence: sampleConfidence,
+        qualityScore,
         deviceCount: row.device_count,
         sampleCount: row.sample_count,
         lastUpdate: row.last_update,

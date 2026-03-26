@@ -10,7 +10,7 @@ import {
   TIER_EXPORT_ROWS,
   type SubscriptionTier,
 } from '../utils/tier-utils';
-import { MS_PER_DAY } from '../constants';
+import { MS_PER_DAY, MS_PER_HOUR } from '../constants';
 
 /**
  * Data Routes - Dashboard/Client Data Endpoints
@@ -68,7 +68,6 @@ export async function dataRoutes(fastify: FastifyInstance) {
         qb.where(`${timeColumn} >= $P`, fromTime.toISOString());
         qb.where(`${timeColumn} <= $P`, toTime.toISOString());
 
-        // Apply geohash filter
         qb.whereIf(query.geohash, `geohash LIKE $P`, query.geohash ? `${query.geohash}%` : undefined);
 
         // Cursor-based pagination
@@ -260,7 +259,7 @@ export async function dataRoutes(fastify: FastifyInstance) {
         const timeColumn = 'window_start';
         const qb = new QueryBuilder();
 
-        const fromTime = query.from ? new Date(query.from) : new Date(Date.now() - 90 * 86400000);
+        const fromTime = query.from ? new Date(query.from) : new Date(Date.now() - 90 * MS_PER_DAY);
         const toTime = query.to ? new Date(query.to) : new Date();
 
         qb.where(`${timeColumn} >= $P`, fromTime.toISOString());
@@ -364,7 +363,7 @@ export async function dataRoutes(fastify: FastifyInstance) {
           min_devices: z.coerce.number().int().min(0).default(0),
         }).parse(request.query);
 
-        const fromTime = new Date(Date.now() - query.hours * 3600000);
+        const fromTime = new Date(Date.now() - query.hours * MS_PER_HOUR);
 
         // Use daily aggregates for wide ranges — 5m table may not retain data beyond ~7d
         // and scanning thousands of 5m windows is slow. Daily table is pre-aggregated.

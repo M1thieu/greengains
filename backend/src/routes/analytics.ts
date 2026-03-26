@@ -1,4 +1,5 @@
 import { FastifyInstance } from 'fastify';
+import { MS_PER_HOUR } from '../constants';
 import { z } from 'zod';
 import { getPool } from '../database';
 import { AGGREGATION_WINDOW_MINUTES } from '../jobs/aggregator';
@@ -91,7 +92,7 @@ export async function analyticsRoutes(fastify: FastifyInstance) {
     const pool = getPool();
     const query = coverageQuerySchema.parse(request.query);
     const now = new Date();
-    const from = new Date(now.getTime() - query.hours * 60 * 60 * 1000);
+    const from = new Date(now.getTime() - query.hours * MS_PER_HOUR);
 
     const result = await pool.query(
       `
