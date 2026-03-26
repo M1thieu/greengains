@@ -3,13 +3,18 @@ import { latLngToCell, cellToBoundary, cellToLatLng, cellToParent } from 'h3-js'
 import { getPool } from '../database';
 import { requireFirebaseAuth } from '../middleware/auth';
 import { decodeGeohash } from '../utils/geo';
+import {
+  H3_RES_PERSONAL,
+  H3_RES_GLOBAL,
+  MAX_USER_TILES,
+  MAX_GLOBAL_TILES,
+  GLOBAL_TILE_WINDOW_HOURS,
+  MS_PER_DAY,
+} from '../constants';
 
 // Confidence thresholds
 const CONFIDENCE_BATCH_THRESHOLD  = 10;  // personal tiles: 10 batches = max confidence
 const CONFIDENCE_SAMPLE_THRESHOLD = 100; // global tiles: 100 readings = max confidence
-
-// Global tiles: 30-day window — community coverage should feel populated.
-const GLOBAL_TILE_HOURS = 720;
 
 // ─── In-memory cache for global tiles (5-min TTL, avoids per-request DB hits) ─
 interface TileCacheEntry { data: unknown; expiresAt: number; }
@@ -24,7 +29,7 @@ const GLOBAL_TILE_CACHE_TTL_MS = 5 * 60 * 1000;
  * Falls back to geohash decode for rows without h3_index.
  */
 async function fetchGlobalTiles(): Promise<unknown> {
-  const cacheKey = `global_${GLOBAL_TILE_HOURS}`;
+  const cacheKey = `global_${GLOBAL_TILE_WINDOW_HOURS}`;
   const cached = _globalTileCache.get(cacheKey);
   if (cached && cached.expiresAt > Date.now()) return cached.data;
 
@@ -46,8 +51,8 @@ async function fetchGlobalTiles(): Promise<unknown> {
      WHERE window_start > NOW() - ($1 || ' hours')::interval
      GROUP BY geohash, h3_index
      ORDER BY sample_count DESC
-     LIMIT 2000`,
-    [GLOBAL_TILE_HOURS],
+     LIMIT ${MAX_GLOBAL_TILES}`,
+    [GLOBAL_TILE_WINDOW_HOURS],
   );
 
   const seen = new Set<string>();
@@ -59,7 +64,7 @@ async function fetchGlobalTiles(): Promise<unknown> {
         if (!centroid) return null;
         h3Res9 = latLngToCell(centroid.lat, centroid.lon, 9);
       }
-      const h3Index = cellToParent(h3Res9, 8); // coarsen to res 8 for global view
+      const h3Index = cellToParent(h3Res9, H3_RES_GLOBAL);
       if (seen.has(h3Index)) return null;
       seen.add(h3Index);
       const boundary = cellToBoundary(h3Index, true) as [number, number][];
@@ -206,7 +211,7 @@ export async function userRoutes(fastify: FastifyInstance) {
         );
         for (const wr of weeklyResult.rows) {
           const d = new Date(wr.upload_date);
-          const daysAgo = Math.round((todayMs - d.getTime()) / 86_400_000);
+          const daysAgo = Math.round((todayMs - d.getTime()) / MS_PER_DAY);
           if (daysAgo >= 0 && daysAgo < 7) weekly[6 - daysAgo] = wr.count;
         }
 
@@ -266,7 +271,7 @@ export async function userRoutes(fastify: FastifyInstance) {
              AND (h3_res9 IS NOT NULL OR batch_json->>'geohash' IS NOT NULL)
            GROUP BY h3_res9, batch_json->>'geohash'
            ORDER BY batch_count DESC
-           LIMIT 5000`,
+           LIMIT ${MAX_USER_TILES}`,
           [userId],
         );
 
@@ -292,7 +297,7 @@ export async function userRoutes(fastify: FastifyInstance) {
 
         const tiles = Array.from(tileMap.entries())
           .sort((a, b) => b[1].batchCount - a[1].batchCount)
-          .slice(0, 5000)
+          .slice(0, MAX_USER_TILES)
           .map(([h3Index, stats]) => {
             const boundary = cellToBoundary(h3Index, true) as [number, number][];
             const [lat, lng] = cellToLatLng(h3Index);

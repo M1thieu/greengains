@@ -1,5 +1,6 @@
 import type { Pool } from 'pg';
 import type { UploadBatch } from '../models/upload';
+import { EARTH_RADIUS_METERS } from '../constants';
 
 // Max batches accepted per device per sliding hour window.
 // ~1 batch every 30s for a full hour — generous for real usage, blocks burst bots.
@@ -94,7 +95,7 @@ export function validateSensorRanges(batch: UploadBatch): string | null {
 
 /** Haversine distance in metres between two lat/lon coordinates. */
 function haversineMetres(lat1: number, lon1: number, lat2: number, lon2: number): number {
-  const R = 6_371_000;
+  const R = EARTH_RADIUS_METERS;
   const toRad = (deg: number) => (deg * Math.PI) / 180;
   const φ1 = toRad(lat1), φ2 = toRad(lat2);
   const Δφ = toRad(lat2 - lat1), Δλ = toRad(lon2 - lon1);

@@ -6,6 +6,7 @@
  */
 
 import { SensorReading } from '../models/upload';
+import { MOTION_CONFIDENCE_THRESHOLD } from '../constants';
 
 export interface QualityCounters {
   total: number;
@@ -76,7 +77,7 @@ export function analyzeQuality(readings: SensorReading[]): QualityCounters {
       typeof quality.motion_confidence === 'number' ? quality.motion_confidence : 0;
 
     const locationOk = ['high', 'medium', 'low'].includes(locationQuality);
-    const motionOk = motionState !== 'unknown' && motionConfidence >= 0.2;
+    const motionOk = motionState !== 'unknown' && motionConfidence >= MOTION_CONFIDENCE_THRESHOLD;
 
     // Valid if: good location OR good motion OR explicitly not in pocket
     if (locationOk || motionOk || pocket === 'unlikely') {

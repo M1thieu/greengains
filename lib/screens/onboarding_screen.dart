@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:package_info_plus/package_info_plus.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
@@ -59,10 +60,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       if (!mounted) return;
 
       // Fire-and-forget: record explicit consent to backend + cache locally.
+      final packageInfo = await PackageInfo.fromPlatform();
       unawaited(
         BackendClient.post('/api/user/consent', {
           'platform': Platform.isIOS ? 'ios' : 'android',
-          'appVersion': '1.1.0',
+          'appVersion': packageInfo.version,
         }).then((body) async {
           final rawDate = body['agreedAt'];
           final dt = rawDate != null ? DateTime.tryParse(rawDate.toString()) : DateTime.now();

@@ -1,6 +1,11 @@
 // Initialize Sentry FIRST (before anything else!)
 import * as Sentry from '@sentry/node';
 import { nodeProfilingIntegration } from '@sentry/profiling-node';
+import {
+  UPLOAD_BODY_LIMIT_BYTES,
+  SENTRY_TRACES_SAMPLE_RATE,
+  SENTRY_PROFILES_SAMPLE_RATE,
+} from './constants';
 
 Sentry.init({
   dsn: process.env.SENTRY_DSN || 'https://d0e924903d56b78ed1d576a92fc51826@o4510780171747328.ingest.de.sentry.io/4510780175941712',
@@ -8,8 +13,8 @@ Sentry.init({
   integrations: [
     nodeProfilingIntegration(),
   ],
-  tracesSampleRate: 0.1, // 10% of requests (free tier friendly)
-  profilesSampleRate: 0.1,
+  tracesSampleRate: SENTRY_TRACES_SAMPLE_RATE,
+  profilesSampleRate: SENTRY_PROFILES_SAMPLE_RATE,
 });
 
 import Fastify from 'fastify';
@@ -38,7 +43,7 @@ const fastify = Fastify({
     // Add request IDs for tracing
     genReqId: () => crypto.randomUUID(),
   },
-  bodyLimit: 1048576 * 10, // 10MB limit for uploads
+  bodyLimit: UPLOAD_BODY_LIMIT_BYTES,
   // Disable Fastify's default error handler so Sentry can catch errors
   disableRequestLogging: false,
 });

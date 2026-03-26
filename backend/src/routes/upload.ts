@@ -6,6 +6,7 @@ import { verifyApiKey, hashDeviceId } from '../utils/security';
 import { deviceOrFirebaseAuth } from '../middleware/auth';
 import { getPool } from '../database';
 import { UploadBatchSchema, UploadBatch, SensorReading, StoragePayload } from '../models/upload';
+import { H3_RES_PERSONAL, H3_RES_GLOBAL } from '../constants';
 import {
   vectorMagnitude,
   analyzeQuality,
@@ -236,8 +237,8 @@ export async function uploadRoutes(fastify: FastifyInstance) {
 
         // Compute H3 indices at ingest — stored as indexed columns for fast tile queries.
         // Industry pattern: Helium/Nodle/Hivemapper all index by H3 cell at ingest, never at query time.
-        const h3Res9 = batch.location ? latLngToCell(batch.location.lat, batch.location.lon, 9) : null;
-        const h3Res8 = batch.location ? latLngToCell(batch.location.lat, batch.location.lon, 8) : null;
+        const h3Res9 = batch.location ? latLngToCell(batch.location.lat, batch.location.lon, H3_RES_PERSONAL) : null;
+        const h3Res8 = batch.location ? latLngToCell(batch.location.lat, batch.location.lon, H3_RES_GLOBAL) : null;
 
         // Store in database — ON CONFLICT DO NOTHING deduplicates retried uploads
         const insertResult = await pool.query(

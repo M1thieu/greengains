@@ -2,6 +2,7 @@ import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import '../models/contribution_stats.dart';
 import 'package:flutter/foundation.dart';
+import '../../core/constants.dart';
 
 /// Enhanced SQLite database for comprehensive app state persistence
 ///
@@ -228,7 +229,7 @@ class DatabaseHelper {
             geohash,
             CASE
               WHEN CAST(STRFTIME('%H', datetime(timestamp / 1000, 'unixepoch', 'localtime')) AS INTEGER)
-                BETWEEN 6 AND 19 THEN 'day'
+                BETWEEN $kDayStartHour AND ${kDayEndHour - 1} THEN 'day'
               ELSE 'night'
             END as part
           FROM contributions

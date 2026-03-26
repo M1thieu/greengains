@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:geolocator/geolocator.dart';
 import 'dart:developer' as developer;
+import '../../core/constants.dart';
 
 const _logTag = 'LocationService';
 
@@ -113,7 +114,7 @@ class LocationService {
       final desiredAccuracy =
           hasPrecise ? LocationAccuracy.high : LocationAccuracy.low;
       final Duration timeLimit =
-          hasPrecise ? const Duration(seconds: 15) : const Duration(seconds: 5);
+          hasPrecise ? kPreciseGpsTimeout : kCoarseGpsTimeout;
 
       Position? position;
 

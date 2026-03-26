@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../core/constants.dart';
 
 /// Tracks user's tile contributions locally for gamification
 class ContributionTracker {
@@ -106,11 +107,9 @@ class ContributionTracker {
 
       // Determine if day or night tile
       final hour = timestamp.hour;
-      if (hour >= 6 && hour < 20) {
-        // Day tile (6am - 8pm)
+      if (hour >= kDayStartHour && hour < kDayEndHour) {
         _dayTiles.add(geohash);
       } else {
-        // Night tile (8pm - 6am)
         _nightTiles.add(geohash);
       }
 

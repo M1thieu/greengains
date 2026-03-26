@@ -6,6 +6,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:in_app_review/in_app_review.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../core/constants.dart';
 import '../core/extensions/context_extensions.dart';
 import '../core/themes.dart';
 import '../services/location/foreground_location_service.dart';
@@ -85,7 +86,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
       final lastShown = _prefs.batteryOptimizationPromptLastShown;
       if (lastShown != null &&
-          DateTime.now().difference(lastShown) < const Duration(days: 2)) {
+          DateTime.now().difference(lastShown) < kBatteryPromptInterval) {
         return;
       }
 
@@ -128,7 +129,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     try {
       final prefs = await SharedPreferences.getInstance();
       final count = prefs.getInt('total_upload_count') ?? 0;
-      if (count < 5) return;
+      if (count < kReviewRequestThreshold) return;
       if (prefs.getBool('review_requested') == true) return;
       final review = InAppReview.instance;
       if (await review.isAvailable()) {
@@ -202,17 +203,17 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       debugPrint('Tiles: ApiException ${e.statusCode}');
       if (e.isUnauthorized) {
         // Auth race on cold start — retry once after 2s
-        await Future.delayed(const Duration(seconds: 2));
+        await Future.delayed(kRetryDelay401);
         if (mounted) _loadH3Tiles();
         return;
       }
       if (mounted) setState(() => _h3TilesLoading = false);
-      await Future.delayed(const Duration(seconds: 4));
+      await Future.delayed(kRetryDelayNetError);
       if (mounted && _h3Tiles.isEmpty) _loadH3Tiles();
     } catch (e) {
       debugPrint('Failed to load H3 tiles: $e');
       if (mounted) setState(() => _h3TilesLoading = false);
-      await Future.delayed(const Duration(seconds: 4));
+      await Future.delayed(kRetryDelayNetError);
       if (mounted && _h3Tiles.isEmpty) _loadH3Tiles();
     }
   }
@@ -232,11 +233,11 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         if (mounted && _globalTiles.isEmpty) _loadGlobalTiles();
         return;
       }
-      await Future.delayed(const Duration(seconds: 5));
+      await Future.delayed(kGlobalTileRetryDelay);
       if (mounted && _globalTiles.isEmpty) _loadGlobalTiles();
     } catch (e) {
       debugPrint('Failed to load global tiles: $e');
-      await Future.delayed(const Duration(seconds: 5));
+      await Future.delayed(kGlobalTileRetryDelay);
       if (mounted && _globalTiles.isEmpty) _loadGlobalTiles();
     }
   }

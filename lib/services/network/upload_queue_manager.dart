@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 
+import '../../core/constants.dart';
 import '../../data/local/database_helper.dart';
 import '../../core/events/app_events.dart';
 import 'backend_client.dart';
@@ -45,7 +46,7 @@ class UploadQueueManager {
       payload: jsonEncode(payload),
     );
     debugPrint('[UploadQueue] Enqueued upload $id for retry');
-    _scheduleRetry(const Duration(seconds: 30));
+    _scheduleRetry(Duration(milliseconds: kBaseBackoffMs));
   }
 
   /// Process all pending uploads in the queue.
@@ -97,7 +98,7 @@ class UploadQueueManager {
           ));
         } catch (e) {
           // Exponential backoff: 30s, 60s, 120s, 240s, 480s
-          final backoffMs = 30000 * (1 << retryCount);
+          final backoffMs = kBaseBackoffMs * (1 << retryCount);
           final nextRetry = DateTime.now().millisecondsSinceEpoch + backoffMs;
 
           await _db.updateUploadRetry(

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../../core/constants.dart';
 
 export 'api_models.dart';
 
@@ -51,8 +52,8 @@ class BackendClient {
   static Dio _buildDio() {
     final dio = Dio(BaseOptions(
       baseUrl: kBackendBaseUrl,
-      connectTimeout: const Duration(seconds: 12),
-      receiveTimeout: const Duration(seconds: 12),
+      connectTimeout: kApiTimeout,
+      receiveTimeout: kApiTimeout,
       headers: {HttpHeaders.acceptHeader: 'application/json'},
     ));
 
@@ -117,7 +118,7 @@ class BackendClient {
   /// Throws [ApiException] on non-2xx or network failure.
   static Future<Map<String, dynamic>> get(
     String path, {
-    Duration timeout = const Duration(seconds: 12),
+    Duration timeout = kApiTimeout,
   }) async {
     try {
       final res = await _dio.get<Map<String, dynamic>>(
@@ -141,7 +142,7 @@ class BackendClient {
   static Future<Map<String, dynamic>> post(
     String path,
     Map<String, dynamic> body, {
-    Duration timeout = const Duration(seconds: 12),
+    Duration timeout = kApiTimeout,
   }) async {
     try {
       final res = await _dio.post<Map<String, dynamic>>(

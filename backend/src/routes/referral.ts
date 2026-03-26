@@ -2,6 +2,7 @@ import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import crypto from 'crypto';
 import { getPool } from '../database';
 import { requireFirebaseAuth } from '../middleware/auth';
+import { MAX_REFERRAL_CODE_RETRIES, PG_UNIQUE_VIOLATION } from '../constants';
 
 /**
  * Referral endpoints — all backed by the single `referrals` table.
@@ -43,7 +44,7 @@ export async function referralRoutes(fastify: FastifyInstance) {
     if (existing.rows.length > 0) return existing.rows[0].referral_code;
 
     // Slow path: allocate a new code with collision retry
-    for (let attempt = 0; attempt < 8; attempt++) {
+    for (let attempt = 0; attempt < MAX_REFERRAL_CODE_RETRIES; attempt++) {
       const code = generateReferralCode();
       try {
         const row = await pool.query<{ referral_code: string }>(
@@ -56,11 +57,11 @@ export async function referralRoutes(fastify: FastifyInstance) {
         );
         if (row.rows.length > 0) return row.rows[0].referral_code;
       } catch (err: unknown) {
-        if ((err as { code?: string })?.code === '23505') continue; // referral_code collision — retry
+        if ((err as { code?: string })?.code === PG_UNIQUE_VIOLATION) continue; // referral_code collision — retry
         throw err;
       }
     }
-    throw new Error('Unable to allocate referral code after 8 attempts');
+    throw new Error(`Unable to allocate referral code after ${MAX_REFERRAL_CODE_RETRIES} attempts`);
   }
 
   // ─── Routes ──────────────────────────────────────────────────────────────

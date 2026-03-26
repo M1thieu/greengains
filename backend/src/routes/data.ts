@@ -10,6 +10,7 @@ import {
   TIER_EXPORT_ROWS,
   type SubscriptionTier,
 } from '../utils/tier-utils';
+import { MS_PER_DAY } from '../constants';
 
 /**
  * Data Routes - Dashboard/Client Data Endpoints
@@ -62,7 +63,7 @@ export async function dataRoutes(fastify: FastifyInstance) {
         const qb = new QueryBuilder();
 
         // Apply time filters
-        const fromTime = query.from ? new Date(query.from) : new Date(Date.now() - maxDays * 86400000);
+        const fromTime = query.from ? new Date(query.from) : new Date(Date.now() - maxDays * MS_PER_DAY);
         const toTime = query.to ? new Date(query.to) : new Date();
 
         qb.where(`${timeColumn} >= $P`, fromTime.toISOString());
@@ -188,7 +189,7 @@ export async function dataRoutes(fastify: FastifyInstance) {
 
         // Build query
         const qb = new QueryBuilder();
-        const fromTime = query.from ? new Date(query.from) : new Date(Date.now() - maxDays * 86400000);
+        const fromTime = query.from ? new Date(query.from) : new Date(Date.now() - maxDays * MS_PER_DAY);
         const toTime = query.to ? new Date(query.to) : new Date();
 
         qb.where(`${timeColumn} >= $P`, fromTime.toISOString());
