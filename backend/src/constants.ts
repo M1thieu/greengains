@@ -48,6 +48,15 @@ export const MOVEMENT_GRAVITY_BASELINE = 9.81;
 /** Deviation above/below rest that maps to movement_score = 1.0. */
 export const MOVEMENT_THRESHOLD = 5.0;
 
+// ─── Data Retention ───────────────────────────────────────────────────────────
+/**
+ * How long raw sensor_batches rows are kept before purge.
+ * Aggregated data (sensor_aggregates_5m / _daily) is kept indefinitely.
+ * 90 days gives B2B customers enough window for re-processing while
+ * preventing unbounded table growth.
+ */
+export const SENSOR_BATCH_RETENTION_DAYS = 90;
+
 // ─── Referral ─────────────────────────────────────────────────────────────────
 /** Max collision retry attempts when generating a unique referral code. */
 export const MAX_REFERRAL_CODE_RETRIES = 8;
@@ -55,3 +64,11 @@ export const MAX_REFERRAL_CODE_RETRIES = 8;
 // ─── PostgreSQL Error Codes ───────────────────────────────────────────────────
 /** pg error code for unique constraint violation (23505). */
 export const PG_UNIQUE_VIOLATION = '23505';
+
+// ─── Database ─────────────────────────────────────────────────────────────────
+/** Max connections in the pg.Pool (Supabase free tier caps at 60). */
+export const DB_POOL_MAX = 10;
+
+// ─── HTTP Response Limits ─────────────────────────────────────────────────────
+/** Max JSON response size for tile endpoints (1 MB). */
+export const MAX_TILE_RESPONSE_BYTES = 1_048_576;

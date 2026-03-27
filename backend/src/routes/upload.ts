@@ -1,5 +1,5 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
-import type { Pool } from 'pg';
+import type { Pool, PoolClient } from 'pg';
 import { latLngToCell } from 'h3-js';
 import { decompressPayload, UnsupportedEncodingError } from '../utils/compression';
 import { verifyApiKey, hashDeviceId } from '../utils/security';
@@ -108,7 +108,7 @@ function buildStoragePayload(batch: UploadBatch): StoragePayload {
 }
 
 async function upsertUserStats(
-  pool: Pool,
+  pool: Pool | PoolClient,
   deviceHash: string,
   summary: Summary,
   readings: SensorReading[],
@@ -204,6 +204,7 @@ export async function uploadRoutes(fastify: FastifyInstance) {
 
         // 1a. Rate limit per device: max 120 batches per sliding hour
         if (await checkDeviceRateLimit(pool, deviceHash)) {
+          request.log.warn({ deviceHash, limitType: 'device', maxPerHour: 120 }, 'Upload rate limit exceeded');
           return reply.code(429).header('Retry-After', '3600').send({
             error: 'Too Many Requests',
             message: 'Upload rate limit exceeded. Max 120 batches per hour per device.',
@@ -212,6 +213,7 @@ export async function uploadRoutes(fastify: FastifyInstance) {
 
         // 1b. Rate limit per user: max 300 batches/hour across all devices
         if (await checkUserRateLimit(pool, userId)) {
+          request.log.warn({ userId, limitType: 'user', maxPerHour: 300 }, 'Upload rate limit exceeded');
           return reply.code(429).header('Retry-After', '3600').send({
             error: 'Too Many Requests',
             message: 'Upload rate limit exceeded. Max 300 batches per hour per account.',
@@ -246,19 +248,38 @@ export async function uploadRoutes(fastify: FastifyInstance) {
         const h3Res9 = batch.location ? latLngToCell(batch.location.lat, batch.location.lon, H3_RES_PERSONAL) : null;
         const h3Res8 = batch.location ? latLngToCell(batch.location.lat, batch.location.lon, H3_RES_GLOBAL) : null;
 
-        // Store in database — ON CONFLICT DO NOTHING deduplicates retried uploads
-        const insertResult = await pool.query(
-          `INSERT INTO sensor_batches (device_hash, timestamp_utc, batch_json, user_id, h3_res9, h3_res8)
-           VALUES ($1, $2, $3::jsonb, $4, $5, $6)
-           ON CONFLICT (device_hash, timestamp_utc) DO NOTHING`,
-          [deviceHash, batch.timestamp, payloadJson, userId, h3Res9, h3Res8],
-        );
+        // Atomically store batch + update stats — both succeed or neither does.
+        // Without a transaction, a failed stats upsert would leave counts stale
+        // until the device's next successful upload corrects them.
+        const client = await pool.connect();
+        let insertRowCount = 0;
+        try {
+          await client.query('BEGIN');
+
+          const insertResult = await client.query(
+            `INSERT INTO sensor_batches (device_hash, timestamp_utc, batch_json, user_id, h3_res9, h3_res8)
+             VALUES ($1, $2, $3::jsonb, $4, $5, $6)
+             ON CONFLICT (device_hash, timestamp_utc) DO NOTHING`,
+            [deviceHash, batch.timestamp, payloadJson, userId, h3Res9, h3Res8],
+          );
+          insertRowCount = insertResult.rowCount ?? 0;
+
+          if (insertRowCount > 0) {
+            await upsertUserStats(client, deviceHash, sanitizedPayload.summary, batch.batch, batch.timestamp, userId);
+          }
+
+          await client.query('COMMIT');
+        } catch (txError) {
+          await client.query('ROLLBACK');
+          throw txError; // re-throw to outer catch → 500
+        } finally {
+          client.release();
+        }
 
         // Duplicate batch (same device + timestamp already stored) — accept silently
-        if (insertResult.rowCount === 0) {
+        if (insertRowCount === 0) {
           return reply.code(202).send({ accepted_records: 0, duplicate: true });
         }
-        await upsertUserStats(pool, deviceHash, sanitizedPayload.summary, batch.batch, batch.timestamp, userId);
 
         // Log with stats
         const stats = sanitizedPayload.summary;
@@ -281,7 +302,7 @@ export async function uploadRoutes(fastify: FastifyInstance) {
         return reply.code(202).send({ accepted_records: readingsCount });
       } catch (error) {
         request.log.error({ err: error }, 'Upload error');
-        return reply.code(500).send({ error: 'Internal Server Error' });
+        return reply.code(500).send({ error: 'Internal Server Error', requestId: request.id });
       }
     }
   );

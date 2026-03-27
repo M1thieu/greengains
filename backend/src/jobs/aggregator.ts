@@ -9,6 +9,7 @@ import {
   AGGREGATION_JOB_INTERVAL_MS,
   MOVEMENT_GRAVITY_BASELINE,
   MOVEMENT_THRESHOLD,
+  SENSOR_BATCH_RETENTION_DAYS,
 } from '../constants';
 
 export { AGGREGATION_WINDOW_MINUTES };
@@ -64,16 +65,19 @@ interface DayAccumulator {
 }
 
 let aggregationTimer: NodeJS.Timeout | null = null;
+let lastPurgeDate: string | null = null; // UTC date string — purge runs at most once per day
 
 export async function startAggregationJob(): Promise<void> {
   // Run once immediately, then schedule interval
   await runAggregationJob().catch((error) =>
-    console.error('[aggregation] initial run failed:', error),
+    console.error('[aggregation] initial run failed:', { err: error }),
   );
   aggregationTimer = setInterval(() => {
-    runAggregationJob().catch((error) =>
-      console.error('[aggregation] scheduled run failed:', error),
-    );
+    const start = Date.now();
+    runAggregationJob()
+      .catch((error) =>
+        console.error('[aggregation] scheduled run failed', { err: error, elapsedMs: Date.now() - start }),
+      );
   }, AGGREGATION_JOB_INTERVAL_MS);
 }
 
@@ -346,11 +350,35 @@ export async function runAggregationJob(): Promise<void> {
     await upsertWindowResults(client, windowResults);
     await upsertDailyResults(client, dayBuckets);
     await client.query('COMMIT');
+    console.log(`[aggregation] committed ${windowResults.length} windows, ${dayBuckets.size} day buckets`);
   } catch (error) {
+    console.error('[aggregation] transaction rolled back', {
+      err: error,
+      windowCount: windowResults.length,
+      dayCount: dayBuckets.size,
+    });
     await client.query('ROLLBACK');
     throw error;
   } finally {
     client.release();
+  }
+
+  // Purge old raw batches once per UTC day (aggregated data is kept indefinitely).
+  const todayUtc = new Date().toISOString().slice(0, 10);
+  if (lastPurgeDate !== todayUtc) {
+    lastPurgeDate = todayUtc;
+    try {
+      const purgeResult = await pool.query(
+        `DELETE FROM sensor_batches
+         WHERE timestamp_utc < NOW() - INTERVAL '${SENSOR_BATCH_RETENTION_DAYS} days'`,
+      );
+      if ((purgeResult.rowCount ?? 0) > 0) {
+        console.log(`[aggregation] purged ${purgeResult.rowCount} raw batches older than ${SENSOR_BATCH_RETENTION_DAYS} days`);
+      }
+    } catch (purgeError) {
+      // Non-fatal — log and continue; will retry tomorrow
+      console.error('[aggregation] daily purge failed', { err: purgeError });
+    }
   }
 }
 

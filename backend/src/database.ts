@@ -1,5 +1,6 @@
 import { Pool, PoolClient } from 'pg';
 import { config } from './config';
+import { DB_POOL_MAX } from './constants';
 
 let pool: Pool | null = null;
 
@@ -9,7 +10,7 @@ export async function initDatabase(): Promise<void> {
   pool = new Pool({
     connectionString: config.databaseUrl,
     min: 2,
-    max: 10,
+    max: DB_POOL_MAX,
     idleTimeoutMillis: 30000,
     connectionTimeoutMillis: 10000,
     // keepAlive must be off for Transaction pooler (PgBouncer) — it resets

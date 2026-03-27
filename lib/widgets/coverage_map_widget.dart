@@ -228,15 +228,17 @@ class _CoverageMapWidgetState extends State<CoverageMapWidget> {
           'h3Index': tile.h3Index,
           'color': _colorHex(tile.sampleCount, isGlobal: tile.isGlobal),
           'fillOpacity': fill,
-          'borderOpacity': (fill + 0.15).clamp(0.0, 1.0),
-          'borderWidth': tile.isGlobal ? 0.5 : 1.2,
+          'borderOpacity': tile.isGlobal ? 0.0 : (fill + 0.15).clamp(0.0, 1.0),
+          'borderWidth': tile.isGlobal ? 0.0 : 1.2,
         },
         'geometry': {
           'type': 'Polygon',
           'coordinates': [
-            tile.boundary!
-                .map((ll.LatLng p) => [p.longitude, p.latitude])
-                .toList(),
+            [
+              ...tile.boundary!.map((ll.LatLng p) => [p.longitude, p.latitude]),
+              // RFC 7946 requires explicit ring closure — h3_flutter does not close
+              [tile.boundary!.first.longitude, tile.boundary!.first.latitude],
+            ],
           ],
         },
       });
@@ -294,18 +296,22 @@ class _CoverageMapWidgetState extends State<CoverageMapWidget> {
   // ── Heatmap palette (pressure blue → movement teal → quality green → light amber) ──
 
   static String _colorHex(int count, {bool isGlobal = false}) {
-    if (count >= 10) return '#fbbf24'; // AppColors.light  — amber
-    if (count >= 6)  return '#10b981'; // AppColors.quality — green
-    if (count >= 3)  return '#14b8a6'; // AppColors.movement — teal
-    return '#0ea5e9';                  // AppColors.pressure — blue
+    // Global (community) tiles use a cooler palette so personal tiles always
+    // read as "yours" at a glance — Helium warm/cool convention.
+    if (isGlobal) return AppColors.communityHex;
+    if (count >= 10) return AppColors.lightHex;
+    if (count >= 6)  return AppColors.qualityHex;
+    if (count >= 3)  return AppColors.movementHex;
+    return AppColors.pressureHex;
   }
 
   static double _fillOpacity(int count, {bool isGlobal = false}) {
-    if (isGlobal) return count >= 5 ? 0.25 : 0.15;
+    // Global: flat 0.28 — visible but clearly behind personal tiles
+    if (isGlobal) return 0.28;
     if (count >= 10) return 0.82;
     if (count >= 6)  return 0.70;
     if (count >= 3)  return 0.58;
-    return 0.45;
+    return 0.50;
   }
 
   // ── MapLibre lifecycle ──────────────────────────────────────────────────────
@@ -353,8 +359,8 @@ class _CoverageMapWidgetState extends State<CoverageMapWidget> {
       _kLayerGridLines,
       const LineLayerProperties(
         lineColor: '#ffffff',
-        lineOpacity: 0.45,
-        lineWidth: 1.0,
+        lineOpacity: 0.18, // Helium/Nodle level — context hint, not dominant
+        lineWidth: 0.8,
       ),
       minzoom: 9.0,
     );
@@ -381,12 +387,12 @@ class _CoverageMapWidgetState extends State<CoverageMapWidget> {
       ),
     );
 
-    // ── Live cell (amber) ──
+    // ── Live cell (amber — same as AppColors.light) ──
     await ctrl.addFillLayer(
       _kSourceLiveCell,
       _kLayerLiveFill,
       const FillLayerProperties(
-        fillColor: '#fbbf24',
+        fillColor: AppColors.lightHex,
         fillOpacity: 0.28,
       ),
     );
@@ -394,7 +400,7 @@ class _CoverageMapWidgetState extends State<CoverageMapWidget> {
       _kSourceLiveCell,
       _kLayerLiveLine,
       const LineLayerProperties(
-        lineColor: '#fbbf24',
+        lineColor: AppColors.lightHex,
         lineOpacity: 0.95,
         lineWidth: 2.0,
       ),
@@ -406,7 +412,7 @@ class _CoverageMapWidgetState extends State<CoverageMapWidget> {
       _kLayerUserHalo,
       const CircleLayerProperties(
         circleRadius: 16.0,
-        circleColor: '#10b981',
+        circleColor: AppColors.primaryHex,
         circleOpacity: 0.18,
         circleStrokeWidth: 0,
       ),
@@ -416,7 +422,7 @@ class _CoverageMapWidgetState extends State<CoverageMapWidget> {
       _kLayerUserDot,
       const CircleLayerProperties(
         circleRadius: 7.0,
-        circleColor: '#10b981',
+        circleColor: AppColors.primaryHex,
         circleOpacity: 1.0,
         circleStrokeWidth: 2.0,
         circleStrokeColor: '#ffffff',
@@ -700,17 +706,17 @@ class MapHeatmapLegend extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _LegendDot(color: const Color(0xFFfbbf24), label: '10+'),
+          _LegendDot(color: AppColors.light,    label: '10+'),
           const SizedBox(height: 4),
-          _LegendDot(color: const Color(0xFF10b981), label: '6–9'),
+          _LegendDot(color: AppColors.quality,  label: '6–9'),
           const SizedBox(height: 4),
-          _LegendDot(color: const Color(0xFF14b8a6), label: '3–5'),
+          _LegendDot(color: AppColors.movement, label: '3–5'),
           const SizedBox(height: 4),
-          _LegendDot(color: const Color(0xFF0ea5e9), label: '1–2'),
+          _LegendDot(color: AppColors.pressure, label: '1–2'),
           if (hasCommunityTiles) ...[
             Divider(height: 10, color: AppColors.border(isDark)),
             _LegendDot(
-              color: const Color(0xFF0ea5e9).withValues(alpha: 0.5),
+              color: AppColors.community.withValues(alpha: 0.7),
               label: context.l10n.tileInfoCommunity,
             ),
           ],

@@ -60,17 +60,19 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       if (!mounted) return;
 
       // Fire-and-forget: record explicit consent to backend + cache locally.
-      final packageInfo = await PackageInfo.fromPlatform();
-      if (!mounted) return;
+      // PackageInfo fetch is inside the closure so there is only one async gap
+      // on the main path (above), keeping context use below lint-safe.
       unawaited(
-        BackendClient.post('/api/user/consent', {
-          'platform': Platform.isIOS ? 'ios' : 'android',
-          'appVersion': packageInfo.version,
-        }).then((body) async {
-          final rawDate = body['agreedAt'];
-          final dt = rawDate != null ? DateTime.tryParse(rawDate.toString()) : DateTime.now();
-          await AppPreferences.instance.setConsentDate(dt ?? DateTime.now());
-        }).catchError((_) {
+        PackageInfo.fromPlatform().then((packageInfo) =>
+          BackendClient.post('/api/user/consent', {
+            'platform': Platform.isIOS ? 'ios' : 'android',
+            'appVersion': packageInfo.version,
+          }).then((body) async {
+            final rawDate = body['agreedAt'];
+            final dt = rawDate != null ? DateTime.tryParse(rawDate.toString()) : DateTime.now();
+            await AppPreferences.instance.setConsentDate(dt ?? DateTime.now());
+          }),
+        ).catchError((_) {
           // Non-critical — consent date will be set on next successful call.
         }),
       );

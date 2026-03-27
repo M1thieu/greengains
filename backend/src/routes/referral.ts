@@ -78,8 +78,8 @@ export async function referralRoutes(fastify: FastifyInstance) {
       try {
         return reply.send({ referralCode: await getOrCreateCode(uid) });
       } catch (err) {
-        fastify.log.error(err, 'getOrCreateCode failed');
-        return reply.code(500).send({ error: 'Internal error' });
+        req.log.error({ err, uid }, 'getOrCreateCode failed');
+        return reply.code(500).send({ error: 'Internal error', requestId: req.id });
       }
     },
   );
@@ -115,8 +115,8 @@ export async function referralRoutes(fastify: FastifyInstance) {
         );
         return reply.send({ ok: true });
       } catch (err) {
-        fastify.log.error(err, 'referral invite failed');
-        return reply.code(500).send({ error: 'Internal error' });
+        req.log.error({ err, uid, code }, 'referral invite failed');
+        return reply.code(500).send({ error: 'Internal error', requestId: req.id });
       }
     },
   );
@@ -155,8 +155,8 @@ export async function referralRoutes(fastify: FastifyInstance) {
         );
         return reply.send({ ok: true });
       } catch (err) {
-        fastify.log.error(err, 'referral convert failed');
-        return reply.code(500).send({ error: 'Internal error' });
+        req.log.error({ err, uid, code }, 'referral convert failed');
+        return reply.code(500).send({ error: 'Internal error', requestId: req.id });
       }
     },
   );
@@ -185,8 +185,8 @@ export async function referralRoutes(fastify: FastifyInstance) {
           conversions:   parseInt(rows[0].conversions,   10) || 0,
         });
       } catch (err) {
-        fastify.log.error(err, 'referral stats failed');
-        return reply.code(500).send({ error: 'Internal error' });
+        req.log.error({ err, uid }, 'referral stats failed');
+        return reply.code(500).send({ error: 'Internal error', requestId: req.id });
       }
     },
   );

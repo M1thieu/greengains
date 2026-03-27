@@ -143,9 +143,8 @@ export async function dataRoutes(fastify: FastifyInstance) {
         if (error instanceof z.ZodError) {
           return reply.code(422).send({ error: 'Validation Error', details: error.errors });
         }
-        const errorMsg = error instanceof Error ? error.message : String(error);
-        fastify.log.error({ err: error }, '/api/v1/data/aggregated failed');
-        return reply.code(500).send({ error: 'Internal Server Error', details: errorMsg });
+        request.log.error({ err: error, userId }, '/api/v1/data/aggregated failed');
+        return reply.code(500).send({ error: 'Internal Server Error', requestId: request.id });
       }
     }
   );
@@ -222,8 +221,8 @@ export async function dataRoutes(fastify: FastifyInstance) {
         if (error instanceof z.ZodError) {
           return reply.code(422).send({ error: 'Validation Error', details: error.errors });
         }
-        fastify.log.error(error);
-        return reply.code(500).send({ error: 'Internal Server Error' });
+        request.log.error({ err: error, userId }, '/api/v1/data/readings failed');
+        return reply.code(500).send({ error: 'Internal Server Error', requestId: request.id });
       }
     }
   );
@@ -334,8 +333,8 @@ export async function dataRoutes(fastify: FastifyInstance) {
         if (error instanceof z.ZodError) {
           return reply.code(422).send({ error: 'Validation Error', details: error.errors });
         }
-        fastify.log.error(error);
-        return reply.code(500).send({ error: 'Internal Server Error' });
+        request.log.error({ err: error, userId }, '/api/v1/data/export failed');
+        return reply.code(500).send({ error: 'Internal Server Error', requestId: request.id });
       }
     }
   );
@@ -413,8 +412,8 @@ export async function dataRoutes(fastify: FastifyInstance) {
         if (error instanceof z.ZodError) {
           return reply.code(422).send({ error: 'Validation Error', details: error.errors });
         }
-        fastify.log.error(error);
-        return reply.code(500).send({ error: 'Internal Server Error' });
+        request.log.error({ err: error, userId }, '/api/v1/data/coverage failed');
+        return reply.code(500).send({ error: 'Internal Server Error', requestId: request.id });
       }
     }
   );

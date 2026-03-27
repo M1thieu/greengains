@@ -1,4 +1,5 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
+import { z } from 'zod';
 import { latLngToCell, cellToBoundary, cellToLatLng, cellToParent } from 'h3-js';
 import { getPool } from '../database';
 import { requireFirebaseAuth } from '../middleware/auth';
@@ -10,6 +11,7 @@ import {
   MAX_GLOBAL_TILES,
   GLOBAL_TILE_WINDOW_HOURS,
   MS_PER_DAY,
+  MAX_TILE_RESPONSE_BYTES,
 } from '../constants';
 
 // Confidence thresholds
@@ -20,6 +22,7 @@ const CONFIDENCE_SAMPLE_THRESHOLD = 100; // global tiles: 100 readings = max con
 interface TileCacheEntry { data: unknown; expiresAt: number; }
 const _globalTileCache = new Map<string, TileCacheEntry>();
 const GLOBAL_TILE_CACHE_TTL_MS = 5 * 60 * 1000;
+const GLOBAL_TILE_CACHE_TTL_S  = 5 * 60; // for Cache-Control header
 
 // ─── Shared global tile query ─────────────────────────────────────────────────
 
@@ -93,6 +96,16 @@ async function fetchGlobalTiles(): Promise<unknown> {
 
   const data = { tiles };
   _globalTileCache.set(cacheKey, { data, expiresAt: Date.now() + GLOBAL_TILE_CACHE_TTL_MS });
+
+  // Response size guard: truncate tiles if JSON exceeds limit
+  const jsonString = JSON.stringify(data);
+  if (Buffer.byteLength(jsonString, 'utf8') > MAX_TILE_RESPONSE_BYTES) {
+    const truncatedTiles = tiles.slice(0, Math.floor(tiles.length * 0.8)); // rough 20% reduction
+    const truncatedData = { tiles: truncatedTiles };
+    console.warn(`[fetchGlobalTiles] Response size exceeded ${MAX_TILE_RESPONSE_BYTES} bytes, truncated to ${truncatedTiles.length} tiles`);
+    return truncatedData;
+  }
+
   return data;
 }
 
@@ -244,8 +257,8 @@ export async function userRoutes(fastify: FastifyInstance) {
           },
         });
       } catch (error) {
-        request.log.error({ err: error }, 'Profile fetch error');
-        return reply.code(500).send({ error: 'Internal Server Error' });
+        request.log.error({ err: error, userId }, 'Profile fetch error');
+        return reply.code(500).send({ error: 'Internal Server Error', requestId: request.id });
       }
     },
   );
@@ -324,11 +337,19 @@ export async function userRoutes(fastify: FastifyInstance) {
             };
           });
 
-        request.log.info({ tileCount: tiles.length, userId }, 'User tiles fetched');
-        return reply.send({ tiles });
+        // Response size guard: truncate tiles if JSON exceeds limit
+        const data = { tiles };
+        const jsonString = JSON.stringify(data);
+        if (Buffer.byteLength(jsonString, 'utf8') > MAX_TILE_RESPONSE_BYTES) {
+          const truncatedTiles = tiles.slice(0, Math.floor(tiles.length * 0.8));
+          console.warn(`[user tiles] Response size exceeded ${MAX_TILE_RESPONSE_BYTES} bytes, truncated to ${truncatedTiles.length} tiles`);
+          return reply.send({ tiles: truncatedTiles });
+        }
+
+        return reply.send(data);
       } catch (error) {
-        request.log.error({ err: error }, 'Tiles fetch error');
-        return reply.code(500).send({ error: 'Internal Server Error' });
+        request.log.error({ err: error, userId }, 'Tiles fetch error');
+        return reply.code(500).send({ error: 'Internal Server Error', requestId: request.id });
       }
     },
   );
@@ -342,10 +363,12 @@ export async function userRoutes(fastify: FastifyInstance) {
     { preHandler: requireFirebaseAuth },
     async (request: FastifyRequest, reply: FastifyReply) => {
       try {
+        // private: per-user auth, but client can still cache for the TTL window
+        reply.header('Cache-Control', `private, max-age=${GLOBAL_TILE_CACHE_TTL_S}`);
         return reply.send(await fetchGlobalTiles());
       } catch (error) {
         request.log.error({ err: error }, 'Global tiles fetch error');
-        return reply.code(500).send({ error: 'Internal Server Error' });
+        return reply.code(500).send({ error: 'Internal Server Error', requestId: request.id });
       }
     },
   );
@@ -358,10 +381,12 @@ export async function userRoutes(fastify: FastifyInstance) {
     '/api/tiles/public',
     async (request: FastifyRequest, reply: FastifyReply) => {
       try {
+        // public: CDN/proxy can cache this — no user-specific data
+        reply.header('Cache-Control', `public, max-age=${GLOBAL_TILE_CACHE_TTL_S}, stale-while-revalidate=60`);
         return reply.send(await fetchGlobalTiles());
       } catch (error) {
         request.log.error({ err: error }, 'Public tiles fetch error');
-        return reply.code(500).send({ error: 'Internal Server Error' });
+        return reply.code(500).send({ error: 'Internal Server Error', requestId: request.id });
       }
     },
   );
@@ -379,8 +404,12 @@ export async function userRoutes(fastify: FastifyInstance) {
       const userId = request.user!.uid;
 
       try {
-        const body = (request.body ?? {}) as { platform?: string; appVersion?: string };
-        const { platform, appVersion } = body;
+        const ConsentBodySchema = z.object({
+          platform: z.enum(['android', 'ios']).optional(),
+          appVersion: z.string().max(32).optional(),
+        });
+        const bodyResult = ConsentBodySchema.safeParse(request.body ?? {});
+        const { platform, appVersion } = bodyResult.success ? bodyResult.data : {};
         const pool = getPool();
 
         await pool.query(
@@ -398,8 +427,8 @@ export async function userRoutes(fastify: FastifyInstance) {
 
         return reply.send({ agreedAt: row.rows[0].agreed_at });
       } catch (error) {
-        request.log.error({ err: error }, 'Consent record error');
-        return reply.code(500).send({ error: 'Internal Server Error' });
+        request.log.error({ err: error, userId }, 'Consent record error');
+        return reply.code(500).send({ error: 'Internal Server Error', requestId: request.id });
       }
     },
   );
