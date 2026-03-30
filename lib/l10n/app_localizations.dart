@@ -1107,6 +1107,12 @@ abstract class AppLocalizations {
   /// **'Confidence'**
   String get tileInfoConfidence;
 
+  /// No description provided for @tileInfoQuality.
+  ///
+  /// In en, this message translates to:
+  /// **'Air quality'**
+  String get tileInfoQuality;
+
   /// No description provided for @tileInfoDevices.
   ///
   /// In en, this message translates to:

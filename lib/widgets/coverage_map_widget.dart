@@ -159,6 +159,7 @@ class _CoverageMapWidgetState extends State<CoverageMapWidget> {
   MapLibreMapController? _ctrl;
   bool _styleLoaded = false;
   bool _pendingStyleLoad = false; // style fired before _ctrl was ready
+  bool _hasCenteredOnUser = false; // true after first auto-center on GPS fix
   final Map<String, H3Tile> _tileById = {};
   Timer? _gridTimer;
   int _gridGeneration = 0;   // incremented on each refresh; stale results are discarded
@@ -228,8 +229,8 @@ class _CoverageMapWidgetState extends State<CoverageMapWidget> {
           'h3Index': tile.h3Index,
           'color': _colorHex(tile.sampleCount, isGlobal: tile.isGlobal),
           'fillOpacity': fill,
-          'borderOpacity': tile.isGlobal ? 0.0 : (fill + 0.15).clamp(0.0, 1.0),
-          'borderWidth': tile.isGlobal ? 0.0 : 1.2,
+          'borderOpacity': tile.isGlobal ? 0.0 : _strokeOpacity(tile.sampleCount),
+          'borderWidth': tile.isGlobal ? 0.0 : 1.8,
         },
         'geometry': {
           'type': 'Polygon',
@@ -306,12 +307,20 @@ class _CoverageMapWidgetState extends State<CoverageMapWidget> {
   }
 
   static double _fillOpacity(int count, {bool isGlobal = false}) {
-    // Global: flat 0.28 — visible but clearly behind personal tiles
-    if (isGlobal) return 0.28;
-    if (count >= 10) return 0.82;
-    if (count >= 6)  return 0.70;
-    if (count >= 3)  return 0.58;
-    return 0.50;
+    // DePIN standard: low fill + strong stroke — shape defined by edge, not fill.
+    // High fill covers the base map; low fill creates a "glow on canvas" effect.
+    if (isGlobal) return 0.18;
+    if (count >= 10) return 0.28;
+    if (count >= 6)  return 0.24;
+    if (count >= 3)  return 0.20;
+    return 0.16;
+  }
+
+  static double _strokeOpacity(int count) {
+    if (count >= 10) return 0.90;
+    if (count >= 6)  return 0.78;
+    if (count >= 3)  return 0.68;
+    return 0.55;
   }
 
   // ── MapLibre lifecycle ──────────────────────────────────────────────────────
@@ -545,6 +554,25 @@ class _CoverageMapWidgetState extends State<CoverageMapWidget> {
     if (tilesChanged || locationChanged || liveChanged) {
       _refreshAllSources();
     }
+
+    // First GPS fix after map init — auto-center once, silently.
+    // initialCameraPosition is frozen at build time so if location wasn't
+    // available yet (common on cold start) we move the camera here instead.
+    if (!_hasCenteredOnUser &&
+        old.userLocation == null &&
+        widget.userLocation != null &&
+        _ctrl != null) {
+      _hasCenteredOnUser = true;
+      _ctrl!.animateCamera(
+        CameraUpdate.newCameraPosition(CameraPosition(
+          target: LatLng(
+            widget.userLocation!.latitude,
+            widget.userLocation!.longitude,
+          ),
+          zoom: 14.0,
+        )),
+      );
+    }
   }
 
   @override
@@ -569,6 +597,7 @@ class _CoverageMapWidgetState extends State<CoverageMapWidget> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final topInset = MediaQuery.paddingOf(context).top;
 
     final mapWidget = MapLibreMap(
       key: const ValueKey('map'), // stable key — always dark style
@@ -581,7 +610,13 @@ class _CoverageMapWidgetState extends State<CoverageMapWidget> {
       onStyleLoadedCallback: _onStyleLoaded,
       onCameraIdle: _scheduleGridRefresh,
       onMapClick: widget.showControls ? _onMapTap : null,
-      compassEnabled: widget.showControls,
+      compassEnabled: widget.showControls && widget.fillScreen,
+      compassViewPosition: CompassViewPosition.topRight,
+      compassViewMargins: widget.fillScreen
+          ? Point<double>(12, topInset + widget.controlsPadding.top > 0
+              ? widget.controlsPadding.top
+              : topInset + 8)
+          : const Point<double>(12, 12),
       rotateGesturesEnabled: widget.showControls,
       scrollGesturesEnabled: widget.showControls,
       zoomGesturesEnabled: widget.showControls,
@@ -592,6 +627,15 @@ class _CoverageMapWidgetState extends State<CoverageMapWidget> {
     final mapStack = Stack(
       children: [
         mapWidget,
+
+        // ── Loading overlay (all modes) ───────────────────────────────────
+        if (widget.isLoading)
+          const Center(
+            child: CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation(AppColors.primary),
+              strokeWidth: 2.5,
+            ),
+          ),
 
         // ── No-data placeholder (card mode) ───────────────────────────────
         if (!widget.fillScreen && !widget.isLoading && widget.tiles.isEmpty)
@@ -767,8 +811,7 @@ class TileInfoSheet extends StatelessWidget {
     final isDark = context.isDarkMode;
     final l10n = context.l10n;
     final isPersonal = !tile.isGlobal;
-    final accentColor =
-        isPersonal ? const Color(0xFF10b981) : const Color(0xFF0ea5e9);
+    final accentColor = isPersonal ? AppColors.quality : AppColors.community;
 
     return Container(
       margin: const EdgeInsets.symmetric(
@@ -829,11 +872,19 @@ class TileInfoSheet extends StatelessWidget {
                     label: l10n.tileInfoSamplesLabel,
                     isDark: isDark,
                   ),
-                  _StatItem(
-                    value: '${(tile.confidence * 100).round()}%',
-                    label: l10n.tileInfoConfidence,
-                    isDark: isDark,
-                  ),
+                  if (tile.qualityScore != null)
+                    _StatItem(
+                      value: '${(tile.qualityScore! * 100).round()}%',
+                      label: l10n.tileInfoQuality,
+                      isDark: isDark,
+                      color: AppColors.quality,
+                    )
+                  else
+                    _StatItem(
+                      value: '${(tile.confidence * 100).round()}%',
+                      label: l10n.tileInfoConfidence,
+                      isDark: isDark,
+                    ),
                   _StatItem(
                     value: '${tile.deviceCount}',
                     label: l10n.tileInfoDevicesLabel,
@@ -854,10 +905,12 @@ class _StatItem extends StatelessWidget {
     required this.value,
     required this.label,
     required this.isDark,
+    this.color,
   });
   final String value;
   final String label;
   final bool isDark;
+  final Color? color;
 
   @override
   Widget build(BuildContext context) {
@@ -867,7 +920,7 @@ class _StatItem extends StatelessWidget {
         Text(
           value,
           style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                color: AppColors.textPrimary(isDark),
+                color: color ?? AppColors.textPrimary(isDark),
                 fontWeight: AppFontWeights.semibold,
               ),
         ),

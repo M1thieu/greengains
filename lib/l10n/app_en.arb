@@ -255,6 +255,7 @@
     }
   },
   "tileInfoConfidence": "Confidence",
+  "tileInfoQuality": "Air quality",
   "tileInfoDevices": "{count, plural, =1{1 contributor} other{{count} contributors}}",
   "@tileInfoDevices": {
     "placeholders": {

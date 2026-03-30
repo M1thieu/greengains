@@ -168,17 +168,17 @@ class AppColors {
   static Color shimmerHighlight(bool isDark) => isDark ? const Color(0xFF2A2A2A) : const Color(0xFFFAFAFA);
 
   // Sensor data visualization colors (used in charts, map tiles, sensor cards)
-  static const Color light     = Color(0xFFFBBF24); // Amber-400   — light sensor
-  static const Color movement  = Color(0xFF14B8A6); // Teal-500    — movement/accel
-  static const Color pressure  = Color(0xFF0EA5E9); // Sky-500     — air pressure
-  static const Color quality   = Color(0xFF10B981); // Emerald-500 — data quality
+  static const Color light     = Color(0xFFFBBF24); // Amber-400   — light sensor (sun = yellow)
+  static const Color movement  = Color(0xFFF97316); // Orange-500  — movement/accel (heat/activity)
+  static const Color pressure  = Color(0xFF818CF8); // Indigo-400  — air pressure (meteorology conv.)
+  static const Color quality   = Color(0xFF10B981); // Emerald-500 — data quality / air (AQI green)
   static const Color community = Color(0xFF6366F1); // Indigo-500  — community/global tiles
 
   // MapLibre GL hex strings — mirrors the Color constants above.
   // MapLibre layer paint properties require '#rrggbb' strings, not Color objects.
   static const String lightHex     = '#fbbf24';
-  static const String movementHex  = '#14b8a6';
-  static const String pressureHex  = '#0ea5e9';
+  static const String movementHex  = '#f97316';
+  static const String pressureHex  = '#818cf8';
   static const String qualityHex   = '#10b981';
   static const String communityHex = '#6366f1';
   static const String primaryHex   = '#10b981';

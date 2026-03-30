@@ -218,47 +218,42 @@ class _InitializingScreen extends StatelessWidget {
   }
 }
 
-/// Wrapper that shows onboarding for first-time users
-class OnboardingWrapper extends StatefulWidget {
+/// Wrapper that reacts to Firebase auth state.
+/// - Signed in + onboarding done  → AppShell
+/// - Signed in + onboarding not done → OnboardingScreen (page 0)
+/// - Signed out + onboarding done  → OnboardingScreen (page 1 — sign-in only)
+/// - Signed out + onboarding not done → OnboardingScreen (page 0)
+class OnboardingWrapper extends StatelessWidget {
   const OnboardingWrapper({super.key});
-
-  @override
-  State<OnboardingWrapper> createState() => _OnboardingWrapperState();
-}
-
-class _OnboardingWrapperState extends State<OnboardingWrapper> {
-  bool _showOnboarding = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _checkOnboarding();
-  }
-
-  Future<void> _checkOnboarding() async {
-    final completed = AppPreferences.instance.onboardingComplete;
-    if (mounted) {
-      setState(() {
-        _showOnboarding = !completed;
-      });
-    }
-  }
 
   Future<void> _handleOnboardingComplete() async {
     await AppPreferences.instance.setOnboardingComplete(true);
-    if (!mounted) return;
-    setState(() {
-      _showOnboarding = false;
-    });
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_showOnboarding) {
-      return OnboardingScreen(onComplete: _handleOnboardingComplete);
-    }
+    return StreamBuilder<User?>(
+      stream: FirebaseAuth.instance.authStateChanges(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const _InitializingScreen();
+        }
 
-    return const AppShell();
+        final user = snapshot.data;
+        final onboardingDone = AppPreferences.instance.onboardingComplete;
+
+        if (user != null && onboardingDone) {
+          return const AppShell();
+        }
+
+        // Skip welcome page if user already completed onboarding but signed out
+        final startPage = (onboardingDone && user == null) ? 1 : 0;
+        return OnboardingScreen(
+          onComplete: _handleOnboardingComplete,
+          initialPage: startPage,
+        );
+      },
+    );
   }
 }
 

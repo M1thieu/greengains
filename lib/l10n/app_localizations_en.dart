@@ -567,6 +567,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tileInfoConfidence => 'Confidence';
 
   @override
+  String get tileInfoQuality => 'Air quality';
+
+  @override
   String tileInfoDevices(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

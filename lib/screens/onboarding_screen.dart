@@ -21,18 +21,32 @@ const _kWelcomeHeroSize = AppIconSizes.xl + AppTheme.spaceLg; // 48+24 = 72 — 
 /// Onboarding — 2 pages: Welcome → Sign In
 /// Typography-first premium redesign (Stripe/Linear/Vercel aesthetic).
 class OnboardingScreen extends StatefulWidget {
-  const OnboardingScreen({super.key, required this.onComplete});
+  const OnboardingScreen({
+    super.key,
+    required this.onComplete,
+    this.initialPage = 0,
+  });
 
   final VoidCallback onComplete;
+  /// Page to start on. Pass 1 to skip directly to the sign-in page
+  /// (used when onboarding was previously completed but user signed out).
+  final int initialPage;
 
   @override
   State<OnboardingScreen> createState() => _OnboardingScreenState();
 }
 
 class _OnboardingScreenState extends State<OnboardingScreen> {
-  final PageController _pageController = PageController();
-  int _currentPage = 0;
+  late final PageController _pageController;
+  late int _currentPage;
   bool _signingIn = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentPage = widget.initialPage;
+    _pageController = PageController(initialPage: widget.initialPage);
+  }
 
   @override
   void dispose() {
