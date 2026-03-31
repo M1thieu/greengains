@@ -36,6 +36,8 @@ interface WindowAccumulator {
   lightMax: number;
   accelRmsSum: number;
   gyroRmsSum: number;
+  pressureSum: number;
+  pressureSamples: number;
   batterySum: number;
   batterySamples: number;
   locationSamples: number;
@@ -55,6 +57,8 @@ interface DayAccumulator {
   lightMax: number;
   accelRmsSum: number;
   gyroRmsSum: number;
+  pressureSum: number;
+  pressureSamples: number;
   batterySum: number;
   batterySamples: number;
   locationSamples: number;
@@ -193,6 +197,8 @@ export async function runAggregationJob(): Promise<void> {
         lightMax: Number.NEGATIVE_INFINITY,
         accelRmsSum: 0,
         gyroRmsSum: 0,
+        pressureSum: 0,
+        pressureSamples: 0,
         batterySum: 0,
         batterySamples: 0,
         locationSamples: 0,
@@ -231,6 +237,12 @@ export async function runAggregationJob(): Promise<void> {
       windowAcc.gyroRmsSum += gyroRms * readingsCount;
     }
 
+    const pressureAvg = summary?.pressure?.avg;
+    if (typeof pressureAvg === 'number') {
+      windowAcc.pressureSum += pressureAvg * readingsCount;
+      windowAcc.pressureSamples += readingsCount;
+    }
+
     const batteryLevel = payload?.battery_level;
     if (typeof batteryLevel === 'number' && batteryLevel >= 0) {
       windowAcc.batterySum += batteryLevel;
@@ -266,6 +278,7 @@ export async function runAggregationJob(): Promise<void> {
     const lightMax = bucket.lightMax === Number.NEGATIVE_INFINITY ? null : bucket.lightMax;
     const avgAccelRms = bucket.accelRmsSum / samples;
     const avgGyroRms = bucket.gyroRmsSum / samples;
+    const avgPressure = bucket.pressureSamples > 0 ? bucket.pressureSum / bucket.pressureSamples : null;
     const windowMovementScore = movementScore(avgAccelRms);
     const batteryAvg =
       bucket.batterySamples > 0 ? bucket.batterySum / bucket.batterySamples : null;
@@ -288,6 +301,7 @@ export async function runAggregationJob(): Promise<void> {
       lightMax,
       avgAccelRms,
       avgGyroRms,
+      avgPressure,
       movementScore: windowMovementScore,
       batteryAvg,
       locationShare,
@@ -311,6 +325,8 @@ export async function runAggregationJob(): Promise<void> {
         lightMax: Number.NEGATIVE_INFINITY,
         accelRmsSum: 0,
         gyroRmsSum: 0,
+        pressureSum: 0,
+        pressureSamples: 0,
         batterySum: 0,
         batterySamples: 0,
         locationSamples: 0,
@@ -335,6 +351,8 @@ export async function runAggregationJob(): Promise<void> {
     }
     dayAcc.accelRmsSum += bucket.accelRmsSum;
     dayAcc.gyroRmsSum += bucket.gyroRmsSum;
+    dayAcc.pressureSum += bucket.pressureSum;
+    dayAcc.pressureSamples += bucket.pressureSamples;
     dayAcc.batterySum += bucket.batterySum;
     dayAcc.batterySamples += bucket.batterySamples;
     dayAcc.locationSamples += bucket.locationSamples;
@@ -408,6 +426,7 @@ async function upsertWindowResults(
     lightMax: number | null;
     avgAccelRms: number;
     avgGyroRms: number;
+    avgPressure: number | null;
     movementScore: number;
     batteryAvg: number | null;
     locationShare: number;
@@ -430,6 +449,7 @@ async function upsertWindowResults(
   const lightMaxes = results.map(r => r.lightMax);
   const avgAccelRms = results.map(r => r.avgAccelRms);
   const avgGyroRms = results.map(r => r.avgGyroRms);
+  const avgPressures = results.map(r => r.avgPressure);
   const movementScores = results.map(r => r.movementScore);
   const batteryAvgs = results.map(r => r.batteryAvg);
   const locationShares = results.map(r => r.locationShare);
@@ -441,7 +461,7 @@ async function upsertWindowResults(
     `INSERT INTO sensor_aggregates_5m (
       window_start, window_end, geohash, h3_index, samples_count, device_count,
       avg_light, avg_light_min, avg_light_max, avg_accel_rms,
-      avg_gyro_rms, movement_score, battery_avg, location_share,
+      avg_gyro_rms, avg_pressure, movement_score, battery_avg, location_share,
       quality_samples, quality_valid_ratio, quality_pocket_ratio
     )
     SELECT * FROM UNNEST(
@@ -449,11 +469,11 @@ async function upsertWindowResults(
       $5::int[], $6::int[], $7::double precision[], $8::double precision[],
       $9::double precision[], $10::double precision[], $11::double precision[],
       $12::double precision[], $13::double precision[], $14::double precision[],
-      $15::bigint[], $16::double precision[], $17::double precision[]
+      $15::double precision[], $16::bigint[], $17::double precision[], $18::double precision[]
     ) AS t(
       window_start, window_end, geohash, h3_index, samples_count, device_count,
       avg_light, avg_light_min, avg_light_max, avg_accel_rms,
-      avg_gyro_rms, movement_score, battery_avg, location_share,
+      avg_gyro_rms, avg_pressure, movement_score, battery_avg, location_share,
       quality_samples, quality_valid_ratio, quality_pocket_ratio
     )
     ON CONFLICT (window_start, geohash)
@@ -466,6 +486,7 @@ async function upsertWindowResults(
       avg_light_max = EXCLUDED.avg_light_max,
       avg_accel_rms = EXCLUDED.avg_accel_rms,
       avg_gyro_rms = EXCLUDED.avg_gyro_rms,
+      avg_pressure = EXCLUDED.avg_pressure,
       movement_score = EXCLUDED.movement_score,
       battery_avg = EXCLUDED.battery_avg,
       location_share = EXCLUDED.location_share,
@@ -476,7 +497,7 @@ async function upsertWindowResults(
     [
       windowStarts, windowEnds, geohashes, h3Indexes, samplesCounts,
       deviceCounts, avgLights, lightMins, lightMaxes,
-      avgAccelRms, avgGyroRms, movementScores, batteryAvgs, locationShares,
+      avgAccelRms, avgGyroRms, avgPressures, movementScores, batteryAvgs, locationShares,
       qualitySampleCounts, qualityValidRatios, pocketRatios
     ],
   );
@@ -484,28 +505,7 @@ async function upsertWindowResults(
 
 async function upsertDailyResults(
   client: PoolClient,
-  dayBuckets: Map<
-    DayKey,
-    {
-      day: Date;
-      geohash: string;
-      h3Index: string | null;
-      samples: number;
-      deviceIds: Set<string>;
-      lightSum: number;
-      lightMin: number;
-      lightMax: number;
-      accelRmsSum: number;
-      gyroRmsSum: number;
-      batterySum: number;
-      batterySamples: number;
-      locationSamples: number;
-      deviceActiveMinutes: number;
-      qualitySamples: number;
-      qualityValidSamples: number;
-      pocketLikelySamples: number;
-    }
-  >,
+  dayBuckets: Map<DayKey, DayAccumulator>,
 ): Promise<void> {
   if (dayBuckets.size === 0) return;
 
@@ -520,6 +520,7 @@ async function upsertDailyResults(
   const lightMaxes: (number | null)[] = [];
   const avgAccelRms: number[] = [];
   const avgGyroRms: number[] = [];
+  const avgPressures: (number | null)[] = [];
   const movementScores: number[] = [];
   const batteryAvgs: (number | null)[] = [];
   const locationShares: number[] = [];
@@ -541,6 +542,7 @@ async function upsertDailyResults(
       bucket.lightMax === Number.NEGATIVE_INFINITY ? null : bucket.lightMax;
     const accelRms = bucket.accelRmsSum / samples;
     const gyroRms = bucket.gyroRmsSum / samples;
+    const avgPressure = bucket.pressureSamples > 0 ? bucket.pressureSum / bucket.pressureSamples : null;
     const dayMovementScore = movementScore(accelRms);
     const batteryAvg =
       bucket.batterySamples > 0 ? bucket.batterySum / bucket.batterySamples : null;
@@ -562,6 +564,7 @@ async function upsertDailyResults(
     lightMaxes.push(lightMax);
     avgAccelRms.push(accelRms);
     avgGyroRms.push(gyroRms);
+    avgPressures.push(avgPressure);
     movementScores.push(dayMovementScore);
     batteryAvgs.push(batteryAvg);
     locationShares.push(locationShare);
@@ -578,7 +581,7 @@ async function upsertDailyResults(
     `INSERT INTO sensor_aggregates_daily (
       day, geohash, h3_index, samples_count, device_count,
       avg_light, avg_light_min, avg_light_max, avg_accel_rms,
-      avg_gyro_rms, movement_score, battery_avg, location_share,
+      avg_gyro_rms, avg_pressure, movement_score, battery_avg, location_share,
       device_hours, quality_samples, quality_valid_ratio, quality_pocket_ratio
     )
     SELECT * FROM UNNEST(
@@ -586,11 +589,11 @@ async function upsertDailyResults(
       $6::double precision[], $7::double precision[], $8::double precision[],
       $9::double precision[], $10::double precision[], $11::double precision[],
       $12::double precision[], $13::double precision[], $14::double precision[],
-      $15::bigint[], $16::double precision[], $17::double precision[]
+      $15::double precision[], $16::bigint[], $17::double precision[], $18::double precision[]
     ) AS t(
       day, geohash, h3_index, samples_count, device_count,
       avg_light, avg_light_min, avg_light_max, avg_accel_rms,
-      avg_gyro_rms, movement_score, battery_avg, location_share,
+      avg_gyro_rms, avg_pressure, movement_score, battery_avg, location_share,
       device_hours, quality_samples, quality_valid_ratio, quality_pocket_ratio
     )
     ON CONFLICT (day, geohash)
@@ -603,6 +606,7 @@ async function upsertDailyResults(
       avg_light_max = EXCLUDED.avg_light_max,
       avg_accel_rms = EXCLUDED.avg_accel_rms,
       avg_gyro_rms = EXCLUDED.avg_gyro_rms,
+      avg_pressure = EXCLUDED.avg_pressure,
       movement_score = EXCLUDED.movement_score,
       battery_avg = EXCLUDED.battery_avg,
       location_share = EXCLUDED.location_share,
@@ -614,7 +618,7 @@ async function upsertDailyResults(
     [
       days, geohashes, h3Indexes, samplesCounts, deviceCounts,
       avgLights, lightMins, lightMaxes, avgAccelRms,
-      avgGyroRms, movementScores, batteryAvgs, locationShares,
+      avgGyroRms, avgPressures, movementScores, batteryAvgs, locationShares,
       deviceHours, qualitySampleCounts, qualityValidRatios, pocketRatios
     ],
   );

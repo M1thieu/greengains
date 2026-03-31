@@ -89,7 +89,7 @@ export async function dataRoutes(fastify: FastifyInstance) {
         const dataColumns = `
           samples_count, device_count,
           avg_light, avg_light_min, avg_light_max,
-          avg_accel_rms, avg_gyro_rms, movement_score,
+          avg_accel_rms, avg_gyro_rms, avg_pressure, movement_score,
           battery_avg, location_share,
           ${query.bucket === 'day' ? 'device_hours' : 'NULL::DOUBLE PRECISION as device_hours'},
           quality_samples, quality_valid_ratio, quality_pocket_ratio
@@ -120,6 +120,7 @@ export async function dataRoutes(fastify: FastifyInstance) {
           avg_light_max: numOrNull(row.avg_light_max),
           avg_accel_rms: numOrNull(row.avg_accel_rms),
           avg_gyro_rms: numOrNull(row.avg_gyro_rms),
+          avg_pressure: numOrNull(row.avg_pressure),
           movement_score: numOrNull(row.movement_score),
           battery_avg: numOrNull(row.battery_avg),
           location_share: numOrNull(row.location_share),
@@ -168,11 +169,11 @@ export async function dataRoutes(fastify: FastifyInstance) {
         const sensorColumnMap: Record<string, string> = {
           Light: 'avg_light',
           Movement: 'movement_score',
-          Pressure: 'avg_gyro_rms',
+          Pressure: 'avg_pressure',
           Quality: 'quality_valid_ratio',
           light: 'avg_light',
           movement: 'movement_score',
-          pressure: 'avg_gyro_rms',
+          pressure: 'avg_pressure',
           quality: 'quality_valid_ratio',
         };
 
