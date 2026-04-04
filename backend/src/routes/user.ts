@@ -43,7 +43,6 @@ async function fetchGlobalTiles(): Promise<unknown> {
   const windowDays = Math.ceil(GLOBAL_TILE_WINDOW_HOURS / 24);
   const result = await pool.query<{
     geohash: string;
-    h3_index: string | null;
     sample_count: number;
     device_count: number;
     quality_valid_ratio: number | null;
@@ -51,7 +50,6 @@ async function fetchGlobalTiles(): Promise<unknown> {
   }>(
     `SELECT
        geohash,
-       MAX(h3_index)                          AS h3_index,
        SUM(samples_count)::int                AS sample_count,
        MAX(device_count)::int                 AS device_count,
        AVG(quality_valid_ratio)               AS quality_valid_ratio,
@@ -67,12 +65,9 @@ async function fetchGlobalTiles(): Promise<unknown> {
   const seen = new Set<string>();
   const tiles = result.rows
     .map(row => {
-      let h3Res9: string | null = row.h3_index;
-      if (!h3Res9) {
-        const centroid = decodeGeohash(row.geohash);
-        if (!centroid) return null;
-        h3Res9 = latLngToCell(centroid.lat, centroid.lon, 9);
-      }
+      const centroid = decodeGeohash(row.geohash);
+      if (!centroid) return null;
+      let h3Res9: string = latLngToCell(centroid.lat, centroid.lon, 9);
       const h3Index = cellToParent(h3Res9, H3_RES_GLOBAL);
       if (seen.has(h3Index)) return null;
       seen.add(h3Index);
