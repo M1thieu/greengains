@@ -383,6 +383,7 @@ class _CoverageMapWidgetState extends State<CoverageMapWidget> {
         fillOpacity: ['get', 'fillOpacity'],
       ),
       enableInteraction: true,
+      minzoom: 9.0,
     );
 
     // ── Data tiles border ──
@@ -394,6 +395,7 @@ class _CoverageMapWidgetState extends State<CoverageMapWidget> {
         lineOpacity: ['get', 'borderOpacity'],
         lineWidth: ['get', 'borderWidth'],
       ),
+      minzoom: 9.0,
     );
 
     // ── Live cell (amber — same as AppColors.light) ──

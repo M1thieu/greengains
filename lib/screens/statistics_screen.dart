@@ -196,54 +196,53 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                 AppTheme.spaceMd,
                 AppTheme.spaceMd,
               ),
-              child: Stack(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '$total',
-                        style: theme.textTheme.displayLarge?.copyWith(
-                          fontWeight: AppFontWeights.bold,
-                          letterSpacing: _kLetterSpacingDisplay,
-                          height: _kLineHeightTight,
-                        ),
-                      ),
-                      const SizedBox(height: AppTheme.spaceXxs),
-                      Text(
-                        l10n.statsTotal.toUpperCase(),
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          color: AppColors.primary,
-                          letterSpacing: _kLetterSpacingCaps,
-                          fontWeight: AppFontWeights.semibold,
-                        ),
-                      ),
-                    ],
-                  ),
-                  Positioned(
-                    top: 0,
-                    right: 0,
+                  Expanded(
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        if (next != null)
-                          Text(
-                            '$total / $next',
-                            style: theme.textTheme.labelMedium?.copyWith(
-                              color: theme.colorScheme.tertiary,
-                              fontWeight: AppFontWeights.medium,
-                            ),
+                        Text(
+                          '$total',
+                          style: theme.textTheme.displayLarge?.copyWith(
+                            fontWeight: AppFontWeights.bold,
+                            letterSpacing: _kLetterSpacingDisplay,
+                            height: _kLineHeightTight,
                           ),
-                        if (_longestStreak != null && _longestStreak! > 0)
-                          Text(
-                            l10n.statsStreakBest(_longestStreak!),
-                            style: theme.textTheme.labelSmall?.copyWith(
-                              color: AppColors.textTertiary(isDark),
-                              letterSpacing: _kLetterSpacingSection,
-                            ),
+                        ),
+                        const SizedBox(height: AppTheme.spaceXxs),
+                        Text(
+                          l10n.statsTotal.toUpperCase(),
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: AppColors.primary,
+                            letterSpacing: _kLetterSpacingCaps,
+                            fontWeight: AppFontWeights.semibold,
                           ),
+                        ),
                       ],
                     ),
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      if (next != null)
+                        Text(
+                          '$total / $next',
+                          style: theme.textTheme.labelMedium?.copyWith(
+                            color: theme.colorScheme.tertiary,
+                            fontWeight: AppFontWeights.medium,
+                          ),
+                        ),
+                      if (_longestStreak != null && _longestStreak! > 0)
+                        Text(
+                          l10n.statsStreakBest(_longestStreak!),
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: AppColors.textTertiary(isDark),
+                            letterSpacing: _kLetterSpacingSection,
+                          ),
+                        ),
+                    ],
                   ),
                 ],
               ),
