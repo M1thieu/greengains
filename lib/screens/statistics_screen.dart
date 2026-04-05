@@ -9,6 +9,7 @@ import '../data/models/contribution_stats.dart';
 import '../data/repositories/contribution_repository.dart';
 import '../core/events/app_events.dart';
 import '../services/network/backend_client.dart';
+import '../core/constants.dart';
 
 // ── Chart / skeleton layout constants ────────────────────────────────────────
 // Named so that any future change touches ONE place, not scattered literals.
@@ -106,7 +107,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
   Future<void> _loadWeeklyStats() async {
     setState(() => _isLoadingWeekly = true);
     try {
-      final data = await BackendClient.get('/api/user/profile');
+      final data = await BackendClient.get(kApiUserProfile);
       final profile = UserProfileResponse.fromJson(data);
       if (mounted) {
         setState(() {
@@ -196,45 +197,40 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                 AppTheme.spaceMd,
                 AppTheme.spaceMd,
               ),
-              child: Row(
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '$total',
-                          style: theme.textTheme.displayLarge?.copyWith(
-                            fontWeight: AppFontWeights.bold,
-                            letterSpacing: _kLetterSpacingDisplay,
-                            height: _kLineHeightTight,
-                          ),
-                        ),
-                        const SizedBox(height: AppTheme.spaceXxs),
-                        Text(
-                          l10n.statsTotal.toUpperCase(),
-                          style: theme.textTheme.labelSmall?.copyWith(
-                            color: AppColors.primary,
-                            letterSpacing: _kLetterSpacingCaps,
-                            fontWeight: AppFontWeights.semibold,
-                          ),
-                        ),
-                      ],
+                  Text(
+                    '$total',
+                    style: theme.textTheme.displayLarge?.copyWith(
+                      fontWeight: AppFontWeights.bold,
+                      letterSpacing: _kLetterSpacingDisplay,
+                      height: _kLineHeightTight,
                     ),
                   ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
+                  const SizedBox(height: AppTheme.spaceXxs),
+                  Row(
                     children: [
-                      if (next != null)
+                      Text(
+                        l10n.statsTotal.toUpperCase(),
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: AppColors.primary,
+                          letterSpacing: _kLetterSpacingCaps,
+                          fontWeight: AppFontWeights.semibold,
+                        ),
+                      ),
+                      if (next != null) ...[
+                        const SizedBox(width: AppTheme.spaceSm),
                         Text(
                           '$total / $next',
-                          style: theme.textTheme.labelMedium?.copyWith(
-                            color: theme.colorScheme.tertiary,
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: AppColors.textTertiary(isDark),
                             fontWeight: AppFontWeights.medium,
                           ),
                         ),
-                      if (_longestStreak != null && _longestStreak! > 0)
+                      ],
+                      if (_longestStreak != null && _longestStreak! > 0) ...[
+                        const SizedBox(width: AppTheme.spaceSm),
                         Text(
                           l10n.statsStreakBest(_longestStreak!),
                           style: theme.textTheme.labelSmall?.copyWith(
@@ -242,6 +238,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                             letterSpacing: _kLetterSpacingSection,
                           ),
                         ),
+                      ],
                     ],
                   ),
                 ],

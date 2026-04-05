@@ -9,6 +9,13 @@ const kDayStartHour = 6;
 /// Use: hour >= kDayStartHour && hour < kDayEndHour
 const kDayEndHour = 20;
 
+// ─── API Endpoints ────────────────────────────────────────────────────────────
+const kApiUserTiles    = '/api/user/tiles';
+const kApiTilesGlobal  = '/api/tiles/global';
+const kApiUserProfile  = '/api/user/profile';
+const kApiUserConsent  = '/api/user/consent';
+const kApiRegisterDevice = '/register-device';
+
 // ─── API / Network ────────────────────────────────────────────────────────────
 /// Default Dio connect + receive timeout for all backend calls.
 const kApiTimeout = Duration(seconds: 12);

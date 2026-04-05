@@ -244,6 +244,10 @@
   },
 
   "chipZones": "zones",
+  "homeZonesMapped": "{count, plural, =1{1 zone cartographiée} other{{count} zones cartographiées}}",
+  "@homeZonesMapped": {
+    "placeholders": { "count": { "type": "int" } }
+  },
   "tileInfoSamplesLabel": "mesures",
   "tileInfoDevicesLabel": "contributeurs",
   "tileInfoPersonal": "Personnel",

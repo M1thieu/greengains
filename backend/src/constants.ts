@@ -72,3 +72,35 @@ export const DB_POOL_MAX = 10;
 // ─── HTTP Response Limits ─────────────────────────────────────────────────────
 /** Max JSON response size for tile endpoints (1 MB). */
 export const MAX_TILE_RESPONSE_BYTES = 1_048_576;
+
+// ─── Tile Confidence Thresholds ───────────────────────────────────────────────
+/** Personal tiles: batch count that maps to confidence = 1.0. */
+export const CONFIDENCE_BATCH_THRESHOLD = 10;
+/** Global tiles: sample count that maps to confidence = 1.0. */
+export const CONFIDENCE_SAMPLE_THRESHOLD = 100;
+
+// ─── Global Tile Cache ────────────────────────────────────────────────────────
+/** In-process cache TTL for global tile responses (5 minutes). */
+export const GLOBAL_TILE_CACHE_TTL_MS = 5 * 60 * 1_000;
+/** Cache-Control max-age value matching GLOBAL_TILE_CACHE_TTL_MS (seconds). */
+export const GLOBAL_TILE_CACHE_TTL_S = 5 * 60;
+
+// ─── Device Limits ────────────────────────────────────────────────────────────
+/** Max registered devices per user (oldest evicted on overflow). */
+export const MAX_DEVICES_PER_USER = 10;
+
+// ─── Database Connection Retry ────────────────────────────────────────────────
+/** Max attempts for initial DB connection on cold start. */
+export const DB_RETRY_MAX_ATTEMPTS = 5;
+/** Base delay (ms) for DB retry backoff — multiplied by attempt number. */
+export const DB_RETRY_BASE_DELAY_MS = 2_000;
+
+// ─── H3 Backfill ─────────────────────────────────────────────────────────────
+/** Rows processed per batch in the H3 backfill job. */
+export const H3_BACKFILL_BATCH_SIZE = 500;
+
+// ─── Referral Codes ───────────────────────────────────────────────────────────
+/** Unambiguous character set — excludes 0/O and 1/I to avoid confusion. */
+export const REFERRAL_CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+/** Regex that a valid referral code must match. */
+export const REFERRAL_CODE_PATTERN = /^GG-[A-Z0-9]{5}$/;

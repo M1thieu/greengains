@@ -362,13 +362,13 @@ class _CoverageMapWidgetState extends State<CoverageMapWidget> {
       ctrl.addGeoJsonSource(_kSourceUserDot, _kEmptyFC),
     ]);
 
-    // ── Ghost grid — white outlines (only visible at zoom ≥ 9 to avoid ANR) ──
+    // ── Ghost grid — faint outlines (only visible at zoom ≥ 9 to avoid ANR) ──
     await ctrl.addLineLayer(
       _kSourceGrid,
       _kLayerGridLines,
       const LineLayerProperties(
-        lineColor: '#ffffff',
-        lineOpacity: 0.18, // Helium/Nodle level — context hint, not dominant
+        lineColor: '#7dd3fc', // sky-blue tint — more readable than pure white on dark
+        lineOpacity: 0.25,
         lineWidth: 0.8,
       ),
       minzoom: 9.0,
@@ -439,6 +439,22 @@ class _CoverageMapWidgetState extends State<CoverageMapWidget> {
         circleStrokeColor: '#ffffff',
       ),
     );
+
+    // ── Carto labels on top — street names / city names float above hexagons ──
+    // Only needed for the CartoDB raster fallback (no Protomaps key).
+    // The source is already in the style JSON; we add the layer here so it
+    // sits above all hex layers (fill, line, live cell, user dot).
+    if (_kProtomapsKey.isEmpty) {
+      try {
+        await ctrl.addRasterLayer(
+          'carto-labels',
+          'gg-carto-labels',
+          const RasterLayerProperties(),
+        );
+      } catch (e) {
+        debugPrint('MapLibre: carto-labels layer skipped ($e)');
+      }
+    }
 
     debugPrint('MapLibre: all layers added — populating sources...');
     // ── Populate sources ──

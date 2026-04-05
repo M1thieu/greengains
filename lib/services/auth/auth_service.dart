@@ -9,6 +9,7 @@ import 'package:flutter/foundation.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../core/app_preferences.dart';
 import '../../services/network/backend_client.dart';
+import '../../core/constants.dart';
 
 class AuthService {
   static final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -157,7 +158,7 @@ class AuthService {
       debugPrint('Registering device with backend...');
       final dio = Dio();
       final response = await dio.post<Map<String, dynamic>>(
-        '$kBackendBaseUrl/register-device',
+        '$kBackendBaseUrl$kApiRegisterDevice',
         data: {'device_id': deviceId, 'firebase_token': token},
         options: Options(
           headers: {'X-API-Key': kBackendApiKey},

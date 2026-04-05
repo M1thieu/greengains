@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui';
 import 'package:h3_flutter/h3_flutter.dart' as h3f;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -195,7 +196,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   Future<void> _loadH3Tiles() async {
     setState(() => _h3TilesLoading = true);
     try {
-      final data = await BackendClient.get('/api/user/tiles');
+      final data = await BackendClient.get(kApiUserTiles);
       final response = UserTilesResponse.fromJson(data);
       debugPrint('Tiles: ${response.tiles.length} personal tiles');
       if (mounted) setState(() { _h3Tiles = response.tiles; _h3TilesLoading = false; });
@@ -222,7 +223,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   /// Loads silently in background — never blocks the loading spinner.
   Future<void> _loadGlobalTiles() async {
     try {
-      final data = await BackendClient.get('/api/tiles/global');
+      final data = await BackendClient.get(kApiTilesGlobal);
       final response = GlobalTilesResponse.fromJson(data);
       debugPrint('Global tiles: ${response.tiles.length} community tiles');
       if (mounted) setState(() => _globalTiles = response.tiles);
@@ -356,6 +357,14 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               ),
             ),
 
+            // ── 1b. Personal zone count strip (above nav, shown when tiles loaded) ──
+            if (_h3Tiles.isNotEmpty)
+              Positioned(
+                left: AppTheme.spaceMd,
+                bottom: bottomPadding + AppTheme.floatingNavHeight + AppTheme.spaceLg + 52,
+                child: _ZoneCountPill(count: _h3Tiles.length),
+              ),
+
             // ── 2. FAB (center-bottom, above floating nav bar) ───────────
             Positioned(
               left: 0,
@@ -396,6 +405,41 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 }
 
 // ─── Private widgets ────────────────────────────────────────────────────────
+
+/// Compact pill showing personal zone count — purely self-focused context on the map.
+/// Same glass style as TrackingStatusChip. No tap action needed — the number itself
+/// is the retention hook (users see their territory growing).
+class _ZoneCountPill extends StatelessWidget {
+  const _ZoneCountPill({required this.count});
+  final int count;
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(AppTheme.radiusPill),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: AppTheme.glassBlurSigma, sigmaY: AppTheme.glassBlurSigma),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceSm, vertical: AppTheme.spaceXs),
+          decoration: AppColors.glassDecoration(
+            isDark: true,
+            backgroundAlpha: 0.45,
+            borderAlpha: 0.10,
+          ),
+          child: Text(
+            context.l10n.homeZonesMapped(count),
+            style: const TextStyle(
+              color: Colors.white70,
+              fontSize: 12.0,
+              fontWeight: AppFontWeights.medium,
+              letterSpacing: 0.2,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
 
 /// My Location button — standard map UX (Google Maps / Waze / Apple Maps pattern).
 /// 48×48 circular dark button.

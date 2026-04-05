@@ -11,6 +11,7 @@ import '../core/themes.dart';
 import '../l10n/app_localizations.dart';
 import '../services/auth/auth_service.dart';
 import '../services/network/backend_client.dart';
+import '../core/constants.dart';
 import '../utils/app_snackbars.dart';
 import 'webview_screen.dart';
 
@@ -78,7 +79,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       // on the main path (above), keeping context use below lint-safe.
       unawaited(
         PackageInfo.fromPlatform().then((packageInfo) =>
-          BackendClient.post('/api/user/consent', {
+          BackendClient.post(kApiUserConsent, {
             'platform': Platform.isIOS ? 'ios' : 'android',
             'appVersion': packageInfo.version,
           }).then((body) async {

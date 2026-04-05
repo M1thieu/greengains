@@ -2,7 +2,7 @@ import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import crypto from 'crypto';
 import { getPool } from '../database';
 import { requireFirebaseAuth } from '../middleware/auth';
-import { MAX_REFERRAL_CODE_RETRIES, PG_UNIQUE_VIOLATION } from '../constants';
+import { MAX_REFERRAL_CODE_RETRIES, PG_UNIQUE_VIOLATION, REFERRAL_CODE_ALPHABET, REFERRAL_CODE_PATTERN } from '../constants';
 
 /**
  * Referral endpoints — all backed by the single `referrals` table.
@@ -13,14 +13,10 @@ import { MAX_REFERRAL_CODE_RETRIES, PG_UNIQUE_VIOLATION } from '../constants';
  *   'convert' — appended when a new user signs up via a referral link
  */
 export async function referralRoutes(fastify: FastifyInstance) {
-  const REFERRAL_CODE_PATTERN = /^GG-[A-Z0-9]{5}$/;
-  // Unambiguous alphabet: no 0/O, 1/I confusion
-  const CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-
   function generateReferralCode(): string {
     const bytes = crypto.randomBytes(5);
     return 'GG-' + Array.from(bytes)
-      .map((b) => CODE_ALPHABET[b % CODE_ALPHABET.length])
+      .map((b) => REFERRAL_CODE_ALPHABET[b % REFERRAL_CODE_ALPHABET.length])
       .join('');
   }
 

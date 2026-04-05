@@ -5,24 +5,21 @@ import { getPool } from '../database';
 import { requireFirebaseAuth } from '../middleware/auth';
 import { decodeGeohash } from '../utils/geo';
 import {
-  H3_RES_PERSONAL,
   H3_RES_GLOBAL,
   MAX_USER_TILES,
   MAX_GLOBAL_TILES,
   GLOBAL_TILE_WINDOW_HOURS,
   MS_PER_DAY,
   MAX_TILE_RESPONSE_BYTES,
+  CONFIDENCE_BATCH_THRESHOLD,
+  CONFIDENCE_SAMPLE_THRESHOLD,
+  GLOBAL_TILE_CACHE_TTL_MS,
+  GLOBAL_TILE_CACHE_TTL_S,
 } from '../constants';
-
-// Confidence thresholds
-const CONFIDENCE_BATCH_THRESHOLD  = 10;  // personal tiles: 10 batches = max confidence
-const CONFIDENCE_SAMPLE_THRESHOLD = 100; // global tiles: 100 readings = max confidence
 
 // ─── In-memory cache for global tiles (5-min TTL, avoids per-request DB hits) ─
 interface TileCacheEntry { data: unknown; expiresAt: number; }
 const _globalTileCache = new Map<string, TileCacheEntry>();
-const GLOBAL_TILE_CACHE_TTL_MS = 5 * 60 * 1000;
-const GLOBAL_TILE_CACHE_TTL_S  = 5 * 60; // for Cache-Control header
 
 // ─── Shared global tile query ─────────────────────────────────────────────────
 
@@ -55,7 +52,7 @@ async function fetchGlobalTiles(): Promise<unknown> {
        AVG(quality_valid_ratio)               AS quality_valid_ratio,
        MAX(day)                               AS last_update
      FROM sensor_aggregates_daily
-     WHERE day > CURRENT_DATE - $1
+     WHERE day > CURRENT_DATE - ($1 * INTERVAL '1 day')
      GROUP BY geohash
      ORDER BY sample_count DESC
      LIMIT ${MAX_GLOBAL_TILES}`,

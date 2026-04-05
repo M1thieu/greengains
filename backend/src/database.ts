@@ -1,6 +1,6 @@
 import { Pool, PoolClient } from 'pg';
 import { config } from './config';
-import { DB_POOL_MAX } from './constants';
+import { DB_POOL_MAX, DB_RETRY_MAX_ATTEMPTS, DB_RETRY_BASE_DELAY_MS } from './constants';
 
 let pool: Pool | null = null;
 
@@ -29,21 +29,19 @@ export async function initDatabase(): Promise<void> {
 
   // Test connection — retry with backoff for Render cold-start / Supabase warmup.
   // pg-pool will auto-reconnect at query time; this just validates the config early.
-  const maxAttempts = 5;
-  const baseDelayMs = 2000;
-  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+  for (let attempt = 1; attempt <= DB_RETRY_MAX_ATTEMPTS; attempt++) {
     try {
       const client = await pool.connect();
       console.log('✅ Database connected successfully');
       client.release();
       return;
     } catch (error) {
-      if (attempt === maxAttempts) {
-        console.error(`❌ Database connection failed after ${maxAttempts} attempts:`, error);
+      if (attempt === DB_RETRY_MAX_ATTEMPTS) {
+        console.error(`❌ Database connection failed after ${DB_RETRY_MAX_ATTEMPTS} attempts:`, error);
         throw error;
       }
-      const delay = baseDelayMs * attempt; // 2s, 4s, 6s, 8s
-      console.warn(`⚠️  DB connect attempt ${attempt}/${maxAttempts} failed — retrying in ${delay}ms`);
+      const delay = DB_RETRY_BASE_DELAY_MS * attempt; // 2s, 4s, 6s, 8s
+      console.warn(`⚠️  DB connect attempt ${attempt}/${DB_RETRY_MAX_ATTEMPTS} failed — retrying in ${delay}ms`);
       await new Promise(resolve => setTimeout(resolve, delay));
     }
   }

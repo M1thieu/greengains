@@ -541,6 +541,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chipZones => 'zones';
 
   @override
+  String homeZonesMapped(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count zones mapped',
+      one: '1 zone mapped',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get tileInfoSamplesLabel => 'samples';
 
   @override

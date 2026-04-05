@@ -1071,6 +1071,12 @@ abstract class AppLocalizations {
   /// **'zones'**
   String get chipZones;
 
+  /// No description provided for @homeZonesMapped.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 zone mapped} other{{count} zones mapped}}'**
+  String homeZonesMapped(int count);
+
   /// No description provided for @tileInfoSamplesLabel.
   ///
   /// In en, this message translates to:

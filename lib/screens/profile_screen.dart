@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../core/extensions/context_extensions.dart';
 import '../services/network/backend_client.dart';
+import '../core/constants.dart';
 import '../core/themes.dart';
 import '../l10n/app_localizations.dart';
 import '../core/app_preferences.dart';
@@ -43,7 +44,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> _loadProfileStats() async {
     try {
-      final data = await BackendClient.get('/api/user/profile');
+      final data = await BackendClient.get(kApiUserProfile);
       final profile = UserProfileResponse.fromJson(data);
       if (mounted) {
         setState(() {

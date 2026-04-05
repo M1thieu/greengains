@@ -3,6 +3,7 @@ import * as crypto from 'crypto';
 import * as admin from 'firebase-admin';
 import { getPool } from '../database';
 import { DeviceRegistrationSchema, DeviceRegistration } from '../models/device';
+import { MAX_DEVICES_PER_USER } from '../constants';
 
 export async function deviceRoutes(fastify: FastifyInstance) {
     fastify.post(
@@ -29,7 +30,6 @@ export async function deviceRoutes(fastify: FastifyInstance) {
                 }
 
                 // 2. Enforce max devices per user — evict oldest if over limit
-                const MAX_DEVICES = 10;
                 const pool = getPool();
                 const deviceCount = await pool.query<{ count: string }>(
                     `SELECT COUNT(*)::text AS count
@@ -38,7 +38,7 @@ export async function deviceRoutes(fastify: FastifyInstance) {
                         AND device_id != $2`,
                     [userId, device_id],
                 );
-                if (parseInt(deviceCount.rows[0]?.count ?? '0', 10) >= MAX_DEVICES) {
+                if (parseInt(deviceCount.rows[0]?.count ?? '0', 10) >= MAX_DEVICES_PER_USER) {
                     // Evict the oldest device instead of hard-blocking
                     await pool.query(
                         `DELETE FROM device_secrets
