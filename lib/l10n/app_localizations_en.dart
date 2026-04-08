@@ -368,13 +368,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileSignedOut => 'Signed out';
 
   @override
-  String get chipContributing => 'Contributing';
+  String get chipContributing => 'Mapping';
 
   @override
   String get chipPaused => 'Paused';
 
   @override
-  String get chipTapStart => 'Tap Start';
+  String get chipTapStart => 'Ready';
+
+  @override
+  String get homeFirstUseHint =>
+      'Tap ▶ · maps your city silently while you move';
 
   @override
   String get uploadSuccessMessage => 'Contribution uploaded successfully!';
@@ -417,6 +421,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get statsCoverage => 'Zones';
+
+  @override
+  String get statsAreasLabel => 'areas mapped';
+
+  @override
+  String get statsDataPtsLabel => 'data pts';
 
   @override
   String get statsTotalContributions => 'Total Contributions';
@@ -837,6 +847,17 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get statsMilestoneElite =>
       'Elite contributor · all milestones reached';
+
+  @override
+  String statsMilestoneRemaining(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count areas to go',
+      one: '1 area to go',
+    );
+    return '$_temp0';
+  }
 
   @override
   String statsCommunityAreas(int count) {

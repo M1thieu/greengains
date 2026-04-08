@@ -452,6 +452,22 @@ class AppTheme {
     );
   }
 
+  /// KPI card decoration — flat surface with a colored left-border accent.
+  /// Used for stat tiles across profile, statistics, and any metric display.
+  /// Matches the dashboard aesthetic (Linear / Vercel style).
+  static BoxDecoration kpiCard({
+    required bool isDark,
+    Color accentColor = AppColors.primary,
+    double radius = radiusLg,
+  }) =>
+      BoxDecoration(
+        color: AppColors.surface(isDark),
+        borderRadius: BorderRadius.circular(radius),
+        border: Border(
+          left: BorderSide(color: accentColor, width: 3),
+        ),
+      );
+
   /// Creates an icon container with primary-colored background
   /// Used for feature icons, status indicators, etc.
   static BoxDecoration iconContainer({

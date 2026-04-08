@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'screens/home_screen.dart';
 import 'screens/profile_screen.dart';
 import 'screens/statistics_screen.dart';
@@ -65,6 +66,7 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
   }
 
   void _onTabSelected(int index) {
+    HapticFeedback.selectionClick();
     setState(() => _currentIndex = index);
     _pageController.animateToPage(
       index,
@@ -87,10 +89,10 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
         controller: _pageController,
         physics: const NeverScrollableScrollPhysics(),
         onPageChanged: (index) => setState(() => _currentIndex = index),
-        children: const [
-          _KeepAlive(child: HomeScreen()),
-          _KeepAlive(child: StatisticsScreen()),
-          _KeepAlive(child: ProfileScreen()),
+        children: [
+          const _KeepAlive(child: HomeScreen()),
+          const _KeepAlive(child: StatisticsScreen()),
+          _KeepAlive(child: ProfileScreen(onViewStats: () => _onTabSelected(1))),
         ],
       ),
       // Floating pill nav bar — RepaintBoundary isolates it from page rebuilds.
@@ -193,32 +195,34 @@ class _NavItem extends StatelessWidget {
             Badge(
               isLabelVisible: badge,
               backgroundColor: AppColors.primary,
-              child: Icon(
-                selected ? selectedIcon : icon,
-                color: color,
-                size: AppIconSizes.md,
+              child: AnimatedSwitcher(
+                duration: AppDurations.fast,
+                child: Icon(
+                  selected ? selectedIcon : icon,
+                  key: ValueKey(selected),
+                  color: color,
+                  size: AppIconSizes.md,
+                ),
               ),
             ),
-            const SizedBox(height: AppTheme.spaceXxxs),
-            Text(
-              label,
-              style: TextStyle(
-                color: color,
-                fontSize: AppTheme.fontSizeNavLabel,
-                fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
-                letterSpacing: 0.2,
-              ),
-            ),
-            const SizedBox(height: AppTheme.spaceXxxs),
-            AnimatedContainer(
+            // Label only visible on selected tab — cleaner than always-visible labels
+            AnimatedSize(
               duration: AppDurations.fast,
-              curve: AppMotion.decelerated, // easeOutBack overshoots to negative width → crash
-              width: selected ? AppTheme.spaceSm : 0,
-              height: AppTheme.spaceXxxs,
-              decoration: BoxDecoration(
-                color: AppColors.primary,
-                borderRadius: BorderRadius.circular(AppTheme.radiusPill),
-              ),
+              curve: AppMotion.standard,
+              child: selected
+                  ? Padding(
+                      padding: const EdgeInsets.only(top: AppTheme.spaceXxxs),
+                      child: Text(
+                        label,
+                        style: TextStyle(
+                          color: AppColors.primary,
+                          fontSize: AppTheme.fontSizeNavLabel,
+                          fontWeight: AppFontWeights.semibold,
+                          letterSpacing: 0.2,
+                        ),
+                      ),
+                    )
+                  : const SizedBox.shrink(),
             ),
           ],
         ),

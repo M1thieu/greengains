@@ -31,9 +31,9 @@ const _kLetterSpacingCaps     = 2.0;   // wide tracking for uppercase LABEL badg
 const _kLetterSpacingSection  = 1.2;   // small-caps section header tracking
 const _kLineHeightTight       = 1.0;   // tight line-height for numeric displays
 
-// Reward milestones — thresholds at which rewards unlock.
-// Designed to feel achievable at each step (not a wall).
-const _kMilestones = [10, 50, 100, 250, 500, 1000, 5000];
+// Zone milestones — territory achievements visible on the map.
+// Achievable cadence: 5 → 10 → 25 → 50 → 100 → 250 → 500 areas.
+const _kMilestones = [5, 10, 25, 50, 100, 250, 500];
 
 
 /// Statistics screen — local stats (fast/offline) + server 7-day chart.
@@ -144,7 +144,17 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
     final stillLoading = _isLoading || (_isLoadingWeekly && _backendTotalUploads == null && effectiveTotal == 0);
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.statsScreenTitle)),
+      appBar: AppBar(
+        title: Text(l10n.statsScreenTitle),
+        actions: [
+          if (!stillLoading && effectiveTotal > 0)
+            IconButton(
+              icon: const Icon(Icons.refresh),
+              onPressed: _refresh,
+              tooltip: l10n.tooltipRefresh,
+            ),
+        ],
+      ),
       body: stillLoading
           ? _buildLoadingSkeleton(isDark)
           : effectiveTotal == 0
@@ -153,14 +163,16 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                   onRefresh: _refresh,
                   color: AppColors.primary,
                   child: ListView(
-                    padding: AppTheme.pagePadding,
+                    padding: AppTheme.pagePadding.copyWith(
+                      bottom: MediaQuery.paddingOf(context).bottom + AppTheme.floatingNavHeight + AppTheme.spaceMd,
+                    ),
                     children: [
                       _buildHeroCard(theme, isDark, l10n),
                       const SizedBox(height: AppTheme.spaceSm),
                       _buildSupportingTrio(theme, isDark),
-                      const SizedBox(height: AppTheme.spaceLg),
-                      _buildSectionHeader(l10n.statsContributionTimeline, theme, isDark),
-                      const SizedBox(height: AppTheme.spaceMd),
+                      const SizedBox(height: AppTheme.spaceSm),
+                      _buildMilestoneRow(theme, isDark, l10n),
+                      const SizedBox(height: AppTheme.spaceSm),
                       _buildActivityChart(theme, isDark, l10n),
                     ],
                   ),
@@ -172,91 +184,65 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
 
   Widget _buildHeroCard(ThemeData theme, bool isDark, AppLocalizations l10n) {
     final localTotal = _stats?.totalUploads ?? 0;
-    final total = localTotal > 0 ? localTotal : (_backendTotalUploads ?? 0);
-
-    // Find the next milestone above the current total
-    final next = _kMilestones.cast<int?>().firstWhere(
-      (m) => m! > total,
-      orElse: () => null,
-    );
-    final progress = next != null ? (total / next).clamp(0.0, 1.0) : 1.0;
-
-    final surfaceColor = AppColors.surface(isDark);
+    final totalUploads = localTotal > 0 ? localTotal : (_backendTotalUploads ?? 0);
+    // Zones are the primary user-facing metric — tangible territory on the map.
+    // Falls back to upload count while zones are loading.
+    final zones = _coverageCells;
+    final heroValue = zones ?? totalUploads;
+    final heroLabel = zones != null ? l10n.statsAreasLabel : l10n.statsTotal.toLowerCase();
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(AppTheme.radiusLg),
       child: Container(
-        color: surfaceColor,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(
-                AppTheme.spaceMd,
-                AppTheme.spaceMd,
-                AppTheme.spaceMd,
-                AppTheme.spaceMd,
+        color: AppColors.surface(isDark),
+        child: Padding(
+          padding: const EdgeInsets.all(AppTheme.spaceMd),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '$heroValue',
+                style: theme.textTheme.displayLarge?.copyWith(
+                  fontWeight: AppFontWeights.bold,
+                  letterSpacing: _kLetterSpacingDisplay,
+                  height: _kLineHeightTight,
+                ),
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              const SizedBox(height: AppTheme.spaceXxs),
+              Row(
                 children: [
                   Text(
-                    '$total',
-                    style: theme.textTheme.displayLarge?.copyWith(
-                      fontWeight: AppFontWeights.bold,
-                      letterSpacing: _kLetterSpacingDisplay,
-                      height: _kLineHeightTight,
+                    heroLabel.toUpperCase(),
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: AppColors.primary,
+                      letterSpacing: _kLetterSpacingCaps,
+                      fontWeight: AppFontWeights.semibold,
                     ),
                   ),
-                  const SizedBox(height: AppTheme.spaceXxs),
-                  Row(
-                    children: [
-                      Text(
-                        l10n.statsTotal.toUpperCase(),
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          color: AppColors.primary,
-                          letterSpacing: _kLetterSpacingCaps,
-                          fontWeight: AppFontWeights.semibold,
-                        ),
+                  if (zones != null && totalUploads > 0) ...[
+                    const SizedBox(width: AppTheme.spaceSm),
+                    Text(
+                      '$totalUploads ${l10n.statsDataPtsLabel}',
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: AppColors.textTertiary(isDark),
+                        fontWeight: AppFontWeights.medium,
                       ),
-                      if (next != null) ...[
-                        const SizedBox(width: AppTheme.spaceSm),
-                        Text(
-                          '$total / $next',
-                          style: theme.textTheme.labelSmall?.copyWith(
-                            color: AppColors.textTertiary(isDark),
-                            fontWeight: AppFontWeights.medium,
-                          ),
-                        ),
-                      ],
-                      if (_longestStreak != null && _longestStreak! > 0) ...[
-                        const SizedBox(width: AppTheme.spaceSm),
-                        Text(
-                          l10n.statsStreakBest(_longestStreak!),
-                          style: theme.textTheme.labelSmall?.copyWith(
-                            color: AppColors.textTertiary(isDark),
-                            letterSpacing: _kLetterSpacingSection,
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
+                    ),
+                  ],
+                  if (_longestStreak != null && _longestStreak! > 0) ...[
+                    const SizedBox(width: AppTheme.spaceSm),
+                    Text(
+                      l10n.statsStreakBest(_longestStreak!),
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: AppColors.textTertiary(isDark),
+                        letterSpacing: _kLetterSpacingSection,
+                      ),
+                    ),
+                  ],
                 ],
               ),
-            ),
-            TweenAnimationBuilder<double>(
-              tween: Tween(begin: 0, end: progress),
-              duration: AppDurations.medium,
-              curve: AppMotion.decelerated,
-              builder: (_, value, __) => LinearProgressIndicator(
-                value: value,
-                minHeight: _kProgressH,
-                backgroundColor: AppColors.primaryAlpha(0.10),
-                valueColor: AlwaysStoppedAnimation(AppColors.primary),
-                borderRadius: BorderRadius.zero,
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -267,6 +253,8 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
   Widget _buildSupportingTrio(ThemeData theme, bool isDark) {
     final l10n = context.l10n;
     final streak = _currentStreak ?? _stats?.currentStreak ?? 0;
+    final localTotal = _stats?.totalUploads ?? 0;
+    final totalUploads = localTotal > 0 ? localTotal : (_backendTotalUploads ?? 0);
     final tiles = [
       (
         value: '${_stats?.uploadsToday ?? 0}',
@@ -279,39 +267,29 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
         color: AppColors.movement,
       ),
       (
-        value: _coverageCells != null ? '$_coverageCells' : '—',
-        label: l10n.statsCoverage,
+        value: totalUploads > 0 ? '$totalUploads' : '—',
+        label: l10n.statsDataPtsLabel,
         color: AppColors.quality,
       ),
     ];
 
     return Row(
-      children: tiles.map((tile) {
-        final isLast = tile == tiles.last;
+      children: tiles.indexed.map((entry) {
+        final (i, tile) = entry;
         return Expanded(
           child: Padding(
-            padding: EdgeInsets.only(right: isLast ? 0 : AppTheme.spaceSm),
+            padding: EdgeInsets.only(right: i < tiles.length - 1 ? AppTheme.spaceSm : 0),
             child: Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppTheme.spaceSm,
-                vertical: AppTheme.spaceSm,
+              padding: const EdgeInsets.fromLTRB(
+                AppTheme.spaceSm + AppTheme.spaceXxs,
+                AppTheme.spaceSm,
+                AppTheme.spaceSm,
+                AppTheme.spaceSm,
               ),
-              decoration: BoxDecoration(
-                color: AppColors.surface(isDark),
-                borderRadius: BorderRadius.circular(AppTheme.radiusLg),
-              ),
+              decoration: AppTheme.kpiCard(isDark: isDark, accentColor: tile.color),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(
-                    width: AppTheme.spaceXs,
-                    height: AppTheme.spaceXs,
-                    decoration: BoxDecoration(
-                      color: tile.color,
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                  const SizedBox(height: AppTheme.spaceXxs),
                   Text(
                     tile.value,
                     style: theme.textTheme.titleLarge?.copyWith(
@@ -335,6 +313,111 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
           ),
         );
       }).toList(),
+    );
+  }
+
+  // ─── Milestone row ───────────────────────────────────────────────────────────
+
+  Widget _buildMilestoneRow(ThemeData theme, bool isDark, AppLocalizations l10n) {
+    // Milestones are zone-based — if zones not loaded yet, skip the row.
+    final total = _coverageCells;
+    if (total == null) return const SizedBox.shrink();
+    final next = _kMilestones.cast<int?>().firstWhere((m) => m! > total, orElse: () => null);
+
+    // All milestones reached
+    if (next == null) {
+      return Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppTheme.spaceMd,
+          vertical: AppTheme.spaceSm,
+        ),
+        decoration: AppTheme.kpiCard(isDark: isDark, accentColor: AppColors.primary),
+        child: Row(
+          children: [
+            Icon(Icons.workspace_premium, color: AppColors.primary, size: AppIconSizes.sm),
+            const SizedBox(width: AppTheme.spaceSm),
+            Expanded(
+              child: Text(
+                l10n.statsMilestoneElite,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: AppColors.primary,
+                  fontWeight: AppFontWeights.semibold,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final progress = (total / next).clamp(0.0, 1.0);
+    final remaining = next - total;
+
+    return Container(
+      padding: const EdgeInsets.fromLTRB(
+        AppTheme.spaceSm + AppTheme.spaceXxs,
+        AppTheme.spaceSm,
+        AppTheme.spaceMd,
+        AppTheme.spaceSm,
+      ),
+      decoration: AppTheme.kpiCard(isDark: isDark, accentColor: AppColors.warning),
+      child: Row(
+        children: [
+          Icon(Icons.flag_outlined, color: AppColors.warning, size: AppIconSizes.sm),
+          const SizedBox(width: AppTheme.spaceSm),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      l10n.statsMilestoneLabel,
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: AppColors.textSecondary(isDark),
+                        fontWeight: AppFontWeights.medium,
+                      ),
+                    ),
+                    Text(
+                      '$total / $next ${l10n.statsAreasLabel}',
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: AppColors.warning,
+                        fontWeight: AppFontWeights.semibold,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: AppTheme.spaceXxxs),
+                TweenAnimationBuilder<double>(
+                  tween: Tween(begin: 0, end: progress),
+                  duration: AppDurations.medium,
+                  curve: AppMotion.decelerated,
+                  builder: (_, value, __) => ClipRRect(
+                    borderRadius: BorderRadius.circular(AppTheme.radiusPill),
+                    child: LinearProgressIndicator(
+                      value: value,
+                      minHeight: _kProgressH,
+                      backgroundColor: AppColors.warning.withValues(alpha: 0.12),
+                      valueColor: AlwaysStoppedAnimation(AppColors.warning),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: AppTheme.spaceXxxs),
+                Text(
+                  l10n.statsMilestoneRemaining(remaining),
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: AppColors.textTertiary(isDark),
+                    fontSize: 10,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -441,6 +524,23 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
+                      // Value label above bar — only when non-zero
+                      if (count > 0)
+                        Text(
+                          '$count',
+                          style: TextStyle(
+                            fontSize: _kBarLabelSize,
+                            color: isToday
+                                ? AppColors.primary
+                                : AppColors.textSecondary(isDark),
+                            fontWeight: isToday
+                                ? AppFontWeights.semibold
+                                : AppFontWeights.regular,
+                          ),
+                        )
+                      else
+                        const SizedBox(height: _kBarLabelSize + 2),
+                      const SizedBox(height: AppTheme.spaceXxxs),
                       AnimatedContainer(
                         duration: Duration(milliseconds: AppDurations.fast.inMilliseconds + i * _kBarAnimStagger),
                         curve: AppMotion.decelerated,
@@ -534,18 +634,6 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
     );
   }
 
-  // ─── Shared section widgets ──────────────────────────────────────────────────
-
-  Widget _buildSectionHeader(String title, ThemeData theme, bool isDark) {
-    return Text(
-      title.toUpperCase(),
-      style: theme.textTheme.labelSmall?.copyWith(
-        color: AppColors.textTertiary(isDark),
-        letterSpacing: _kLetterSpacingSection,
-        fontWeight: AppFontWeights.semibold,
-      ),
-    );
-  }
 
   Widget _buildLoadingSkeleton(bool isDark) {
     final color = AppColors.textSecondary(isDark).withValues(alpha: 0.1);

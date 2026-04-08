@@ -178,7 +178,8 @@
 
   "chipContributing": "En cours",
   "chipPaused": "En pause",
-  "chipTapStart": "Démarrer",
+  "chipTapStart": "Prêt",
+  "homeFirstUseHint": "Appuyez sur ▶ · cartographie la ville silencieusement",
 
   "uploadSuccessMessage": "Contribution envoyée avec succès !",
   "semanticsRefreshMap": "Actualiser les données de la carte",
@@ -197,6 +198,8 @@
   "statsDaysActive": "Jours actifs",
   "statsTotal": "Total",
   "statsCoverage": "Zones",
+  "statsAreasLabel": "zones cartographiées",
+  "statsDataPtsLabel": "pts de données",
   "statsTotalContributions": "Total des contributions",
   "statsKeepContributing": "Continuez à contribuer pour suivre les tendances",
   "statsActivityTrend": "Tendance d'activité",
@@ -369,6 +372,10 @@
   "statsMilestoneLabel": "Prochain palier",
   "statsMilestoneHint": "Les récompenses se débloquent à ce palier — continuez à contribuer",
   "statsMilestoneElite": "Contributeur élite · tous les paliers atteints",
+  "statsMilestoneRemaining": "{count, plural, =1{1 zone restante} other{{count} zones restantes}}",
+  "@statsMilestoneRemaining": {
+    "placeholders": { "count": { "type": "int" } }
+  },
   "statsCommunityAreas": "{count} zones cartographiées par la communauté",
   "@statsCommunityAreas": {
     "placeholders": {

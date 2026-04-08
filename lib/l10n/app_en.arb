@@ -176,9 +176,10 @@
   "profileContributionsHint": "Track your contributions",
   "profileSignedOut": "Signed out",
 
-  "chipContributing": "Contributing",
+  "chipContributing": "Mapping",
   "chipPaused": "Paused",
-  "chipTapStart": "Tap Start",
+  "chipTapStart": "Ready",
+  "homeFirstUseHint": "Tap ▶ · maps your city silently while you move",
 
   "uploadSuccessMessage": "Contribution uploaded successfully!",
   "semanticsRefreshMap": "Refresh map data",
@@ -197,6 +198,8 @@
   "statsDaysActive": "Days Active",
   "statsTotal": "Total",
   "statsCoverage": "Zones",
+  "statsAreasLabel": "areas mapped",
+  "statsDataPtsLabel": "data pts",
   "statsTotalContributions": "Total Contributions",
   "statsKeepContributing": "Keep contributing to track trends",
   "statsActivityTrend": "Activity Trend",
@@ -369,6 +372,10 @@
   "statsMilestoneLabel": "Next reward",
   "statsMilestoneHint": "Rewards unlock when you reach this milestone — keep contributing",
   "statsMilestoneElite": "Elite contributor · all milestones reached",
+  "statsMilestoneRemaining": "{count, plural, =1{1 area to go} other{{count} areas to go}}",
+  "@statsMilestoneRemaining": {
+    "placeholders": { "count": { "type": "int" } }
+  },
   "statsCommunityAreas": "{count} areas mapped by community",
   "@statsCommunityAreas": {
     "placeholders": {

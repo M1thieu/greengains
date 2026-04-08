@@ -23,7 +23,10 @@ const _kAvatarRingWidth      = 2.5;            // gradient ring around avatar
 /// Profile screen showing user information and quick stats
 /// REDESIGNED: Compact layout that fits without scrolling
 class ProfileScreen extends StatefulWidget {
-  const ProfileScreen({super.key});
+  const ProfileScreen({super.key, this.onViewStats});
+
+  /// Called when the user taps "View Statistics" — used by AppShell to switch tabs.
+  final VoidCallback? onViewStats;
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
@@ -35,6 +38,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   int? _totalUploads;
   int? _daysActive;
   int? _coverageCells;
+  int? _currentStreak;
+  int? _longestStreak;
 
   @override
   void initState() {
@@ -51,6 +56,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
           _totalUploads = profile.totalUploads;
           _daysActive = profile.daysActive;
           _coverageCells = profile.coverageCells;
+          _currentStreak = profile.currentStreak;
+          _longestStreak = profile.longestStreak;
         });
       }
     } catch (_) {}
@@ -88,8 +95,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
   /// Signed-out state - show Google Sign In option
   /// Users should sign in to unlock daily pot rewards and sync data
   Widget _buildSignedOutState(ThemeData theme, bool isDark, AppLocalizations l10n) {
+    final navBottom = MediaQuery.paddingOf(context).bottom + AppTheme.floatingNavHeight + AppTheme.spaceSm;
     return Padding(
-      padding: AppTheme.pagePadding,
+      padding: EdgeInsets.fromLTRB(AppTheme.spaceLg, AppTheme.spaceMd, AppTheme.spaceLg, navBottom),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -176,54 +184,156 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   /// REDESIGNED: Compact signed-in state (no scrolling required)
   Widget _buildSignedInState(User user, ThemeData theme, bool isDark, AppLocalizations l10n) {
+    final navBottom = MediaQuery.paddingOf(context).bottom + AppTheme.floatingNavHeight + AppTheme.spaceSm;
     return Padding(
-      padding: AppTheme.pagePadding,
+      padding: EdgeInsets.fromLTRB(AppTheme.spaceLg, AppTheme.spaceMd, AppTheme.spaceLg, navBottom),
       child: Column(
         children: [
-          // COMPACT USER HEADER (~100px)
           _buildCompactUserHeader(user, theme, isDark, l10n),
           const SizedBox(height: AppTheme.spaceMd),
           _buildImpactRow(theme, isDark, l10n),
-
+          const SizedBox(height: AppTheme.spaceSm),
+          _buildStreakCard(theme, isDark, l10n),
+          if (widget.onViewStats != null) ...[
+            const SizedBox(height: AppTheme.spaceSm),
+            _buildViewStatsButton(theme, isDark, l10n),
+          ],
           const Spacer(),
+          _buildAccountSection(user, theme, isDark, l10n),
+        ],
+      ),
+    );
+  }
 
-          const SizedBox(height: AppTheme.spaceMd),
+  /// Streak card — shows active streak + best streak badge. Hidden when no data.
+  Widget _buildStreakCard(ThemeData theme, bool isDark, AppLocalizations l10n) {
+    final streak = _currentStreak ?? 0;
+    if (streak == 0 && _currentStreak == null) return const SizedBox.shrink();
 
-          // SIGN OUT BUTTON (bottom pinned)
-          if (!user.isAnonymous)
-            TextButton.icon(
-              onPressed: _handleSignOut,
-              icon: Icon(Icons.logout, size: AppIconSizes.sm),
-              label: Text(l10n.profileSignOut),
-              style: TextButton.styleFrom(
-                foregroundColor: AppColors.error.withValues(alpha: 0.75),
-                minimumSize: const Size.fromHeight(48),
+    if (streak == 0) {
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppTheme.spaceMd,
+          vertical: AppTheme.spaceSm,
+        ),
+        decoration: AppTheme.surfaceContainer(isDark: isDark),
+        child: Text(
+          l10n.profileContributionsHint,
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: AppColors.textTertiary(isDark),
+          ),
+          textAlign: TextAlign.center,
+        ),
+      );
+    }
+
+    return Container(
+      padding: const EdgeInsets.fromLTRB(
+        AppTheme.spaceSm + AppTheme.spaceXxs,
+        AppTheme.spaceSm,
+        AppTheme.spaceMd,
+        AppTheme.spaceSm,
+      ),
+      decoration: AppTheme.kpiCard(isDark: isDark, accentColor: AppColors.primary),
+      child: Row(
+        children: [
+          Icon(Icons.local_fire_department, color: AppColors.primary, size: AppIconSizes.md),
+          const SizedBox(width: AppTheme.spaceSm),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '$streak',
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: AppFontWeights.bold,
+                  letterSpacing: -0.5,
+                  height: 1.0,
+                ),
               ),
-            )
-          else
-            // Anonymous users: Show informational text
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(AppTheme.spaceMd),
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.info_outline,
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                    const SizedBox(width: AppTheme.spaceSm),
-                    Expanded(
-                      child: Text(
-                        l10n.profileAnonymousNote,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: AppColors.textSecondary(isDark),
-                        ),
-                      ),
-                    ),
-                  ],
+              Text(
+                l10n.statsDayStreak,
+                style: theme.textTheme.labelSmall?.copyWith(
+                  fontSize: 10.0,
+                  color: AppColors.textSecondary(isDark),
+                ),
+              ),
+            ],
+          ),
+          if (_longestStreak != null && _longestStreak! > streak) ...[
+            const Spacer(),
+            Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppTheme.spaceXs,
+                vertical: AppTheme.spaceXxxs,
+              ),
+              decoration: BoxDecoration(
+                color: AppColors.primaryAlpha(0.10),
+                borderRadius: BorderRadius.circular(AppTheme.radiusMin),
+              ),
+              child: Text(
+                l10n.statsStreakBest(_longestStreak!),
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: AppColors.primary,
+                  fontWeight: AppFontWeights.semibold,
+                  letterSpacing: 0.5,
                 ),
               ),
             ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildViewStatsButton(ThemeData theme, bool isDark, AppLocalizations l10n) {
+    return SizedBox(
+      width: double.infinity,
+      child: OutlinedButton.icon(
+        onPressed: () {
+          HapticFeedback.lightImpact();
+          widget.onViewStats!();
+        },
+        icon: const Icon(Icons.bar_chart, size: AppIconSizes.sm),
+        label: Text(l10n.profileViewStats),
+        style: OutlinedButton.styleFrom(
+          foregroundColor: AppColors.primary,
+          side: BorderSide(color: AppColors.primary.withValues(alpha: 0.35)),
+          minimumSize: const Size.fromHeight(AppTheme.minTouchTarget),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Account section — sign out + anonymous notice.
+  Widget _buildAccountSection(User user, ThemeData theme, bool isDark, AppLocalizations l10n) {
+    if (!user.isAnonymous) {
+      return TextButton.icon(
+        onPressed: _handleSignOut,
+        icon: Icon(Icons.logout, size: AppIconSizes.sm),
+        label: Text(l10n.profileSignOut),
+        style: TextButton.styleFrom(
+          foregroundColor: AppColors.error.withValues(alpha: 0.75),
+          minimumSize: const Size.fromHeight(AppTheme.minTouchTarget),
+        ),
+      );
+    }
+    return Container(
+      padding: const EdgeInsets.all(AppTheme.spaceMd),
+      decoration: AppTheme.surfaceContainer(isDark: isDark),
+      child: Row(
+        children: [
+          Icon(Icons.info_outline, color: theme.colorScheme.onSurfaceVariant, size: AppIconSizes.sm),
+          const SizedBox(width: AppTheme.spaceSm),
+          Expanded(
+            child: Text(
+              l10n.profileAnonymousNote,
+              style: theme.textTheme.bodySmall?.copyWith(color: AppColors.textSecondary(isDark)),
+            ),
+          ),
         ],
       ),
     );
@@ -235,32 +345,34 @@ class _ProfileScreenState extends State<ProfileScreen> {
       (
         value: _totalUploads != null ? '$_totalUploads' : '—',
         label: l10n.statsTotal.toUpperCase(),
+        color: AppColors.pressure,
       ),
       (
         value: _daysActive != null ? '$_daysActive' : '—',
         label: l10n.statsDaysActive.toUpperCase(),
+        color: AppColors.movement,
       ),
       (
         value: _coverageCells != null ? '$_coverageCells' : '—',
         label: l10n.statsCoverage.toUpperCase(),
+        color: AppColors.quality,
       ),
     ];
 
     return Row(
-      children: tiles.map((tile) {
-        final isLast = tile == tiles.last;
+      children: tiles.indexed.map((entry) {
+        final (i, tile) = entry;
         return Expanded(
           child: Padding(
-            padding: EdgeInsets.only(right: isLast ? 0 : AppTheme.spaceSm),
+            padding: EdgeInsets.only(right: i < tiles.length - 1 ? AppTheme.spaceSm : 0),
             child: Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppTheme.spaceSm,
-                vertical: AppTheme.spaceSm + AppTheme.spaceXxs,
+              padding: const EdgeInsets.fromLTRB(
+                AppTheme.spaceSm + AppTheme.spaceXxs,
+                AppTheme.spaceSm + AppTheme.spaceXxs,
+                AppTheme.spaceSm,
+                AppTheme.spaceSm + AppTheme.spaceXxs,
               ),
-              decoration: BoxDecoration(
-                color: AppColors.surface(isDark),
-                borderRadius: BorderRadius.circular(AppTheme.radiusLg),
-              ),
+              decoration: AppTheme.kpiCard(isDark: isDark, accentColor: tile.color),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -272,6 +384,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       height: 1.0,
                     ),
                   ),
+                  const SizedBox(height: AppTheme.spaceXxxs),
                   Text(
                     tile.label,
                     style: theme.textTheme.labelSmall?.copyWith(
@@ -294,7 +407,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   /// Premium centered user header with gradient avatar ring
   Widget _buildCompactUserHeader(User user, ThemeData theme, bool isDark, AppLocalizations l10n) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: AppTheme.spaceXl),
+      padding: const EdgeInsets.symmetric(vertical: AppTheme.spaceMd),
       child: Column(
         children: [
           // Avatar with gradient ring

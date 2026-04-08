@@ -376,7 +376,11 @@ class AppLocalizationsFr extends AppLocalizations {
   String get chipPaused => 'En pause';
 
   @override
-  String get chipTapStart => 'Démarrer';
+  String get chipTapStart => 'Prêt';
+
+  @override
+  String get homeFirstUseHint =>
+      'Appuyez sur ▶ · cartographie la ville silencieusement';
 
   @override
   String get uploadSuccessMessage => 'Contribution envoyée avec succès !';
@@ -419,6 +423,12 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get statsCoverage => 'Zones';
+
+  @override
+  String get statsAreasLabel => 'zones cartographiées';
+
+  @override
+  String get statsDataPtsLabel => 'pts de données';
 
   @override
   String get statsTotalContributions => 'Total des contributions';
@@ -843,6 +853,17 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get statsMilestoneElite =>
       'Contributeur élite · tous les paliers atteints';
+
+  @override
+  String statsMilestoneRemaining(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count zones restantes',
+      one: '1 zone restante',
+    );
+    return '$_temp0';
+  }
 
   @override
   String statsCommunityAreas(int count) {

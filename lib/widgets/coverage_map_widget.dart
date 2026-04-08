@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:ui';
 import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -79,6 +80,7 @@ const _kSourceUserDot   = 'gg-user';
 const _kLayerGridLines  = 'gg-grid-lines';
 const _kLayerTilesFill  = 'gg-tiles-fill';
 const _kLayerTilesLine  = 'gg-tiles-line';
+const _kLayerTilesLabel = 'gg-tiles-label';
 const _kLayerLiveFill   = 'gg-live-fill';
 const _kLayerLiveLine   = 'gg-live-line';
 const _kLayerUserHalo   = 'gg-user-halo';
@@ -222,25 +224,57 @@ class _CoverageMapWidgetState extends State<CoverageMapWidget> {
     for (final tile in widget.tiles) {
       if (tile.boundary == null || tile.boundary!.isEmpty) continue;
       _tileById[tile.h3Index] = tile;
-      final fill = _fillOpacity(tile.sampleCount, isGlobal: tile.isGlobal);
+      final color = _colorHex(tile);
+      // Centroid = average of boundary points — used for label placement
+      final lats = tile.boundary!.map((p) => p.latitude);
+      final lngs = tile.boundary!.map((p) => p.longitude);
+      final cLat = lats.reduce((a, b) => a + b) / tile.boundary!.length;
+      final cLng = lngs.reduce((a, b) => a + b) / tile.boundary!.length;
       features.add({
         'type': 'Feature',
         'properties': {
           'h3Index': tile.h3Index,
-          'color': _colorHex(tile.sampleCount, isGlobal: tile.isGlobal),
-          'fillOpacity': fill,
-          'borderOpacity': tile.isGlobal ? 0.0 : _strokeOpacity(tile.sampleCount),
+          'color': color,
+          'fillOpacity': _fillOpacity(tile),
+          'borderOpacity': _strokeOpacity(tile),
           'borderWidth': tile.isGlobal ? 0.0 : 1.8,
+          // Label: quality % for personal, nothing for global (too cluttered)
+          'label': tile.isGlobal ? '' : '${_qualityPct(tile)}%',
+          'centLng': cLng,
+          'centLat': cLat,
         },
         'geometry': {
           'type': 'Polygon',
           'coordinates': [
             [
               ...tile.boundary!.map((ll.LatLng p) => [p.longitude, p.latitude]),
-              // RFC 7946 requires explicit ring closure — h3_flutter does not close
               [tile.boundary!.first.longitude, tile.boundary!.first.latitude],
             ],
           ],
+        },
+      });
+    }
+    return {'type': 'FeatureCollection', 'features': features};
+  }
+
+  /// Separate point GeoJSON for hex labels — MapLibre symbol layers need Point geometry.
+  Map<String, dynamic> _tileLabelsGeoJson() {
+    final features = <Map<String, dynamic>>[];
+    for (final tile in widget.tiles) {
+      if (tile.isGlobal || tile.boundary == null || tile.boundary!.isEmpty) continue;
+      final lats = tile.boundary!.map((p) => p.latitude);
+      final lngs = tile.boundary!.map((p) => p.longitude);
+      final cLat = lats.reduce((a, b) => a + b) / tile.boundary!.length;
+      final cLng = lngs.reduce((a, b) => a + b) / tile.boundary!.length;
+      features.add({
+        'type': 'Feature',
+        'properties': {
+          'label': '${_qualityPct(tile)}%',
+          'color': _colorHex(tile),
+        },
+        'geometry': {
+          'type': 'Point',
+          'coordinates': [cLng, cLat],
         },
       });
     }
@@ -294,33 +328,45 @@ class _CoverageMapWidgetState extends State<CoverageMapWidget> {
     };
   }
 
-  // ── Heatmap palette (pressure blue → movement teal → quality green → light amber) ──
+  // ── Quality-based palette ─────────────────────────────────────────────────
+  // Colors communicate data quality — universally readable regardless of sensor
+  // type. Green = high quality, yellow = medium, red = poor.
+  // Global tiles are slightly dimmer so personal tiles always read as "yours".
 
-  static String _colorHex(int count, {bool isGlobal = false}) {
-    // Global (community) tiles use a cooler palette so personal tiles always
-    // read as "yours" at a glance — Helium warm/cool convention.
-    if (isGlobal) return AppColors.communityHex;
-    if (count >= 10) return AppColors.lightHex;
-    if (count >= 6)  return AppColors.qualityHex;
-    if (count >= 3)  return AppColors.movementHex;
-    return AppColors.pressureHex;
+  /// Returns the effective quality score (0–100) for a tile.
+  /// Uses qualityScore when available (global tiles), confidence otherwise.
+  static int _qualityPct(H3Tile tile) {
+    if (tile.qualityScore != null) return (tile.qualityScore! * 100).round();
+    return (tile.confidence * 100).round();
   }
 
-  static double _fillOpacity(int count, {bool isGlobal = false}) {
-    // DePIN standard: low fill + strong stroke — shape defined by edge, not fill.
-    // High fill covers the base map; low fill creates a "glow on canvas" effect.
-    if (isGlobal) return 0.18;
-    if (count >= 10) return 0.28;
-    if (count >= 6)  return 0.24;
-    if (count >= 3)  return 0.20;
-    return 0.16;
+  static String _colorHex(H3Tile tile) {
+    final q = _qualityPct(tile);
+    if (tile.isGlobal) {
+      // Muted versions — community context, not personal territory
+      if (q >= 75) return '#059669'; // emerald-600
+      if (q >= 50) return '#b45309'; // amber-700
+      return '#b91c1c';              // red-700
+    }
+    if (q >= 75) return '#10b981';   // emerald-500 — high quality
+    if (q >= 50) return '#fbbf24';   // amber-400   — medium
+    return '#ef4444';                // red-400     — poor
   }
 
-  static double _strokeOpacity(int count) {
-    if (count >= 10) return 0.90;
-    if (count >= 6)  return 0.78;
-    if (count >= 3)  return 0.68;
-    return 0.55;
+  static double _fillOpacity(H3Tile tile) {
+    if (tile.isGlobal) return 0.16;
+    final q = _qualityPct(tile);
+    if (q >= 75) return 0.28;
+    if (q >= 50) return 0.24;
+    return 0.20;
+  }
+
+  static double _strokeOpacity(H3Tile tile) {
+    if (tile.isGlobal) return 0.0;
+    final q = _qualityPct(tile);
+    if (q >= 75) return 0.90;
+    if (q >= 50) return 0.75;
+    return 0.60;
   }
 
   // ── MapLibre lifecycle ──────────────────────────────────────────────────────
@@ -360,6 +406,7 @@ class _CoverageMapWidgetState extends State<CoverageMapWidget> {
       ctrl.addGeoJsonSource(_kSourceTiles, _kEmptyFC),
       ctrl.addGeoJsonSource(_kSourceLiveCell, _kEmptyFC),
       ctrl.addGeoJsonSource(_kSourceUserDot, _kEmptyFC),
+      ctrl.addGeoJsonSource('gg-tile-labels', _kEmptyFC),
     ]);
 
     // ── Ghost grid — faint outlines (only visible at zoom ≥ 9 to avoid ANR) ──
@@ -396,6 +443,21 @@ class _CoverageMapWidgetState extends State<CoverageMapWidget> {
         lineWidth: ['get', 'borderWidth'],
       ),
       minzoom: 9.0,
+    );
+
+    // ── Hex quality labels — shown at zoom ≥ 12, personal tiles only ──
+    await ctrl.addSymbolLayer(
+      'gg-tile-labels',
+      _kLayerTilesLabel,
+      const SymbolLayerProperties(
+        textField: ['get', 'label'],
+        textColor: ['get', 'color'],
+        textSize: 10.0,
+        textFont: ['DIN Offc Pro Medium', 'Arial Unicode MS Regular'],
+        textAllowOverlap: false,
+        textIgnorePlacement: false,
+      ),
+      minzoom: 12.0,
     );
 
     // ── Live cell (amber — same as AppColors.light) ──
@@ -475,6 +537,7 @@ class _CoverageMapWidgetState extends State<CoverageMapWidget> {
 
     await Future.wait([
       ctrl.setGeoJsonSource(_kSourceTiles, _tilesToGeoJson()),
+      ctrl.setGeoJsonSource('gg-tile-labels', _tileLabelsGeoJson()),
       ctrl.setGeoJsonSource(_kSourceLiveCell, _liveCellGeoJson()),
       ctrl.setGeoJsonSource(_kSourceUserDot, _userDotGeoJson()),
       ctrl.setLayerProperties(_kLayerLiveFill, FillLayerProperties(fillOpacity: liveFillOpacity)),
@@ -752,37 +815,33 @@ class MapHeatmapLegend extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = context.isDarkMode;
-    return Container(
+    // Legend always floats over the dark map — always dark glass.
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: AppTheme.glassBlurSigma, sigmaY: AppTheme.glassBlurSigma),
+        child: Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-      decoration: BoxDecoration(
-        color: isDark
-            ? Colors.black.withValues(alpha: 0.65)
-            : Colors.white.withValues(alpha: 0.88),
-        borderRadius: BorderRadius.circular(AppTheme.radiusSm),
-        border: Border.all(
-          color: AppColors.border(isDark).withValues(alpha: 0.5),
-        ),
-      ),
+      decoration: AppColors.glassDecoration(isDark: true, backgroundAlpha: 0.50, borderAlpha: 0.12),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _LegendDot(color: AppColors.light,    label: '10+'),
+          _LegendDot(color: AppColors.quality,  label: '≥75%'),
           const SizedBox(height: 4),
-          _LegendDot(color: AppColors.quality,  label: '6–9'),
+          _LegendDot(color: AppColors.light,    label: '50–74%'),
           const SizedBox(height: 4),
-          _LegendDot(color: AppColors.movement, label: '3–5'),
-          const SizedBox(height: 4),
-          _LegendDot(color: AppColors.pressure, label: '1–2'),
+          _LegendDot(color: const Color(0xFFef4444), label: '<50%'),
           if (hasCommunityTiles) ...[
-            Divider(height: 10, color: AppColors.border(isDark)),
+            Divider(height: 10, color: Colors.white24),
             _LegendDot(
               color: AppColors.community.withValues(alpha: 0.7),
               label: context.l10n.tileInfoCommunity,
             ),
           ],
         ],
+      ),
+        ),
       ),
     );
   }
@@ -829,7 +888,15 @@ class TileInfoSheet extends StatelessWidget {
     final isDark = context.isDarkMode;
     final l10n = context.l10n;
     final isPersonal = !tile.isGlobal;
-    final accentColor = isPersonal ? AppColors.quality : AppColors.community;
+
+    final qualityPct = tile.qualityScore != null
+        ? (tile.qualityScore! * 100).round()
+        : (tile.confidence * 100).round();
+    final qualityColor = qualityPct >= 75
+        ? AppColors.quality
+        : qualityPct >= 50
+            ? AppColors.light
+            : AppColors.error;
 
     return Container(
       margin: const EdgeInsets.symmetric(
@@ -837,7 +904,12 @@ class TileInfoSheet extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.surface(isDark),
         borderRadius: BorderRadius.circular(AppTheme.radiusLg),
-        border: Border.all(color: AppColors.border(isDark)),
+        border: Border(
+          top: BorderSide(color: qualityColor, width: 3),
+          left: BorderSide(color: AppColors.border(isDark)),
+          right: BorderSide(color: AppColors.border(isDark)),
+          bottom: BorderSide(color: AppColors.border(isDark)),
+        ),
       ),
       child: SafeArea(
         top: false,
@@ -850,30 +922,39 @@ class TileInfoSheet extends StatelessWidget {
               width: 32,
               height: 4,
               decoration: BoxDecoration(
-                color:
-                    AppColors.textSecondary(isDark).withValues(alpha: 0.3),
+                color: AppColors.textSecondary(isDark).withValues(alpha: 0.3),
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
-            // Title row
+            // Title + quality badge row
             Padding(
               padding: const EdgeInsets.fromLTRB(
                   AppTheme.spaceMd, 0, AppTheme.spaceMd, AppTheme.spaceMd),
               child: Row(
                 children: [
-                  Container(
-                    width: 10,
-                    height: 10,
-                    decoration: BoxDecoration(
-                        color: accentColor, shape: BoxShape.circle),
-                  ),
-                  const SizedBox(width: AppTheme.spaceXs),
                   Text(
                     isPersonal ? l10n.tileInfoPersonal : l10n.tileInfoCommunity,
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
                           color: AppColors.textPrimary(isDark),
                           fontWeight: AppFontWeights.semibold,
                         ),
+                  ),
+                  const Spacer(),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: AppTheme.spaceSm, vertical: AppTheme.spaceXxxs),
+                    decoration: BoxDecoration(
+                      color: qualityColor.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(AppTheme.radiusPill),
+                    ),
+                    child: Text(
+                      '$qualityPct%',
+                      style: TextStyle(
+                        color: qualityColor,
+                        fontSize: 12,
+                        fontWeight: AppFontWeights.bold,
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -890,19 +971,6 @@ class TileInfoSheet extends StatelessWidget {
                     label: l10n.tileInfoSamplesLabel,
                     isDark: isDark,
                   ),
-                  if (tile.qualityScore != null)
-                    _StatItem(
-                      value: '${(tile.qualityScore! * 100).round()}%',
-                      label: l10n.tileInfoQuality,
-                      isDark: isDark,
-                      color: AppColors.quality,
-                    )
-                  else
-                    _StatItem(
-                      value: '${(tile.confidence * 100).round()}%',
-                      label: l10n.tileInfoConfidence,
-                      isDark: isDark,
-                    ),
                   _StatItem(
                     value: '${tile.deviceCount}',
                     label: l10n.tileInfoDevicesLabel,
@@ -923,12 +991,10 @@ class _StatItem extends StatelessWidget {
     required this.value,
     required this.label,
     required this.isDark,
-    this.color,
   });
   final String value;
   final String label;
   final bool isDark;
-  final Color? color;
 
   @override
   Widget build(BuildContext context) {
@@ -938,7 +1004,7 @@ class _StatItem extends StatelessWidget {
         Text(
           value,
           style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                color: color ?? AppColors.textPrimary(isDark),
+                color: AppColors.textPrimary(isDark),
                 fontWeight: AppFontWeights.semibold,
               ),
         ),

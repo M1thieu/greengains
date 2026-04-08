@@ -755,7 +755,7 @@ abstract class AppLocalizations {
   /// No description provided for @chipContributing.
   ///
   /// In en, this message translates to:
-  /// **'Contributing'**
+  /// **'Mapping'**
   String get chipContributing;
 
   /// No description provided for @chipPaused.
@@ -767,8 +767,14 @@ abstract class AppLocalizations {
   /// No description provided for @chipTapStart.
   ///
   /// In en, this message translates to:
-  /// **'Tap Start'**
+  /// **'Ready'**
   String get chipTapStart;
+
+  /// No description provided for @homeFirstUseHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap ▶ · maps your city silently while you move'**
+  String get homeFirstUseHint;
 
   /// No description provided for @uploadSuccessMessage.
   ///
@@ -847,6 +853,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Zones'**
   String get statsCoverage;
+
+  /// No description provided for @statsAreasLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'areas mapped'**
+  String get statsAreasLabel;
+
+  /// No description provided for @statsDataPtsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'data pts'**
+  String get statsDataPtsLabel;
 
   /// No description provided for @statsTotalContributions.
   ///
@@ -1550,6 +1568,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Elite contributor · all milestones reached'**
   String get statsMilestoneElite;
+
+  /// No description provided for @statsMilestoneRemaining.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 area to go} other{{count} areas to go}}'**
+  String statsMilestoneRemaining(int count);
 
   /// No description provided for @statsCommunityAreas.
   ///

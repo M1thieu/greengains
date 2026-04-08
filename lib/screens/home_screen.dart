@@ -333,6 +333,25 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               },
             ),
 
+            // ── 0b. First-use hint — shown until user has tiles or starts tracking ──
+            if (_h3Tiles.isEmpty && !_locationService.isRunning.value)
+              Center(
+                child: Padding(
+                  padding: EdgeInsets.only(
+                    bottom: bottomPadding + AppTheme.floatingNavHeight + AppTheme.spaceXxl + 40,
+                  ),
+                  child: _FirstUseHint(),
+                ),
+              ),
+
+            // ── 0c. Legend — top-right, shown when tiles are visible ──────
+            if (_h3Tiles.isNotEmpty || _globalTiles.isNotEmpty)
+              Positioned(
+                top: topPadding + AppTheme.spaceXs,
+                right: AppTheme.spaceMd,
+                child: MapHeatmapLegend(hasCommunityTiles: _globalTiles.isNotEmpty),
+              ),
+
             // ── 1. Status chip (intrinsic width, left-aligned) ────────────
             Positioned(
               top: topPadding + AppTheme.spaceXs,
@@ -405,6 +424,40 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 }
 
 // ─── Private widgets ────────────────────────────────────────────────────────
+
+/// First-use hint — shown until user has tiles or starts tracking.
+/// Glass pill pointing toward the FAB. Auto-dismissed once tracking starts.
+class _FirstUseHint extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(AppTheme.radiusPill),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: AppTheme.glassBlurSigma, sigmaY: AppTheme.glassBlurSigma),
+        child: Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppTheme.spaceMd,
+            vertical: AppTheme.spaceSm,
+          ),
+          decoration: AppColors.glassDecoration(
+            isDark: true,
+            backgroundAlpha: 0.55,
+            borderAlpha: 0.15,
+          ),
+          child: Text(
+            context.l10n.homeFirstUseHint,
+            style: const TextStyle(
+              color: Colors.white70,
+              fontSize: 13.0,
+              fontWeight: AppFontWeights.medium,
+              letterSpacing: 0.1,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
 
 /// Compact pill showing personal zone count — purely self-focused context on the map.
 /// Same glass style as TrackingStatusChip. No tap action needed — the number itself
