@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../core/extensions/context_extensions.dart';
 import '../core/themes.dart';
 import '../l10n/app_localizations.dart';
@@ -28,6 +29,7 @@ class TrackingStatusChip extends StatelessWidget {
     required this.isPaused,
     this.lastUpload,
     this.tileCount = 0,
+    this.onTap,
   });
 
   final bool isTracking;
@@ -35,6 +37,8 @@ class TrackingStatusChip extends StatelessWidget {
   final DateTime? lastUpload;
   /// Personal H3 tile count — shown as "· N zones" when > 0 and tracking/paused.
   final int tileCount;
+  /// Optional tap handler — shown with a subtle affordance when set.
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -42,7 +46,14 @@ class TrackingStatusChip extends StatelessWidget {
     final (dotColor, label) = _state(l10n);
     final isActive = isTracking && !isPaused;
 
-    return IntrinsicWidth(
+    return GestureDetector(
+      onTap: onTap != null
+          ? () {
+              HapticFeedback.lightImpact();
+              onTap!();
+            }
+          : null,
+      child: IntrinsicWidth(
       child: ClipRRect(
         borderRadius: BorderRadius.circular(AppTheme.radiusPill),
         child: BackdropFilter(
@@ -114,7 +125,8 @@ class TrackingStatusChip extends StatelessWidget {
           ),
         ),
       ),
-    );
+    ),
+  );
   }
 
   (Color, String) _state(AppLocalizations l10n) {

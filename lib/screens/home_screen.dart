@@ -18,6 +18,7 @@ import '../core/app_preferences.dart';
 import '../widgets/coverage_map_widget.dart';
 import '../widgets/tracking_status_chip.dart';
 import '../widgets/tracking_fab.dart';
+import '../widgets/sensor_section.dart';
 
 // My Location button: 48×48 standard touch target.
 const _kLocationBtnSize = AppTheme.minTouchTarget; // 48
@@ -42,7 +43,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   final _locationService = ForegroundLocationService.instance;
   final _prefs = AppPreferences.instance;
   final _h3 = const h3f.H3Factory().load();
-  final _userLocationNotifier = ValueNotifier<LatLng?>(null);
+  late final _userLocationNotifier = ValueNotifier<LatLng?>(_cachedLocation());
   /// Incrementing recenter triggers CoverageMapWidget to move camera to user.
   final _recenterTrigger = ValueNotifier<int>(0);
 
@@ -256,12 +257,21 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         timeLimit: const Duration(seconds: 5),
       );
       if (mounted) {
-        _userLocationNotifier.value =
-            LatLng(position.latitude, position.longitude);
+        final pos = LatLng(position.latitude, position.longitude);
+        _userLocationNotifier.value = pos;
+        _prefs.saveLastPosition(position.latitude, position.longitude);
       }
     } catch (e) {
       debugPrint('Failed to get user location: $e');
     }
+  }
+
+  /// Return last saved position from prefs — used as initial map center
+  /// so the map opens where the user was, not Colmar.
+  LatLng? _cachedLocation() {
+    final saved = _prefs.lastKnownPosition;
+    if (saved == null) return null;
+    return LatLng(saved.lat, saved.lng);
   }
 
   void _subscribeToLocationUpdates() {
@@ -271,6 +281,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       final pos = LatLng(locationData.latitude, locationData.longitude);
       _userLocationNotifier.value = pos;
       _updateCurrentH3Cell(pos);
+      // Persist so next cold start opens at correct location
+      _prefs.saveLastPosition(locationData.latitude, locationData.longitude);
     });
   }
 
@@ -293,6 +305,15 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       context: context,
       backgroundColor: Colors.transparent,
       builder: (_) => TileInfoSheet(tile: tile),
+    );
+  }
+
+  void _openSensorSheet() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (_) => _SensorLiveSheet(locationService: _locationService),
     );
   }
 
@@ -322,6 +343,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                   currentH3Boundary: _currentH3Boundary,
                   isTracking: isTracking,
                   onTileTap: _onTileTap,
+                  onTileLongPress: _onTileTap,
                   fillScreen: true,
                   isLoading: _h3TilesLoading,
                   recenterTrigger: _recenterTrigger,
@@ -344,13 +366,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 ),
               ),
 
-            // ── 0c. Legend — top-right, shown when tiles are visible ──────
-            if (_h3Tiles.isNotEmpty || _globalTiles.isNotEmpty)
-              Positioned(
-                top: topPadding + AppTheme.spaceXs,
-                right: AppTheme.spaceMd,
-                child: MapHeatmapLegend(hasCommunityTiles: _globalTiles.isNotEmpty),
-              ),
 
             // ── 1. Status chip (intrinsic width, left-aligned) ────────────
             Positioned(
@@ -371,6 +386,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                         _locationService.isPaused.value,
                     lastUpload: status.lastUpload,
                     tileCount: _h3Tiles.where((t) => t.boundary != null).length,
+                    onTap: _openSensorSheet,
                   );
                 },
               ),
@@ -517,6 +533,79 @@ class _MyLocationButton extends StatelessWidget {
           child: Icon(Icons.my_location, color: Colors.white, size: AppIconSizes.sm),
         ),
       ),
+    );
+  }
+}
+
+/// Bottom sheet showing live sensor readings.
+/// Opened when user taps the status chip — progressive disclosure pattern.
+class _SensorLiveSheet extends StatelessWidget {
+  const _SensorLiveSheet({required this.locationService});
+  final ForegroundLocationService locationService;
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = context.isDarkMode;
+    return DraggableScrollableSheet(
+      initialChildSize: 0.55,
+      minChildSize: 0.35,
+      maxChildSize: 0.85,
+      expand: false,
+      builder: (context, scrollController) {
+        return Container(
+          decoration: BoxDecoration(
+            color: AppColors.surface(isDark),
+            borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(AppTheme.radiusLg)),
+            border: Border.all(color: AppColors.border(isDark)),
+          ),
+          child: Column(
+            children: [
+              // Drag handle
+              Center(
+                child: Container(
+                  margin: const EdgeInsets.symmetric(
+                      vertical: AppTheme.spaceSm),
+                  width: 32,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: AppColors.textSecondary(isDark)
+                        .withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(AppTheme.spaceMd, 0,
+                    AppTheme.spaceMd, AppTheme.spaceSm),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    context.l10n.sensorLiveSheetTitle,
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          fontWeight: AppFontWeights.semibold,
+                        ),
+                  ),
+                ),
+              ),
+              Expanded(
+                child: ListView(
+                  controller: scrollController,
+                  padding: EdgeInsets.only(
+                    left: AppTheme.spaceMd,
+                    right: AppTheme.spaceMd,
+                    bottom: MediaQuery.paddingOf(context).bottom +
+                        AppTheme.spaceMd,
+                  ),
+                  children: [
+                    SensorSection(locationService: locationService),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

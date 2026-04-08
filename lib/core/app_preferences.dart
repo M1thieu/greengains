@@ -401,4 +401,22 @@ class AppPreferences {
   Future<void> setFirebaseAuthToken(String value) async {
     await _sp.setString(PreferenceKeys.firebaseAuthToken, value);
   }
+
+  // ── Last known GPS position (for instant map centering on cold start) ───────
+
+  /// Save the last known user position so the map can center immediately on next open.
+  Future<void> saveLastPosition(double lat, double lng) async {
+    await Future.wait([
+      _sp.setDouble('last_known_lat', lat),
+      _sp.setDouble('last_known_lng', lng),
+    ]);
+  }
+
+  /// Returns the last saved position, or null if never set.
+  ({double lat, double lng})? get lastKnownPosition {
+    final lat = _sp.getDouble('last_known_lat');
+    final lng = _sp.getDouble('last_known_lng');
+    if (lat == null || lng == null) return null;
+    return (lat: lat, lng: lng);
+  }
 }

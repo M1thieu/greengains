@@ -37,6 +37,7 @@ import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.Priority
 import io.flutter.plugin.common.MethodChannel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -124,14 +125,14 @@ class ForegroundService : Service() {
     private var lastAcceptedLocation: Location? = null
 
     // Adaptive GPS optimization with interval-based battery savings:
-    // - Always uses PRIORITY_HIGH_ACCURACY for fresh GPS/network locations
+    // - Always uses Priority.PRIORITY_HIGH_ACCURACY for fresh GPS/network locations
     // - Stationary: 60s interval (~50% battery savings, still fresh data)
     // - Moving: 10s interval (better tracking)
     // - FusedLocationProvider automatically falls back to network/WiFi when GPS unavailable
     // - Dart side uses LocationData.recommendedH3Resolution to assign appropriate tile sizes
     // - This approach prevents "stale" locations while maintaining battery efficiency
     private var currentMotionState = MotionState.UNKNOWN
-    private var currentGpsPriority = LocationRequest.PRIORITY_HIGH_ACCURACY
+    private var currentGpsPriority = Priority.PRIORITY_HIGH_ACCURACY
 
     override fun onCreate() {
         super.onCreate()
@@ -442,7 +443,7 @@ class ForegroundService : Service() {
 
     @SuppressLint("MissingPermission")
     private fun startLocationUpdates(
-        priority: Int = LocationRequest.PRIORITY_HIGH_ACCURACY,
+        priority: Int = Priority.PRIORITY_HIGH_ACCURACY,
         intervalMs: Long = LOCATION_UPDATES_INTERVAL_MS
     ) {
         val hasFine = PermissionChecker.checkSelfPermission(this, ACCESS_FINE_LOCATION) == PermissionChecker.PERMISSION_GRANTED
@@ -455,11 +456,17 @@ class ForegroundService : Service() {
 
         currentGpsPriority = priority
 
-        val request = LocationRequest.create().apply {
-            interval = intervalMs
-            fastestInterval = intervalMs
-            this.priority = priority
-        }
+        // LocationRequest.Builder (API 21+) replaces the deprecated LocationRequest.create().
+        // setMaxUpdateDelayMillis: batch location callbacks — CPU wakes 3x less often.
+        // setMinUpdateDistanceMeters: skip callbacks if device hasn't moved (STATIONARY only).
+        val isStationary = priority == Priority.PRIORITY_BALANCED_POWER_ACCURACY
+        val request = LocationRequest.Builder(priority, intervalMs)
+            .setMinUpdateIntervalMillis(intervalMs)
+            .setMaxUpdateDelayMillis(intervalMs * 3)
+            .apply {
+                if (isStationary) setMinUpdateDistanceMeters(50f)
+            }
+            .build()
 
         fusedLocationClient.requestLocationUpdates(request, locationCallback, Looper.getMainLooper())
         Log.d(TAG, "GPS location updates started: priority=${getPriorityName(priority)}, interval=${intervalMs}ms")
@@ -479,10 +486,10 @@ class ForegroundService : Service() {
      *   - Transition back from STATIONARY is fast: first accelerometer spike triggers upgrade
      */
     private fun gpsConfigFor(state: MotionState): Pair<Int, Long> = when (state) {
-        MotionState.STATIONARY -> LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY to 60_000L
-        MotionState.LIGHT      -> LocationRequest.PRIORITY_HIGH_ACCURACY to 30_000L
-        MotionState.ACTIVE     -> LocationRequest.PRIORITY_HIGH_ACCURACY to 10_000L
-        MotionState.UNKNOWN    -> LocationRequest.PRIORITY_HIGH_ACCURACY to LOCATION_UPDATES_INTERVAL_MS
+        MotionState.STATIONARY -> Priority.PRIORITY_BALANCED_POWER_ACCURACY to 60_000L
+        MotionState.LIGHT      -> Priority.PRIORITY_HIGH_ACCURACY to 30_000L
+        MotionState.ACTIVE     -> Priority.PRIORITY_HIGH_ACCURACY to 10_000L
+        MotionState.UNKNOWN    -> Priority.PRIORITY_HIGH_ACCURACY to LOCATION_UPDATES_INTERVAL_MS
     }
 
     @SuppressLint("MissingPermission")
@@ -505,10 +512,10 @@ class ForegroundService : Service() {
     private fun getCurrentLocationInterval(): Long = gpsConfigFor(currentMotionState).second
 
     private fun getPriorityName(priority: Int): String = when (priority) {
-        LocationRequest.PRIORITY_HIGH_ACCURACY -> "HIGH_ACCURACY"
-        LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY -> "BALANCED_POWER_ACCURACY"
-        LocationRequest.PRIORITY_LOW_POWER -> "LOW_POWER"
-        LocationRequest.PRIORITY_NO_POWER -> "NO_POWER"
+        Priority.PRIORITY_HIGH_ACCURACY -> "HIGH_ACCURACY"
+        Priority.PRIORITY_BALANCED_POWER_ACCURACY -> "BALANCED_POWER_ACCURACY"
+        Priority.PRIORITY_LOW_POWER -> "LOW_POWER"
+        Priority.PRIORITY_NO_POWER -> "NO_POWER"
         else -> "UNKNOWN($priority)"
     }
 

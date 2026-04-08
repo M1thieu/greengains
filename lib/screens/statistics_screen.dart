@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import '../core/extensions/context_extensions.dart';
 import '../core/themes.dart';
@@ -28,7 +29,6 @@ const _kTrioLabelSize     = 10.0;  // small label inside supporting trio tiles
 const _kLetterSpacingDisplay  = -2.0;  // tight tracking for displayLarge hero number
 const _kLetterSpacingHero     = -0.5;  // tight tracking for titleLarge in tiles
 const _kLetterSpacingCaps     = 2.0;   // wide tracking for uppercase LABEL badges
-const _kLetterSpacingSection  = 1.2;   // small-caps section header tracking
 const _kLineHeightTight       = 1.0;   // tight line-height for numeric displays
 
 // Zone milestones — territory achievements visible on the map.
@@ -61,8 +61,6 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
   int? _daysActive;
   int? _backendTotalUploads;
   int? _coverageCells; // distinct H3 res-9 cells ever contributed
-  int? _currentStreak;
-  int? _longestStreak;
   bool _isLoadingWeekly = true;
 
   StreamSubscription<UploadSuccessEvent>? _uploadSuccessSub;
@@ -115,8 +113,6 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
           _daysActive = profile.daysActive;
           _backendTotalUploads = profile.totalUploads;
           _coverageCells = profile.coverageCells;
-          _currentStreak = profile.currentStreak;
-          _longestStreak = profile.longestStreak;
         });
       }
     } catch (_) {
@@ -185,11 +181,12 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
   Widget _buildHeroCard(ThemeData theme, bool isDark, AppLocalizations l10n) {
     final localTotal = _stats?.totalUploads ?? 0;
     final totalUploads = localTotal > 0 ? localTotal : (_backendTotalUploads ?? 0);
-    // Zones are the primary user-facing metric — tangible territory on the map.
-    // Falls back to upload count while zones are loading.
-    final zones = _coverageCells;
-    final heroValue = zones ?? totalUploads;
-    final heroLabel = zones != null ? l10n.statsAreasLabel : l10n.statsTotal.toLowerCase();
+    // H3 res-9 hex = 0.1053 km² — tangible territory the user can picture.
+    final zones = _coverageCells ?? 0;
+    final km2 = (zones * 0.1053);
+    final kmDisplay = km2 < 1.0
+        ? km2.toStringAsFixed(2)
+        : km2.toStringAsFixed(1);
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(AppTheme.radiusLg),
@@ -201,7 +198,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                '$heroValue',
+                kmDisplay,
                 style: theme.textTheme.displayLarge?.copyWith(
                   fontWeight: AppFontWeights.bold,
                   letterSpacing: _kLetterSpacingDisplay,
@@ -212,30 +209,21 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
               Row(
                 children: [
                   Text(
-                    heroLabel.toUpperCase(),
+                    l10n.statsKmMapped.toUpperCase(),
                     style: theme.textTheme.labelSmall?.copyWith(
                       color: AppColors.primary,
                       letterSpacing: _kLetterSpacingCaps,
                       fontWeight: AppFontWeights.semibold,
                     ),
                   ),
-                  if (zones != null && totalUploads > 0) ...[
+                  _InfoIcon(title: l10n.infoKmTitle, body: l10n.infoKmBody),
+                  if (totalUploads > 0) ...[
                     const SizedBox(width: AppTheme.spaceSm),
                     Text(
                       '$totalUploads ${l10n.statsDataPtsLabel}',
                       style: theme.textTheme.labelSmall?.copyWith(
                         color: AppColors.textTertiary(isDark),
                         fontWeight: AppFontWeights.medium,
-                      ),
-                    ),
-                  ],
-                  if (_longestStreak != null && _longestStreak! > 0) ...[
-                    const SizedBox(width: AppTheme.spaceSm),
-                    Text(
-                      l10n.statsStreakBest(_longestStreak!),
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: AppColors.textTertiary(isDark),
-                        letterSpacing: _kLetterSpacingSection,
                       ),
                     ),
                   ],
@@ -252,25 +240,11 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
 
   Widget _buildSupportingTrio(ThemeData theme, bool isDark) {
     final l10n = context.l10n;
-    final streak = _currentStreak ?? _stats?.currentStreak ?? 0;
-    final localTotal = _stats?.totalUploads ?? 0;
-    final totalUploads = localTotal > 0 ? localTotal : (_backendTotalUploads ?? 0);
+    final bestDay = _weeklyData != null ? _weeklyData!.fold(0, max) : 0;
     final tiles = [
-      (
-        value: '${_stats?.uploadsToday ?? 0}',
-        label: l10n.statsToday,
-        color: AppColors.pressure,
-      ),
-      (
-        value: streak > 0 ? '$streak' : (_daysActive != null ? '$_daysActive' : '—'),
-        label: streak > 0 ? l10n.statsStreak : l10n.statsDaysActive,
-        color: AppColors.movement,
-      ),
-      (
-        value: totalUploads > 0 ? '$totalUploads' : '—',
-        label: l10n.statsDataPtsLabel,
-        color: AppColors.quality,
-      ),
+      (value: '${_stats?.uploadsToday ?? 0}', label: l10n.statsToday, color: AppColors.pressure),
+      (value: _daysActive != null ? '$_daysActive' : '—', label: l10n.statsDaysActive, color: AppColors.movement),
+      (value: bestDay > 0 ? '$bestDay' : '—', label: l10n.statsBestDay, color: AppColors.quality),
     ];
 
     return Row(
@@ -372,12 +346,17 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      l10n.statsMilestoneLabel,
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: AppColors.textSecondary(isDark),
-                        fontWeight: AppFontWeights.medium,
-                      ),
+                    Row(
+                      children: [
+                        Text(
+                          l10n.statsMilestoneLabel,
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: AppColors.textSecondary(isDark),
+                            fontWeight: AppFontWeights.medium,
+                          ),
+                        ),
+                        _InfoIcon(title: l10n.infoMilestoneTitle, body: l10n.infoMilestoneBody),
+                      ],
                     ),
                     Text(
                       '$total / $next ${l10n.statsAreasLabel}',
@@ -675,5 +654,72 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
       ),
     );
   }
+}
+
+// ─── Info sheet ───────────────────────────────────────────────────────────────
+
+/// Tappable ⓘ icon that opens a contextual bottom sheet explaining a metric.
+class _InfoIcon extends StatelessWidget {
+  const _InfoIcon({required this.title, required this.body});
+  final String title;
+  final String body;
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return GestureDetector(
+      onTap: () {
+        HapticFeedback.lightImpact();
+        _showInfoSheet(context, title, body, isDark);
+      },
+      behavior: HitTestBehavior.opaque,
+      child: Padding(
+        padding: const EdgeInsets.only(left: AppTheme.spaceXxs),
+        child: Icon(
+          Icons.info_outline,
+          size: 13,
+          color: AppColors.textTertiary(isDark),
+        ),
+      ),
+    );
+  }
+}
+
+void _showInfoSheet(BuildContext context, String title, String body, bool isDark) {
+  showModalBottomSheet(
+    context: context,
+    backgroundColor: Colors.transparent,
+    builder: (_) => Container(
+      margin: const EdgeInsets.fromLTRB(
+        AppTheme.spaceMd, 0, AppTheme.spaceMd, AppTheme.spaceMd,
+      ),
+      padding: const EdgeInsets.all(AppTheme.spaceMd),
+      decoration: BoxDecoration(
+        color: AppColors.surface(isDark),
+        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              fontWeight: AppFontWeights.semibold,
+            ),
+          ),
+          const SizedBox(height: AppTheme.spaceSm),
+          Text(
+            body,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: AppColors.textSecondary(isDark),
+              height: 1.5,
+            ),
+          ),
+          const SizedBox(height: AppTheme.spaceSm),
+        ],
+      ),
+    ),
+  );
 }
 

@@ -38,8 +38,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   int? _totalUploads;
   int? _daysActive;
   int? _coverageCells;
-  int? _currentStreak;
-  int? _longestStreak;
 
   @override
   void initState() {
@@ -56,8 +54,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
           _totalUploads = profile.totalUploads;
           _daysActive = profile.daysActive;
           _coverageCells = profile.coverageCells;
-          _currentStreak = profile.currentStreak;
-          _longestStreak = profile.longestStreak;
         });
       }
     } catch (_) {}
@@ -192,95 +188,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
           _buildCompactUserHeader(user, theme, isDark, l10n),
           const SizedBox(height: AppTheme.spaceMd),
           _buildImpactRow(theme, isDark, l10n),
-          const SizedBox(height: AppTheme.spaceSm),
-          _buildStreakCard(theme, isDark, l10n),
           if (widget.onViewStats != null) ...[
             const SizedBox(height: AppTheme.spaceSm),
             _buildViewStatsButton(theme, isDark, l10n),
           ],
           const Spacer(),
           _buildAccountSection(user, theme, isDark, l10n),
-        ],
-      ),
-    );
-  }
-
-  /// Streak card — shows active streak + best streak badge. Hidden when no data.
-  Widget _buildStreakCard(ThemeData theme, bool isDark, AppLocalizations l10n) {
-    final streak = _currentStreak ?? 0;
-    if (streak == 0 && _currentStreak == null) return const SizedBox.shrink();
-
-    if (streak == 0) {
-      return Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppTheme.spaceMd,
-          vertical: AppTheme.spaceSm,
-        ),
-        decoration: AppTheme.surfaceContainer(isDark: isDark),
-        child: Text(
-          l10n.profileContributionsHint,
-          style: theme.textTheme.bodySmall?.copyWith(
-            color: AppColors.textTertiary(isDark),
-          ),
-          textAlign: TextAlign.center,
-        ),
-      );
-    }
-
-    return Container(
-      padding: const EdgeInsets.fromLTRB(
-        AppTheme.spaceSm + AppTheme.spaceXxs,
-        AppTheme.spaceSm,
-        AppTheme.spaceMd,
-        AppTheme.spaceSm,
-      ),
-      decoration: AppTheme.kpiCard(isDark: isDark, accentColor: AppColors.primary),
-      child: Row(
-        children: [
-          Icon(Icons.local_fire_department, color: AppColors.primary, size: AppIconSizes.md),
-          const SizedBox(width: AppTheme.spaceSm),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                '$streak',
-                style: theme.textTheme.titleLarge?.copyWith(
-                  fontWeight: AppFontWeights.bold,
-                  letterSpacing: -0.5,
-                  height: 1.0,
-                ),
-              ),
-              Text(
-                l10n.statsDayStreak,
-                style: theme.textTheme.labelSmall?.copyWith(
-                  fontSize: 10.0,
-                  color: AppColors.textSecondary(isDark),
-                ),
-              ),
-            ],
-          ),
-          if (_longestStreak != null && _longestStreak! > streak) ...[
-            const Spacer(),
-            Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppTheme.spaceXs,
-                vertical: AppTheme.spaceXxxs,
-              ),
-              decoration: BoxDecoration(
-                color: AppColors.primaryAlpha(0.10),
-                borderRadius: BorderRadius.circular(AppTheme.radiusMin),
-              ),
-              child: Text(
-                l10n.statsStreakBest(_longestStreak!),
-                style: theme.textTheme.labelSmall?.copyWith(
-                  color: AppColors.primary,
-                  fontWeight: AppFontWeights.semibold,
-                  letterSpacing: 0.5,
-                ),
-              ),
-            ),
-          ],
         ],
       ),
     );
@@ -341,10 +254,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   /// 3-column impact stat row shown below the user header
   Widget _buildImpactRow(ThemeData theme, bool isDark, AppLocalizations l10n) {
+    final km2 = _coverageCells != null ? (_coverageCells! * 0.1053) : null;
+    final kmDisplay = km2 == null ? '—' : (km2 < 1.0 ? km2.toStringAsFixed(2) : km2.toStringAsFixed(1));
     final tiles = [
       (
         value: _totalUploads != null ? '$_totalUploads' : '—',
-        label: l10n.statsTotal.toUpperCase(),
+        label: l10n.statsDataPtsLabel.toUpperCase(),
         color: AppColors.pressure,
       ),
       (
@@ -353,8 +268,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
         color: AppColors.movement,
       ),
       (
-        value: _coverageCells != null ? '$_coverageCells' : '—',
-        label: l10n.statsCoverage.toUpperCase(),
+        value: kmDisplay,
+        label: l10n.statsKmMapped.toUpperCase(),
         color: AppColors.quality,
       ),
     ];
@@ -410,16 +325,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
       padding: const EdgeInsets.symmetric(vertical: AppTheme.spaceMd),
       child: Column(
         children: [
-          // Avatar with gradient ring
+          // Avatar with subtle ring
           Container(
             padding: const EdgeInsets.all(_kAvatarRingWidth),
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [AppColors.primary, AppColors.pressure],
-              ),
+              color: AppColors.primary.withValues(alpha: 0.25),
             ),
             child: CircleAvatar(
               radius: _kAvatarRadius,

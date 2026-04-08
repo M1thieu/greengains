@@ -4,6 +4,7 @@ import 'dart:ui';
 import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:maplibre_gl/maplibre_gl.dart';
 import 'package:h3_flutter/h3_flutter.dart' as h3f;
 import 'package:latlong2/latlong.dart' as ll;
@@ -131,6 +132,8 @@ class CoverageMapWidget extends StatefulWidget {
   final List<ll.LatLng>? currentH3Boundary;
   final bool isTracking;
   final void Function(H3Tile tile)? onTileTap;
+  /// Long-press on a tile — same data, different UX affordance (hold to inspect).
+  final void Function(H3Tile tile)? onTileLongPress;
   final double heightFraction;
   final bool showControls;
   final bool fillScreen;
@@ -145,6 +148,7 @@ class CoverageMapWidget extends StatefulWidget {
     this.currentH3Boundary,
     this.isTracking = false,
     this.onTileTap,
+    this.onTileLongPress,
     this.heightFraction = 0.5,
     this.showControls = true,
     this.fillScreen = false,
@@ -154,14 +158,15 @@ class CoverageMapWidget extends StatefulWidget {
   });
 
   @override
-  State<CoverageMapWidget> createState() => _CoverageMapWidgetState();
+  CoverageMapWidgetState createState() => CoverageMapWidgetState();
 }
 
-class _CoverageMapWidgetState extends State<CoverageMapWidget> {
+class CoverageMapWidgetState extends State<CoverageMapWidget> {
   MapLibreMapController? _ctrl;
   bool _styleLoaded = false;
   bool _pendingStyleLoad = false; // style fired before _ctrl was ready
   bool _hasCenteredOnUser = false; // true after first auto-center on GPS fix
+  bool _hasFitTiles = false;       // true after first fit-to-tiles (no GPS case)
   final Map<String, H3Tile> _tileById = {};
   Timer? _gridTimer;
   int _gridGeneration = 0;   // incremented on each refresh; stale results are discarded
@@ -543,6 +548,43 @@ class _CoverageMapWidgetState extends State<CoverageMapWidget> {
       ctrl.setLayerProperties(_kLayerLiveFill, FillLayerProperties(fillOpacity: liveFillOpacity)),
       ctrl.setLayerProperties(_kLayerLiveLine, LineLayerProperties(lineOpacity: liveLineOpacity)),
     ]);
+
+    // If we have tiles but no GPS fix yet, fit camera to tile bounds once.
+    if (!_hasFitTiles && !_hasCenteredOnUser && widget.userLocation == null) {
+      _fitToTiles(ctrl);
+    }
+  }
+
+  /// Fit the camera to all personal tiles so they're always visible on cold start.
+  void _fitToTiles(MapLibreMapController ctrl) {
+    final personal = widget.tiles.where((t) => !t.isGlobal && t.boundary != null && t.boundary!.isNotEmpty).toList();
+    if (personal.isEmpty) return;
+    _hasFitTiles = true;
+
+    // Compute bounding box of all tile centroids (fast, no h3 FFI needed)
+    double minLat = 90, maxLat = -90, minLng = 180, maxLng = -180;
+    for (final tile in personal) {
+      for (final pt in tile.boundary!) {
+        if (pt.latitude < minLat) minLat = pt.latitude;
+        if (pt.latitude > maxLat) maxLat = pt.latitude;
+        if (pt.longitude < minLng) minLng = pt.longitude;
+        if (pt.longitude > maxLng) maxLng = pt.longitude;
+      }
+    }
+
+    // Add ~20% padding around the bounding box
+    final latPad = (maxLat - minLat) * 0.3 + 0.005;
+    final lngPad = (maxLng - minLng) * 0.3 + 0.005;
+    ctrl.animateCamera(
+      CameraUpdate.newLatLngBounds(
+        LatLngBounds(
+          southwest: LatLng(minLat - latPad, minLng - lngPad),
+          northeast: LatLng(maxLat + latPad, maxLng + lngPad),
+        ),
+        left: 32, top: 32, right: 32, bottom: 32,
+      ),
+    );
+    debugPrint('MapLibre: fit to ${personal.length} personal tiles');
   }
 
   Future<void> _refreshGrid() async {
@@ -600,37 +642,49 @@ class _CoverageMapWidgetState extends State<CoverageMapWidget> {
   }
 
   void _onMapTap(Point<double> point, LatLng coords) async {
+    final tile = await _hitTestTile(point);
+    if (tile != null) widget.onTileTap?.call(tile);
+  }
+
+  void _onMapLongPress(Point<double> point, LatLng coords) async {
+    final tile = await _hitTestTile(point);
+    if (tile != null) {
+      HapticFeedback.mediumImpact();
+      (widget.onTileLongPress ?? widget.onTileTap)?.call(tile);
+    }
+  }
+
+  /// Hit-test the tile fill layer at [point] and return the matching [H3Tile].
+  Future<H3Tile?> _hitTestTile(Point<double> point) async {
     final ctrl = _ctrl;
-    if (ctrl == null || widget.onTileTap == null) return;
+    if (ctrl == null) return null;
     final features =
         await ctrl.queryRenderedFeatures(point, [_kLayerTilesFill], null);
-    if (features.isEmpty) return;
+    if (features.isEmpty) return null;
     final props = (features.first as Map<Object?, Object?>?)
         ?['properties'] as Map<Object?, Object?>?;
     final h3Index = props?['h3Index'] as String?;
-    if (h3Index != null && _tileById.containsKey(h3Index)) {
-      widget.onTileTap!(_tileById[h3Index]!);
-    }
+    return h3Index != null ? _tileById[h3Index] : null;
   }
 
   // ── Widget lifecycle ────────────────────────────────────────────────────────
 
   @override
-  void didUpdateWidget(CoverageMapWidget old) {
-    super.didUpdateWidget(old);
-    if (old.recenterTrigger != widget.recenterTrigger) {
-      old.recenterTrigger?.removeListener(_onRecenter);
+  void didUpdateWidget(CoverageMapWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.recenterTrigger != widget.recenterTrigger) {
+      oldWidget.recenterTrigger?.removeListener(_onRecenter);
       widget.recenterTrigger?.addListener(_onRecenter);
     }
     if (!_styleLoaded) return;
 
-    final tilesChanged = !identical(old.tiles, widget.tiles);
-    final locationChanged = old.userLocation != widget.userLocation;
+    final tilesChanged = !identical(oldWidget.tiles, widget.tiles);
+    final locationChanged = oldWidget.userLocation != widget.userLocation;
     final liveChanged = !identical(
-          old.currentH3Boundary,
+          oldWidget.currentH3Boundary,
           widget.currentH3Boundary,
         ) ||
-        old.isTracking != widget.isTracking;
+        oldWidget.isTracking != widget.isTracking;
 
     if (tilesChanged || locationChanged || liveChanged) {
       _refreshAllSources();
@@ -640,7 +694,7 @@ class _CoverageMapWidgetState extends State<CoverageMapWidget> {
     // initialCameraPosition is frozen at build time so if location wasn't
     // available yet (common on cold start) we move the camera here instead.
     if (!_hasCenteredOnUser &&
-        old.userLocation == null &&
+        oldWidget.userLocation == null &&
         widget.userLocation != null &&
         _ctrl != null) {
       _hasCenteredOnUser = true;
@@ -691,6 +745,7 @@ class _CoverageMapWidgetState extends State<CoverageMapWidget> {
       onStyleLoadedCallback: _onStyleLoaded,
       onCameraIdle: _scheduleGridRefresh,
       onMapClick: widget.showControls ? _onMapTap : null,
+      onMapLongClick: widget.showControls ? _onMapLongPress : null,
       compassEnabled: widget.showControls && widget.fillScreen,
       compassViewPosition: CompassViewPosition.topRight,
       compassViewMargins: widget.fillScreen
@@ -808,39 +863,59 @@ class _CoverageMapWidgetState extends State<CoverageMapWidget> {
 
 // ── Map legend ────────────────────────────────────────────────────────────────
 
-/// Compact heatmap legend showing coverage intensity scale.
+/// Compact inline legend — three quality dots + optional community dot.
+/// Tap to open an explanation sheet.
 class MapHeatmapLegend extends StatelessWidget {
   const MapHeatmapLegend({super.key, required this.hasCommunityTiles});
   final bool hasCommunityTiles;
 
   @override
   Widget build(BuildContext context) {
-    // Legend always floats over the dark map — always dark glass.
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(AppTheme.radiusSm),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: AppTheme.glassBlurSigma, sigmaY: AppTheme.glassBlurSigma),
-        child: Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-      decoration: AppColors.glassDecoration(isDark: true, backgroundAlpha: 0.50, borderAlpha: 0.12),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _LegendDot(color: AppColors.quality,  label: '≥75%'),
-          const SizedBox(height: 4),
-          _LegendDot(color: AppColors.light,    label: '50–74%'),
-          const SizedBox(height: 4),
-          _LegendDot(color: const Color(0xFFef4444), label: '<50%'),
-          if (hasCommunityTiles) ...[
-            Divider(height: 10, color: Colors.white24),
-            _LegendDot(
-              color: AppColors.community.withValues(alpha: 0.7),
-              label: context.l10n.tileInfoCommunity,
+    return GestureDetector(
+      onTap: () {
+        HapticFeedback.lightImpact();
+        showModalBottomSheet(
+          context: context,
+          backgroundColor: Colors.transparent,
+          builder: (_) => _LegendInfoSheet(hasCommunityTiles: hasCommunityTiles),
+        );
+      },
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(AppTheme.radiusPill),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(
+              sigmaX: AppTheme.glassBlurSigma,
+              sigmaY: AppTheme.glassBlurSigma),
+          child: Container(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: AppColors.glassDecoration(
+                isDark: true, backgroundAlpha: 0.50, borderAlpha: 0.12),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _LegendDot(color: AppColors.quality),
+                const SizedBox(width: 5),
+                _LegendDot(color: AppColors.light),
+                const SizedBox(width: 5),
+                _LegendDot(color: const Color(0xFFef4444)),
+                if (hasCommunityTiles) ...[
+                  Container(
+                      width: 1,
+                      height: 10,
+                      color: Colors.white24,
+                      margin:
+                          const EdgeInsets.symmetric(horizontal: 6)),
+                  _LegendDot(
+                      color:
+                          AppColors.community.withValues(alpha: 0.7)),
+                ],
+                const SizedBox(width: 5),
+                const Icon(Icons.info_outline,
+                    size: 11, color: Colors.white38),
+              ],
             ),
-          ],
-        ],
-      ),
+          ),
         ),
       ),
     );
@@ -848,30 +923,135 @@ class MapHeatmapLegend extends StatelessWidget {
 }
 
 class _LegendDot extends StatelessWidget {
-  const _LegendDot({required this.color, required this.label});
+  const _LegendDot({required this.color});
   final Color color;
-  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 9,
+      height: 9,
+      decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+    );
+  }
+}
+
+/// Bottom sheet explaining what the legend colors mean.
+class _LegendInfoSheet extends StatelessWidget {
+  const _LegendInfoSheet({required this.hasCommunityTiles});
+  final bool hasCommunityTiles;
 
   @override
   Widget build(BuildContext context) {
     final isDark = context.isDarkMode;
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          width: 10,
-          height: 10,
-          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+    final l10n = context.l10n;
+    return Container(
+      margin: const EdgeInsets.symmetric(
+          horizontal: AppTheme.spaceMd, vertical: AppTheme.spaceSm),
+      decoration: BoxDecoration(
+        color: AppColors.surface(isDark),
+        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+        border: Border.all(color: AppColors.border(isDark)),
+      ),
+      child: SafeArea(
+        top: false,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                margin:
+                    const EdgeInsets.symmetric(vertical: AppTheme.spaceSm),
+                width: 32,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: AppColors.textSecondary(isDark)
+                      .withValues(alpha: 0.3),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                  AppTheme.spaceMd, 0, AppTheme.spaceMd, AppTheme.spaceSm),
+              child: Text(l10n.infoTileQualityTitle,
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontWeight: AppFontWeights.semibold,
+                        color: AppColors.textPrimary(isDark),
+                      )),
+            ),
+            _LegendRow(
+                color: AppColors.quality,
+                label: l10n.legendHighLabel,
+                sub: l10n.legendHighSub,
+                isDark: isDark),
+            _LegendRow(
+                color: AppColors.light,
+                label: l10n.legendMidLabel,
+                sub: l10n.legendMidSub,
+                isDark: isDark),
+            _LegendRow(
+                color: const Color(0xFFef4444),
+                label: l10n.legendLowLabel,
+                sub: l10n.legendLowSub,
+                isDark: isDark),
+            if (hasCommunityTiles)
+              _LegendRow(
+                  color: AppColors.community.withValues(alpha: 0.8),
+                  label: l10n.tileInfoCommunity,
+                  sub: l10n.legendCommunitySub,
+                  isDark: isDark),
+            const SizedBox(height: AppTheme.spaceMd),
+          ],
         ),
-        const SizedBox(width: 6),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 11,
-            color: AppColors.textSecondary(isDark),
+      ),
+    );
+  }
+}
+
+class _LegendRow extends StatelessWidget {
+  const _LegendRow(
+      {required this.color,
+      required this.label,
+      required this.sub,
+      required this.isDark});
+  final Color color;
+  final String label;
+  final String sub;
+  final bool isDark;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+          AppTheme.spaceMd, 0, AppTheme.spaceMd, AppTheme.spaceSm),
+      child: Row(
+        children: [
+          Container(
+            width: 10,
+            height: 10,
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
           ),
-        ),
-      ],
+          const SizedBox(width: AppTheme.spaceSm),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label,
+                    style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: AppFontWeights.semibold,
+                        color: AppColors.textPrimary(isDark))),
+                Text(sub,
+                    style: TextStyle(
+                        fontSize: 11,
+                        color: AppColors.textSecondary(isDark))),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -929,17 +1109,34 @@ class TileInfoSheet extends StatelessWidget {
             // Title + quality badge row
             Padding(
               padding: const EdgeInsets.fromLTRB(
-                  AppTheme.spaceMd, 0, AppTheme.spaceMd, AppTheme.spaceMd),
+                  AppTheme.spaceMd, 0, AppTheme.spaceMd, AppTheme.spaceXxs),
               child: Row(
                 children: [
-                  Text(
-                    isPersonal ? l10n.tileInfoPersonal : l10n.tileInfoCommunity,
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          color: AppColors.textPrimary(isDark),
-                          fontWeight: AppFontWeights.semibold,
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          isPersonal ? l10n.tileInfoPersonal : l10n.tileInfoCommunity,
+                          style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                                color: AppColors.textPrimary(isDark),
+                                fontWeight: AppFontWeights.semibold,
+                              ),
                         ),
+                        const SizedBox(height: AppTheme.spaceXxxs),
+                        Text(
+                          isPersonal ? l10n.infoTilePersonalBody : l10n.infoTileCommunityBody,
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: AppColors.textSecondary(isDark),
+                                height: 1.4,
+                              ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
                   ),
-                  const Spacer(),
+                  const SizedBox(width: AppTheme.spaceSm),
                   Container(
                     padding: const EdgeInsets.symmetric(
                         horizontal: AppTheme.spaceSm, vertical: AppTheme.spaceXxxs),
@@ -955,6 +1152,48 @@ class TileInfoSheet extends StatelessWidget {
                         fontWeight: AppFontWeights.bold,
                       ),
                     ),
+                  ),
+                ],
+              ),
+            ),
+            // Quality tier label
+            Padding(
+              padding: const EdgeInsets.fromLTRB(AppTheme.spaceMd, 0, AppTheme.spaceMd, AppTheme.spaceMd),
+              child: Text(
+                qualityPct >= 75
+                    ? l10n.tileQualityExcellent
+                    : qualityPct >= 50
+                        ? l10n.tileQualityGood
+                        : l10n.tileQualityFair,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: qualityColor.withValues(alpha: 0.85),
+                  fontSize: 11,
+                  fontWeight: AppFontWeights.medium,
+                ),
+              ),
+            ),
+            // Sensor icons — what was measured here
+            Padding(
+              padding: const EdgeInsets.fromLTRB(AppTheme.spaceMd, 0, AppTheme.spaceMd, AppTheme.spaceSm),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    l10n.tileMeasuredWith,
+                    style: TextStyle(
+                        fontSize: 11, color: AppColors.textSecondary(isDark)),
+                  ),
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      _SensorPill(icon: Icons.light_mode, color: AppColors.light),
+                      const SizedBox(width: 6),
+                      _SensorPill(icon: Icons.compress, color: AppColors.pressure),
+                      const SizedBox(width: 6),
+                      _SensorPill(icon: Icons.vibration, color: AppColors.movement),
+                      const SizedBox(width: 6),
+                      _SensorPill(icon: Icons.explore, color: AppColors.accentPurple),
+                    ],
                   ),
                 ],
               ),
@@ -1017,6 +1256,25 @@ class _StatItem extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// Tiny sensor icon pill used in TileInfoSheet to show which sensors contributed.
+class _SensorPill extends StatelessWidget {
+  const _SensorPill({required this.icon, required this.color});
+  final IconData icon;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(5),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+      ),
+      child: Icon(icon, size: 14, color: color),
     );
   }
 }

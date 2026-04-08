@@ -200,6 +200,25 @@
   "statsCoverage": "Zones",
   "statsAreasLabel": "zones cartographiées",
   "statsDataPtsLabel": "pts de données",
+  "statsKmMapped": "km² cartographiés",
+  "statsBestDay": "meilleur jour",
+
+  "infoKmTitle": "Territoire cartographié",
+  "infoKmBody": "Chaque hexagone sur votre carte couvre environ 0,1 km². Cela représente la surface de votre ville que vous avez personnellement cartographiée.",
+  "infoDataPtsTitle": "Points de données",
+  "infoDataPtsBody": "Chaque envoi transmet un lot de mesures capteurs — lumière, pression, mouvement. Plus il y a de points, plus la couverture est riche.",
+  "infoDaysActiveTitle": "Jours actifs",
+  "infoDaysActiveBody": "Le nombre de jours distincts où vous avez contribué. Pas besoin de contribuer tous les jours.",
+  "infoBestDayTitle": "Meilleur jour",
+  "infoBestDayBody": "Votre jour le plus actif cette semaine, mesuré en points de données envoyés. Un chiffre élevé signifie généralement plus de temps en extérieur.",
+  "infoMilestoneTitle": "Prochain palier",
+  "infoMilestoneBody": "Les paliers mesurent la croissance de votre territoire. Chaque nouvel hexagone cartographié compte pour le niveau suivant.",
+  "infoTileQualityTitle": "Qualité de couverture",
+  "infoTileQualityBody": "La qualité reflète le nombre et la cohérence des mesures collectées dans cette zone. Vert = données solides, jaune = partiel, rouge = sparse.",
+  "infoTilePersonalTitle": "Votre zone",
+  "infoTilePersonalBody": "Vous avez cartographié cet hexagone. Vos capteurs ont contribué des données ici lors de vos déplacements.",
+  "infoTileCommunityTitle": "Zone communautaire",
+  "infoTileCommunityBody": "Cet hexagone a été cartographié par d'autres contributeurs. Ensemble vous construisez un jeu de données environnemental à l'échelle de la ville.",
   "statsTotalContributions": "Total des contributions",
   "statsKeepContributing": "Continuez à contribuer pour suivre les tendances",
   "statsActivityTrend": "Tendance d'activité",
@@ -406,5 +425,21 @@
   "referralStepEarn": "Vous gagnez",
 
   "settingsDiagnostics": "Diagnostics capteurs",
-  "settingsDiagnosticsDesc": "Lectures en temps réel de vos capteurs"
+  "settingsDiagnosticsDesc": "Lectures en temps réel de vos capteurs",
+
+  "sensorLiveSheetTitle": "Ce que vous mesurez",
+
+  "tileQualityExcellent": "Données excellentes — couverture solide",
+  "tileQualityGood": "Bonnes données — couverture utile",
+  "tileQualityFair": "Données partielles — plus de passages nécessaires",
+
+  "tileMeasuredWith": "Capteurs actifs",
+
+  "legendHighLabel": "Qualité élevée",
+  "legendHighSub": "≥75% de lectures valides",
+  "legendMidLabel": "Qualité moyenne",
+  "legendMidSub": "50–74% de lectures valides",
+  "legendLowLabel": "Qualité faible",
+  "legendLowSub": "Moins de 50% — besoin de plus de données",
+  "legendCommunitySub": "Cartographié par d'autres contributeurs"
 }

@@ -431,6 +431,68 @@ class AppLocalizationsFr extends AppLocalizations {
   String get statsDataPtsLabel => 'pts de données';
 
   @override
+  String get statsKmMapped => 'km² cartographiés';
+
+  @override
+  String get statsBestDay => 'meilleur jour';
+
+  @override
+  String get infoKmTitle => 'Territoire cartographié';
+
+  @override
+  String get infoKmBody =>
+      'Chaque hexagone sur votre carte couvre environ 0,1 km². Cela représente la surface de votre ville que vous avez personnellement cartographiée.';
+
+  @override
+  String get infoDataPtsTitle => 'Points de données';
+
+  @override
+  String get infoDataPtsBody =>
+      'Chaque envoi transmet un lot de mesures capteurs — lumière, pression, mouvement. Plus il y a de points, plus la couverture est riche.';
+
+  @override
+  String get infoDaysActiveTitle => 'Jours actifs';
+
+  @override
+  String get infoDaysActiveBody =>
+      'Le nombre de jours distincts où vous avez contribué. Pas besoin de contribuer tous les jours.';
+
+  @override
+  String get infoBestDayTitle => 'Meilleur jour';
+
+  @override
+  String get infoBestDayBody =>
+      'Votre jour le plus actif cette semaine, mesuré en points de données envoyés. Un chiffre élevé signifie généralement plus de temps en extérieur.';
+
+  @override
+  String get infoMilestoneTitle => 'Prochain palier';
+
+  @override
+  String get infoMilestoneBody =>
+      'Les paliers mesurent la croissance de votre territoire. Chaque nouvel hexagone cartographié compte pour le niveau suivant.';
+
+  @override
+  String get infoTileQualityTitle => 'Qualité de couverture';
+
+  @override
+  String get infoTileQualityBody =>
+      'La qualité reflète le nombre et la cohérence des mesures collectées dans cette zone. Vert = données solides, jaune = partiel, rouge = sparse.';
+
+  @override
+  String get infoTilePersonalTitle => 'Votre zone';
+
+  @override
+  String get infoTilePersonalBody =>
+      'Vous avez cartographié cet hexagone. Vos capteurs ont contribué des données ici lors de vos déplacements.';
+
+  @override
+  String get infoTileCommunityTitle => 'Zone communautaire';
+
+  @override
+  String get infoTileCommunityBody =>
+      'Cet hexagone a été cartographié par d\'autres contributeurs. Ensemble vous construisez un jeu de données environnemental à l\'échelle de la ville.';
+
+  @override
   String get statsTotalContributions => 'Total des contributions';
 
   @override
@@ -922,4 +984,41 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get settingsDiagnosticsDesc =>
       'Lectures en temps réel de vos capteurs';
+
+  @override
+  String get sensorLiveSheetTitle => 'Ce que vous mesurez';
+
+  @override
+  String get tileQualityExcellent => 'Données excellentes — couverture solide';
+
+  @override
+  String get tileQualityGood => 'Bonnes données — couverture utile';
+
+  @override
+  String get tileQualityFair =>
+      'Données partielles — plus de passages nécessaires';
+
+  @override
+  String get tileMeasuredWith => 'Capteurs actifs';
+
+  @override
+  String get legendHighLabel => 'Qualité élevée';
+
+  @override
+  String get legendHighSub => '≥75% de lectures valides';
+
+  @override
+  String get legendMidLabel => 'Qualité moyenne';
+
+  @override
+  String get legendMidSub => '50–74% de lectures valides';
+
+  @override
+  String get legendLowLabel => 'Qualité faible';
+
+  @override
+  String get legendLowSub => 'Moins de 50% — besoin de plus de données';
+
+  @override
+  String get legendCommunitySub => 'Cartographié par d\'autres contributeurs';
 }

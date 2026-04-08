@@ -866,6 +866,114 @@ abstract class AppLocalizations {
   /// **'data pts'**
   String get statsDataPtsLabel;
 
+  /// No description provided for @statsKmMapped.
+  ///
+  /// In en, this message translates to:
+  /// **'km² mapped'**
+  String get statsKmMapped;
+
+  /// No description provided for @statsBestDay.
+  ///
+  /// In en, this message translates to:
+  /// **'best day'**
+  String get statsBestDay;
+
+  /// No description provided for @infoKmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Territory mapped'**
+  String get infoKmTitle;
+
+  /// No description provided for @infoKmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Each hexagon on your map covers about 0.1 km². This shows how much of your city you have personally mapped so far.'**
+  String get infoKmBody;
+
+  /// No description provided for @infoDataPtsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Data points'**
+  String get infoDataPtsTitle;
+
+  /// No description provided for @infoDataPtsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Each upload sends a batch of sensor readings — light, pressure, movement. More data points means richer coverage in your mapped areas.'**
+  String get infoDataPtsBody;
+
+  /// No description provided for @infoDaysActiveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Days active'**
+  String get infoDaysActiveTitle;
+
+  /// No description provided for @infoDaysActiveBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The number of distinct days you have contributed data. You do not need to contribute every day.'**
+  String get infoDaysActiveBody;
+
+  /// No description provided for @infoBestDayTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Best day'**
+  String get infoBestDayTitle;
+
+  /// No description provided for @infoBestDayBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your most active day this week, measured by data points uploaded. A higher number usually means more time outdoors.'**
+  String get infoBestDayBody;
+
+  /// No description provided for @infoMilestoneTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Next milestone'**
+  String get infoMilestoneTitle;
+
+  /// No description provided for @infoMilestoneBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Milestones track your territory growth. Each new hexagon you map counts toward the next level.'**
+  String get infoMilestoneBody;
+
+  /// No description provided for @infoTileQualityTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Coverage quality'**
+  String get infoTileQualityTitle;
+
+  /// No description provided for @infoTileQualityBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Quality reflects how many sensor readings were collected in this area and how consistent they are. Green = solid data, yellow = partial, red = sparse.'**
+  String get infoTileQualityBody;
+
+  /// No description provided for @infoTilePersonalTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your area'**
+  String get infoTilePersonalTitle;
+
+  /// No description provided for @infoTilePersonalBody.
+  ///
+  /// In en, this message translates to:
+  /// **'You have mapped this hexagon. Your sensors contributed data here during your travels.'**
+  String get infoTilePersonalBody;
+
+  /// No description provided for @infoTileCommunityTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Community area'**
+  String get infoTileCommunityTitle;
+
+  /// No description provided for @infoTileCommunityBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This hexagon was mapped by other contributors. Together you are building a city-wide environmental dataset.'**
+  String get infoTileCommunityBody;
+
   /// No description provided for @statsTotalContributions.
   ///
   /// In en, this message translates to:
@@ -1676,6 +1784,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Live readings from your device sensors'**
   String get settingsDiagnosticsDesc;
+
+  /// No description provided for @sensorLiveSheetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'What you\'re measuring'**
+  String get sensorLiveSheetTitle;
+
+  /// No description provided for @tileQualityExcellent.
+  ///
+  /// In en, this message translates to:
+  /// **'Excellent data — solid environmental record'**
+  String get tileQualityExcellent;
+
+  /// No description provided for @tileQualityGood.
+  ///
+  /// In en, this message translates to:
+  /// **'Good data — useful but room to grow'**
+  String get tileQualityGood;
+
+  /// No description provided for @tileQualityFair.
+  ///
+  /// In en, this message translates to:
+  /// **'Sparse data — more passes needed'**
+  String get tileQualityFair;
+
+  /// No description provided for @tileMeasuredWith.
+  ///
+  /// In en, this message translates to:
+  /// **'Sensors active'**
+  String get tileMeasuredWith;
+
+  /// No description provided for @legendHighLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'High quality'**
+  String get legendHighLabel;
+
+  /// No description provided for @legendHighSub.
+  ///
+  /// In en, this message translates to:
+  /// **'≥75% valid sensor readings'**
+  String get legendHighSub;
+
+  /// No description provided for @legendMidLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Medium quality'**
+  String get legendMidLabel;
+
+  /// No description provided for @legendMidSub.
+  ///
+  /// In en, this message translates to:
+  /// **'50–74% valid readings'**
+  String get legendMidSub;
+
+  /// No description provided for @legendLowLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Low quality'**
+  String get legendLowLabel;
+
+  /// No description provided for @legendLowSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Below 50% — needs more data'**
+  String get legendLowSub;
+
+  /// No description provided for @legendCommunitySub.
+  ///
+  /// In en, this message translates to:
+  /// **'Mapped by other contributors'**
+  String get legendCommunitySub;
 }
 
 class _AppLocalizationsDelegate

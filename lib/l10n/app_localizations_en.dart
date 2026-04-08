@@ -429,6 +429,68 @@ class AppLocalizationsEn extends AppLocalizations {
   String get statsDataPtsLabel => 'data pts';
 
   @override
+  String get statsKmMapped => 'km² mapped';
+
+  @override
+  String get statsBestDay => 'best day';
+
+  @override
+  String get infoKmTitle => 'Territory mapped';
+
+  @override
+  String get infoKmBody =>
+      'Each hexagon on your map covers about 0.1 km². This shows how much of your city you have personally mapped so far.';
+
+  @override
+  String get infoDataPtsTitle => 'Data points';
+
+  @override
+  String get infoDataPtsBody =>
+      'Each upload sends a batch of sensor readings — light, pressure, movement. More data points means richer coverage in your mapped areas.';
+
+  @override
+  String get infoDaysActiveTitle => 'Days active';
+
+  @override
+  String get infoDaysActiveBody =>
+      'The number of distinct days you have contributed data. You do not need to contribute every day.';
+
+  @override
+  String get infoBestDayTitle => 'Best day';
+
+  @override
+  String get infoBestDayBody =>
+      'Your most active day this week, measured by data points uploaded. A higher number usually means more time outdoors.';
+
+  @override
+  String get infoMilestoneTitle => 'Next milestone';
+
+  @override
+  String get infoMilestoneBody =>
+      'Milestones track your territory growth. Each new hexagon you map counts toward the next level.';
+
+  @override
+  String get infoTileQualityTitle => 'Coverage quality';
+
+  @override
+  String get infoTileQualityBody =>
+      'Quality reflects how many sensor readings were collected in this area and how consistent they are. Green = solid data, yellow = partial, red = sparse.';
+
+  @override
+  String get infoTilePersonalTitle => 'Your area';
+
+  @override
+  String get infoTilePersonalBody =>
+      'You have mapped this hexagon. Your sensors contributed data here during your travels.';
+
+  @override
+  String get infoTileCommunityTitle => 'Community area';
+
+  @override
+  String get infoTileCommunityBody =>
+      'This hexagon was mapped by other contributors. Together you are building a city-wide environmental dataset.';
+
+  @override
   String get statsTotalContributions => 'Total Contributions';
 
   @override
@@ -915,4 +977,41 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settingsDiagnosticsDesc =>
       'Live readings from your device sensors';
+
+  @override
+  String get sensorLiveSheetTitle => 'What you\'re measuring';
+
+  @override
+  String get tileQualityExcellent =>
+      'Excellent data — solid environmental record';
+
+  @override
+  String get tileQualityGood => 'Good data — useful but room to grow';
+
+  @override
+  String get tileQualityFair => 'Sparse data — more passes needed';
+
+  @override
+  String get tileMeasuredWith => 'Sensors active';
+
+  @override
+  String get legendHighLabel => 'High quality';
+
+  @override
+  String get legendHighSub => '≥75% valid sensor readings';
+
+  @override
+  String get legendMidLabel => 'Medium quality';
+
+  @override
+  String get legendMidSub => '50–74% valid readings';
+
+  @override
+  String get legendLowLabel => 'Low quality';
+
+  @override
+  String get legendLowSub => 'Below 50% — needs more data';
+
+  @override
+  String get legendCommunitySub => 'Mapped by other contributors';
 }

@@ -75,6 +75,8 @@ export interface StoragePayload {
     gyro_rms: number;
     pressure?: { avg: number; min: number; max: number };
     magnetic_magnitude?: { avg: number; min: number; max: number };
+    quality_valid: number;
+    quality_pocket_likely: number;
   };
   batch: SensorReading[];
   location?: LocationData;

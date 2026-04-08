@@ -1,3 +1,4 @@
+import { LRUCache } from 'lru-cache';
 import type { Pool } from 'pg';
 import type { UploadBatch } from '../models/upload';
 import { EARTH_RADIUS_METERS } from '../constants';
@@ -14,43 +15,93 @@ const MAX_USER_BATCHES_PER_HOUR = 300;
 // 300 m/s ≈ 1080 km/h — above any road/rail vehicle, well below commercial aircraft.
 const MAX_GPS_SPEED_MPS = 300;
 
+// ─── In-Memory Rate Limiting ──────────────────────────────────────────────────
+//
+// Fixed-window counters in an LRU cache — eliminates DB queries for the vast
+// majority of requests (normal devices are far below 120 batches/hour).
+//
+// Architecture:
+//   Fast path  — memory count well below limit → return immediately, no DB.
+//   Slow path  — memory count at/over limit → confirm against DB to avoid
+//               false positives from process restarts resetting counters.
+//
+// Horizontal scaling: each process has its own memory window; the DB query on
+// the slow path is the cross-instance backstop. A legitimate user never reaches
+// the slow path; a burst bot gets confirmed and blocked per instance.
+//
+// Capacity: max=20_000 covers 10 k devices + 10 k users with headroom.
+// TTL=1 h matches the rate-limit window so stale buckets self-evict.
+
+interface RateBucket {
+  count: number;
+  resetAt: number; // epoch ms when this window expires
+}
+
+const _rlCache = new LRUCache<string, RateBucket>({
+  max: 20_000,
+  ttl: 1000 * 60 * 60,
+});
+
+function _rlIncrement(key: string): number {
+  const now = Date.now();
+  const existing = _rlCache.get(key);
+  if (!existing || now >= existing.resetAt) {
+    const bucket: RateBucket = { count: 1, resetAt: now + 60 * 60 * 1000 };
+    _rlCache.set(key, bucket);
+    return 1;
+  }
+  existing.count += 1;
+  _rlCache.set(key, existing);
+  return existing.count;
+}
+
 // ─── Rate Limiting ────────────────────────────────────────────────────────────
 
 /**
- * Returns true if the device has exceeded the hourly upload rate limit.
+ * Checks both device and user rate limits.
  *
- * Uses a sliding 1-hour window on `created_at` in sensor_batches.
- * Purely DB-based — no in-memory state, scales horizontally across instances.
+ * Fast path (normal requests): O(1) in-memory check — zero DB queries.
+ * Slow path (at/over limit): single DB subquery confirms to avoid false
+ * positives from process restarts and multi-instance deployments.
  */
-export async function checkDeviceRateLimit(pool: Pool, deviceHash: string): Promise<boolean> {
-  const result = await pool.query<{ count: string }>(
-    `SELECT COUNT(*)::text AS count
-       FROM sensor_batches
-      WHERE device_hash = $1
-        AND created_at > NOW() - INTERVAL '1 hour'`,
-    [deviceHash],
+export async function checkRateLimits(
+  pool: Pool,
+  deviceHash: string,
+  userId: string | null,
+): Promise<{ deviceExceeded: boolean; userExceeded: boolean }> {
+  const deviceMem = _rlIncrement(`d:${deviceHash}`);
+  const userMem   = userId ? _rlIncrement(`u:${userId}`) : 0;
+
+  const deviceNeedsDb = deviceMem >= MAX_BATCHES_PER_HOUR;
+  const userNeedsDb   = userId != null && userMem >= MAX_USER_BATCHES_PER_HOUR;
+
+  if (!deviceNeedsDb && !userNeedsDb) {
+    return { deviceExceeded: false, userExceeded: false };
+  }
+
+  // Confirm against DB — process restarts reset in-memory counters and could
+  // let a burst through. DB is authoritative; memory is just the fast gate.
+  const result = await pool.query<{ device_count: string; user_count: string }>(
+    `SELECT
+       (SELECT COUNT(*)
+          FROM sensor_batches
+         WHERE device_hash = $1
+           AND created_at > NOW() - INTERVAL '1 hour')::text AS device_count,
+       (SELECT COUNT(*)
+          FROM sensor_batches
+         WHERE user_id = $2
+           AND created_at > NOW() - INTERVAL '1 hour'
+           AND $2 IS NOT NULL)::text AS user_count`,
+    [deviceHash, userId],
   );
-  const count = parseInt(result.rows[0]?.count ?? '0', 10);
-  return count >= MAX_BATCHES_PER_HOUR;
+  const deviceCount = parseInt(result.rows[0]?.device_count ?? '0', 10);
+  const userCount   = parseInt(result.rows[0]?.user_count   ?? '0', 10);
+  return {
+    deviceExceeded: deviceCount >= MAX_BATCHES_PER_HOUR,
+    userExceeded:   userId != null && userCount >= MAX_USER_BATCHES_PER_HOUR,
+  };
 }
 
-/**
- * Returns true if the user has exceeded the hourly upload rate limit across all their devices.
- *
- * Secondary guard against multi-device abuse: a single user with N devices
- * is still capped at MAX_USER_BATCHES_PER_HOUR total.
- */
-export async function checkUserRateLimit(pool: Pool, userId: string): Promise<boolean> {
-  const result = await pool.query<{ count: string }>(
-    `SELECT COUNT(*)::text AS count
-       FROM sensor_batches
-      WHERE user_id = $1
-        AND created_at > NOW() - INTERVAL '1 hour'`,
-    [userId],
-  );
-  const count = parseInt(result.rows[0]?.count ?? '0', 10);
-  return count >= MAX_USER_BATCHES_PER_HOUR;
-}
 
 // ─── Sensor Range Validation ──────────────────────────────────────────────────
 

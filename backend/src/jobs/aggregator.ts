@@ -1,9 +1,7 @@
 import { PoolClient } from 'pg';
 import { latLngToCell } from 'h3-js';
 import { getPool } from '../database';
-import { analyzeQuality, QualityCounters } from '../utils/sensor-analytics';
 import { decodeGeohash } from '../utils/geo';
-import { StoragePayload } from '../models/upload';
 import {
   AGGREGATION_WINDOW_MINUTES,
   AGGREGATION_JOB_INTERVAL_MS,
@@ -131,13 +129,34 @@ export async function runAggregationJob(): Promise<void> {
     return; // nothing new
   }
 
+  // Select only the sub-fields the aggregator needs — avoids pulling the raw
+  // batch readings array (often 80–95% of the payload) across the wire.
   const rows = await pool.query<{
     device_hash: string;
     timestamp_utc: Date;
-    batch_json: StoragePayload;
+    geohash: string | null;
+    summary: {
+      count: number;
+      period_end: string;
+      light?: { avg: number; min: number; max: number };
+      accel_rms: number;
+      gyro_rms: number;
+      pressure?: { avg: number; min: number; max: number };
+      quality_valid?: number;
+      quality_pocket_likely?: number;
+    } | null;
+    battery_level: number | null;
+    has_location: boolean;
     h3_res9: string | null;
   }>(
-    `SELECT device_hash, timestamp_utc, batch_json, h3_res9
+    `SELECT
+       device_hash,
+       timestamp_utc,
+       batch_json->>'geohash'                            AS geohash,
+       batch_json->'summary'                             AS summary,
+       (batch_json->>'battery_level')::float             AS battery_level,
+       (batch_json->'location') IS NOT NULL              AS has_location,
+       h3_res9
      FROM sensor_batches
      WHERE timestamp_utc > $1 AND timestamp_utc <= $2
      ORDER BY timestamp_utc ASC`,
@@ -152,19 +171,13 @@ export async function runAggregationJob(): Promise<void> {
   const dayBuckets = new Map<DayKey, DayAccumulator>();
 
   for (const row of rows.rows) {
-    const payload = typeof row.batch_json === 'string' ? JSON.parse(row.batch_json) : row.batch_json;
-    const geohash: string | undefined = payload?.geohash;
+    const geohash: string | undefined = row.geohash ?? undefined;
     if (!geohash) {
       continue;
     }
 
-    const summary = payload?.summary;
-    const readingsCount: number =
-      typeof summary?.count === 'number'
-        ? summary.count
-        : Array.isArray(payload?.batch)
-        ? payload.batch.length
-        : 0;
+    const summary = row.summary;
+    const readingsCount: number = typeof summary?.count === 'number' ? summary.count : 0;
     if (readingsCount <= 0) {
       continue;
     }
@@ -243,21 +256,22 @@ export async function runAggregationJob(): Promise<void> {
       windowAcc.pressureSamples += readingsCount;
     }
 
-    const batteryLevel = payload?.battery_level;
-    if (typeof batteryLevel === 'number' && batteryLevel >= 0) {
-      windowAcc.batterySum += batteryLevel;
+    if (typeof row.battery_level === 'number' && row.battery_level >= 0) {
+      windowAcc.batterySum += row.battery_level;
       windowAcc.batterySamples += 1;
     }
 
-    if (payload?.location != null) {
+    if (row.has_location) {
       windowAcc.locationSamples += readingsCount;
     }
 
-    if (Array.isArray(payload?.batch)) {
-      const qualityCounters = analyzeQuality(payload.batch);
-      windowAcc.qualitySamples += qualityCounters.total;
-      windowAcc.qualityValidSamples += qualityCounters.valid;
-      windowAcc.pocketLikelySamples += qualityCounters.pocketLikely;
+    // Quality counters baked into summary at ingest time — no need to re-read batch.
+    const qualityValid       = summary?.quality_valid       ?? 0;
+    const qualityPocketLikely = summary?.quality_pocket_likely ?? 0;
+    if (qualityValid > 0 || qualityPocketLikely > 0) {
+      windowAcc.qualitySamples       += readingsCount;
+      windowAcc.qualityValidSamples  += qualityValid;
+      windowAcc.pocketLikelySamples  += qualityPocketLikely;
     }
   }
 

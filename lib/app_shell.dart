@@ -199,7 +199,7 @@ class _NavItem extends StatelessWidget {
                 duration: AppDurations.fast,
                 child: Icon(
                   selected ? selectedIcon : icon,
-                  key: ValueKey(selected),
+                  key: ValueKey(selected ? selectedIcon : icon),
                   color: color,
                   size: AppIconSizes.md,
                 ),
