@@ -103,7 +103,6 @@ class _TrackingFabState extends State<TrackingFab>
         return;
       }
       await _prefs.setShareLocation(true);
-      await _locationService.requestLocationPermission();
       isRunning = _locationService.isRunning.value;
     }
 

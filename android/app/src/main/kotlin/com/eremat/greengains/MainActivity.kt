@@ -161,9 +161,7 @@ class MainActivity : FlutterActivity() {
                 arrayOf(ACCESS_FINE_LOCATION, ACCESS_COARSE_LOCATION),
                 LOCATION_PERMISSION_REQUEST_CODE
             )
-        } else {
-            Toast.makeText(this, "Location permission already granted", Toast.LENGTH_SHORT).show()
-        }
+        } // already granted — nothing to do
     }
 
     override fun onRequestPermissionsResult(
