@@ -204,6 +204,14 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> {
   // taps that arrive within 600 ms of a long press to avoid double-open sheets.
   int _lastLongPressMs = 0;
 
+  // ── Follow mode ─────────────────────────────────────────────────────────────
+  // While tracking is active, the camera continuously follows the user's GPS.
+  // Manual pan breaks follow mode. My Location button re-enables it.
+  bool _followMode = false;
+  // Timestamp of last programmatic camera move — used to suppress false
+  // positives in _onCameraMove (animateCamera also triggers onCameraMove).
+  DateTime _lastProgrammaticMove = DateTime.fromMillisecondsSinceEpoch(0);
+
   // ── Style URL / JSON ────────────────────────────────────────────────────────
 
   // DePIN apps (Helium, Nodle, Hivemapper) always force dark map — never follow
@@ -419,11 +427,23 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> {
 
   void _onRecenter() {
     if (widget.userLocation == null || _ctrl == null) return;
+    _followMode = true;
+    _lastProgrammaticMove = DateTime.now();
     _ctrl!.animateCamera(
       CameraUpdate.newLatLng(
         LatLng(widget.userLocation!.latitude, widget.userLocation!.longitude),
       ),
     );
+  }
+
+  void _onCameraMove(CameraPosition _) {
+    // If the camera started moving more than 800 ms after the last programmatic
+    // move, it's the user panning — exit follow mode.
+    if (_followMode &&
+        DateTime.now().difference(_lastProgrammaticMove) >
+            const Duration(milliseconds: 800)) {
+      _followMode = false;
+    }
   }
 
   Future<void> _onStyleLoaded() async {
@@ -627,6 +647,7 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> {
     // Add ~20% padding around the bounding box
     final latPad = (maxLat - minLat) * 0.3 + 0.005;
     final lngPad = (maxLng - minLng) * 0.3 + 0.005;
+    _lastProgrammaticMove = DateTime.now();
     ctrl.animateCamera(
       CameraUpdate.newLatLngBounds(
         LatLngBounds(
@@ -757,6 +778,11 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> {
       _refreshAllSources();
     }
 
+    // Tracking just started → enable follow mode so the map feels alive.
+    if (!oldWidget.isTracking && widget.isTracking) {
+      _followMode = true;
+    }
+
     // First GPS fix after map init — auto-center once, silently.
     // initialCameraPosition is frozen at build time so if location wasn't
     // available yet (common on cold start) we move the camera here instead.
@@ -765,6 +791,7 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> {
         widget.userLocation != null &&
         _ctrl != null) {
       _hasCenteredOnUser = true;
+      _lastProgrammaticMove = DateTime.now();
       _ctrl!.animateCamera(
         CameraUpdate.newCameraPosition(CameraPosition(
           target: LatLng(
@@ -773,6 +800,20 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> {
           ),
           zoom: 14.0,
         )),
+      );
+      return;
+    }
+
+    // Follow mode — smooth camera pan on each GPS update while tracking.
+    if (_followMode &&
+        locationChanged &&
+        widget.userLocation != null &&
+        _ctrl != null) {
+      _lastProgrammaticMove = DateTime.now();
+      _ctrl!.animateCamera(
+        CameraUpdate.newLatLng(
+          LatLng(widget.userLocation!.latitude, widget.userLocation!.longitude),
+        ),
       );
     }
   }
@@ -811,6 +852,7 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> {
       onMapCreated: _onMapCreated,
       onStyleLoadedCallback: _onStyleLoaded,
       onCameraIdle: _scheduleGridRefresh,
+      onCameraMove: _onCameraMove,
       onMapClick: widget.showControls ? _onMapTap : null,
       onMapLongClick: widget.showControls ? _onMapLongPress : null,
       compassEnabled: widget.showControls && widget.fillScreen,
