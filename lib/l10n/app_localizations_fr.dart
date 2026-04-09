@@ -442,6 +442,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get statsBestDay => 'meilleur jour';
 
   @override
+  String get statsStreakLabel => 'série';
+
+  @override
   String get infoKmTitle => 'Territoire cartographié';
 
   @override

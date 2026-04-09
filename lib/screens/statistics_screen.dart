@@ -58,7 +58,6 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
   // Backend weekly data (7 ints: index 0 = 6 days ago, index 6 = today)
   List<int>? _weeklyData;
   // Backend lifetime stats — fallback when local SQLite is empty (fresh reinstall)
-  int? _daysActive;
   int? _backendTotalUploads;
   int? _coverageCells; // distinct H3 res-9 cells ever contributed
   bool _isLoadingWeekly = true;
@@ -110,7 +109,6 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
       if (mounted) {
         setState(() {
           _weeklyData = profile.weekly;
-          _daysActive = profile.daysActive;
           _backendTotalUploads = profile.totalUploads;
           _coverageCells = profile.coverageCells;
         });
@@ -241,9 +239,10 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
   Widget _buildSupportingTrio(ThemeData theme, bool isDark) {
     final l10n = context.l10n;
     final bestDay = _weeklyData != null ? _weeklyData!.fold(0, max) : 0;
+    final streak = _stats?.currentStreak ?? 0;
     final tiles = [
       (value: '${_stats?.uploadsToday ?? 0}', label: l10n.statsToday, color: AppColors.pressure),
-      (value: _daysActive != null ? '$_daysActive' : '—', label: l10n.statsDaysActive, color: AppColors.movement),
+      (value: streak > 0 ? '${streak}d' : '—', label: l10n.statsStreakLabel, color: AppColors.light),
       (value: bestDay > 0 ? '$bestDay' : '—', label: l10n.statsBestDay, color: AppColors.quality),
     ];
 

@@ -206,6 +206,7 @@
   "statsDataPtsLabel": "pts de données",
   "statsKmMapped": "km² cartographiés",
   "statsBestDay": "meilleur jour",
+  "statsStreakLabel": "série",
 
   "infoKmTitle": "Territoire cartographié",
   "infoKmBody": "Chaque hexagone sur votre carte couvre environ 0,1 km². Cela représente la surface de votre ville que vous avez personnellement cartographiée.",

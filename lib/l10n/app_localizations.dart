@@ -884,6 +884,12 @@ abstract class AppLocalizations {
   /// **'best day'**
   String get statsBestDay;
 
+  /// No description provided for @statsStreakLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'streak'**
+  String get statsStreakLabel;
+
   /// No description provided for @infoKmTitle.
   ///
   /// In en, this message translates to:

@@ -1,9 +1,11 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../core/extensions/context_extensions.dart';
+import '../core/events/app_events.dart';
 import '../services/network/backend_client.dart';
 import '../core/constants.dart';
 import '../core/themes.dart';
@@ -39,10 +41,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
   int? _daysActive;
   int? _coverageCells;
 
+  StreamSubscription<UploadSuccessEvent>? _uploadSub;
+
   @override
   void initState() {
     super.initState();
     _loadProfileStats();
+    _uploadSub = AppEventBus.instance
+        .on<UploadSuccessEvent>()
+        .listen((_) => _loadProfileStats());
+  }
+
+  @override
+  void dispose() {
+    _uploadSub?.cancel();
+    super.dispose();
   }
 
   Future<void> _loadProfileStats() async {

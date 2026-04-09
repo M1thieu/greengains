@@ -26,6 +26,7 @@ class TrackingStatusChip extends StatelessWidget {
     required this.isPaused,
     this.lastUpload,
     this.tileCount = 0,
+    this.isUploading = false,
     this.onTap,
   });
 
@@ -34,6 +35,8 @@ class TrackingStatusChip extends StatelessWidget {
   final DateTime? lastUpload;
   /// Personal H3 tile count — shown as "· N zones" when > 0 and tracking/paused.
   final int tileCount;
+  /// True while an upload is in progress — shows a small spinner instead of time ago.
+  final bool isUploading;
   /// Optional tap handler — shown with a subtle affordance when set.
   final VoidCallback? onTap;
 
@@ -96,17 +99,31 @@ class TrackingStatusChip extends StatelessWidget {
                 ),
               ),
             ],
-            if ((isTracking || isPaused) && lastUpload != null) ...[
-              const SizedBox(width: AppTheme.spaceXxs),
-              Container(width: 1, height: _kChipDividerH, color: Colors.white24),
-              const SizedBox(width: AppTheme.spaceXxs),
-              TimeAgoText(
-                timestamp: lastUpload!,
-                style: const TextStyle(
-                  color: Colors.white60,
-                  fontSize: _kChipTimeSize,
+            if (isTracking || isPaused) ...[
+              if (isUploading) ...[
+                const SizedBox(width: AppTheme.spaceXxs),
+                Container(width: 1, height: _kChipDividerH, color: Colors.white24),
+                const SizedBox(width: AppTheme.spaceXxs),
+                const SizedBox(
+                  width: _kChipTimeSize,
+                  height: _kChipTimeSize,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 1.5,
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white54),
+                  ),
                 ),
-              ),
+              ] else if (lastUpload != null) ...[
+                const SizedBox(width: AppTheme.spaceXxs),
+                Container(width: 1, height: _kChipDividerH, color: Colors.white24),
+                const SizedBox(width: AppTheme.spaceXxs),
+                TimeAgoText(
+                  timestamp: lastUpload!,
+                  style: const TextStyle(
+                    color: Colors.white60,
+                    fontSize: _kChipTimeSize,
+                  ),
+                ),
+              ],
             ],
           ],
         ),

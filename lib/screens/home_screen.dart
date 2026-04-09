@@ -395,6 +395,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                         _locationService.isPaused.value,
                     lastUpload: status.lastUpload,
                     tileCount: _h3Tiles.where((t) => t.boundary != null).length,
+                    isUploading: status.isUploading,
                     onTap: _openSensorSheet,
                   );
                 },
