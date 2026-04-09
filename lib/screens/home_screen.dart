@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:ui';
 import 'package:h3_flutter/h3_flutter.dart' as h3f;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -121,8 +120,16 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   void _onUploadSuccess(UploadSuccessEvent event) {
     if (!mounted) return;
-    AppSnackbars.showSuccess(context, context.l10n.uploadSuccessMessage);
-    _loadH3Tiles();
+    final prevCount = _h3Tiles.where((t) => t.boundary != null).length;
+    _loadH3Tiles().then((_) {
+      if (!mounted) return;
+      final newCount = _h3Tiles.where((t) => t.boundary != null).length;
+      final gained = newCount - prevCount;
+      final msg = gained > 0
+          ? context.l10n.uploadSuccessNewZone(newCount)
+          : context.l10n.uploadSuccessMessage;
+      AppSnackbars.showSuccess(context, msg);
+    });
     _maybeRequestReview();
   }
 
@@ -444,68 +451,54 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 // ─── Private widgets ────────────────────────────────────────────────────────
 
 /// First-use hint — shown until user has tiles or starts tracking.
-/// Glass pill pointing toward the FAB. Auto-dismissed once tracking starts.
+/// Solid dark pill (same style as TrackingStatusChip) pointing toward the FAB.
 class _FirstUseHint extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(AppTheme.radiusPill),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: AppTheme.glassBlurSigma, sigmaY: AppTheme.glassBlurSigma),
-        child: Container(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppTheme.spaceMd,
-            vertical: AppTheme.spaceSm,
-          ),
-          decoration: AppColors.glassDecoration(
-            isDark: true,
-            backgroundAlpha: 0.55,
-            borderAlpha: 0.15,
-          ),
-          child: Text(
-            context.l10n.homeFirstUseHint,
-            style: const TextStyle(
-              color: Colors.white70,
-              fontSize: 13.0,
-              fontWeight: AppFontWeights.medium,
-              letterSpacing: 0.1,
-            ),
-          ),
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppTheme.spaceMd,
+        vertical: AppTheme.spaceSm,
+      ),
+      decoration: BoxDecoration(
+        color: const Color(0xCC111927),
+        borderRadius: BorderRadius.circular(AppTheme.radiusPill),
+      ),
+      child: Text(
+        context.l10n.homeFirstUseHint,
+        style: const TextStyle(
+          color: Colors.white70,
+          fontSize: 13.0,
+          fontWeight: AppFontWeights.medium,
+          letterSpacing: 0.1,
         ),
       ),
     );
   }
 }
 
-/// Compact pill showing personal zone count — purely self-focused context on the map.
-/// Same glass style as TrackingStatusChip. No tap action needed — the number itself
-/// is the retention hook (users see their territory growing).
+/// Compact pill showing personal zone count — retention hook (territory growing).
+/// Solid dark pill matching TrackingStatusChip style.
 class _ZoneCountPill extends StatelessWidget {
   const _ZoneCountPill({required this.count});
   final int count;
 
   @override
   Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(AppTheme.radiusPill),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: AppTheme.glassBlurSigma, sigmaY: AppTheme.glassBlurSigma),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceSm, vertical: AppTheme.spaceXs),
-          decoration: AppColors.glassDecoration(
-            isDark: true,
-            backgroundAlpha: 0.45,
-            borderAlpha: 0.10,
-          ),
-          child: Text(
-            context.l10n.homeZonesMapped(count),
-            style: const TextStyle(
-              color: Colors.white70,
-              fontSize: 12.0,
-              fontWeight: AppFontWeights.medium,
-              letterSpacing: 0.2,
-            ),
-          ),
+    return Container(
+      padding: const EdgeInsets.symmetric(
+          horizontal: AppTheme.spaceSm, vertical: AppTheme.spaceXs),
+      decoration: BoxDecoration(
+        color: const Color(0xCC111927),
+        borderRadius: BorderRadius.circular(AppTheme.radiusPill),
+      ),
+      child: Text(
+        context.l10n.homeZonesMapped(count),
+        style: const TextStyle(
+          color: Colors.white70,
+          fontSize: 12.0,
+          fontWeight: AppFontWeights.medium,
+          letterSpacing: 0.2,
         ),
       ),
     );

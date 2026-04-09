@@ -182,6 +182,10 @@
   "homeFirstUseHint": "Appuyez sur ▶ · cartographie la ville silencieusement",
 
   "uploadSuccessMessage": "Contribution envoyée avec succès !",
+  "uploadSuccessNewZone": "Zone ajoutée · {count} zones cartographiées",
+  "@uploadSuccessNewZone": {
+    "placeholders": { "count": { "type": "int" } }
+  },
   "semanticsRefreshMap": "Actualiser les données de la carte",
   "semanticsToggleTracking": "Activer/désactiver le suivi",
   "semanticsCenterOnMe": "Centrer la carte sur ma position",
@@ -272,6 +276,8 @@
   },
   "tileInfoSamplesLabel": "mesures",
   "tileInfoDevicesLabel": "contributeurs",
+  "tileInfoQualityLabel": "Qualité des données",
+  "tileInfoAreaLabel": "surface",
   "tileInfoPersonal": "Personnel",
   "tileInfoCommunity": "Communauté",
   "tileInfoSamples": "{count, plural, =1{1 mesure} other{{count} mesures}}",

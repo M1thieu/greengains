@@ -11,6 +11,8 @@ class H3Tile {
   final int sampleCount;
   final int deviceCount;
   final List<LatLng>? boundary;
+  /// When this tile was last contributed to — shown in TileInfoSheet.
+  final DateTime? lastUpdate;
 
   /// True for community/global tiles (other users); false for personal tiles.
   final bool isGlobal;
@@ -22,6 +24,7 @@ class H3Tile {
     required this.sampleCount,
     required this.deviceCount,
     this.boundary,
+    this.lastUpdate,
     this.isGlobal = false,
   });
 
@@ -39,6 +42,11 @@ class H3Tile {
         }).toList();
       } catch (_) {}
     }
+    DateTime? lastUpdate;
+    final rawLastUpdate = json['lastUpdate'] as String?;
+    if (rawLastUpdate != null) {
+      lastUpdate = DateTime.tryParse(rawLastUpdate);
+    }
     return H3Tile(
       h3Index: hexIndex,
       confidence: (json['confidence'] as num?)?.toDouble() ?? 0.5,
@@ -46,6 +54,7 @@ class H3Tile {
       sampleCount: (json['sampleCount'] as num?)?.toInt() ?? 0,
       deviceCount: (json['deviceCount'] as num?)?.toInt() ?? 1,
       boundary: boundary,
+      lastUpdate: lastUpdate,
       isGlobal: isGlobal,
     );
   }

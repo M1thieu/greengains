@@ -182,6 +182,10 @@
   "homeFirstUseHint": "Tap ▶ · maps your city silently while you move",
 
   "uploadSuccessMessage": "Contribution uploaded successfully!",
+  "uploadSuccessNewZone": "Zone added · {count} zones mapped",
+  "@uploadSuccessNewZone": {
+    "placeholders": { "count": { "type": "int" } }
+  },
   "semanticsRefreshMap": "Refresh map data",
   "semanticsToggleTracking": "Toggle tracking",
   "semanticsCenterOnMe": "Center map on my location",
@@ -272,6 +276,8 @@
   },
   "tileInfoSamplesLabel": "samples",
   "tileInfoDevicesLabel": "contributors",
+  "tileInfoQualityLabel": "Data quality",
+  "tileInfoAreaLabel": "area",
   "tileInfoPersonal": "Personal",
   "tileInfoCommunity": "Community",
   "tileInfoSamples": "{count, plural, =1{1 sample} other{{count} samples}}",

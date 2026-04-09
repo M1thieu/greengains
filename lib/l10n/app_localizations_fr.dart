@@ -386,6 +386,11 @@ class AppLocalizationsFr extends AppLocalizations {
   String get uploadSuccessMessage => 'Contribution envoyée avec succès !';
 
   @override
+  String uploadSuccessNewZone(int count) {
+    return 'Zone ajoutée · $count zones cartographiées';
+  }
+
+  @override
   String get semanticsRefreshMap => 'Actualiser les données de la carte';
 
   @override
@@ -632,6 +637,12 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get tileInfoDevicesLabel => 'contributeurs';
+
+  @override
+  String get tileInfoQualityLabel => 'Qualité des données';
+
+  @override
+  String get tileInfoAreaLabel => 'surface';
 
   @override
   String get tileInfoPersonal => 'Personnel';

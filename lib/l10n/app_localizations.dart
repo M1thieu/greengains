@@ -782,6 +782,12 @@ abstract class AppLocalizations {
   /// **'Contribution uploaded successfully!'**
   String get uploadSuccessMessage;
 
+  /// No description provided for @uploadSuccessNewZone.
+  ///
+  /// In en, this message translates to:
+  /// **'Zone added · {count} zones mapped'**
+  String uploadSuccessNewZone(int count);
+
   /// No description provided for @semanticsRefreshMap.
   ///
   /// In en, this message translates to:
@@ -1214,6 +1220,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'contributors'**
   String get tileInfoDevicesLabel;
+
+  /// No description provided for @tileInfoQualityLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Data quality'**
+  String get tileInfoQualityLabel;
+
+  /// No description provided for @tileInfoAreaLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'area'**
+  String get tileInfoAreaLabel;
 
   /// No description provided for @tileInfoPersonal.
   ///

@@ -1138,6 +1138,7 @@ class TileInfoSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isPersonal = !tile.isGlobal;
+    final theme = Theme.of(context);
 
     final qualityPct = tile.qualityScore != null
         ? (tile.qualityScore! * 100).round()
@@ -1147,6 +1148,11 @@ class TileInfoSheet extends StatelessWidget {
         : qualityPct >= 50
             ? AppColors.light
             : AppColors.error;
+    final qualityLabel = qualityPct >= 75
+        ? l10n.tileQualityExcellent
+        : qualityPct >= 50
+            ? l10n.tileQualityGood
+            : l10n.tileQualityFair;
 
     return Container(
       margin: const EdgeInsets.symmetric(
@@ -1159,167 +1165,284 @@ class TileInfoSheet extends StatelessWidget {
       child: ClipRRect(
         borderRadius: BorderRadius.circular(AppTheme.radiusLg),
         child: SafeArea(
-        top: false,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Quality color indicator strip at top
-            Container(height: 3, color: qualityColor),
-            // Drag handle
-            Container(
-              margin: const EdgeInsets.symmetric(vertical: AppTheme.spaceSm),
-              width: 32,
-              height: 4,
-              decoration: BoxDecoration(
-                color: AppColors.textSecondary(isDark).withValues(alpha: 0.3),
-                borderRadius: BorderRadius.circular(2),
+          top: false,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Quality color accent strip
+              Container(height: 3, color: qualityColor),
+              // Drag handle
+              Container(
+                margin: const EdgeInsets.symmetric(vertical: AppTheme.spaceSm),
+                width: 32,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: AppColors.textSecondary(isDark).withValues(alpha: 0.3),
+                  borderRadius: BorderRadius.circular(2),
+                ),
               ),
-            ),
-            // Title + quality badge row
-            Padding(
-              padding: const EdgeInsets.fromLTRB(
-                  AppTheme.spaceMd, 0, AppTheme.spaceMd, AppTheme.spaceXxs),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+              // Header row: title + quality badge
+              Padding(
+                padding: const EdgeInsets.fromLTRB(
+                    AppTheme.spaceMd, 0, AppTheme.spaceMd, AppTheme.spaceSm),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            isPersonal ? l10n.tileInfoPersonal : l10n.tileInfoCommunity,
+                            style: theme.textTheme.titleSmall?.copyWith(
+                              color: AppColors.textPrimary(isDark),
+                              fontWeight: AppFontWeights.semibold,
+                            ),
+                          ),
+                          if (tile.lastUpdate != null) ...[
+                            const SizedBox(height: AppTheme.spaceXxxs),
+                            _TimeAgoLine(timestamp: tile.lastUpdate!, isDark: isDark),
+                          ],
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: AppTheme.spaceSm),
+                    // Quality badge
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: AppTheme.spaceSm, vertical: AppTheme.spaceXxxs),
+                      decoration: BoxDecoration(
+                        color: qualityColor.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(AppTheme.radiusPill),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            width: 6, height: 6,
+                            decoration: BoxDecoration(
+                              color: qualityColor,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            qualityLabel,
+                            style: TextStyle(
+                              color: qualityColor,
+                              fontSize: 11,
+                              fontWeight: AppFontWeights.semibold,
+                              letterSpacing: 0.1,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              // Quality progress bar
+              Padding(
+                padding: const EdgeInsets.fromLTRB(
+                    AppTheme.spaceMd, 0, AppTheme.spaceMd, AppTheme.spaceMd),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          isPersonal ? l10n.tileInfoPersonal : l10n.tileInfoCommunity,
-                          style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                                color: AppColors.textPrimary(isDark),
-                                fontWeight: AppFontWeights.semibold,
-                              ),
+                          l10n.tileInfoQualityLabel,
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: AppColors.textSecondary(isDark),
+                            fontWeight: AppFontWeights.medium,
+                          ),
                         ),
-                        const SizedBox(height: AppTheme.spaceXxxs),
                         Text(
-                          isPersonal ? l10n.infoTilePersonalBody : l10n.infoTileCommunityBody,
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: AppColors.textSecondary(isDark),
-                                height: 1.4,
-                              ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
+                          '$qualityPct%',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: qualityColor,
+                            fontWeight: AppFontWeights.bold,
+                          ),
                         ),
                       ],
                     ),
-                  ),
-                  const SizedBox(width: AppTheme.spaceSm),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: AppTheme.spaceSm, vertical: AppTheme.spaceXxxs),
-                    decoration: BoxDecoration(
-                      color: qualityColor.withValues(alpha: 0.12),
+                    const SizedBox(height: AppTheme.spaceXxxs + 2),
+                    ClipRRect(
                       borderRadius: BorderRadius.circular(AppTheme.radiusPill),
-                    ),
-                    child: Text(
-                      '$qualityPct%',
-                      style: TextStyle(
-                        color: qualityColor,
-                        fontSize: 12,
-                        fontWeight: AppFontWeights.bold,
+                      child: LinearProgressIndicator(
+                        value: qualityPct / 100,
+                        minHeight: 5,
+                        backgroundColor: AppColors.border(isDark),
+                        valueColor: AlwaysStoppedAnimation<Color>(qualityColor),
                       ),
                     ),
-                  ),
-                ],
-              ),
-            ),
-            // Quality tier label
-            Padding(
-              padding: const EdgeInsets.fromLTRB(AppTheme.spaceMd, 0, AppTheme.spaceMd, AppTheme.spaceMd),
-              child: Text(
-                qualityPct >= 75
-                    ? l10n.tileQualityExcellent
-                    : qualityPct >= 50
-                        ? l10n.tileQualityGood
-                        : l10n.tileQualityFair,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: qualityColor.withValues(alpha: 0.85),
-                  fontSize: 11,
-                  fontWeight: AppFontWeights.medium,
+                  ],
                 ),
               ),
-            ),
-            // Sensor icons — what was measured here
-            Padding(
-              padding: const EdgeInsets.fromLTRB(AppTheme.spaceMd, 0, AppTheme.spaceMd, AppTheme.spaceSm),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    l10n.tileMeasuredWith,
-                    style: TextStyle(
-                        fontSize: 11, color: AppColors.textSecondary(isDark)),
-                  ),
-                  const SizedBox(height: 6),
-                  Row(
-                    children: [
-                      _SensorPill(icon: Icons.light_mode, color: AppColors.light),
-                      const SizedBox(width: 6),
-                      _SensorPill(icon: Icons.compress, color: AppColors.pressure),
-                      const SizedBox(width: 6),
-                      _SensorPill(icon: Icons.vibration, color: AppColors.movement),
-                      const SizedBox(width: 6),
-                      _SensorPill(icon: Icons.explore, color: AppColors.accentPurple),
+              // Divider
+              Divider(height: 1, thickness: 1, color: AppColors.border(isDark)),
+              // Stats row
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: AppTheme.spaceMd, vertical: AppTheme.spaceMd),
+                child: Row(
+                  children: [
+                    _StatItem(
+                      icon: Icons.dataset_outlined,
+                      value: _formatCount(tile.sampleCount),
+                      label: l10n.tileInfoSamplesLabel,
+                      isDark: isDark,
+                    ),
+                    _VerticalDivider(isDark: isDark),
+                    _StatItem(
+                      icon: Icons.devices_outlined,
+                      value: '${tile.deviceCount}',
+                      label: l10n.tileInfoDevicesLabel,
+                      isDark: isDark,
+                    ),
+                    if (isPersonal) ...[
+                      _VerticalDivider(isDark: isDark),
+                      _StatItem(
+                        icon: Icons.place_outlined,
+                        value: '~${_areaMDisplay(tile)}',
+                        label: l10n.tileInfoAreaLabel,
+                        isDark: isDark,
+                      ),
                     ],
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-            // Stats row
-            Padding(
-              padding: const EdgeInsets.fromLTRB(
-                  AppTheme.spaceMd, 0, AppTheme.spaceMd, AppTheme.spaceLg),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  _StatItem(
-                    value: '${tile.sampleCount}',
-                    label: l10n.tileInfoSamplesLabel,
-                    isDark: isDark,
-                  ),
-                  _StatItem(
-                    value: '${tile.deviceCount}',
-                    label: l10n.tileInfoDevicesLabel,
-                    isDark: isDark,
-                  ),
-                ],
+              // Sensor pills
+              Padding(
+                padding: const EdgeInsets.fromLTRB(
+                    AppTheme.spaceMd, 0, AppTheme.spaceMd, AppTheme.spaceLg),
+                child: Row(
+                  children: [
+                    Text(
+                      l10n.tileMeasuredWith,
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: AppColors.textSecondary(isDark),
+                      ),
+                    ),
+                    const SizedBox(width: AppTheme.spaceSm),
+                    _SensorPill(icon: Icons.light_mode, color: AppColors.light),
+                    const SizedBox(width: 5),
+                    _SensorPill(icon: Icons.compress, color: AppColors.pressure),
+                    const SizedBox(width: 5),
+                    _SensorPill(icon: Icons.vibration, color: AppColors.movement),
+                    const SizedBox(width: 5),
+                    _SensorPill(icon: Icons.explore, color: AppColors.accentPurple),
+                  ],
+                ),
               ),
-            ),
-          ],
-        ),
+            ],
+          ),
         ),
       ),
     );
+  }
+
+  static String _formatCount(int n) {
+    if (n >= 1000) return '${(n / 1000).toStringAsFixed(1)}k';
+    return '$n';
+  }
+
+  /// Approximate H3 res 9 cell area in metres (edge ≈ 174m, area ≈ 0.105 km²)
+  static String _areaMDisplay(H3Tile tile) {
+    const areaKm2 = 0.105;
+    if (areaKm2 >= 1.0) return '${areaKm2.toStringAsFixed(1)} km²';
+    return '${(areaKm2 * 1000).round()} m²';
   }
 }
 
 class _StatItem extends StatelessWidget {
   const _StatItem({
+    required this.icon,
     required this.value,
     required this.label,
     required this.isDark,
   });
+  final IconData icon;
   final String value;
   final String label;
   final bool isDark;
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    return Expanded(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 16, color: AppColors.textSecondary(isDark)),
+          const SizedBox(height: 3),
+          Text(
+            value,
+            style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  color: AppColors.textPrimary(isDark),
+                  fontWeight: AppFontWeights.semibold,
+                  letterSpacing: -0.3,
+                ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 10,
+              color: AppColors.textSecondary(isDark),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _VerticalDivider extends StatelessWidget {
+  const _VerticalDivider({required this.isDark});
+  final bool isDark;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 1,
+      height: 36,
+      color: AppColors.border(isDark),
+    );
+  }
+}
+
+/// "Last seen X ago" line using timeago package for locale-aware relative time.
+class _TimeAgoLine extends StatelessWidget {
+  const _TimeAgoLine({required this.timestamp, required this.isDark});
+  final DateTime timestamp;
+  final bool isDark;
+
+  @override
+  Widget build(BuildContext context) {
+    // Simple relative time without importing timeago in this file —
+    // compute inline for the three most common ranges.
+    final diff = DateTime.now().difference(timestamp);
+    final String text;
+    if (diff.inDays > 30) {
+      text = '${(diff.inDays / 30).floor()}mo ago';
+    } else if (diff.inDays > 0) {
+      text = '${diff.inDays}d ago';
+    } else if (diff.inHours > 0) {
+      text = '${diff.inHours}h ago';
+    } else {
+      text = '${diff.inMinutes}m ago';
+    }
+    return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
+        Icon(Icons.schedule, size: 10, color: AppColors.textSecondary(isDark)),
+        const SizedBox(width: 3),
         Text(
-          value,
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                color: AppColors.textPrimary(isDark),
-                fontWeight: AppFontWeights.semibold,
-              ),
-        ),
-        const SizedBox(height: 2),
-        Text(
-          label,
+          text,
           style: TextStyle(
             fontSize: 11,
             color: AppColors.textSecondary(isDark),
