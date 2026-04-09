@@ -301,10 +301,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   }
 
   void _onTileTap(H3Tile tile) {
+    final isDark = context.isDarkMode;
+    final l10n = context.l10n;
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (_) => TileInfoSheet(tile: tile),
+      builder: (_) => TileInfoSheet(tile: tile, isDark: isDark, l10n: l10n),
     );
   }
 

@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../core/extensions/context_extensions.dart';
@@ -12,8 +11,6 @@ const _kChipDotArea         = AppTheme.spaceMd;   // 16 — pulse ring reserved 
 const _kChipDividerH        = AppTheme.spaceSm;   // 12 — separator line height
 const _kChipLabelSize       = 13.0;               // between bodySmall(12) and bodyMedium(14)
 const _kChipTimeSize        = 12.0;               // matches bodySmall
-const _kChipBackgroundAlpha = 0.45;               // frosted glass background opacity
-const _kChipBorderAlpha     = 0.10;               // frosted glass border opacity
 const _kPulseCycle          = Duration(milliseconds: 1400);
 
 /// Compact status pill shown as a map overlay.
@@ -53,80 +50,68 @@ class TrackingStatusChip extends StatelessWidget {
               onTap!();
             }
           : null,
-      child: IntrinsicWidth(
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(AppTheme.radiusPill),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(
-            sigmaX: AppTheme.glassBlurSigma,
-            sigmaY: AppTheme.glassBlurSigma,
-          ),
-          child: Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppTheme.spaceSm,
-              vertical: AppTheme.spaceXs,
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppTheme.spaceSm,
+          vertical: AppTheme.spaceXs,
+        ),
+        decoration: BoxDecoration(
+          // Solid dark pill — always floats over the dark map, blur not needed.
+          // No border: cleaner, less "plastic" than frosted glass.
+          color: const Color(0xCC111927),
+          borderRadius: BorderRadius.circular(AppTheme.radiusPill),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _PulseDot(color: dotColor, active: isActive),
+            const SizedBox(width: AppTheme.spaceXs),
+            Text(
+              label,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: _kChipLabelSize,
+                fontWeight: AppFontWeights.semibold,
+                letterSpacing: 0.1,
+              ),
             ),
-            // No borderRadius here — ClipRRect already clips the shape.
-            // Chip always floats over the dark map — always dark glass.
-            decoration: AppColors.glassDecoration(
-              isDark: true,
-              backgroundAlpha: _kChipBackgroundAlpha,
-              borderAlpha: _kChipBorderAlpha,
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _PulseDot(color: dotColor, active: isActive),
-                const SizedBox(width: AppTheme.spaceXs),
-                Text(
-                  label,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: _kChipLabelSize,
-                    fontWeight: AppFontWeights.semibold,
-                    letterSpacing: 0.1,
-                  ),
+            if ((isTracking || isPaused) && tileCount > 0) ...[
+              const SizedBox(width: AppTheme.spaceXxs),
+              Container(width: 1, height: _kChipDividerH, color: Colors.white24),
+              const SizedBox(width: AppTheme.spaceXxs),
+              Text(
+                '$tileCount',
+                style: TextStyle(
+                  color: dotColor.withValues(alpha: 0.9),
+                  fontSize: _kChipTimeSize,
+                  fontWeight: AppFontWeights.semibold,
                 ),
-                if ((isTracking || isPaused) && tileCount > 0) ...[
-                  const SizedBox(width: AppTheme.spaceXxs),
-                  Container(width: 1, height: _kChipDividerH, color: Colors.white24),
-                  const SizedBox(width: AppTheme.spaceXxs),
-                  Text(
-                    '$tileCount',
-                    style: TextStyle(
-                      color: dotColor.withValues(alpha: 0.9),
-                      fontSize: _kChipTimeSize,
-                      fontWeight: AppFontWeights.semibold,
-                    ),
-                  ),
-                  const SizedBox(width: AppTheme.spaceXxxs),
-                  Text(
-                    context.l10n.chipZones,
-                    style: const TextStyle(
-                      color: Colors.white54,
-                      fontSize: _kChipTimeSize,
-                    ),
-                  ),
-                ],
-                if ((isTracking || isPaused) && lastUpload != null) ...[
-                  const SizedBox(width: AppTheme.spaceXxs),
-                  Container(width: 1, height: _kChipDividerH, color: Colors.white24),
-                  const SizedBox(width: AppTheme.spaceXxs),
-                  TimeAgoText(
-                    timestamp: lastUpload!,
-                    style: const TextStyle(
-                      color: Colors.white60,
-                      fontSize: _kChipTimeSize,
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          ),
+              ),
+              const SizedBox(width: AppTheme.spaceXxxs),
+              Text(
+                context.l10n.chipZones,
+                style: const TextStyle(
+                  color: Colors.white54,
+                  fontSize: _kChipTimeSize,
+                ),
+              ),
+            ],
+            if ((isTracking || isPaused) && lastUpload != null) ...[
+              const SizedBox(width: AppTheme.spaceXxs),
+              Container(width: 1, height: _kChipDividerH, color: Colors.white24),
+              const SizedBox(width: AppTheme.spaceXxs),
+              TimeAgoText(
+                timestamp: lastUpload!,
+                style: const TextStyle(
+                  color: Colors.white60,
+                  fontSize: _kChipTimeSize,
+                ),
+              ),
+            ],
+          ],
         ),
       ),
-    ),
-  );
+    );
   }
 
   (Color, String) _state(AppLocalizations l10n) {

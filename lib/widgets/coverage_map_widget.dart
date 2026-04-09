@@ -11,46 +11,67 @@ import 'package:latlong2/latlong.dart' as ll;
 import '../core/extensions/context_extensions.dart';
 import '../core/themes.dart';
 import '../data/models/h3_tile.dart';
+import '../l10n/app_localizations.dart';
 
 export '../data/models/h3_tile.dart';
 
 // ── Background isolate grid computation ──────────────────────────────────────
 
 typedef _GridInput = ({
-  double centerLat,
-  double centerLon,
+  double minLat,
+  double maxLat,
+  double minLng,
+  double maxLng,
   int resolution,
-  int k,
 });
 
-/// Disk radius `k` by H3 resolution — keeps cell count ≤ 127.
-/// | res | k | cells | approx radius |
-/// |  9  | 6 |  127  |     ~1 km     |
-/// |  8  | 5 |   91  |    ~2.3 km    |
-/// |  7  | 4 |   61  |    ~4.9 km    |
-/// | 4–6 | 3 |   37  |  ~10–100 km   |
-int _gridDiskK(int res) {
-  if (res >= 9) return 6;
-  if (res == 8) return 5;
-  if (res == 7) return 4;
-  return 3;
-}
-
 /// Top-level function so compute() can spawn it in a background isolate.
-/// Uses gridDisk(centerCell, k) so the ghost grid is stable across pans —
-/// the same cells stay visible until the camera crosses a cell boundary,
-/// eliminating the pop-in/pop-out jank of polygonToCells (Nodle/Helium style).
+/// Uses gridDisk from the viewport center to guarantee full viewport coverage.
+///
+/// polygonToCells only includes cells whose centroid falls inside the polygon —
+/// edge cells get clipped leaving a ragged non-global mosaic. gridDisk(k) from
+/// the center cell covers every cell within k steps, which forms a solid hex
+/// disk that always fully covers the viewport when k is computed from the
+/// diagonal. This is the approach Helium/Nodle use.
+///
 /// h3_flutter uses DynamicLibrary.process() — safe in compute() isolates.
 Map<String, dynamic> _buildGrid(_GridInput input) {
   final h3 = const h3f.H3Factory().load();
+
+  final centerLat = (input.minLat + input.maxLat) / 2;
+  final centerLng = (input.minLng + input.maxLng) / 2;
+
+  // Half-diagonal of the padded viewport in metres.
+  // 111 000 m ≈ 1 degree of latitude; longitude degrees are shorter by cos(lat).
+  final latHalfM  = (input.maxLat - input.minLat) / 2 * 111000;
+  final lngHalfM  = (input.maxLng - input.minLng) / 2 * 111000 * cos(centerLat * pi / 180);
+  final diagonalM = sqrt(latHalfM * latHalfM + lngHalfM * lngHalfM);
+
+  // Average H3 edge lengths (metres) per resolution:
+  //   res 8 → 461 m    res 9 → 174 m
+  // Divide diagonal by edge length to get the grid-step radius needed, add
+  // 3 cells of buffer so screen edges are always covered.
+  final edgeM = input.resolution == 9 ? 174.0 : 461.0;
+  final k     = (diagonalM / edgeM).ceil() + 3;
+
+  // Safety cap: at res 8 + zoom 11 the viewport can be >30 km wide; gridDisk
+  // of k=40 is ~5000 cells which is fine but we don't need more than that.
+  final kCapped = k.clamp(3, 40);
+
   final centerCell = h3.geoToCell(
-    h3f.GeoCoord(lat: input.centerLat, lon: input.centerLon),
+    h3f.GeoCoord(lat: centerLat, lon: centerLng),
     input.resolution,
   );
-  final cells = h3.gridDisk(centerCell, input.k);
+
+  List<BigInt> cells;
+  try {
+    cells = h3.gridDisk(centerCell, kCapped);
+  } catch (_) {
+    return {'type': 'FeatureCollection', 'features': <dynamic>[]};
+  }
   if (cells.isEmpty) return {'type': 'FeatureCollection', 'features': <dynamic>[]};
 
-  final features = cells.take(500).map((cell) {
+  final features = cells.take(3000).map((cell) {
     final boundary = h3.cellToBoundary(cell);
     final ring = [
       ...boundary.map((c) => [c.lon, c.lat]),
@@ -78,6 +99,7 @@ const _kSourceGrid      = 'gg-grid';
 const _kSourceTiles     = 'gg-tiles';
 const _kSourceLiveCell  = 'gg-live';
 const _kSourceUserDot   = 'gg-user';
+const _kLayerGridFill   = 'gg-grid-fill';
 const _kLayerGridLines  = 'gg-grid-lines';
 const _kLayerTilesFill  = 'gg-tiles-fill';
 const _kLayerTilesLine  = 'gg-tiles-line';
@@ -87,16 +109,22 @@ const _kLayerLiveLine   = 'gg-live-line';
 const _kLayerUserHalo   = 'gg-user-halo';
 const _kLayerUserDot    = 'gg-user-dot';
 
-/// Returns H3 resolution appropriate for the current zoom level.
-/// Mapping is 3 levels coarser than naive (1:1) to keep cell count manageable
-/// and match DePIN industry practice (Helium res 8 at zoom ~14).
-int _gridRes(double zoom) {
-  if (zoom >= 15) return 9;
-  if (zoom >= 14) return 8;
-  if (zoom >= 13) return 7;
-  if (zoom >= 12) return 6;
-  if (zoom >= 10) return 5;
-  return 4; // zoom 8-9 (layer won't render below minzoom 9 anyway)
+/// H3 resolution for the ghost grid at a given map zoom.
+///
+/// Rule: grid resolution always matches the data tile resolution so ghost cells
+/// align exactly with personal/community tiles. No coarser than res 8 (community
+/// tile resolution) so the mosaic always reads at "neighborhood" scale.
+///
+///   zoom ≥ 14  → res 9  (~174 m cells  — street block, personal tile res)
+///   zoom ≥ 11  → res 8  (~461 m cells  — neighborhood, community tile res)
+///   zoom < 11  → null   — cells would be city-sized, mosaic makes no sense
+///
+/// The layer minzoom handles the hide-below-11 case, but returning null lets
+/// _refreshGrid skip the FFI call entirely.
+int? _gridRes(double zoom) {
+  if (zoom >= 13.5) return 9;  // res 9 (~174m) from zoom 13.5 — MapLibre
+  if (zoom >= 11) return 8;    // camera reads back as 13.998 when set to 14.0
+  return null; // below neighborhood scale — skip grid
 }
 
 
@@ -172,6 +200,9 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> {
   int _gridGeneration = 0;   // incremented on each refresh; stale results are discarded
   String? _lastGridCenterCell; // H3 cell hex string of last computed grid center
   int _lastGridZoom = -1;      // floor(zoom) at last grid compute
+  // MapLibre fires onMapClick when the finger lifts after a long press — suppress
+  // taps that arrive within 600 ms of a long press to avoid double-open sheets.
+  int _lastLongPressMs = 0;
 
   // ── Style URL / JSON ────────────────────────────────────────────────────────
 
@@ -402,7 +433,9 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> {
       _pendingStyleLoad = true;
       return;
     }
-    _styleLoaded = true;
+    // _styleLoaded is set to true AFTER all layers are added so that any
+    // didUpdateWidget calls during async layer setup return early from
+    // _refreshAllSources instead of hitting LAYER_NOT_FOUND errors.
     debugPrint('MapLibre: style loaded OK, adding GeoJSON sources + layers...');
 
     // ── Add sources (empty, populated below) ──
@@ -414,16 +447,32 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> {
       ctrl.addGeoJsonSource('gg-tile-labels', _kEmptyFC),
     ]);
 
-    // ── Ghost grid — faint outlines (only visible at zoom ≥ 9 to avoid ANR) ──
+    // ── Ghost grid fill — choropleth base layer ──
+    // Empty cells get a tint so the entire viewport reads as a hex mosaic.
+    // Added BEFORE the tiles fill layer in the call sequence — that's what
+    // controls Z-order. Do NOT pass belowLayerId here because _kLayerTilesFill
+    // doesn't exist yet at this point; MapLibre would silently drop this layer.
+    // Grid fill and lines both start at zoom 11 — below that cells are
+    // city-sized and a mosaic makes no visual sense (matching _gridRes logic).
+    await ctrl.addFillLayer(
+      _kSourceGrid,
+      _kLayerGridFill,
+      const FillLayerProperties(
+        fillColor: '#1a3a52',  // dark blue-teal, clearly distinct from #111927 base
+        fillOpacity: 0.60,
+      ),
+      minzoom: 11.0,
+    );
+
     await ctrl.addLineLayer(
       _kSourceGrid,
       _kLayerGridLines,
       const LineLayerProperties(
-        lineColor: '#7dd3fc', // sky-blue tint — more readable than pure white on dark
-        lineOpacity: 0.25,
-        lineWidth: 0.8,
+        lineColor: '#ffffff',
+        lineOpacity: 0.12,
+        lineWidth: 0.7,
       ),
-      minzoom: 9.0,
+      minzoom: 11.0,
     );
 
     // ── Data tiles fill ──
@@ -458,7 +507,7 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> {
         textField: ['get', 'label'],
         textColor: ['get', 'color'],
         textSize: 10.0,
-        textFont: ['DIN Offc Pro Medium', 'Arial Unicode MS Regular'],
+        textFont: ['Noto Sans Regular'],
         textAllowOverlap: false,
         textIgnorePlacement: false,
       ),
@@ -524,6 +573,9 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> {
     }
 
     debugPrint('MapLibre: all layers added — populating sources...');
+    // Mark ready only after all layers exist so _refreshAllSources calls from
+    // didUpdateWidget during setup don't hit LAYER_NOT_FOUND.
+    _styleLoaded = true;
     // ── Populate sources ──
     await _refreshAllSources();
     // Wait for MapLibre camera + viewport to fully settle before grid
@@ -592,38 +644,49 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> {
     if (!_styleLoaded || ctrl == null) return;
 
     final zoom = ctrl.cameraPosition?.zoom ?? 13.0;
-    if (zoom < 9.0) return; // below layer minzoom — skip
+    final res = _gridRes(zoom);
+    if (res == null) return; // below neighborhood scale — clear grid and skip
 
     final center = ctrl.cameraPosition?.target;
     if (center == null) return;
-
-    final res = _gridRes(zoom);
     final zoomInt = zoom.floor();
 
-    // Single geoToCell call on the main thread — cheap FFI, determines if
-    // the camera has moved to a different H3 cell since the last grid render.
-    // If still in the same cell at the same zoom level, the existing grid is
-    // already correct and no recompute is needed (Nodle/Helium stable-grid pattern).
+    // Cheap center-cell dedup — gridDisk is centered on the center cell, so if
+    // the center hasn't moved to a new H3 cell and zoom hasn't changed, the
+    // computed disk is identical — skip the FFI call and GeoJSON rebuild.
     final h3 = const h3f.H3Factory().load();
     final centerCell = h3.geoToCell(
       h3f.GeoCoord(lat: center.latitude, lon: center.longitude),
       res,
     );
     final cellStr = centerCell.toRadixString(16);
-
     if (cellStr == _lastGridCenterCell && zoomInt == _lastGridZoom) return;
     _lastGridCenterCell = cellStr;
     _lastGridZoom = zoomInt;
+
+    // Get the viewport bounds to compute the disk radius (k).
+    // 30% padding ensures edge cells are always included — gridDisk slightly
+    // overshoots the screen edges which is fine (clipped by the device).
+    LatLngBounds region;
+    try {
+      region = await ctrl.getVisibleRegion();
+    } catch (_) {
+      return;
+    }
+
+    final latPad = (region.northeast.latitude  - region.southwest.latitude)  * 0.30;
+    final lngPad = (region.northeast.longitude - region.southwest.longitude) * 0.30;
 
     final gen = ++_gridGeneration;
 
     Map<String, dynamic> geojson;
     try {
       geojson = await compute(_buildGrid, (
-        centerLat: center.latitude,
-        centerLon: center.longitude,
+        minLat: region.southwest.latitude  - latPad,
+        maxLat: region.northeast.latitude  + latPad,
+        minLng: region.southwest.longitude - lngPad,
+        maxLng: region.northeast.longitude + lngPad,
         resolution: res,
-        k: _gridDiskK(res),
       ));
     } catch (e) {
       debugPrint('MapLibre: grid compute error: $e');
@@ -642,11 +705,15 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> {
   }
 
   void _onMapTap(Point<double> point, LatLng coords) async {
+    // Suppress tap if it follows a long press — MapLibre fires onMapClick when
+    // the finger lifts after a long press, which would open a duplicate sheet.
+    if (DateTime.now().millisecondsSinceEpoch - _lastLongPressMs < 600) return;
     final tile = await _hitTestTile(point);
     if (tile != null) widget.onTileTap?.call(tile);
   }
 
   void _onMapLongPress(Point<double> point, LatLng coords) async {
+    _lastLongPressMs = DateTime.now().millisecondsSinceEpoch;
     final tile = await _hitTestTile(point);
     if (tile != null) {
       HapticFeedback.mediumImpact();
@@ -724,7 +791,7 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> {
         widget.userLocation!.longitude,
       );
     }
-    return const LatLng(48.08, 7.36); // Colmar default
+    return const LatLng(48.86, 2.35); // Paris — shown only before GPS fix or tiles load
   }
 
   // ── Build ───────────────────────────────────────────────────────────────────
@@ -1059,14 +1126,17 @@ class _LegendRow extends StatelessWidget {
 // ── Tile info bottom sheet ────────────────────────────────────────────────────
 
 /// Bottom sheet shown when user taps a coverage tile.
+/// [isDark] and [l10n] are passed explicitly from the calling context because
+/// the modal route's BuildContext may not inherit AppLocalizations, causing
+/// `context.l10n` to throw and the sheet to render blank.
 class TileInfoSheet extends StatelessWidget {
-  const TileInfoSheet({super.key, required this.tile});
+  const TileInfoSheet({super.key, required this.tile, required this.isDark, required this.l10n});
   final H3Tile tile;
+  final bool isDark;
+  final AppLocalizations l10n;
 
   @override
   Widget build(BuildContext context) {
-    final isDark = context.isDarkMode;
-    final l10n = context.l10n;
     final isPersonal = !tile.isGlobal;
 
     final qualityPct = tile.qualityScore != null
@@ -1084,18 +1154,17 @@ class TileInfoSheet extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.surface(isDark),
         borderRadius: BorderRadius.circular(AppTheme.radiusLg),
-        border: Border(
-          top: BorderSide(color: qualityColor, width: 3),
-          left: BorderSide(color: AppColors.border(isDark)),
-          right: BorderSide(color: AppColors.border(isDark)),
-          bottom: BorderSide(color: AppColors.border(isDark)),
-        ),
+        border: Border.all(color: AppColors.border(isDark)),
       ),
-      child: SafeArea(
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+        child: SafeArea(
         top: false,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            // Quality color indicator strip at top
+            Container(height: 3, color: qualityColor),
             // Drag handle
             Container(
               margin: const EdgeInsets.symmetric(vertical: AppTheme.spaceSm),
@@ -1219,6 +1288,7 @@ class TileInfoSheet extends StatelessWidget {
               ),
             ),
           ],
+        ),
         ),
       ),
     );

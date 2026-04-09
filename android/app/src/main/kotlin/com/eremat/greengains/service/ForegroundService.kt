@@ -515,7 +515,7 @@ class ForegroundService : Service() {
         Priority.PRIORITY_HIGH_ACCURACY -> "HIGH_ACCURACY"
         Priority.PRIORITY_BALANCED_POWER_ACCURACY -> "BALANCED_POWER_ACCURACY"
         Priority.PRIORITY_LOW_POWER -> "LOW_POWER"
-        Priority.PRIORITY_NO_POWER -> "NO_POWER"
+        Priority.PRIORITY_PASSIVE -> "PASSIVE"
         else -> "UNKNOWN($priority)"
     }
 
