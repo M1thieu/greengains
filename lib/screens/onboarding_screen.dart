@@ -183,15 +183,17 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         padding: const EdgeInsets.all(AppTheme.spaceLg),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Spacer(),
-            Icon(
-              Icons.eco,
-              size: _kWelcomeHeroSize,
-              color: AppColors.primary,
+            Center(
+              child: Icon(
+                Icons.public,
+                size: _kWelcomeHeroSize,
+                color: AppColors.primary,
+              ),
             ),
-            const SizedBox(height: AppTheme.spaceXl),
+            const SizedBox(height: AppTheme.spaceLg),
             Text(
               l10n.onboardingWelcomeTitle,
               style: theme.textTheme.headlineLarge?.copyWith(
@@ -200,13 +202,29 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: AppTheme.spaceMd),
-            Text(
-              '${l10n.onboardingFeature1Title} · ${l10n.onboardingFeature2Title} · ${l10n.onboardingFeature3Title}',
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: AppColors.textSecondary(isDark),
-              ),
-              textAlign: TextAlign.center,
+            const SizedBox(height: AppTheme.spaceXl),
+            _FeatureRow(
+              icon: Icons.directions_walk,
+              title: l10n.onboardingFeature1Title,
+              description: l10n.onboardingFeature1Description,
+              isDark: isDark,
+              theme: theme,
+            ),
+            const SizedBox(height: AppTheme.spaceSm),
+            _FeatureRow(
+              icon: Icons.shield_outlined,
+              title: l10n.onboardingFeature2Title,
+              description: l10n.onboardingFeature2Description,
+              isDark: isDark,
+              theme: theme,
+            ),
+            const SizedBox(height: AppTheme.spaceSm),
+            _FeatureRow(
+              icon: Icons.map_outlined,
+              title: l10n.onboardingFeature3Title,
+              description: l10n.onboardingFeature3Description,
+              isDark: isDark,
+              theme: theme,
             ),
             const Spacer(),
           ],
@@ -351,6 +369,56 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           ],
         ),
       ),
+    );
+  }
+}
+
+// ── Onboarding feature row ────────────────────────────────────────────────────
+
+class _FeatureRow extends StatelessWidget {
+  const _FeatureRow({
+    required this.icon,
+    required this.title,
+    required this.description,
+    required this.isDark,
+    required this.theme,
+  });
+
+  final IconData icon;
+  final String title;
+  final String description;
+  final bool isDark;
+  final ThemeData theme;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, size: AppIconSizes.md, color: AppColors.primary),
+        const SizedBox(width: AppTheme.spaceMd),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: AppFontWeights.semibold,
+                ),
+              ),
+              const SizedBox(height: AppTheme.spaceXxxs),
+              Text(
+                description,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: AppColors.textSecondary(isDark),
+                  height: 1.4,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
