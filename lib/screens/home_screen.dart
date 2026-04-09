@@ -75,7 +75,20 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   void _handleServiceRunningChange() {
     if (_locationService.isRunning.value) {
       _checkBatteryOptimization();
+      _maybeShowFirstStart();
     }
+  }
+
+  Future<void> _maybeShowFirstStart() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (prefs.getBool('tracking_ever_started') == true) return;
+    await prefs.setBool('tracking_ever_started', true);
+    if (!mounted) return;
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (_) => _FirstStartSheet(),
+    );
   }
 
   Future<void> _checkBatteryOptimization() async {
@@ -549,6 +562,87 @@ class _MyLocationButton extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+}
+
+/// First-start celebration sheet — shown exactly once, the first time tracking starts.
+/// Auto-dismisses after 3 s so it never blocks the map.
+class _FirstStartSheet extends StatefulWidget {
+  @override
+  State<_FirstStartSheet> createState() => _FirstStartSheetState();
+}
+
+class _FirstStartSheetState extends State<_FirstStartSheet> {
+  @override
+  void initState() {
+    super.initState();
+    Future.delayed(const Duration(seconds: 3), () {
+      if (mounted) Navigator.of(context).pop();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = context.isDarkMode;
+    final l10n = context.l10n;
+    final theme = Theme.of(context);
+
+    return Container(
+      margin: const EdgeInsets.symmetric(
+        horizontal: AppTheme.spaceMd,
+        vertical: AppTheme.spaceSm,
+      ),
+      decoration: BoxDecoration(
+        color: AppColors.surface(isDark),
+        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+        border: Border.all(color: AppColors.primary.withValues(alpha: 0.35)),
+      ),
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(
+            AppTheme.spaceLg, AppTheme.spaceMd, AppTheme.spaceLg, AppTheme.spaceLg,
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: AppColors.primaryAlpha(0.15),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.sensors, color: AppColors.primary, size: AppIconSizes.md),
+              ),
+              const SizedBox(width: AppTheme.spaceMd),
+              Expanded(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l10n.firstStartTitle,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: AppFontWeights.bold,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                    const SizedBox(height: AppTheme.spaceXxxs),
+                    Text(
+                      l10n.firstStartBody,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: AppColors.textSecondary(isDark),
+                        height: 1.4,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

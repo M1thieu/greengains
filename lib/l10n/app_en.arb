@@ -448,5 +448,13 @@
   "legendMidSub": "50–74% valid readings",
   "legendLowLabel": "Low quality",
   "legendLowSub": "Below 50% — needs more data",
-  "legendCommunitySub": "Mapped by other contributors"
+  "legendCommunitySub": "Mapped by other contributors",
+
+  "permissionPrimingTitle": "One thing before we start",
+  "permissionPrimingBattery": "Less than 1% battery per hour — same as a weather app",
+  "permissionPrimingCollects": "We collect ambient light, pressure and motion — never your identity",
+  "permissionPrimingCta": "Enable location",
+
+  "firstStartTitle": "You're live",
+  "firstStartBody": "Walk, commute, live normally — your first zone will appear on the map soon"
 }

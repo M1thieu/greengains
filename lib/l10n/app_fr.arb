@@ -448,5 +448,13 @@
   "legendMidSub": "50–74% de lectures valides",
   "legendLowLabel": "Qualité faible",
   "legendLowSub": "Moins de 50% — besoin de plus de données",
-  "legendCommunitySub": "Cartographié par d'autres contributeurs"
+  "legendCommunitySub": "Cartographié par d'autres contributeurs",
+
+  "permissionPrimingTitle": "Une chose avant de commencer",
+  "permissionPrimingBattery": "Moins de 1 % de batterie par heure — comme une appli météo",
+  "permissionPrimingCollects": "Nous collectons la lumière ambiante, la pression et le mouvement — jamais votre identité",
+  "permissionPrimingCta": "Activer la localisation",
+
+  "firstStartTitle": "Vous êtes en direct",
+  "firstStartBody": "Marchez, navettez, vivez normalement — votre première zone apparaîtra bientôt sur la carte"
 }

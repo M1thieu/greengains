@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:geolocator/geolocator.dart';
 import '../core/app_preferences.dart';
 import '../core/extensions/context_extensions.dart';
 import '../core/themes.dart';
@@ -85,6 +86,17 @@ class _TrackingFabState extends State<TrackingFab>
     if (mounted) setState(() {});
   }
 
+  /// Shows the permission priming sheet. Returns true if user tapped CTA,
+  /// false if they dismissed. Never throws.
+  Future<bool> _showPermissionPriming(BuildContext ctx) async {
+    final result = await showModalBottomSheet<bool>(
+      context: ctx,
+      backgroundColor: Colors.transparent,
+      builder: (_) => const _PermissionPrimingSheet(),
+    );
+    return result == true;
+  }
+
   Future<void> _toggle() async {
     if (_isToggling) return;
 
@@ -95,6 +107,14 @@ class _TrackingFabState extends State<TrackingFab>
     final isPaused = _locationService.isPaused.value;
 
     if (!isRunning) {
+      // Show permission priming screen before the OS dialog — only when not yet granted.
+      final currentPermission = await Geolocator.checkPermission();
+      if (currentPermission == LocationPermission.denied) {
+        if (!mounted) return;
+        final confirmed = await _showPermissionPriming(context);
+        if (!confirmed) return;
+      }
+
       final granted = await _locationPermissionHelper.requestLocation();
       if (!granted) {
         if (mounted) {
@@ -199,6 +219,120 @@ class _TrackingFabState extends State<TrackingFab>
           ),
         ),
       ),
+    );
+  }
+}
+
+// ── Permission priming sheet ──────────────────────────────────────────────────
+
+/// Shown before the OS location dialog on first ever Start press.
+/// Explains battery impact and what we collect — lifts permission grant rate.
+class _PermissionPrimingSheet extends StatelessWidget {
+  const _PermissionPrimingSheet();
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = context.isDarkMode;
+    final l10n = context.l10n;
+    final theme = Theme.of(context);
+
+    return Container(
+      margin: const EdgeInsets.symmetric(
+        horizontal: AppTheme.spaceMd,
+        vertical: AppTheme.spaceSm,
+      ),
+      decoration: BoxDecoration(
+        color: AppColors.surface(isDark),
+        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+        border: Border.all(color: AppColors.border(isDark)),
+      ),
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.all(AppTheme.spaceLg),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 32,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: AppColors.textSecondary(isDark).withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: AppTheme.spaceLg),
+              Icon(Icons.location_on_outlined, color: AppColors.primary, size: AppIconSizes.xl),
+              const SizedBox(height: AppTheme.spaceMd),
+              Text(
+                l10n.permissionPrimingTitle,
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: AppFontWeights.bold,
+                  letterSpacing: -0.3,
+                ),
+              ),
+              const SizedBox(height: AppTheme.spaceMd),
+              _PrimingRow(
+                icon: Icons.battery_saver_outlined,
+                text: l10n.permissionPrimingBattery,
+                isDark: isDark,
+                theme: theme,
+              ),
+              const SizedBox(height: AppTheme.spaceSm),
+              _PrimingRow(
+                icon: Icons.shield_outlined,
+                text: l10n.permissionPrimingCollects,
+                isDark: isDark,
+                theme: theme,
+              ),
+              const SizedBox(height: AppTheme.spaceXl),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton(
+                  onPressed: () => Navigator.of(context).pop(true),
+                  child: Text(l10n.permissionPrimingCta),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _PrimingRow extends StatelessWidget {
+  const _PrimingRow({
+    required this.icon,
+    required this.text,
+    required this.isDark,
+    required this.theme,
+  });
+  final IconData icon;
+  final String text;
+  final bool isDark;
+  final ThemeData theme;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, size: AppIconSizes.sm, color: AppColors.primary),
+        const SizedBox(width: AppTheme.spaceSm),
+        Expanded(
+          child: Text(
+            text,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: AppColors.textSecondary(isDark),
+              height: 1.4,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

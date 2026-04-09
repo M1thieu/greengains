@@ -410,17 +410,28 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> {
   static double _fillOpacity(H3Tile tile) {
     if (tile.isGlobal) return 0.16;
     final q = _qualityPct(tile);
-    if (q >= 75) return 0.28;
-    if (q >= 50) return 0.24;
-    return 0.20;
+    double base = q >= 75 ? 0.28 : q >= 50 ? 0.24 : 0.20;
+    // Freshness decay — older tiles fade to motivate re-coverage (Hivemapper pattern).
+    if (tile.lastUpdate != null) {
+      final age = DateTime.now().difference(tile.lastUpdate!).inDays;
+      if (age > 7) { base *= 0.50; }
+      else if (age > 3) { base *= 0.70; }
+      else if (age > 1) { base *= 0.85; }
+    }
+    return base;
   }
 
   static double _strokeOpacity(H3Tile tile) {
     if (tile.isGlobal) return 0.0;
     final q = _qualityPct(tile);
-    if (q >= 75) return 0.90;
-    if (q >= 50) return 0.75;
-    return 0.60;
+    double base = q >= 75 ? 0.90 : q >= 50 ? 0.75 : 0.60;
+    if (tile.lastUpdate != null) {
+      final age = DateTime.now().difference(tile.lastUpdate!).inDays;
+      if (age > 7) { base *= 0.50; }
+      else if (age > 3) { base *= 0.70; }
+      else if (age > 1) { base *= 0.85; }
+    }
+    return base;
   }
 
   // ── MapLibre lifecycle ──────────────────────────────────────────────────────
