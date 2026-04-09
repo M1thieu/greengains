@@ -195,14 +195,10 @@ class _NavItem extends StatelessWidget {
             Badge(
               isLabelVisible: badge,
               backgroundColor: AppColors.primary,
-              child: AnimatedSwitcher(
-                duration: AppDurations.fast,
-                child: Icon(
-                  selected ? selectedIcon : icon,
-                  key: ValueKey(selected ? selectedIcon : icon),
-                  color: color,
-                  size: AppIconSizes.md,
-                ),
+              child: Icon(
+                selected ? selectedIcon : icon,
+                color: color,
+                size: AppIconSizes.md,
               ),
             ),
             // Label only visible on selected tab — cleaner than always-visible labels
