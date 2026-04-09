@@ -2,11 +2,15 @@ package com.eremat.greengains
 
 import android.app.ActivityManager
 import android.app.ApplicationExitInfo
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
 import android.Manifest.permission.ACCESS_COARSE_LOCATION
 import android.Manifest.permission.ACCESS_FINE_LOCATION
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Color
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -14,6 +18,7 @@ import android.os.PowerManager
 import android.provider.Settings
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
+import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import com.eremat.greengains.service.ForegroundService
 import com.eremat.greengains.util.AppLogger
@@ -29,6 +34,8 @@ class MainActivity : FlutterActivity() {
     companion object {
         private const val LOCATION_PERMISSION_REQUEST_CODE = 1001
         private const val NOTIFICATION_PERMISSION_REQUEST_CODE = 1002
+        private const val ZONE_CHANNEL_ID = "zone_discoveries"
+        private const val NOTIFICATION_ID_ZONE = 3
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -94,6 +101,12 @@ class MainActivity : FlutterActivity() {
                     "flushSensorBuffers" -> {
                         // Flush FIFO buffers to get fresh data in UI
                         result.success(sendServiceAction(ForegroundService.ACTION_FLUSH_FIFO))
+                    }
+                    "showZoneNotification" -> {
+                        val newZones = call.argument<Int>("newZones") ?: 0
+                        val totalZones = call.argument<Int>("totalZones") ?: 0
+                        showZoneNotification(newZones, totalZones)
+                        result.success(true)
                     }
                     else -> result.notImplemented()
                 }
@@ -266,6 +279,52 @@ class MainActivity : FlutterActivity() {
         } catch (_: Exception) {
             false
         }
+    }
+
+    /**
+     * Posts a heads-up notification when the user discovers new zones.
+     * Uses a separate low-priority channel so it doesn't interrupt ongoing service notifications.
+     */
+    private fun showZoneNotification(newZones: Int, totalZones: Int) {
+        val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val existing = manager.getNotificationChannel(ZONE_CHANNEL_ID)
+            if (existing == null) {
+                val channel = NotificationChannel(
+                    ZONE_CHANNEL_ID,
+                    getString(R.string.notification_zone_channel_name),
+                    NotificationManager.IMPORTANCE_DEFAULT
+                ).apply {
+                    enableVibration(true)
+                    setShowBadge(true)
+                }
+                manager.createNotificationChannel(channel)
+            }
+        }
+
+        val body = if (newZones == 1) {
+            getString(R.string.notification_zone_body_single, totalZones)
+        } else {
+            getString(R.string.notification_zone_body_multiple, newZones, totalZones)
+        }
+
+        val tapIntent = PendingIntent.getActivity(
+            this, 0,
+            Intent(this, MainActivity::class.java),
+            PendingIntent.FLAG_IMMUTABLE
+        )
+
+        val notification = NotificationCompat.Builder(this, ZONE_CHANNEL_ID)
+            .setContentTitle(getString(R.string.notification_zone_title))
+            .setContentText(body)
+            .setSmallIcon(R.mipmap.ic_launcher)
+            .setColor(Color.parseColor("#10B981"))
+            .setAutoCancel(true)
+            .setContentIntent(tapIntent)
+            .build()
+
+        manager.notify(NOTIFICATION_ID_ZONE, notification)
     }
 
     /**

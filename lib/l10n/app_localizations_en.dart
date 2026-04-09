@@ -27,21 +27,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get onboardingFeature2Description =>
-      'Sensor readings are bundled with thousands of others before leaving your device. No personal data, ever.';
+      'Your data is bundled with thousands of others before it ever leaves your device. No location history, no personal data — ever.';
 
   @override
   String get onboardingFeature3Title => 'Real data, real impact';
 
   @override
   String get onboardingFeature3Description =>
-      'Your readings go into a live environmental map used by researchers and urban planners. Every street covered is data that didn\'t exist before.';
+      'Your readings feed a live map used by researchers and city planners. Every street you walk adds data that never existed before.';
 
   @override
   String get onboardingSignInTitle => 'Join the network';
 
   @override
   String get onboardingSignInSubtitle =>
-      'Sign in to sync your contributions across devices and track your daily streak.';
+      'Sign in once — your coverage map and progress follow you everywhere.';
 
   @override
   String get onboardingCloudSync => 'Live Coverage Map';
@@ -431,7 +431,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get statsAreasLabel => 'areas mapped';
 
   @override
-  String get statsDataPtsLabel => 'data pts';
+  String get statsDataPtsLabel => 'readings';
 
   @override
   String get statsKmMapped => 'km² mapped';
@@ -819,7 +819,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsLocationDescription =>
-      'Enable location for coverage map and H3 tiles';
+      'Required for the live coverage map';
 
   @override
   String get settingsMobileDataDescription =>
@@ -1028,4 +1028,44 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get legendCommunitySub => 'Mapped by other contributors';
+
+  @override
+  String get permissionPrimingTitle => 'One thing before we start';
+
+  @override
+  String get permissionPrimingBattery =>
+      'Less than 1% battery per hour — same as a weather app';
+
+  @override
+  String get permissionPrimingCollects =>
+      'We collect ambient light, pressure and motion — never your identity';
+
+  @override
+  String get permissionPrimingCta => 'Enable location';
+
+  @override
+  String get firstStartTitle => 'You\'re live';
+
+  @override
+  String get firstStartBody =>
+      'Walk, commute, live normally — your first zone will appear on the map soon';
+
+  @override
+  String get alwaysOnBannerBody =>
+      'Set location to \'Always\' for background collection';
+
+  @override
+  String get alwaysOnBannerFix => 'Fix';
+
+  @override
+  String milestoneReachedTitle(int count) {
+    return '$count zones mapped';
+  }
+
+  @override
+  String get milestoneReachedBody =>
+      'You\'re building a real environmental picture of your city. Keep going.';
+
+  @override
+  String get milestoneReachedCta => 'Keep mapping';
 }

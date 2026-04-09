@@ -21,4 +21,12 @@
     <!-- Background worker notification -->
     <string name="notification_worker_title">GreenGains — traitement des données</string>
     <string name="notification_worker_body">Traitement des dernières données capteurs</string>
+
+    <!-- Zone discovery notification -->
+    <string name="notification_zone_channel_name">Découvertes de zones</string>
+    <string name="notification_zone_title">Nouvelle zone cartographiée !</string>
+    <!-- %1$d = total zones -->
+    <string name="notification_zone_body_single">%1$d zones au total — continuez !</string>
+    <!-- %1$d = nouvelles zones, %2$d = total zones -->
+    <string name="notification_zone_body_multiple">+%1$d nouvelles zones · %2$d au total</string>
 </resources>

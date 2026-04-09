@@ -27,21 +27,21 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get onboardingFeature2Description =>
-      'Les lectures de capteurs sont regroupées avec des milliers d\'autres avant de quitter votre appareil. Aucune donnée personnelle.';
+      'Vos données sont regroupées avec des milliers d\'autres avant de quitter votre appareil. Aucun historique de position, aucune donnée personnelle — jamais.';
 
   @override
   String get onboardingFeature3Title => 'Des données réelles, un impact réel';
 
   @override
   String get onboardingFeature3Description =>
-      'Vos mesures alimentent une carte environnementale en direct utilisée par des chercheurs et des urbanistes. Chaque rue couverte est une donnée qui n\'existait pas avant.';
+      'Vos mesures alimentent une carte en direct utilisée par des chercheurs et des urbanistes. Chaque rue parcourue ajoute une donnée qui n\'existait pas avant.';
 
   @override
   String get onboardingSignInTitle => 'Rejoindre le réseau';
 
   @override
   String get onboardingSignInSubtitle =>
-      'Connectez-vous pour synchroniser vos contributions et suivre votre progression.';
+      'Une seule connexion — votre carte et vos progrès vous suivent partout.';
 
   @override
   String get onboardingCloudSync => 'Carte de couverture en direct';
@@ -433,7 +433,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get statsAreasLabel => 'zones cartographiées';
 
   @override
-  String get statsDataPtsLabel => 'pts de données';
+  String get statsDataPtsLabel => 'mesures';
 
   @override
   String get statsKmMapped => 'km² cartographiés';
@@ -824,7 +824,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settingsLocationDescription =>
-      'Activer la localisation pour la carte de couverture et les tuiles H3';
+      'Nécessaire pour la carte de couverture en direct';
 
   @override
   String get settingsMobileDataDescription =>
@@ -1035,4 +1035,44 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get legendCommunitySub => 'Cartographié par d\'autres contributeurs';
+
+  @override
+  String get permissionPrimingTitle => 'Une chose avant de commencer';
+
+  @override
+  String get permissionPrimingBattery =>
+      'Moins de 1 % de batterie par heure — comme une appli météo';
+
+  @override
+  String get permissionPrimingCollects =>
+      'Nous collectons la lumière ambiante, la pression et le mouvement — jamais votre identité';
+
+  @override
+  String get permissionPrimingCta => 'Activer la localisation';
+
+  @override
+  String get firstStartTitle => 'Vous êtes en direct';
+
+  @override
+  String get firstStartBody =>
+      'Marchez, navettez, vivez normalement — votre première zone apparaîtra bientôt sur la carte';
+
+  @override
+  String get alwaysOnBannerBody =>
+      'Définissez la localisation sur \'Toujours\' pour la collecte en arrière-plan';
+
+  @override
+  String get alwaysOnBannerFix => 'Corriger';
+
+  @override
+  String milestoneReachedTitle(int count) {
+    return '$count zones cartographiées';
+  }
+
+  @override
+  String get milestoneReachedBody =>
+      'Vous construisez une vraie image environnementale de votre ville. Continuez.';
+
+  @override
+  String get milestoneReachedCta => 'Continuer à cartographier';
 }

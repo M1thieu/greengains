@@ -456,5 +456,15 @@
   "permissionPrimingCta": "Enable location",
 
   "firstStartTitle": "You're live",
-  "firstStartBody": "Walk, commute, live normally — your first zone will appear on the map soon"
+  "firstStartBody": "Walk, commute, live normally — your first zone will appear on the map soon",
+
+  "alwaysOnBannerBody": "Set location to 'Always' for background collection",
+  "alwaysOnBannerFix": "Fix",
+
+  "milestoneReachedTitle": "{count} zones mapped",
+  "@milestoneReachedTitle": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "milestoneReachedBody": "You're building a real environmental picture of your city. Keep going.",
+  "milestoneReachedCta": "Keep mapping"
 }

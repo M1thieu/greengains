@@ -131,7 +131,7 @@ abstract class AppLocalizations {
   /// No description provided for @onboardingFeature2Description.
   ///
   /// In en, this message translates to:
-  /// **'Sensor readings are bundled with thousands of others before leaving your device. No personal data, ever.'**
+  /// **'Your data is bundled with thousands of others before it ever leaves your device. No location history, no personal data — ever.'**
   String get onboardingFeature2Description;
 
   /// No description provided for @onboardingFeature3Title.
@@ -143,7 +143,7 @@ abstract class AppLocalizations {
   /// No description provided for @onboardingFeature3Description.
   ///
   /// In en, this message translates to:
-  /// **'Your readings go into a live environmental map used by researchers and urban planners. Every street covered is data that didn\'t exist before.'**
+  /// **'Your readings feed a live map used by researchers and city planners. Every street you walk adds data that never existed before.'**
   String get onboardingFeature3Description;
 
   /// No description provided for @onboardingSignInTitle.
@@ -155,7 +155,7 @@ abstract class AppLocalizations {
   /// No description provided for @onboardingSignInSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Sign in to sync your contributions across devices and track your daily streak.'**
+  /// **'Sign in once — your coverage map and progress follow you everywhere.'**
   String get onboardingSignInSubtitle;
 
   /// No description provided for @onboardingCloudSync.
@@ -869,7 +869,7 @@ abstract class AppLocalizations {
   /// No description provided for @statsDataPtsLabel.
   ///
   /// In en, this message translates to:
-  /// **'data pts'**
+  /// **'readings'**
   String get statsDataPtsLabel;
 
   /// No description provided for @statsKmMapped.
@@ -1530,7 +1530,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsLocationDescription.
   ///
   /// In en, this message translates to:
-  /// **'Enable location for coverage map and H3 tiles'**
+  /// **'Required for the live coverage map'**
   String get settingsLocationDescription;
 
   /// No description provided for @settingsMobileDataDescription.
@@ -1880,6 +1880,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Mapped by other contributors'**
   String get legendCommunitySub;
+
+  /// No description provided for @permissionPrimingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'One thing before we start'**
+  String get permissionPrimingTitle;
+
+  /// No description provided for @permissionPrimingBattery.
+  ///
+  /// In en, this message translates to:
+  /// **'Less than 1% battery per hour — same as a weather app'**
+  String get permissionPrimingBattery;
+
+  /// No description provided for @permissionPrimingCollects.
+  ///
+  /// In en, this message translates to:
+  /// **'We collect ambient light, pressure and motion — never your identity'**
+  String get permissionPrimingCollects;
+
+  /// No description provided for @permissionPrimingCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable location'**
+  String get permissionPrimingCta;
+
+  /// No description provided for @firstStartTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re live'**
+  String get firstStartTitle;
+
+  /// No description provided for @firstStartBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Walk, commute, live normally — your first zone will appear on the map soon'**
+  String get firstStartBody;
+
+  /// No description provided for @alwaysOnBannerBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Set location to \'Always\' for background collection'**
+  String get alwaysOnBannerBody;
+
+  /// No description provided for @alwaysOnBannerFix.
+  ///
+  /// In en, this message translates to:
+  /// **'Fix'**
+  String get alwaysOnBannerFix;
+
+  /// No description provided for @milestoneReachedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} zones mapped'**
+  String milestoneReachedTitle(int count);
+
+  /// No description provided for @milestoneReachedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re building a real environmental picture of your city. Keep going.'**
+  String get milestoneReachedBody;
+
+  /// No description provided for @milestoneReachedCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep mapping'**
+  String get milestoneReachedCta;
 }
 
 class _AppLocalizationsDelegate

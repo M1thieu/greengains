@@ -47,6 +47,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   final _recenterTrigger = ValueNotifier<int>(0);
 
   bool _batteryPromptOpen = false;
+  bool _showAlwaysOnBanner = false;
   StreamSubscription<UploadSuccessEvent>? _uploadSuccessSub;
   /// True when map is actively following the user's GPS position.
   final _followModeNotifier = ValueNotifier<bool>(false);
@@ -65,6 +66,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     _locationService.isRunning.addListener(_handleServiceRunningChange);
     _checkServiceStatus();
     _setupUploadSuccessListener();
+    _checkAlwaysOnPermission();
     _checkBatteryOptimization();
     _loadH3Tiles();
     _loadGlobalTiles();
@@ -76,6 +78,16 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     if (_locationService.isRunning.value) {
       _checkBatteryOptimization();
       _maybeShowFirstStart();
+      _checkAlwaysOnPermission();
+    }
+  }
+
+  Future<void> _checkAlwaysOnPermission() async {
+    final perm = await Geolocator.checkPermission();
+    // whileInUse = app can only collect in foreground — background collection dies silently.
+    // Show persistent banner so user knows why their map isn't growing.
+    if (mounted) {
+      setState(() => _showAlwaysOnBanner = perm == LocationPermission.whileInUse);
     }
   }
 
@@ -144,8 +156,40 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           ? context.l10n.uploadSuccessNewZone(newCount)
           : context.l10n.uploadSuccessMessage;
       AppSnackbars.showSuccess(context, msg);
+      if (gained > 0) {
+        _maybeCelebrateMilestone(newCount);
+        _maybeFireZoneNotification(gained, newCount);
+      }
     });
     _maybeRequestReview();
+  }
+
+  static const _kMilestones = [5, 10, 25, 50, 100, 250, 500];
+
+  Future<void> _maybeCelebrateMilestone(int zoneCount) async {
+    final prefs = await SharedPreferences.getInstance();
+    final lastCelebrated = prefs.getInt('last_milestone_celebrated') ?? 0;
+    // Find the highest milestone the user has reached that hasn't been celebrated yet.
+    final earned = _kMilestones.where((m) => m <= zoneCount && m > lastCelebrated).toList();
+    if (earned.isEmpty) return;
+    final milestone = earned.last;
+    await prefs.setInt('last_milestone_celebrated', milestone);
+    if (!mounted) return;
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (_) => _MilestoneSheet(zoneCount: milestone),
+    );
+  }
+
+  Future<void> _maybeFireZoneNotification(int gained, int total) async {
+    try {
+      const platform = MethodChannel('greengains/foreground');
+      await platform.invokeMethod('showZoneNotification', {
+        'newZones': gained,
+        'totalZones': total,
+      });
+    } catch (_) {}
   }
 
   /// Show the Play Store in-app review dialog once, after the user's 5th upload.
@@ -419,7 +463,22 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               ),
             ),
 
-            // ── 1b. Zone count pill — stacked above the location button ─────
+            // ── 1b. Always-on permission banner — below status chip ──────────
+            if (_showAlwaysOnBanner)
+              Positioned(
+                top: topPadding + AppTheme.spaceXs + 36 + AppTheme.spaceXxs,
+                left: AppTheme.spaceMd,
+                child: _AlwaysOnBanner(
+                  onFix: () async {
+                    await Geolocator.openAppSettings();
+                    // Re-check after user returns from settings
+                    await Future.delayed(const Duration(seconds: 1));
+                    _checkAlwaysOnPermission();
+                  },
+                ),
+              ),
+
+            // ── 1c. Zone count pill — stacked above the location button ─────
             // bottom = nav row + location button height + a gap
             if (_h3Tiles.isNotEmpty)
               Positioned(
@@ -566,6 +625,56 @@ class _MyLocationButton extends StatelessWidget {
   }
 }
 
+/// Persistent banner shown when location permission is 'while in use' only.
+/// Background collection silently stops without 'always' — users never know why their map isn't growing.
+class _AlwaysOnBanner extends StatelessWidget {
+  const _AlwaysOnBanner({required this.onFix});
+  final VoidCallback onFix;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppTheme.spaceSm,
+        vertical: AppTheme.spaceXxxs + 2,
+      ),
+      decoration: BoxDecoration(
+        color: AppColors.warning.withValues(alpha: 0.18),
+        borderRadius: BorderRadius.circular(AppTheme.radiusPill),
+        border: Border.all(color: AppColors.warning.withValues(alpha: 0.35)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.warning_amber_rounded, size: 13, color: AppColors.warning),
+          const SizedBox(width: AppTheme.spaceXxxs + 2),
+          Text(
+            l10n.alwaysOnBannerBody,
+            style: const TextStyle(
+              color: Colors.white70,
+              fontSize: 11.5,
+              fontWeight: AppFontWeights.medium,
+            ),
+          ),
+          const SizedBox(width: AppTheme.spaceXs),
+          GestureDetector(
+            onTap: onFix,
+            child: Text(
+              l10n.alwaysOnBannerFix,
+              style: TextStyle(
+                color: AppColors.warning,
+                fontSize: 11.5,
+                fontWeight: AppFontWeights.bold,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 /// First-start celebration sheet — shown exactly once, the first time tracking starts.
 /// Auto-dismisses after 3 s so it never blocks the map.
 class _FirstStartSheet extends StatefulWidget {
@@ -637,6 +746,90 @@ class _FirstStartSheetState extends State<_FirstStartSheet> {
                       ),
                     ),
                   ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Milestone celebration sheet — shown when user hits 5/10/25/50/100/250/500 zones.
+/// Validates their contribution with a trophy moment, then auto-dismisses on CTA.
+class _MilestoneSheet extends StatelessWidget {
+  const _MilestoneSheet({required this.zoneCount});
+  final int zoneCount;
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = context.isDarkMode;
+    final l10n = context.l10n;
+    final theme = Theme.of(context);
+
+    return Container(
+      margin: const EdgeInsets.symmetric(
+        horizontal: AppTheme.spaceMd,
+        vertical: AppTheme.spaceSm,
+      ),
+      decoration: BoxDecoration(
+        color: AppColors.surface(isDark),
+        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+        border: Border.all(color: AppColors.primary.withValues(alpha: 0.35)),
+      ),
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.all(AppTheme.spaceLg),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Center(
+                child: Container(
+                  width: 32,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: AppColors.textSecondary(isDark).withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: AppTheme.spaceLg),
+              Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                  color: AppColors.primaryAlpha(0.15),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.map_outlined, color: AppColors.primary, size: AppIconSizes.lg),
+              ),
+              const SizedBox(height: AppTheme.spaceMd),
+              Text(
+                l10n.milestoneReachedTitle(zoneCount),
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: AppFontWeights.bold,
+                  color: AppColors.primary,
+                  letterSpacing: -0.3,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: AppTheme.spaceSm),
+              Text(
+                l10n.milestoneReachedBody,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: AppColors.textSecondary(isDark),
+                  height: 1.5,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: AppTheme.spaceXl),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: Text(l10n.milestoneReachedCta),
                 ),
               ),
             ],

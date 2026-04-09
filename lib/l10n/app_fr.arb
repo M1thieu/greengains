@@ -456,5 +456,15 @@
   "permissionPrimingCta": "Activer la localisation",
 
   "firstStartTitle": "Vous êtes en direct",
-  "firstStartBody": "Marchez, navettez, vivez normalement — votre première zone apparaîtra bientôt sur la carte"
+  "firstStartBody": "Marchez, navettez, vivez normalement — votre première zone apparaîtra bientôt sur la carte",
+
+  "alwaysOnBannerBody": "Définissez la localisation sur 'Toujours' pour la collecte en arrière-plan",
+  "alwaysOnBannerFix": "Corriger",
+
+  "milestoneReachedTitle": "{count} zones cartographiées",
+  "@milestoneReachedTitle": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "milestoneReachedBody": "Vous construisez une vraie image environnementale de votre ville. Continuez.",
+  "milestoneReachedCta": "Continuer à cartographier"
 }

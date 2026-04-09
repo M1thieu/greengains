@@ -22,4 +22,12 @@
     <!-- Background worker notification -->
     <string name="notification_worker_title">GreenGains — processing data</string>
     <string name="notification_worker_body">Crunching recent sensor batches</string>
+
+    <!-- Zone discovery notification -->
+    <string name="notification_zone_channel_name">Zone Discoveries</string>
+    <string name="notification_zone_title">New zone mapped!</string>
+    <!-- %1$d = total zones -->
+    <string name="notification_zone_body_single">%1$d zones total — keep going!</string>
+    <!-- %1$d = new zones, %2$d = total zones -->
+    <string name="notification_zone_body_multiple">+%1$d new zones · %2$d total</string>
 </resources>
