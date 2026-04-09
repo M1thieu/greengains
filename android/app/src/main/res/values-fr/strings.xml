@@ -3,16 +3,16 @@
     <string name="app_name">GreenGains</string>
 
     <!-- Foreground service notification — title = statut, body = compteur ou instruction -->
-    <string name="notification_status_collecting">En cours</string>
+    <string name="notification_status_collecting">Cartographie en cours</string>
     <string name="notification_paused_title">En pause</string>
-    <string name="notification_paused_body">Appuyez sur Reprendre pour contribuer</string>
-    <string name="notification_collecting_no_upload">Collecte des données capteurs…</string>
+    <string name="notification_paused_body">Appuyez sur Reprendre pour continuer la carte</string>
+    <string name="notification_collecting_no_upload">En attente du premier envoi…</string>
     <plurals name="notification_readings_today">
-        <item quantity="one">1 contribution aujourd\'hui</item>
-        <item quantity="other">%d contributions aujourd\'hui</item>
+        <item quantity="one">1 envoi aujourd\'hui</item>
+        <item quantity="other">%d envois aujourd\'hui</item>
     </plurals>
     <!-- %1$d = count aujourd'hui, %2$d = total depuis toujours -->
-    <string name="notification_readings_with_total">%1$d aujourd\'hui · %2$d au total</string>
+    <string name="notification_readings_with_total">%1$d aujourd\'hui · %2$d envois au total</string>
 
     <!-- Notification actions -->
     <string name="notification_action_pause">Pause</string>

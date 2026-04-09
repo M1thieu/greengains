@@ -47,7 +47,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   final _recenterTrigger = ValueNotifier<int>(0);
 
   bool _batteryPromptOpen = false;
-  bool _showAlwaysOnBanner = false;
   StreamSubscription<UploadSuccessEvent>? _uploadSuccessSub;
   /// True when map is actively following the user's GPS position.
   final _followModeNotifier = ValueNotifier<bool>(false);
@@ -66,7 +65,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     _locationService.isRunning.addListener(_handleServiceRunningChange);
     _checkServiceStatus();
     _setupUploadSuccessListener();
-    _checkAlwaysOnPermission();
     _checkBatteryOptimization();
     _loadH3Tiles();
     _loadGlobalTiles();
@@ -78,16 +76,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     if (_locationService.isRunning.value) {
       _checkBatteryOptimization();
       _maybeShowFirstStart();
-      _checkAlwaysOnPermission();
-    }
-  }
-
-  Future<void> _checkAlwaysOnPermission() async {
-    final perm = await Geolocator.checkPermission();
-    // whileInUse = app can only collect in foreground — background collection dies silently.
-    // Show persistent banner so user knows why their map isn't growing.
-    if (mounted) {
-      setState(() => _showAlwaysOnBanner = perm == LocationPermission.whileInUse);
     }
   }
 
@@ -463,29 +451,18 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               ),
             ),
 
-            // ── 1b. Always-on permission banner — below status chip ──────────
-            if (_showAlwaysOnBanner)
-              Positioned(
-                top: topPadding + AppTheme.spaceXs + 36 + AppTheme.spaceXxs,
-                left: AppTheme.spaceMd,
-                child: _AlwaysOnBanner(
-                  onFix: () async {
-                    await Geolocator.openAppSettings();
-                    // Re-check after user returns from settings
-                    await Future.delayed(const Duration(seconds: 1));
-                    _checkAlwaysOnPermission();
-                  },
-                ),
-              ),
-
-            // ── 1c. Zone count pill — stacked above the location button ─────
+            // ── 1b. Zone count pill — stacked above the location button ─────
             // bottom = nav row + location button height + a gap
             if (_h3Tiles.isNotEmpty)
               Positioned(
                 left: AppTheme.spaceMd,
+                right: AppTheme.spaceMd,
                 bottom: bottomPadding + AppTheme.floatingNavHeight + AppTheme.spaceLg +
                     _kLocationBtnSize + AppTheme.spaceSm,
-                child: _ZoneCountPill(count: _h3Tiles.length),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: _ZoneCountPill(count: _h3Tiles.length),
+                ),
               ),
 
             // ── 2. FAB (center-bottom, above floating nav bar) ───────────
@@ -621,56 +598,6 @@ class _MyLocationButton extends StatelessWidget {
           ),
         );
       },
-    );
-  }
-}
-
-/// Persistent banner shown when location permission is 'while in use' only.
-/// Background collection silently stops without 'always' — users never know why their map isn't growing.
-class _AlwaysOnBanner extends StatelessWidget {
-  const _AlwaysOnBanner({required this.onFix});
-  final VoidCallback onFix;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = context.l10n;
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppTheme.spaceSm,
-        vertical: AppTheme.spaceXxxs + 2,
-      ),
-      decoration: BoxDecoration(
-        color: AppColors.warning.withValues(alpha: 0.18),
-        borderRadius: BorderRadius.circular(AppTheme.radiusPill),
-        border: Border.all(color: AppColors.warning.withValues(alpha: 0.35)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.warning_amber_rounded, size: 13, color: AppColors.warning),
-          const SizedBox(width: AppTheme.spaceXxxs + 2),
-          Text(
-            l10n.alwaysOnBannerBody,
-            style: const TextStyle(
-              color: Colors.white70,
-              fontSize: 11.5,
-              fontWeight: AppFontWeights.medium,
-            ),
-          ),
-          const SizedBox(width: AppTheme.spaceXs),
-          GestureDetector(
-            onTap: onFix,
-            child: Text(
-              l10n.alwaysOnBannerFix,
-              style: TextStyle(
-                color: AppColors.warning,
-                fontSize: 11.5,
-                fontWeight: AppFontWeights.bold,
-              ),
-            ),
-          ),
-        ],
-      ),
     );
   }
 }
