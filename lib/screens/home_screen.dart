@@ -48,6 +48,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   bool _batteryPromptOpen = false;
   StreamSubscription<UploadSuccessEvent>? _uploadSuccessSub;
+  /// True when map is actively following the user's GPS position.
+  final _followModeNotifier = ValueNotifier<bool>(false);
   StreamSubscription? _locationStreamSub;
   List<H3Tile> _h3Tiles = [];
   List<H3Tile> _globalTiles = [];
@@ -156,6 +158,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     _locationService.isRunning.removeListener(_handleServiceRunningChange);
     _recenterTrigger.dispose();
     _userLocationNotifier.dispose();
+    _followModeNotifier.dispose();
     super.dispose();
   }
 
@@ -356,6 +359,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                   fillScreen: true,
                   isLoading: _h3TilesLoading,
                   recenterTrigger: _recenterTrigger,
+                  followModeNotifier: _followModeNotifier,
                   controlsPadding: EdgeInsets.only(
                     top: topPadding,
                     bottom: bottomPadding + AppTheme.floatingNavHeight + AppTheme.spaceLg,
@@ -364,15 +368,15 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               },
             ),
 
-            // ── 0b. First-use hint — shown until user has tiles or starts tracking ──
+            // ── 0b. First-use hint — sits just above the FAB row ─────────
+            // Positioned is correct here — Center+bottom-padding doesn't work
+            // for directional placement (Center ignores directional offsets).
             if (_h3Tiles.isEmpty && !_locationService.isRunning.value)
-              Center(
-                child: Padding(
-                  padding: EdgeInsets.only(
-                    bottom: bottomPadding + AppTheme.floatingNavHeight + AppTheme.spaceXxl + 40,
-                  ),
-                  child: _FirstUseHint(),
-                ),
+              Positioned(
+                left: AppTheme.spaceLg,
+                right: AppTheme.spaceLg,
+                bottom: bottomPadding + AppTheme.floatingNavHeight + AppTheme.spaceLg + 64,
+                child: Center(child: _FirstUseHint()),
               ),
 
 
@@ -402,11 +406,13 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               ),
             ),
 
-            // ── 1b. Personal zone count strip (above nav, shown when tiles loaded) ──
+            // ── 1b. Zone count pill — stacked above the location button ─────
+            // bottom = nav row + location button height + a gap
             if (_h3Tiles.isNotEmpty)
               Positioned(
                 left: AppTheme.spaceMd,
-                bottom: bottomPadding + AppTheme.floatingNavHeight + AppTheme.spaceLg + 52,
+                bottom: bottomPadding + AppTheme.floatingNavHeight + AppTheme.spaceLg +
+                    _kLocationBtnSize + AppTheme.spaceSm,
                 child: _ZoneCountPill(count: _h3Tiles.length),
               ),
 
@@ -437,6 +443,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     label: context.l10n.semanticsCenterOnMe,
                     child: _MyLocationButton(
                       onPressed: () => _recenterTrigger.value++,
+                      followModeNotifier: _followModeNotifier,
                     ),
                   ),
                 );
@@ -508,27 +515,40 @@ class _ZoneCountPill extends StatelessWidget {
 
 /// My Location button — standard map UX (Google Maps / Waze / Apple Maps pattern).
 /// 48×48 circular dark button.
+/// Shows gps_fixed (primary tint) when follow mode is active, gps_not_fixed otherwise.
 class _MyLocationButton extends StatelessWidget {
-  const _MyLocationButton({required this.onPressed});
+  const _MyLocationButton({required this.onPressed, this.followModeNotifier});
   final VoidCallback onPressed;
+  final ValueNotifier<bool>? followModeNotifier;
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: AppColors.shadowDark(0.65),
-      shape: const CircleBorder(),
-      child: InkWell(
-        onTap: () {
-          HapticFeedback.lightImpact();
-          onPressed();
-        },
-        customBorder: const CircleBorder(),
-        child: const SizedBox(
-          width: _kLocationBtnSize,
-          height: _kLocationBtnSize,
-          child: Icon(Icons.my_location, color: Colors.white, size: AppIconSizes.sm),
-        ),
-      ),
+    return ValueListenableBuilder<bool>(
+      valueListenable: followModeNotifier ?? ValueNotifier(false),
+      builder: (context, isFollowing, _) {
+        return Material(
+          color: isFollowing
+              ? AppColors.primary.withValues(alpha: 0.85)
+              : AppColors.shadowDark(0.65),
+          shape: const CircleBorder(),
+          child: InkWell(
+            onTap: () {
+              HapticFeedback.lightImpact();
+              onPressed();
+            },
+            customBorder: const CircleBorder(),
+            child: SizedBox(
+              width: _kLocationBtnSize,
+              height: _kLocationBtnSize,
+              child: Icon(
+                isFollowing ? Icons.gps_fixed : Icons.gps_not_fixed,
+                color: Colors.white,
+                size: AppIconSizes.sm,
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }

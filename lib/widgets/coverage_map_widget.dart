@@ -168,6 +168,8 @@ class CoverageMapWidget extends StatefulWidget {
   final bool isLoading;
   final ValueNotifier<int>? recenterTrigger;
   final EdgeInsets controlsPadding;
+  /// Updated whenever follow mode toggles — lets parent show GPS fixed/not-fixed icon.
+  final ValueNotifier<bool>? followModeNotifier;
 
   const CoverageMapWidget({
     super.key,
@@ -183,6 +185,7 @@ class CoverageMapWidget extends StatefulWidget {
     this.isLoading = false,
     this.recenterTrigger,
     this.controlsPadding = EdgeInsets.zero,
+    this.followModeNotifier,
   });
 
   @override
@@ -207,7 +210,14 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> {
   // ── Follow mode ─────────────────────────────────────────────────────────────
   // While tracking is active, the camera continuously follows the user's GPS.
   // Manual pan breaks follow mode. My Location button re-enables it.
-  bool _followMode = false;
+  bool _followModeValue = false;
+  bool get _followMode => _followModeValue;
+  set _followMode(bool value) {
+    if (_followModeValue == value) return;
+    _followModeValue = value;
+    widget.followModeNotifier?.value = value;
+  }
+
   // Timestamp of last programmatic camera move — used to suppress false
   // positives in _onCameraMove (animateCamera also triggers onCameraMove).
   DateTime _lastProgrammaticMove = DateTime.fromMillisecondsSinceEpoch(0);
