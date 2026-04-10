@@ -32,7 +32,8 @@ const _kLiveCellResolution = 9;
 ///   2. Map legend (top-right overlay)
 ///   3. TrackingFab + MyLocationButton (bottom overlay)
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  const HomeScreen({super.key, this.onGoToStats});
+  final VoidCallback? onGoToStats;
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -461,7 +462,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     _kLocationBtnSize + AppTheme.spaceSm,
                 child: Align(
                   alignment: Alignment.centerLeft,
-                  child: _ZoneCountPill(count: _h3Tiles.length),
+                  child: _ZoneCountPill(
+                    count: _h3Tiles.length,
+                    onTap: widget.onGoToStats,
+                  ),
                 ),
               ),
 
@@ -537,27 +541,46 @@ class _FirstUseHint extends StatelessWidget {
 /// Compact pill showing personal zone count — retention hook (territory growing).
 /// Solid dark pill matching TrackingStatusChip style.
 class _ZoneCountPill extends StatelessWidget {
-  const _ZoneCountPill({required this.count});
+  const _ZoneCountPill({required this.count, this.onTap});
   final int count;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    final pill = Container(
       padding: const EdgeInsets.symmetric(
           horizontal: AppTheme.spaceSm, vertical: AppTheme.spaceXs),
       decoration: BoxDecoration(
         color: const Color(0xCC111927),
         borderRadius: BorderRadius.circular(AppTheme.radiusPill),
       ),
-      child: Text(
-        context.l10n.homeZonesMapped(count),
-        style: const TextStyle(
-          color: Colors.white70,
-          fontSize: 12.0,
-          fontWeight: AppFontWeights.medium,
-          letterSpacing: 0.2,
-        ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            context.l10n.homeZonesMapped(count),
+            style: const TextStyle(
+              color: Colors.white70,
+              fontSize: 12.0,
+              fontWeight: AppFontWeights.medium,
+              letterSpacing: 0.2,
+            ),
+          ),
+          if (onTap != null) ...[
+            const SizedBox(width: AppTheme.spaceXxxs + 1),
+            const Icon(Icons.chevron_right, size: 13, color: Colors.white38),
+          ],
+        ],
       ),
+    );
+
+    if (onTap == null) return pill;
+    return GestureDetector(
+      onTap: () {
+        HapticFeedback.selectionClick();
+        onTap!();
+      },
+      child: pill,
     );
   }
 }

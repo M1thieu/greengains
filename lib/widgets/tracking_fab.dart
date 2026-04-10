@@ -97,6 +97,19 @@ class _TrackingFabState extends State<TrackingFab>
     return result == true;
   }
 
+  Future<void> _stop() async {
+    if (_isToggling) return;
+    HapticFeedback.heavyImpact();
+    setState(() => _isToggling = true);
+    try {
+      await _locationService.stop();
+      await _prefs.setShareLocation(false);
+    } catch (_) {
+    } finally {
+      if (mounted) setState(() => _isToggling = false);
+    }
+  }
+
   Future<void> _toggle() async {
     if (_isToggling) return;
 
@@ -173,6 +186,7 @@ class _TrackingFabState extends State<TrackingFab>
         scale: _jellyScale,
         child: GestureDetector(
           onTap: _isToggling ? null : _toggle,
+          onLongPress: (_locationService.isRunning.value && !_isToggling) ? _stop : null,
           child: Tooltip(
             message: tooltip,
             child: AnimatedContainer(

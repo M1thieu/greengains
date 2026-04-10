@@ -90,7 +90,7 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
         physics: const NeverScrollableScrollPhysics(),
         onPageChanged: (index) => setState(() => _currentIndex = index),
         children: [
-          const _KeepAlive(child: HomeScreen()),
+          _KeepAlive(child: HomeScreen(onGoToStats: () => _onTabSelected(1))),
           const _KeepAlive(child: StatisticsScreen()),
           _KeepAlive(child: ProfileScreen(onViewStats: () => _onTabSelected(1))),
         ],
