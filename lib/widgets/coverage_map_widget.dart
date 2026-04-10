@@ -800,8 +800,12 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> {
     }
 
     // Tracking just started → enable follow mode so the map feels alive.
+    // Must be deferred — didUpdateWidget runs during build, and setting the
+    // ValueNotifier here would trigger markNeedsBuild on another widget mid-frame.
     if (!oldWidget.isTracking && widget.isTracking) {
-      _followMode = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _followMode = true;
+      });
     }
 
     // First GPS fix after map init — auto-center once, silently.
