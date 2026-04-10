@@ -63,6 +63,8 @@ class _StatisticsScreenState extends State<StatisticsScreen>
   int? _coverageCells; // distinct H3 res-9 cells ever contributed
   int? _longestStreak;
   bool _isLoadingWeekly = true;
+  // Previous km² value — used as animation start on reload so it never resets to 0
+  double _prevKm2 = 0;
 
   StreamSubscription<UploadSuccessEvent>? _uploadSuccessSub;
   StreamSubscription<StatsUpdatedEvent>? _statsUpdatedSub;
@@ -229,9 +231,10 @@ class _StatisticsScreenState extends State<StatisticsScreen>
             children: [
               TweenAnimationBuilder<double>(
                 key: ValueKey(_coverageCells),
-                tween: Tween(begin: 0.0, end: km2),
+                tween: Tween(begin: _prevKm2, end: km2),
                 duration: const Duration(milliseconds: 900),
                 curve: Curves.easeOut,
+                onEnd: () => _prevKm2 = km2,
                 builder: (_, value, __) => Text(
                   value < 1.0 ? value.toStringAsFixed(2) : value.toStringAsFixed(1),
                   style: theme.textTheme.displayLarge?.copyWith(

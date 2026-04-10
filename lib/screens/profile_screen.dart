@@ -40,6 +40,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
   int? _totalUploads;
   int? _daysActive;
   int? _coverageCells;
+  // Previous display values — so count-up never resets to 0 on reload
+  double _prevTotalUploads = 0;
+  double _prevDaysActive = 0;
+  double _prevKm2 = 0;
 
   StreamSubscription<UploadSuccessEvent>? _uploadSub;
 
@@ -292,6 +296,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       _daysActive?.toDouble(),
       km2,
     ];
+    final prevValues = [_prevTotalUploads, _prevDaysActive, _prevKm2];
 
     return Row(
       children: tiles.indexed.map((entry) {
@@ -319,9 +324,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   if (numeric != null)
                     TweenAnimationBuilder<double>(
                       key: ValueKey(numeric),
-                      tween: Tween(begin: 0.0, end: numeric),
+                      tween: Tween(begin: prevValues[i], end: numeric),
                       duration: const Duration(milliseconds: 700),
                       curve: Curves.easeOut,
+                      onEnd: () {
+                        if (i == 0) { _prevTotalUploads = numeric; }
+                        else if (i == 1) { _prevDaysActive = numeric; }
+                        else { _prevKm2 = numeric; }
+                      },
                       builder: (_, v, __) {
                         final display = i == 2
                             ? (v < 1.0 ? v.toStringAsFixed(2) : v.toStringAsFixed(1))
