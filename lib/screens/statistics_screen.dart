@@ -48,7 +48,8 @@ class StatisticsScreen extends StatefulWidget {
   State<StatisticsScreen> createState() => _StatisticsScreenState();
 }
 
-class _StatisticsScreenState extends State<StatisticsScreen> {
+class _StatisticsScreenState extends State<StatisticsScreen>
+    with TickerProviderStateMixin {
   final _contributionRepo = ContributionRepository();
 
   // Local stats (always available, even offline)
@@ -64,6 +65,12 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
 
   StreamSubscription<UploadSuccessEvent>? _uploadSuccessSub;
   StreamSubscription<StatsUpdatedEvent>? _statsUpdatedSub;
+
+  // ── Entrance animations ───────────────────────────────────────────────────────
+  late final AnimationController _entranceCtrl;
+  late final List<Animation<double>> _cardAnims;
+  // ── Bar chart selection ───────────────────────────────────────────────────────
+  int? _selectedBarIndex;
 
   @override
   void initState() {
@@ -82,13 +89,39 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
         AppEventBus.instance.on<StatsUpdatedEvent>().listen((event) {
       if (mounted) setState(() { _stats = event.stats; _isLoading = false; });
     });
+
+    _entranceCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 700),
+    )..forward();
+    _cardAnims = List.generate(4, (i) => CurvedAnimation(
+      parent: _entranceCtrl,
+      curve: Interval(i * 0.12, (i * 0.12 + 0.55).clamp(0.0, 1.0), curve: Curves.easeOut),
+    ));
   }
 
   @override
   void dispose() {
     _uploadSuccessSub?.cancel();
     _statsUpdatedSub?.cancel();
+    _entranceCtrl.dispose();
     super.dispose();
+  }
+
+  /// Wraps a card widget with a staggered fade+slide entrance.
+  Widget _withEntrance(Widget child, int index) {
+    final anim = _cardAnims[index];
+    return FadeTransition(
+      opacity: anim,
+      child: AnimatedBuilder(
+        animation: anim,
+        builder: (_, c) => Transform.translate(
+          offset: Offset(0, (1 - anim.value) * 18),
+          child: c,
+        ),
+        child: child,
+      ),
+    );
   }
 
   Future<void> _loadStats() async {
@@ -161,13 +194,13 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                       bottom: MediaQuery.paddingOf(context).bottom + AppTheme.floatingNavHeight + AppTheme.spaceMd,
                     ),
                     children: [
-                      _buildHeroCard(theme, isDark, l10n),
+                      _withEntrance(_buildHeroCard(theme, isDark, l10n), 0),
                       const SizedBox(height: AppTheme.spaceSm),
-                      _buildSupportingTrio(theme, isDark),
+                      _withEntrance(_buildSupportingTrio(theme, isDark), 1),
                       const SizedBox(height: AppTheme.spaceSm),
-                      _buildMilestoneRow(theme, isDark, l10n),
+                      _withEntrance(_buildMilestoneRow(theme, isDark, l10n), 2),
                       const SizedBox(height: AppTheme.spaceSm),
-                      _buildActivityChart(theme, isDark, l10n),
+                      _withEntrance(_buildActivityChart(theme, isDark, l10n), 3),
                     ],
                   ),
                 ),
@@ -181,10 +214,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
     final totalUploads = localTotal > 0 ? localTotal : (_backendTotalUploads ?? 0);
     // H3 res-9 hex = 0.1053 km² — tangible territory the user can picture.
     final zones = _coverageCells ?? 0;
-    final km2 = (zones * 0.1053);
-    final kmDisplay = km2 < 1.0
-        ? km2.toStringAsFixed(2)
-        : km2.toStringAsFixed(1);
+    final km2 = zones * 0.1053;
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(AppTheme.radiusLg),
@@ -195,12 +225,18 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                kmDisplay,
-                style: theme.textTheme.displayLarge?.copyWith(
-                  fontWeight: AppFontWeights.bold,
-                  letterSpacing: _kLetterSpacingDisplay,
-                  height: _kLineHeightTight,
+              TweenAnimationBuilder<double>(
+                key: ValueKey(_coverageCells),
+                tween: Tween(begin: 0.0, end: km2),
+                duration: const Duration(milliseconds: 900),
+                curve: Curves.easeOut,
+                builder: (_, value, __) => Text(
+                  value < 1.0 ? value.toStringAsFixed(2) : value.toStringAsFixed(1),
+                  style: theme.textTheme.displayLarge?.copyWith(
+                    fontWeight: AppFontWeights.bold,
+                    letterSpacing: _kLetterSpacingDisplay,
+                    height: _kLineHeightTight,
+                  ),
                 ),
               ),
               const SizedBox(height: AppTheme.spaceXxs),
@@ -498,60 +534,77 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                 final date = DateTime.now().subtract(Duration(days: 6 - i));
                 final label = DateFormat('EEE', chartLocale).format(date);
 
+                final isSelected = _selectedBarIndex == i;
+                final barColor = (isToday || isSelected)
+                    ? AppColors.primary
+                    : AppColors.primary.withValues(alpha: 0.25);
+
                 return Expanded(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      // Value label above bar — only when non-zero
-                      if (count > 0)
-                        Text(
-                          '$count',
-                          style: TextStyle(
-                            fontSize: _kBarLabelSize,
-                            color: isToday
-                                ? AppColors.primary
-                                : AppColors.textSecondary(isDark),
-                            fontWeight: isToday
-                                ? AppFontWeights.semibold
-                                : AppFontWeights.regular,
+                  child: GestureDetector(
+                    onTap: () {
+                      HapticFeedback.selectionClick();
+                      setState(() => _selectedBarIndex = isSelected ? null : i);
+                    },
+                    behavior: HitTestBehavior.opaque,
+                    child: AnimatedScale(
+                      scale: isSelected ? 1.06 : 1.0,
+                      duration: AppDurations.fast,
+                      curve: AppMotion.standard,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          // Value label above bar — only when non-zero
+                          if (count > 0)
+                            Text(
+                              '$count',
+                              style: TextStyle(
+                                fontSize: _kBarLabelSize,
+                                color: (isToday || isSelected)
+                                    ? AppColors.primary
+                                    : AppColors.textSecondary(isDark),
+                                fontWeight: (isToday || isSelected)
+                                    ? AppFontWeights.bold
+                                    : AppFontWeights.regular,
+                              ),
+                            )
+                          else
+                            const SizedBox(height: _kBarLabelSize + 2),
+                          const SizedBox(height: AppTheme.spaceXxxs),
+                          AnimatedContainer(
+                            duration: Duration(milliseconds: AppDurations.fast.inMilliseconds + i * _kBarAnimStagger),
+                            curve: AppMotion.decelerated,
+                            height: barH,
+                            margin: const EdgeInsets.symmetric(horizontal: AppTheme.spaceXxxs),
+                            decoration: BoxDecoration(
+                              gradient: (isToday || isSelected)
+                                  ? LinearGradient(
+                                      begin: Alignment.bottomCenter,
+                                      end: Alignment.topCenter,
+                                      colors: [AppColors.primary, AppColors.primary.withValues(alpha: 0.65)],
+                                    )
+                                  : null,
+                              color: (isToday || isSelected) ? null : barColor,
+                              borderRadius: const BorderRadius.vertical(
+                                top: Radius.circular(AppTheme.radiusSm),
+                              ),
+                            ),
                           ),
-                        )
-                      else
-                        const SizedBox(height: _kBarLabelSize + 2),
-                      const SizedBox(height: AppTheme.spaceXxxs),
-                      AnimatedContainer(
-                        duration: Duration(milliseconds: AppDurations.fast.inMilliseconds + i * _kBarAnimStagger),
-                        curve: AppMotion.decelerated,
-                        height: barH,
-                        margin: const EdgeInsets.symmetric(horizontal: AppTheme.spaceXxxs),
-                        decoration: BoxDecoration(
-                          gradient: isToday
-                              ? LinearGradient(
-                                  begin: Alignment.bottomCenter,
-                                  end: Alignment.topCenter,
-                                  colors: [AppColors.primary, AppColors.primary.withValues(alpha: 0.65)],
-                                )
-                              : null,
-                          color: isToday ? null : AppColors.primary.withValues(alpha: 0.25),
-                          borderRadius: const BorderRadius.vertical(
-                            top: Radius.circular(AppTheme.radiusSm),
+                          const SizedBox(height: AppTheme.spaceXxs),
+                          Text(
+                            label,
+                            style: TextStyle(
+                              fontSize: _kBarLabelSize,
+                              color: (isToday || isSelected)
+                                  ? AppColors.primary
+                                  : AppColors.textTertiary(isDark),
+                              fontWeight: (isToday || isSelected)
+                                  ? AppFontWeights.semibold
+                                  : AppFontWeights.regular,
+                            ),
                           ),
-                        ),
+                        ],
                       ),
-                      const SizedBox(height: AppTheme.spaceXxs),
-                      Text(
-                        label,
-                        style: TextStyle(
-                          fontSize: _kBarLabelSize,
-                          color: isToday
-                              ? AppColors.primary
-                              : AppColors.textTertiary(isDark),
-                          fontWeight: isToday
-                              ? AppFontWeights.semibold
-                              : AppFontWeights.regular,
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
                 );
               }),

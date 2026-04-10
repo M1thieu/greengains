@@ -287,9 +287,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
     ];
 
+    final numericValues = [
+      _totalUploads?.toDouble(),
+      _daysActive?.toDouble(),
+      km2,
+    ];
+
     return Row(
       children: tiles.indexed.map((entry) {
         final (i, tile) = entry;
+        final numeric = numericValues[i];
+        final valueStyle = theme.textTheme.titleLarge?.copyWith(
+          fontWeight: AppFontWeights.bold,
+          letterSpacing: -0.5,
+          height: 1.0,
+        );
         return Expanded(
           child: Padding(
             padding: EdgeInsets.only(right: i < tiles.length - 1 ? AppTheme.spaceSm : 0),
@@ -304,14 +316,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    tile.value,
-                    style: theme.textTheme.titleLarge?.copyWith(
-                      fontWeight: AppFontWeights.bold,
-                      letterSpacing: -0.5,
-                      height: 1.0,
-                    ),
-                  ),
+                  if (numeric != null)
+                    TweenAnimationBuilder<double>(
+                      key: ValueKey(numeric),
+                      tween: Tween(begin: 0.0, end: numeric),
+                      duration: const Duration(milliseconds: 700),
+                      curve: Curves.easeOut,
+                      builder: (_, v, __) {
+                        final display = i == 2
+                            ? (v < 1.0 ? v.toStringAsFixed(2) : v.toStringAsFixed(1))
+                            : v.round().toString();
+                        return Text(display, style: valueStyle);
+                      },
+                    )
+                  else
+                    Text(tile.value, style: valueStyle),
                   const SizedBox(height: AppTheme.spaceXxxs),
                   Text(
                     tile.label,
