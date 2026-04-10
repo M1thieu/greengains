@@ -445,6 +445,26 @@ class AppLocalizationsFr extends AppLocalizations {
   String get statsStreakLabel => 'série';
 
   @override
+  String get statsRecordStreak => 'record';
+
+  @override
+  String statsBarCalloutUploads(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count envois',
+      one: '1 envoi',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get statsBarCalloutToday => 'Aujourd\'hui';
+
+  @override
+  String get statsBarCalloutBest => 'Meilleur jour';
+
+  @override
   String get infoKmTitle => 'Territoire cartographié';
 
   @override

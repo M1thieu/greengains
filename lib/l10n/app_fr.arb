@@ -207,6 +207,13 @@
   "statsKmMapped": "km² cartographiés",
   "statsBestDay": "meilleur jour",
   "statsStreakLabel": "série",
+  "statsRecordStreak": "record",
+  "statsBarCalloutUploads": "{count, plural, =1{1 envoi} other{{count} envois}}",
+  "@statsBarCalloutUploads": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "statsBarCalloutToday": "Aujourd'hui",
+  "statsBarCalloutBest": "Meilleur jour",
 
   "infoKmTitle": "Territoire cartographié",
   "infoKmBody": "Chaque hexagone sur votre carte couvre environ 0,1 km². Cela représente la surface de votre ville que vous avez personnellement cartographiée.",

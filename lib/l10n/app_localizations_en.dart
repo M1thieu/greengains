@@ -443,6 +443,26 @@ class AppLocalizationsEn extends AppLocalizations {
   String get statsStreakLabel => 'streak';
 
   @override
+  String get statsRecordStreak => 'record';
+
+  @override
+  String statsBarCalloutUploads(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count uploads',
+      one: '1 upload',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get statsBarCalloutToday => 'Today';
+
+  @override
+  String get statsBarCalloutBest => 'Best day';
+
+  @override
   String get infoKmTitle => 'Territory mapped';
 
   @override

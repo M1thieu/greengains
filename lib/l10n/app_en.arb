@@ -207,6 +207,13 @@
   "statsKmMapped": "km² mapped",
   "statsBestDay": "best day",
   "statsStreakLabel": "streak",
+  "statsRecordStreak": "record",
+  "statsBarCalloutUploads": "{count, plural, =1{1 upload} other{{count} uploads}}",
+  "@statsBarCalloutUploads": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "statsBarCalloutToday": "Today",
+  "statsBarCalloutBest": "Best day",
 
   "infoKmTitle": "Territory mapped",
   "infoKmBody": "Each hexagon on your map covers about 0.1 km². This shows how much of your city you have personally mapped so far.",

@@ -890,6 +890,30 @@ abstract class AppLocalizations {
   /// **'streak'**
   String get statsStreakLabel;
 
+  /// No description provided for @statsRecordStreak.
+  ///
+  /// In en, this message translates to:
+  /// **'record'**
+  String get statsRecordStreak;
+
+  /// No description provided for @statsBarCalloutUploads.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 upload} other{{count} uploads}}'**
+  String statsBarCalloutUploads(int count);
+
+  /// No description provided for @statsBarCalloutToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get statsBarCalloutToday;
+
+  /// No description provided for @statsBarCalloutBest.
+  ///
+  /// In en, this message translates to:
+  /// **'Best day'**
+  String get statsBarCalloutBest;
+
   /// No description provided for @infoKmTitle.
   ///
   /// In en, this message translates to:

@@ -61,6 +61,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
   // Backend lifetime stats — fallback when local SQLite is empty (fresh reinstall)
   int? _backendTotalUploads;
   int? _coverageCells; // distinct H3 res-9 cells ever contributed
+  int? _longestStreak;
   bool _isLoadingWeekly = true;
 
   StreamSubscription<UploadSuccessEvent>? _uploadSuccessSub;
@@ -144,6 +145,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
           _weeklyData = profile.weekly;
           _backendTotalUploads = profile.totalUploads;
           _coverageCells = profile.coverageCells;
+          _longestStreak = profile.longestStreak;
         });
       }
     } catch (_) {
@@ -274,12 +276,12 @@ class _StatisticsScreenState extends State<StatisticsScreen>
 
   Widget _buildSupportingTrio(ThemeData theme, bool isDark) {
     final l10n = context.l10n;
-    final bestDay = _weeklyData != null ? _weeklyData!.fold(0, max) : 0;
     final streak = _stats?.currentStreak ?? 0;
+    final record = _longestStreak ?? 0;
     final tiles = [
       (value: '${_stats?.uploadsToday ?? 0}', label: l10n.statsToday, color: AppColors.pressure),
       (value: streak > 0 ? '${streak}d' : '—', label: l10n.statsStreakLabel, color: AppColors.light),
-      (value: bestDay > 0 ? '$bestDay' : '—', label: l10n.statsBestDay, color: AppColors.quality),
+      (value: record > 0 ? '${record}d' : '—', label: l10n.statsRecordStreak, color: AppColors.quality),
     ];
 
     return Row(
@@ -520,7 +522,14 @@ class _StatisticsScreenState extends State<StatisticsScreen>
               ),
             ],
           ),
-          const SizedBox(height: AppTheme.spaceMd),
+          // Selected bar callout — replaces the spacer when a bar is tapped
+          AnimatedSize(
+            duration: AppDurations.fast,
+            curve: AppMotion.standard,
+            child: _selectedBarIndex != null
+                ? _buildBarCallout(data, maxVal.toInt(), chartLocale, isDark, theme, l10n)
+                : const SizedBox(height: AppTheme.spaceMd),
+          ),
           SizedBox(
             height: _kBarMaxH + _kBarLabelH,
             child: Row(
@@ -609,6 +618,74 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                 );
               }),
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBarCallout(List<int> data, int maxVal, String locale, bool isDark, ThemeData theme, AppLocalizations l10n) {
+    final i = _selectedBarIndex!;
+    final count = data[i];
+    final isToday = i == 6;
+    final isBest = maxVal > 0 && count == maxVal;
+    final date = DateTime.now().subtract(Duration(days: 6 - i));
+    final fullDate = DateFormat('EEE, MMM d', locale).format(date);
+
+    String? badge;
+    if (isToday) { badge = l10n.statsBarCalloutToday; }
+    else if (isBest) { badge = l10n.statsBarCalloutBest; }
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: AppTheme.spaceSm),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppTheme.spaceMd,
+        vertical: AppTheme.spaceXs,
+      ),
+      decoration: BoxDecoration(
+        color: AppColors.primaryAlpha(0.1),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+        border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
+      ),
+      child: Row(
+        children: [
+          Text(
+            fullDate,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: AppColors.textSecondary(isDark),
+              fontWeight: AppFontWeights.medium,
+            ),
+          ),
+          const SizedBox(width: AppTheme.spaceSm),
+          Text(
+            l10n.statsBarCalloutUploads(count),
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: AppColors.primary,
+              fontWeight: AppFontWeights.bold,
+            ),
+          ),
+          if (badge != null) ...[
+            const SizedBox(width: AppTheme.spaceXs),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceXxs + 2, vertical: 2),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(AppTheme.radiusMin),
+              ),
+              child: Text(
+                badge,
+                style: TextStyle(
+                  fontSize: 10,
+                  color: AppColors.primary,
+                  fontWeight: AppFontWeights.semibold,
+                ),
+              ),
+            ),
+          ],
+          const Spacer(),
+          GestureDetector(
+            onTap: () => setState(() => _selectedBarIndex = null),
+            child: Icon(Icons.close, size: 14, color: AppColors.textTertiary(isDark)),
           ),
         ],
       ),
