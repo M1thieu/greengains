@@ -581,7 +581,7 @@ abstract class AppLocalizations {
   /// No description provided for @permissionLocationMessage.
   ///
   /// In en, this message translates to:
-  /// **'GreenGains needs location access to collect environmental data.'**
+  /// **'Allow location to start mapping your city.'**
   String get permissionLocationMessage;
 
   /// No description provided for @permissionLocationButton.
@@ -995,7 +995,7 @@ abstract class AppLocalizations {
   /// No description provided for @infoTilePersonalBody.
   ///
   /// In en, this message translates to:
-  /// **'You have mapped this hexagon. Your sensors contributed data here during your travels.'**
+  /// **'You mapped this area. Your phone recorded here during your travels.'**
   String get infoTilePersonalBody;
 
   /// No description provided for @infoTileCommunityTitle.
@@ -1007,7 +1007,7 @@ abstract class AppLocalizations {
   /// No description provided for @infoTileCommunityBody.
   ///
   /// In en, this message translates to:
-  /// **'This hexagon was mapped by other contributors. Together you are building a city-wide environmental dataset.'**
+  /// **'This area was mapped by other users. Together you\'re building a city-wide map.'**
   String get infoTileCommunityBody;
 
   /// No description provided for @statsTotalContributions.
@@ -1187,7 +1187,7 @@ abstract class AppLocalizations {
   /// No description provided for @impactCardContext.
   ///
   /// In en, this message translates to:
-  /// **'environmental readings — shared anonymously'**
+  /// **'uploads — shared anonymously'**
   String get impactCardContext;
 
   /// No description provided for @loadingStatsLabel.
@@ -1854,7 +1854,7 @@ abstract class AppLocalizations {
   /// No description provided for @tileQualityExcellent.
   ///
   /// In en, this message translates to:
-  /// **'Excellent data — solid environmental record'**
+  /// **'Excellent coverage — well recorded'**
   String get tileQualityExcellent;
 
   /// No description provided for @tileQualityGood.
@@ -1974,7 +1974,7 @@ abstract class AppLocalizations {
   /// No description provided for @milestoneReachedBody.
   ///
   /// In en, this message translates to:
-  /// **'You\'re building a real environmental picture of your city. Keep going.'**
+  /// **'You\'re building a real map of your city. Keep going.'**
   String get milestoneReachedBody;
 
   /// No description provided for @milestoneReachedCta.

@@ -279,7 +279,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get permissionLocationMessage =>
-      'GreenGains a besoin d\'accéder à votre position pour collecter des données environnementales.';
+      'Autorisez la localisation pour commencer à cartographier votre ville.';
 
   @override
   String get permissionLocationButton => 'Autoriser';
@@ -511,14 +511,14 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get infoTilePersonalBody =>
-      'Vous avez cartographié cet hexagone. Vos capteurs ont contribué des données ici lors de vos déplacements.';
+      'Vous avez cartographié cette zone. Votre téléphone a enregistré ici lors de vos déplacements.';
 
   @override
   String get infoTileCommunityTitle => 'Zone communautaire';
 
   @override
   String get infoTileCommunityBody =>
-      'Cet hexagone a été cartographié par d\'autres contributeurs. Ensemble vous construisez un jeu de données environnemental à l\'échelle de la ville.';
+      'Cette zone a été cartographiée par d\'autres utilisateurs. Ensemble vous construisez une carte à l\'échelle de la ville.';
 
   @override
   String get statsTotalContributions => 'Total des contributions';
@@ -615,8 +615,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get yourContributions => 'VOS CONTRIBUTIONS';
 
   @override
-  String get impactCardContext =>
-      'mesures environnementales — partagées anonymement';
+  String get impactCardContext => 'envois — partagés anonymement';
 
   @override
   String get loadingStatsLabel => 'Chargement des statistiques';
@@ -1029,7 +1028,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get sensorLiveSheetTitle => 'Ce que vous mesurez';
 
   @override
-  String get tileQualityExcellent => 'Données excellentes — couverture solide';
+  String get tileQualityExcellent => 'Excellente couverture — bien enregistrée';
 
   @override
   String get tileQualityGood => 'Bonnes données — couverture utile';
@@ -1097,7 +1096,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get milestoneReachedBody =>
-      'Vous construisez une vraie image environnementale de votre ville. Continuez.';
+      'Vous construisez une vraie carte de votre ville. Continuez.';
 
   @override
   String get milestoneReachedCta => 'Continuer à cartographier';

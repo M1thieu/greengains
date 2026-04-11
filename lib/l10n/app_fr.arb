@@ -143,7 +143,7 @@
   },
 
   "permissionLocationTitle": "Autorisation de localisation",
-  "permissionLocationMessage": "GreenGains a besoin d'accéder à votre position pour collecter des données environnementales.",
+  "permissionLocationMessage": "Autorisez la localisation pour commencer à cartographier votre ville.",
   "permissionLocationButton": "Autoriser",
   "permissionBatteryTitle": "Optimisation de la batterie",
   "permissionBatteryMessage": "Veuillez désactiver l'optimisation de la batterie pour un suivi en arrière-plan fiable.",
@@ -228,9 +228,9 @@
   "infoTileQualityTitle": "Qualité de couverture",
   "infoTileQualityBody": "La qualité reflète le nombre et la cohérence des mesures collectées dans cette zone. Vert = données solides, jaune = partiel, rouge = sparse.",
   "infoTilePersonalTitle": "Votre zone",
-  "infoTilePersonalBody": "Vous avez cartographié cet hexagone. Vos capteurs ont contribué des données ici lors de vos déplacements.",
+  "infoTilePersonalBody": "Vous avez cartographié cette zone. Votre téléphone a enregistré ici lors de vos déplacements.",
   "infoTileCommunityTitle": "Zone communautaire",
-  "infoTileCommunityBody": "Cet hexagone a été cartographié par d'autres contributeurs. Ensemble vous construisez un jeu de données environnemental à l'échelle de la ville.",
+  "infoTileCommunityBody": "Cette zone a été cartographiée par d'autres utilisateurs. Ensemble vous construisez une carte à l'échelle de la ville.",
   "statsTotalContributions": "Total des contributions",
   "statsKeepContributing": "Continuez à contribuer pour suivre les tendances",
   "statsActivityTrend": "Tendance d'activité",
@@ -262,7 +262,7 @@
   "mapCenterTooltip": "Centrer sur la position",
 
   "yourContributions": "VOS CONTRIBUTIONS",
-  "impactCardContext": "mesures environnementales — partagées anonymement",
+  "impactCardContext": "envois — partagés anonymement",
   "loadingStatsLabel": "Chargement des statistiques",
   "noContributionsYet": "Aucune contribution pour le moment. Commencez le suivi.",
   "startContributingTitle": "Commencer à contribuer",
@@ -445,7 +445,7 @@
 
   "sensorLiveSheetTitle": "Ce que vous mesurez",
 
-  "tileQualityExcellent": "Données excellentes — couverture solide",
+  "tileQualityExcellent": "Excellente couverture — bien enregistrée",
   "tileQualityGood": "Bonnes données — couverture utile",
   "tileQualityFair": "Données partielles — plus de passages nécessaires",
 
@@ -474,6 +474,6 @@
   "@milestoneReachedTitle": {
     "placeholders": { "count": { "type": "int" } }
   },
-  "milestoneReachedBody": "Vous construisez une vraie image environnementale de votre ville. Continuez.",
+  "milestoneReachedBody": "Vous construisez une vraie carte de votre ville. Continuez.",
   "milestoneReachedCta": "Continuer à cartographier"
 }

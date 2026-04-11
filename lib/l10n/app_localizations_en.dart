@@ -278,7 +278,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get permissionLocationMessage =>
-      'GreenGains needs location access to collect environmental data.';
+      'Allow location to start mapping your city.';
 
   @override
   String get permissionLocationButton => 'Grant Permission';
@@ -508,14 +508,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get infoTilePersonalBody =>
-      'You have mapped this hexagon. Your sensors contributed data here during your travels.';
+      'You mapped this area. Your phone recorded here during your travels.';
 
   @override
   String get infoTileCommunityTitle => 'Community area';
 
   @override
   String get infoTileCommunityBody =>
-      'This hexagon was mapped by other contributors. Together you are building a city-wide environmental dataset.';
+      'This area was mapped by other users. Together you\'re building a city-wide map.';
 
   @override
   String get statsTotalContributions => 'Total Contributions';
@@ -611,7 +611,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get yourContributions => 'YOUR CONTRIBUTIONS';
 
   @override
-  String get impactCardContext => 'environmental readings — shared anonymously';
+  String get impactCardContext => 'uploads — shared anonymously';
 
   @override
   String get loadingStatsLabel => 'Loading contribution stats';
@@ -1021,8 +1021,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sensorLiveSheetTitle => 'What you\'re measuring';
 
   @override
-  String get tileQualityExcellent =>
-      'Excellent data — solid environmental record';
+  String get tileQualityExcellent => 'Excellent coverage — well recorded';
 
   @override
   String get tileQualityGood => 'Good data — useful but room to grow';
@@ -1089,7 +1088,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get milestoneReachedBody =>
-      'You\'re building a real environmental picture of your city. Keep going.';
+      'You\'re building a real map of your city. Keep going.';
 
   @override
   String get milestoneReachedCta => 'Keep mapping';
