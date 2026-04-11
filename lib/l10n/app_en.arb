@@ -379,8 +379,8 @@
   "onboardingDataCollectedTitle": "What we collect",
   "onboardingDataCollectedDescription": "Light, motion, pressure and anonymous location — aggregated with 100,000+ devices before any analysis.",
 
-  "referralInviteTitle": "Grow the network",
-  "referralInviteDescription": "Invite contributors to expand coverage. More contributors means better data.",
+  "referralInviteTitle": "Invite friends",
+  "referralInviteDescription": "Invite friends to map more of your city. Every person adds streets you haven't walked yet.",
   "referralLinkCopied": "Referral link copied",
   "referralCopyLink": "Copy link",
   "referralConversions": "{count, plural, =0{No friends joined yet} =1{1 friend joined} other{{count} friends joined}}",
@@ -438,7 +438,7 @@
   "legendCommunity": "Community",
   "referralStepShare": "Share",
   "referralStepJoin": "They join",
-  "referralStepEarn": "You earn",
+  "referralStepEarn": "Map grows",
 
   "settingsDiagnostics": "Sensor Diagnostics",
   "settingsDiagnosticsDesc": "Live readings from your device sensors",

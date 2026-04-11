@@ -145,7 +145,7 @@ class _ReferralInviteCardState extends State<ReferralInviteCard> {
                 _ReferralStepArrow(),
                 _ReferralStep(icon: Icons.person_add_outlined, label: context.l10n.referralStepJoin),
                 _ReferralStepArrow(),
-                _ReferralStep(icon: Icons.attach_money, label: context.l10n.referralStepEarn),
+                _ReferralStep(icon: Icons.map_outlined, label: context.l10n.referralStepEarn),
               ],
             ),
             if (_conversions != null) ...[

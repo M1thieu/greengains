@@ -21,7 +21,7 @@
 
     <!-- Background worker notification -->
     <string name="notification_worker_title">GreenGains — processing data</string>
-    <string name="notification_worker_body">Crunching recent sensor batches</string>
+    <string name="notification_worker_body">Finishing your latest upload</string>
 
     <!-- Streak-at-risk notification — fires once at end of day if streak > 1 and no upload today -->
     <string name="notification_streak_channel_name">Streak Reminders</string>

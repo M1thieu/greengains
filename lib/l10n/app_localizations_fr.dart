@@ -890,11 +890,11 @@ class AppLocalizationsFr extends AppLocalizations {
       'Lumière, mouvement, pression et position anonyme — agrégés avec 100 000+ appareils avant toute analyse.';
 
   @override
-  String get referralInviteTitle => 'Développer le réseau';
+  String get referralInviteTitle => 'Inviter des amis';
 
   @override
   String get referralInviteDescription =>
-      'Invitez des contributeurs pour étendre la couverture. Plus de contributeurs, meilleures sont les données.';
+      'Invitez des amis à cartographier votre ville. Chaque personne ajoute des rues que vous n\'avez pas encore parcourues.';
 
   @override
   String get referralLinkCopied => 'Lien de parrainage copié';
@@ -1015,7 +1015,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get referralStepJoin => 'Ils rejoignent';
 
   @override
-  String get referralStepEarn => 'Vous gagnez';
+  String get referralStepEarn => 'Carte grandit';
 
   @override
   String get settingsDiagnostics => 'Diagnostics capteurs';

@@ -379,8 +379,8 @@
   "onboardingDataCollectedTitle": "Ce que nous collectons",
   "onboardingDataCollectedDescription": "Lumière, mouvement, pression et position anonyme — agrégés avec 100\u202f000+ appareils avant toute analyse.",
 
-  "referralInviteTitle": "Développer le réseau",
-  "referralInviteDescription": "Invitez des contributeurs pour étendre la couverture. Plus de contributeurs, meilleures sont les données.",
+  "referralInviteTitle": "Inviter des amis",
+  "referralInviteDescription": "Invitez des amis à cartographier votre ville. Chaque personne ajoute des rues que vous n'avez pas encore parcourues.",
   "referralLinkCopied": "Lien de parrainage copié",
   "referralCopyLink": "Copier le lien",
   "referralConversions": "{count, plural, =0{Aucun ami rejoint pour l'instant} =1{1 ami a rejoint} other{{count} amis ont rejoint}}",
@@ -438,7 +438,7 @@
   "legendCommunity": "Communauté",
   "referralStepShare": "Partager",
   "referralStepJoin": "Ils rejoignent",
-  "referralStepEarn": "Vous gagnez",
+  "referralStepEarn": "Carte grandit",
 
   "settingsDiagnostics": "Diagnostics capteurs",
   "settingsDiagnosticsDesc": "Lectures en temps réel de vos capteurs",

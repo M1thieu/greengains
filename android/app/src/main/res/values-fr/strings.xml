@@ -20,7 +20,7 @@
 
     <!-- Background worker notification -->
     <string name="notification_worker_title">GreenGains — traitement des données</string>
-    <string name="notification_worker_body">Traitement des dernières données capteurs</string>
+    <string name="notification_worker_body">Finalisation du dernier envoi</string>
 
     <!-- Streak-at-risk notification -->
     <string name="notification_streak_channel_name">Rappels de série</string>

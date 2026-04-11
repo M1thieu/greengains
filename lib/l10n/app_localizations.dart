@@ -1638,13 +1638,13 @@ abstract class AppLocalizations {
   /// No description provided for @referralInviteTitle.
   ///
   /// In en, this message translates to:
-  /// **'Grow the network'**
+  /// **'Invite friends'**
   String get referralInviteTitle;
 
   /// No description provided for @referralInviteDescription.
   ///
   /// In en, this message translates to:
-  /// **'Invite contributors to expand coverage. More contributors means better data.'**
+  /// **'Invite friends to map more of your city. Every person adds streets you haven\'t walked yet.'**
   String get referralInviteDescription;
 
   /// No description provided for @referralLinkCopied.
@@ -1830,7 +1830,7 @@ abstract class AppLocalizations {
   /// No description provided for @referralStepEarn.
   ///
   /// In en, this message translates to:
-  /// **'You earn'**
+  /// **'Map grows'**
   String get referralStepEarn;
 
   /// No description provided for @settingsDiagnostics.

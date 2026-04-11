@@ -884,11 +884,11 @@ class AppLocalizationsEn extends AppLocalizations {
       'Light, motion, pressure and anonymous location — aggregated with 100,000+ devices before any analysis.';
 
   @override
-  String get referralInviteTitle => 'Grow the network';
+  String get referralInviteTitle => 'Invite friends';
 
   @override
   String get referralInviteDescription =>
-      'Invite contributors to expand coverage. More contributors means better data.';
+      'Invite friends to map more of your city. Every person adds streets you haven\'t walked yet.';
 
   @override
   String get referralLinkCopied => 'Referral link copied';
@@ -1008,7 +1008,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get referralStepJoin => 'They join';
 
   @override
-  String get referralStepEarn => 'You earn';
+  String get referralStepEarn => 'Map grows';
 
   @override
   String get settingsDiagnostics => 'Sensor Diagnostics';
