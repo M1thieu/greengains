@@ -53,11 +53,9 @@ FROM (
 WHERE us.user_id = sub.user_id
   AND us.last_upload_at IS NULL;  -- only backfill rows not yet populated
 
--- ── 4. Partial index for recent batches (tile + aggregator queries) ───────────
--- Personal tile query: WHERE user_id = $1 AND timestamp_utc > (now - 90d)
--- Existing idx_sb_user_h3_time covers this for migrated rows.
--- Add a complementary index for the recency filter on all rows.
+-- ── 4. Index for user+time queries (tile + aggregator queries) ───────────────
+-- NOW() is STABLE not IMMUTABLE — forbidden in partial index predicates.
+-- Plain partial index on user_id; timestamp filter applied at query time.
 CREATE INDEX IF NOT EXISTS idx_sb_user_recent
   ON sensor_batches (user_id, timestamp_utc DESC)
-  WHERE user_id IS NOT NULL
-    AND timestamp_utc > NOW() - INTERVAL '90 days';
+  WHERE user_id IS NOT NULL;
