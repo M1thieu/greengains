@@ -1,5 +1,5 @@
 name: greengains
-description: "Passive environmental data collection — contribute anonymized sensor data and earn rewards."
+description: "Map your city's environment — your phone quietly records light, pressure, and movement as you move."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -44,7 +44,6 @@ dependencies:
   webview_flutter: ^4.8.0
   shared_preferences: ^2.2.2
   crypto: ^3.0.3
-  connectivity_plus: ^7.0.0
   uuid: ^4.4.0
   geolocator: ^11.0.0
   get_it: ^7.7.0

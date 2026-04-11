@@ -20,6 +20,7 @@ Sentry.init({
 import Fastify from 'fastify';
 import crypto from 'crypto';
 import cors from '@fastify/cors';
+import helmet from '@fastify/helmet';
 import rateLimit from '@fastify/rate-limit';
 import { config, getAllowedOrigins } from './config';
 import { initDatabase, closeDatabase } from './database';
@@ -86,6 +87,9 @@ fastify.setErrorHandler((error, request, reply) => {
 
 // Configure raw body parser for upload endpoint - MOVED to upload.ts
 // fastify.addContentTypeParser... removed
+
+// Security headers
+fastify.register(helmet, { global: true });
 
 // Register CORS
 fastify.register(cors, {

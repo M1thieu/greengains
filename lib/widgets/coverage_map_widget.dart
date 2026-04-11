@@ -12,6 +12,7 @@ import '../core/extensions/context_extensions.dart';
 import '../core/themes.dart';
 import '../data/models/h3_tile.dart';
 import '../l10n/app_localizations.dart';
+import 'time_ago_text.dart';
 
 export '../data/models/h3_tile.dart';
 
@@ -1482,7 +1483,7 @@ class _VerticalDivider extends StatelessWidget {
   }
 }
 
-/// "Last seen X ago" line using timeago package for locale-aware relative time.
+/// "Last seen X ago" line — uses TimeAgoText for locale-aware, live-updating relative time.
 class _TimeAgoLine extends StatelessWidget {
   const _TimeAgoLine({required this.timestamp, required this.isDark});
   final DateTime timestamp;
@@ -1490,26 +1491,13 @@ class _TimeAgoLine extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Simple relative time without importing timeago in this file —
-    // compute inline for the three most common ranges.
-    final diff = DateTime.now().difference(timestamp);
-    final String text;
-    if (diff.inDays > 30) {
-      text = '${(diff.inDays / 30).floor()}mo ago';
-    } else if (diff.inDays > 0) {
-      text = '${diff.inDays}d ago';
-    } else if (diff.inHours > 0) {
-      text = '${diff.inHours}h ago';
-    } else {
-      text = '${diff.inMinutes}m ago';
-    }
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         Icon(Icons.schedule, size: 10, color: AppColors.textSecondary(isDark)),
         const SizedBox(width: 3),
-        Text(
-          text,
+        TimeAgoText(
+          timestamp: timestamp,
           style: TextStyle(
             fontSize: 11,
             color: AppColors.textSecondary(isDark),
