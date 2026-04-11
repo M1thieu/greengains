@@ -480,7 +480,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get infoDaysActiveBody =>
-      'The number of distinct days you have contributed data. You do not need to contribute every day.';
+      'The number of days you were active. No need to be active every day.';
 
   @override
   String get infoBestDayTitle => 'Best day';
@@ -608,7 +608,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mapCenterTooltip => 'Center on location';
 
   @override
-  String get yourContributions => 'YOUR CONTRIBUTIONS';
+  String get yourContributions => 'YOUR UPLOADS';
 
   @override
   String get impactCardContext => 'uploads — shared anonymously';
@@ -618,10 +618,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get noContributionsYet =>
-      'No contributions yet. Start tracking to begin.';
+      'Nothing recorded yet. Start tracking to begin.';
 
   @override
-  String get startContributingTitle => 'Start contributing';
+  String get startContributingTitle => 'Start mapping';
 
   @override
   String get startContributingHint =>

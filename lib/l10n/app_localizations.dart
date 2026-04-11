@@ -947,7 +947,7 @@ abstract class AppLocalizations {
   /// No description provided for @infoDaysActiveBody.
   ///
   /// In en, this message translates to:
-  /// **'The number of distinct days you have contributed data. You do not need to contribute every day.'**
+  /// **'The number of days you were active. No need to be active every day.'**
   String get infoDaysActiveBody;
 
   /// No description provided for @infoBestDayTitle.
@@ -1181,7 +1181,7 @@ abstract class AppLocalizations {
   /// No description provided for @yourContributions.
   ///
   /// In en, this message translates to:
-  /// **'YOUR CONTRIBUTIONS'**
+  /// **'YOUR UPLOADS'**
   String get yourContributions;
 
   /// No description provided for @impactCardContext.
@@ -1199,13 +1199,13 @@ abstract class AppLocalizations {
   /// No description provided for @noContributionsYet.
   ///
   /// In en, this message translates to:
-  /// **'No contributions yet. Start tracking to begin.'**
+  /// **'Nothing recorded yet. Start tracking to begin.'**
   String get noContributionsYet;
 
   /// No description provided for @startContributingTitle.
   ///
   /// In en, this message translates to:
-  /// **'Start contributing'**
+  /// **'Start mapping'**
   String get startContributingTitle;
 
   /// No description provided for @startContributingHint.

@@ -483,7 +483,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get infoDaysActiveBody =>
-      'Le nombre de jours distincts où vous avez contribué. Pas besoin de contribuer tous les jours.';
+      'Le nombre de jours où vous étiez actif. Pas besoin d\'être actif tous les jours.';
 
   @override
   String get infoBestDayTitle => 'Meilleur jour';
@@ -612,7 +612,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get mapCenterTooltip => 'Centrer sur la position';
 
   @override
-  String get yourContributions => 'VOS CONTRIBUTIONS';
+  String get yourContributions => 'VOS ENVOIS';
 
   @override
   String get impactCardContext => 'envois — partagés anonymement';
@@ -622,10 +622,10 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get noContributionsYet =>
-      'Aucune contribution pour le moment. Commencez le suivi.';
+      'Rien d\'enregistré pour l\'instant. Commencez le suivi.';
 
   @override
-  String get startContributingTitle => 'Commencer à contribuer';
+  String get startContributingTitle => 'Commencer à cartographier';
 
   @override
   String get startContributingHint =>
