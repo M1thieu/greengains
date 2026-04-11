@@ -169,7 +169,7 @@
   "error": "Erreur",
 
   "profileNotSignedIn": "Non connecté",
-  "profileSignInPrompt": "Connectez-vous avec Google pour suivre votre progression et synchroniser vos contributions.",
+  "profileSignInPrompt": "Connectez-vous avec Google pour garder votre série et synchroniser votre carte.",
   "profileAnonymousNote": "Utilisation anonyme. Connectez-vous pour suivre votre progression.",
   "profileUserFallback": "Utilisateur",
   "profileViewStats": "Voir les statistiques",

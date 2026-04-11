@@ -169,7 +169,7 @@
   "error": "Error",
 
   "profileNotSignedIn": "Not Signed In",
-  "profileSignInPrompt": "Sign in with Google to track your streak and sync your contributions across devices.",
+  "profileSignInPrompt": "Sign in with Google to keep your streak and sync your map across devices.",
   "profileAnonymousNote": "Using anonymously. Sign in to track your streak.",
   "profileUserFallback": "User",
   "profileViewStats": "View Statistics",
@@ -263,7 +263,7 @@
 
   "yourContributions": "YOUR UPLOADS",
   "impactCardContext": "uploads — shared anonymously",
-  "loadingStatsLabel": "Loading contribution stats",
+  "loadingStatsLabel": "Loading your stats",
   "noContributionsYet": "Nothing recorded yet. Start tracking to begin.",
   "startContributingTitle": "Start mapping",
   "startContributingHint": "Your phone maps the city silently while you go about your day",

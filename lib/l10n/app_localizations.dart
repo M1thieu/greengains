@@ -719,7 +719,7 @@ abstract class AppLocalizations {
   /// No description provided for @profileSignInPrompt.
   ///
   /// In en, this message translates to:
-  /// **'Sign in with Google to track your streak and sync your contributions across devices.'**
+  /// **'Sign in with Google to keep your streak and sync your map across devices.'**
   String get profileSignInPrompt;
 
   /// No description provided for @profileAnonymousNote.
@@ -1193,7 +1193,7 @@ abstract class AppLocalizations {
   /// No description provided for @loadingStatsLabel.
   ///
   /// In en, this message translates to:
-  /// **'Loading contribution stats'**
+  /// **'Loading your stats'**
   String get loadingStatsLabel;
 
   /// No description provided for @noContributionsYet.

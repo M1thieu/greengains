@@ -351,7 +351,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get profileSignInPrompt =>
-      'Connectez-vous avec Google pour suivre votre progression et synchroniser vos contributions.';
+      'Connectez-vous avec Google pour garder votre série et synchroniser votre carte.';
 
   @override
   String get profileAnonymousNote =>

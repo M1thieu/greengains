@@ -349,7 +349,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get profileSignInPrompt =>
-      'Sign in with Google to track your streak and sync your contributions across devices.';
+      'Sign in with Google to keep your streak and sync your map across devices.';
 
   @override
   String get profileAnonymousNote =>
@@ -614,7 +614,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get impactCardContext => 'uploads — shared anonymously';
 
   @override
-  String get loadingStatsLabel => 'Loading contribution stats';
+  String get loadingStatsLabel => 'Loading your stats';
 
   @override
   String get noContributionsYet =>
