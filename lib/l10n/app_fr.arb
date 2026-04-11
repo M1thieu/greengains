@@ -2,7 +2,7 @@
   "@@locale": "fr",
 
   "onboardingWelcomeTitle": "Votre ville, cartographiée rue par rue",
-  "onboardingWelcomeSubtitle": "Votre téléphone collecte passivement des données environnementales — lumière, pression, mouvement — pendant votre quotidien. Vous aidez à construire le réseau de capteurs que les villes n'ont pas les moyens de déployer. Vous êtes récompensé pour cela.",
+  "onboardingWelcomeSubtitle": "Votre téléphone mesure silencieusement lumière, pression et mouvement pendant vos déplacements. Aucune interaction nécessaire — vous marchez, il cartographie.",
   "onboardingFeature1Title": "Fonctionne silencieusement",
   "onboardingFeature1Description": "Actif en arrière-plan pendant vos trajets, promenades ou sommeil. Aucune interaction nécessaire, jamais.",
   "onboardingFeature2Title": "Anonymisé par conception",
@@ -279,7 +279,7 @@
   },
 
   "chipZones": "zones",
-  "chipSensors": "capteurs",
+  "chipSensors": "signaux",
   "homeZonesMapped": "{count, plural, =1{1 zone cartographiée} other{{count} zones cartographiées}}",
   "@homeZonesMapped": {
     "placeholders": { "count": { "type": "int" } }

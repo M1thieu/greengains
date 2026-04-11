@@ -13,7 +13,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get onboardingWelcomeSubtitle =>
-      'Votre téléphone collecte passivement des données environnementales — lumière, pression, mouvement — pendant votre quotidien. Vous aidez à construire le réseau de capteurs que les villes n\'ont pas les moyens de déployer. Vous êtes récompensé pour cela.';
+      'Votre téléphone mesure silencieusement lumière, pression et mouvement pendant vos déplacements. Aucune interaction nécessaire — vous marchez, il cartographie.';
 
   @override
   String get onboardingFeature1Title => 'Fonctionne silencieusement';
@@ -648,7 +648,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get chipZones => 'zones';
 
   @override
-  String get chipSensors => 'capteurs';
+  String get chipSensors => 'signaux';
 
   @override
   String homeZonesMapped(int count) {

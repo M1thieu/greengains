@@ -107,7 +107,7 @@ abstract class AppLocalizations {
   /// No description provided for @onboardingWelcomeSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Your phone passively collects environmental data — light, pressure, movement — while you go about your day. You help build the sensor network cities can\'t afford. You get rewarded for it.'**
+  /// **'Your phone quietly reads light, pressure, and movement as you move. No interaction needed — you walk, it maps.'**
   String get onboardingWelcomeSubtitle;
 
   /// No description provided for @onboardingFeature1Title.
@@ -1242,7 +1242,7 @@ abstract class AppLocalizations {
   /// No description provided for @chipSensors.
   ///
   /// In en, this message translates to:
-  /// **'sensors'**
+  /// **'signals'**
   String get chipSensors;
 
   /// No description provided for @homeZonesMapped.
