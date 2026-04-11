@@ -8,13 +8,13 @@
   "onboardingFeature2Title": "Anonymisé par conception",
   "onboardingFeature2Description": "Vos données sont regroupées avec des milliers d'autres avant de quitter votre appareil. Aucun historique de position, aucune donnée personnelle — jamais.",
   "onboardingFeature3Title": "Des données réelles, un impact réel",
-  "onboardingFeature3Description": "Vos mesures alimentent une carte en direct utilisée par des chercheurs et des urbanistes. Chaque rue parcourue ajoute une donnée qui n'existait pas avant.",
+  "onboardingFeature3Description": "Vos trajets apparaissent sur une carte en direct utilisée par des chercheurs et des urbanistes. Chaque rue parcourue ajoute une donnée qui n'existait pas avant.",
   "onboardingSignInTitle": "Rejoindre le réseau",
   "onboardingSignInSubtitle": "Une seule connexion — votre carte et vos progrès vous suivent partout.",
   "onboardingCloudSync": "Carte de couverture en direct",
   "onboardingCloudSyncDescription": "Regardez votre zone de couverture personnelle s'agrandir en temps réel",
   "onboardingFutureFeatures": "Bientôt disponible",
-  "onboardingFutureDescription": "Partage de revenus, analyses de données et jalons contributeurs",
+  "onboardingFutureDescription": "Jalons contributeurs, rapports d'impact et bien plus",
   "onboardingPrivacyNotice": "En continuant, vous acceptez notre {privacyPolicy} et nos {termsOfService}.",
   "@onboardingPrivacyNotice": {
     "placeholders": {

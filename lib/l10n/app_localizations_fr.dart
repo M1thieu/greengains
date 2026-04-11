@@ -34,7 +34,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get onboardingFeature3Description =>
-      'Vos mesures alimentent une carte en direct utilisée par des chercheurs et des urbanistes. Chaque rue parcourue ajoute une donnée qui n\'existait pas avant.';
+      'Vos trajets apparaissent sur une carte en direct utilisée par des chercheurs et des urbanistes. Chaque rue parcourue ajoute une donnée qui n\'existait pas avant.';
 
   @override
   String get onboardingSignInTitle => 'Rejoindre le réseau';
@@ -55,7 +55,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get onboardingFutureDescription =>
-      'Partage de revenus, analyses de données et jalons contributeurs';
+      'Jalons contributeurs, rapports d\'impact et bien plus';
 
   @override
   String onboardingPrivacyNotice(String privacyPolicy, String termsOfService) {

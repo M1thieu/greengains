@@ -8,13 +8,13 @@
   "onboardingFeature2Title": "Anonymized by design",
   "onboardingFeature2Description": "Your data is bundled with thousands of others before it ever leaves your device. No location history, no personal data — ever.",
   "onboardingFeature3Title": "Real data, real impact",
-  "onboardingFeature3Description": "Your readings feed a live map used by researchers and city planners. Every street you walk adds data that never existed before.",
+  "onboardingFeature3Description": "Your walks appear on a live city map used by researchers and planners. Every street you cover adds data that never existed before.",
   "onboardingSignInTitle": "Join the network",
   "onboardingSignInSubtitle": "Sign in once — your coverage map and progress follow you everywhere.",
 "onboardingCloudSync": "Live Coverage Map",
   "onboardingCloudSyncDescription": "Watch your personal coverage area grow in real time",
   "onboardingFutureFeatures": "Coming Soon",
-  "onboardingFutureDescription": "Revenue sharing, data insights, and contributor milestones",
+  "onboardingFutureDescription": "Contributor milestones, impact reports, and more",
   "onboardingPrivacyNotice": "By continuing, you agree to our {privacyPolicy} and {termsOfService}.",
   "@onboardingPrivacyNotice": {
     "placeholders": {

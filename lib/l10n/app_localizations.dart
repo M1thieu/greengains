@@ -143,7 +143,7 @@ abstract class AppLocalizations {
   /// No description provided for @onboardingFeature3Description.
   ///
   /// In en, this message translates to:
-  /// **'Your readings feed a live map used by researchers and city planners. Every street you walk adds data that never existed before.'**
+  /// **'Your walks appear on a live city map used by researchers and planners. Every street you cover adds data that never existed before.'**
   String get onboardingFeature3Description;
 
   /// No description provided for @onboardingSignInTitle.
@@ -179,7 +179,7 @@ abstract class AppLocalizations {
   /// No description provided for @onboardingFutureDescription.
   ///
   /// In en, this message translates to:
-  /// **'Revenue sharing, data insights, and contributor milestones'**
+  /// **'Contributor milestones, impact reports, and more'**
   String get onboardingFutureDescription;
 
   /// No description provided for @onboardingPrivacyNotice.

@@ -34,7 +34,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get onboardingFeature3Description =>
-      'Your readings feed a live map used by researchers and city planners. Every street you walk adds data that never existed before.';
+      'Your walks appear on a live city map used by researchers and planners. Every street you cover adds data that never existed before.';
 
   @override
   String get onboardingSignInTitle => 'Join the network';
@@ -55,7 +55,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get onboardingFutureDescription =>
-      'Revenue sharing, data insights, and contributor milestones';
+      'Contributor milestones, impact reports, and more';
 
   @override
   String onboardingPrivacyNotice(String privacyPolicy, String termsOfService) {
