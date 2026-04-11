@@ -46,6 +46,7 @@ class PreferenceKeys {
   static const totalUploadCount = 'total_upload_count';
   static const reviewRequested = 'review_requested';
   static const firstUploadCelebrated = 'first_upload_celebrated';
+  static const lastUploadMilestoneCelebrated = 'last_upload_milestone_celebrated';
 
   static const currentStreak = 'current_streak';
 
@@ -450,6 +451,13 @@ class AppPreferences {
 
   Future<void> setFirstUploadCelebrated() async {
     await _sp.setBool(PreferenceKeys.firstUploadCelebrated, true);
+  }
+
+  int get lastUploadMilestoneCelebrated =>
+      _sp.getInt(PreferenceKeys.lastUploadMilestoneCelebrated) ?? 0;
+
+  Future<void> setLastUploadMilestoneCelebrated(int count) async {
+    await _sp.setInt(PreferenceKeys.lastUploadMilestoneCelebrated, count);
   }
 
   bool get reviewRequested =>

@@ -1116,4 +1116,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String onboardingSocialProof(int count) {
     return '$count personnes cartographient déjà leur ville';
   }
+
+  @override
+  String uploadMilestone(int count) {
+    return '$count envois — continuez !';
+  }
 }

@@ -164,9 +164,11 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       }
     });
     _maybeRequestReview();
+    unawaited(_maybeCelebrateUploadMilestone());
   }
 
   static const _kMilestones = [5, 10, 25, 50, 100, 250, 500];
+  static const _kUploadMilestones = [10, 50, 100, 500, 1000];
 
   Future<void> _maybeCelebrateMilestone(int zoneCount) async {
     await _prefs.ensureInitialized();
@@ -182,6 +184,18 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       backgroundColor: Colors.transparent,
       builder: (_) => _MilestoneSheet(zoneCount: milestone),
     );
+  }
+
+  Future<void> _maybeCelebrateUploadMilestone() async {
+    await _prefs.ensureInitialized();
+    final count = _prefs.totalUploadCount;
+    final lastCelebrated = _prefs.lastUploadMilestoneCelebrated;
+    final earned = _kUploadMilestones.where((m) => m <= count && m > lastCelebrated).toList();
+    if (earned.isEmpty || !mounted) return;
+    final milestone = earned.last;
+    await _prefs.setLastUploadMilestoneCelebrated(milestone);
+    if (!mounted) return;
+    AppSnackbars.showSuccess(context, context.l10n.uploadMilestone(milestone));
   }
 
   Future<void> _maybeFireZoneNotification(int gained, int total) async {

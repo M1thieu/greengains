@@ -484,5 +484,10 @@
   "onboardingSocialProof": "{count} people already mapping their cities",
   "@onboardingSocialProof": {
     "placeholders": { "count": { "type": "int" } }
+  },
+
+  "uploadMilestone": "{count} uploads — keep going!",
+  "@uploadMilestone": {
+    "placeholders": { "count": { "type": "int" } }
   }
 }

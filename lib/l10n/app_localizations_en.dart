@@ -1104,4 +1104,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String onboardingSocialProof(int count) {
     return '$count people already mapping their cities';
   }
+
+  @override
+  String uploadMilestone(int count) {
+    return '$count uploads — keep going!';
+  }
 }

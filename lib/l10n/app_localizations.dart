@@ -2006,6 +2006,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count} people already mapping their cities'**
   String onboardingSocialProof(int count);
+
+  /// No description provided for @uploadMilestone.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} uploads — keep going!'**
+  String uploadMilestone(int count);
 }
 
 class _AppLocalizationsDelegate
