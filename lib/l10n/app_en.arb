@@ -291,6 +291,9 @@
   "tileInfoPersonal": "Personal",
   "tileInfoCommunity": "Community",
   "tileOnlyYouMapped": "Only you've recorded this area",
+  "tickerMotionStill": "still",
+  "tickerMotionMoving": "moving",
+  "tickerMotionActive": "active",
   "tileInfoSamples": "{count, plural, =1{1 sample} other{{count} samples}}",
   "@tileInfoSamples": {
     "placeholders": {

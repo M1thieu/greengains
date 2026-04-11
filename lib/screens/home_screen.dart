@@ -7,6 +7,7 @@ import 'package:in_app_review/in_app_review.dart';
 import 'package:latlong2/latlong.dart';
 import '../core/constants.dart';
 import '../core/extensions/context_extensions.dart';
+import '../l10n/app_localizations.dart';
 import '../core/themes.dart';
 import '../services/location/foreground_location_service.dart';
 import '../services/network/backend_client.dart';
@@ -534,8 +535,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 return Positioned(
                   left: 0,
                   right: 0,
+                  // Extra spaceMd lifts ticker clear of the zone pill when both visible.
                   bottom: bottomPadding + AppTheme.floatingNavHeight +
-                      AppTheme.spaceLg + _kFabHeight + AppTheme.spaceSm,
+                      AppTheme.spaceLg + _kFabHeight + AppTheme.spaceSm + AppTheme.spaceMd,
                   child: const Center(child: _LiveDataTicker()),
                 );
               },
@@ -1091,14 +1093,15 @@ class _LiveDataTickerState extends State<_LiveDataTicker> {
     return '${lux.toStringAsFixed(0)} lx';
   }
 
-  String _accelLabel(double mag) {
-    if (mag < 2.0) return 'still';
-    if (mag < 8.0) return 'moving';
-    return 'active';
+  String _accelLabel(double mag, AppLocalizations l10n) {
+    if (mag < 2.0) return l10n.tickerMotionStill;
+    if (mag < 8.0) return l10n.tickerMotionMoving;
+    return l10n.tickerMotionActive;
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     // Build list of (icon, color, label) for sensors that have data
     final entries = <(IconData, Color, String)>[];
     if (_light != null) {
@@ -1108,7 +1111,7 @@ class _LiveDataTickerState extends State<_LiveDataTicker> {
       entries.add((Icons.compress, AppColors.pressure, '${_pressure!.hPa.toStringAsFixed(0)} hPa'));
     }
     if (_accel != null) {
-      entries.add((Icons.vibration, AppColors.movement, _accelLabel(_accel!.magnitude)));
+      entries.add((Icons.vibration, AppColors.movement, _accelLabel(_accel!.magnitude, l10n)));
     }
     if (entries.isEmpty) return const SizedBox.shrink();
 
@@ -1155,13 +1158,19 @@ class _TickerChip extends StatelessWidget {
         children: [
           Icon(icon, size: 11, color: color),
           const SizedBox(width: AppTheme.spaceXxs),
-          Text(
-            label,
-            style: TextStyle(
-              color: color,
-              fontSize: 12,
-              fontWeight: AppFontWeights.semibold,
-              letterSpacing: 0.2,
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 280),
+            transitionBuilder: (child, anim) =>
+                FadeTransition(opacity: anim, child: child),
+            child: Text(
+              label,
+              key: ValueKey(label),
+              style: TextStyle(
+                color: color,
+                fontSize: 12,
+                fontWeight: AppFontWeights.semibold,
+                letterSpacing: 0.2,
+              ),
             ),
           ),
         ],

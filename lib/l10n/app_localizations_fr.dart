@@ -682,6 +682,15 @@ class AppLocalizationsFr extends AppLocalizations {
   String get tileOnlyYouMapped => 'Seul(e) toi as cartographié cette zone';
 
   @override
+  String get tickerMotionStill => 'immobile';
+
+  @override
+  String get tickerMotionMoving => 'en mouvement';
+
+  @override
+  String get tickerMotionActive => 'actif';
+
+  @override
   String tileInfoSamples(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

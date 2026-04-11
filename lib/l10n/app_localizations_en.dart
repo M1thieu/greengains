@@ -678,6 +678,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tileOnlyYouMapped => 'Only you\'ve recorded this area';
 
   @override
+  String get tickerMotionStill => 'still';
+
+  @override
+  String get tickerMotionMoving => 'moving';
+
+  @override
+  String get tickerMotionActive => 'active';
+
+  @override
   String tileInfoSamples(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

@@ -1293,6 +1293,24 @@ abstract class AppLocalizations {
   /// **'Only you\'ve recorded this area'**
   String get tileOnlyYouMapped;
 
+  /// No description provided for @tickerMotionStill.
+  ///
+  /// In en, this message translates to:
+  /// **'still'**
+  String get tickerMotionStill;
+
+  /// No description provided for @tickerMotionMoving.
+  ///
+  /// In en, this message translates to:
+  /// **'moving'**
+  String get tickerMotionMoving;
+
+  /// No description provided for @tickerMotionActive.
+  ///
+  /// In en, this message translates to:
+  /// **'active'**
+  String get tickerMotionActive;
+
   /// No description provided for @tileInfoSamples.
   ///
   /// In en, this message translates to:
