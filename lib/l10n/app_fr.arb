@@ -362,12 +362,12 @@
   "settingsThemeDark": "Sombre",
   "settingsThemeAuto": "Auto",
   "settingsLocationDescription": "Nécessaire pour la carte de couverture en direct",
-  "settingsMobileDataDescription": "Envoyer les contributions via LTE/5G si nécessaire",
+  "settingsMobileDataDescription": "Envoyer via LTE/5G si nécessaire",
   "settingsLegal": "Légal",
   "settingsPrivacyPolicyDesc": "Comment nous gérons vos données",
   "settingsTermsOfServiceDesc": "Conditions générales d'utilisation",
   "settingsDataDeletion": "Demande de suppression des données",
-  "settingsDataDeletionDesc": "Supprimer vos contributions",
+  "settingsDataDeletionDesc": "Effacer toutes vos données enregistrées",
   "settingsDataSection": "Données",
   "settingsConsentDate": "Consentement : {date}",
   "@settingsConsentDate": {
@@ -375,7 +375,7 @@
       "date": { "type": "String" }
     }
   },
-  "settingsDataRetention": "Conservation : 7 jours (Gratuit)",
+  "settingsDataRetention": "Données conservées 7 jours (Gratuit)",
   "onboardingDataCollectedTitle": "Ce que nous collectons",
   "onboardingDataCollectedDescription": "Lumière, mouvement, pression et position anonyme — agrégés avec 100\u202f000+ appareils avant toute analyse.",
 

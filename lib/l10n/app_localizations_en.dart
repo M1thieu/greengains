@@ -845,8 +845,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Required for the live coverage map';
 
   @override
-  String get settingsMobileDataDescription =>
-      'Upload contributions over LTE/5G when needed';
+  String get settingsMobileDataDescription => 'Upload over LTE/5G when needed';
 
   @override
   String get settingsLegal => 'Legal';
@@ -861,7 +860,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsDataDeletion => 'Request Data Deletion';
 
   @override
-  String get settingsDataDeletionDesc => 'Remove your contributions';
+  String get settingsDataDeletionDesc => 'Erase all your recorded data';
 
   @override
   String get settingsDataSection => 'Data';
@@ -872,7 +871,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get settingsDataRetention => 'Retention: 7 days (Free)';
+  String get settingsDataRetention => 'Data kept for 7 days (Free)';
 
   @override
   String get onboardingDataCollectedTitle => 'What we collect';

@@ -853,7 +853,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settingsMobileDataDescription =>
-      'Envoyer les contributions via LTE/5G si nécessaire';
+      'Envoyer via LTE/5G si nécessaire';
 
   @override
   String get settingsLegal => 'Légal';
@@ -869,7 +869,8 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settingsDataDeletion => 'Demande de suppression des données';
 
   @override
-  String get settingsDataDeletionDesc => 'Supprimer vos contributions';
+  String get settingsDataDeletionDesc =>
+      'Effacer toutes vos données enregistrées';
 
   @override
   String get settingsDataSection => 'Données';
@@ -880,7 +881,7 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get settingsDataRetention => 'Conservation : 7 jours (Gratuit)';
+  String get settingsDataRetention => 'Données conservées 7 jours (Gratuit)';
 
   @override
   String get onboardingDataCollectedTitle => 'Ce que nous collectons';

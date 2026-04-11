@@ -362,12 +362,12 @@
   "settingsThemeDark": "Dark",
   "settingsThemeAuto": "Auto",
   "settingsLocationDescription": "Required for the live coverage map",
-  "settingsMobileDataDescription": "Upload contributions over LTE/5G when needed",
+  "settingsMobileDataDescription": "Upload over LTE/5G when needed",
   "settingsLegal": "Legal",
   "settingsPrivacyPolicyDesc": "How we handle your data",
   "settingsTermsOfServiceDesc": "Usage terms and conditions",
   "settingsDataDeletion": "Request Data Deletion",
-  "settingsDataDeletionDesc": "Remove your contributions",
+  "settingsDataDeletionDesc": "Erase all your recorded data",
   "settingsDataSection": "Data",
   "settingsConsentDate": "Consented: {date}",
   "@settingsConsentDate": {
@@ -375,7 +375,7 @@
       "date": { "type": "String" }
     }
   },
-  "settingsDataRetention": "Retention: 7 days (Free)",
+  "settingsDataRetention": "Data kept for 7 days (Free)",
   "onboardingDataCollectedTitle": "What we collect",
   "onboardingDataCollectedDescription": "Light, motion, pressure and anonymous location — aggregated with 100,000+ devices before any analysis.",
 

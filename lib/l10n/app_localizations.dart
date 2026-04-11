@@ -1572,7 +1572,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsMobileDataDescription.
   ///
   /// In en, this message translates to:
-  /// **'Upload contributions over LTE/5G when needed'**
+  /// **'Upload over LTE/5G when needed'**
   String get settingsMobileDataDescription;
 
   /// No description provided for @settingsLegal.
@@ -1602,7 +1602,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsDataDeletionDesc.
   ///
   /// In en, this message translates to:
-  /// **'Remove your contributions'**
+  /// **'Erase all your recorded data'**
   String get settingsDataDeletionDesc;
 
   /// No description provided for @settingsDataSection.
@@ -1620,7 +1620,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsDataRetention.
   ///
   /// In en, this message translates to:
-  /// **'Retention: 7 days (Free)'**
+  /// **'Data kept for 7 days (Free)'**
   String get settingsDataRetention;
 
   /// No description provided for @onboardingDataCollectedTitle.
