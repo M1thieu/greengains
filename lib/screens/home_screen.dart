@@ -5,7 +5,6 @@ import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:in_app_review/in_app_review.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../core/constants.dart';
 import '../core/extensions/context_extensions.dart';
 import '../core/themes.dart';
@@ -58,6 +57,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   /// Boundary of the H3 cell the user is currently inside — shown as live amber
   /// highlight on the map while tracking is active.
   List<LatLng>? _currentH3Boundary;
+  /// Last computed H3 cell index — prevents redundant setState on every GPS ping.
+  BigInt? _currentH3Index;
 
   @override
   void initState() {
@@ -81,9 +82,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   }
 
   Future<void> _maybeShowFirstStart() async {
-    final prefs = await SharedPreferences.getInstance();
-    if (prefs.getBool('tracking_ever_started') == true) return;
-    await prefs.setBool('tracking_ever_started', true);
+    await _prefs.ensureInitialized();
+    if (_prefs.trackingEverStarted) return;
+    await _prefs.setTrackingEverStarted();
     if (!mounted) return;
     showModalBottomSheet(
       context: context,
@@ -144,6 +145,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       final msg = gained > 0
           ? context.l10n.uploadSuccessNewZone(newCount)
           : context.l10n.uploadSuccessMessage;
+      HapticFeedback.lightImpact();
       AppSnackbars.showSuccess(context, msg);
       if (gained > 0) {
         _maybeCelebrateMilestone(newCount);
@@ -156,13 +158,13 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   static const _kMilestones = [5, 10, 25, 50, 100, 250, 500];
 
   Future<void> _maybeCelebrateMilestone(int zoneCount) async {
-    final prefs = await SharedPreferences.getInstance();
-    final lastCelebrated = prefs.getInt('last_milestone_celebrated') ?? 0;
-    // Find the highest milestone the user has reached that hasn't been celebrated yet.
+    await _prefs.ensureInitialized();
+    final lastCelebrated = _prefs.lastMilestoneCelebrated;
+    // Find the highest milestone reached that hasn't been celebrated yet.
     final earned = _kMilestones.where((m) => m <= zoneCount && m > lastCelebrated).toList();
     if (earned.isEmpty) return;
     final milestone = earned.last;
-    await prefs.setInt('last_milestone_celebrated', milestone);
+    await _prefs.setLastMilestoneCelebrated(milestone);
     if (!mounted) return;
     showModalBottomSheet(
       context: context,
@@ -184,14 +186,13 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   /// Show the Play Store in-app review dialog once, after the user's 5th upload.
   Future<void> _maybeRequestReview() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final count = prefs.getInt('total_upload_count') ?? 0;
-      if (count < kReviewRequestThreshold) return;
-      if (prefs.getBool('review_requested') == true) return;
+      await _prefs.ensureInitialized();
+      if (_prefs.totalUploadCount < kReviewRequestThreshold) return;
+      if (_prefs.reviewRequested) return;
       final review = InAppReview.instance;
       if (await review.isAvailable()) {
         await review.requestReview();
-        await prefs.setBool('review_requested', true);
+        await _prefs.setReviewRequested();
       }
     } catch (_) {}
   }
@@ -251,7 +252,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   }
 
   Future<void> _loadH3Tiles() async {
-    setState(() => _h3TilesLoading = true);
+    // Only show loading spinner on first fetch — reloads update tiles in-place.
+    if (_h3Tiles.isEmpty) setState(() => _h3TilesLoading = true);
     try {
       final data = await BackendClient.get(kApiUserTiles);
       final response = UserTilesResponse.fromJson(data);
@@ -348,6 +350,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         h3f.GeoCoord(lat: pos.latitude, lon: pos.longitude),
         _kLiveCellResolution,
       );
+      // Only recompute boundary + rebuild when the cell actually changes.
+      if (cellIndex == _currentH3Index) return;
+      _currentH3Index = cellIndex;
       final boundary = _h3
           .cellToBoundary(cellIndex)
           .map((c) => LatLng(c.lat, c.lon))
@@ -438,14 +443,22 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 ]),
                 builder: (context, _) {
                   final status = _locationService.uploadStatus.value;
+                  // Count sensor types that have recent data (non-null)
+                  final svc = _locationService;
+                  final activeSensors = [
+                    svc.lastLight,
+                    svc.lastAccelerometer,
+                    svc.lastPressure,
+                    svc.lastGyroscope,
+                    svc.lastMagneticField,
+                  ].where((s) => s != null).length;
                   return TrackingStatusChip(
-                    isTracking: _locationService.isRunning.value &&
-                        !_locationService.isPaused.value,
-                    isPaused: _locationService.isRunning.value &&
-                        _locationService.isPaused.value,
+                    isTracking: svc.isRunning.value && !svc.isPaused.value,
+                    isPaused: svc.isRunning.value && svc.isPaused.value,
                     lastUpload: status.lastUpload,
                     tileCount: _h3Tiles.where((t) => t.boundary != null).length,
                     isUploading: status.isUploading,
+                    activeSensorCount: activeSensors,
                     onTap: _openSensorSheet,
                   );
                 },
@@ -463,7 +476,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 child: Align(
                   alignment: Alignment.centerLeft,
                   child: _ZoneCountPill(
-                    count: _h3Tiles.length,
+                    count: _h3Tiles.where((t) => t.boundary != null).length,
                     onTap: widget.onGoToStats,
                   ),
                 ),

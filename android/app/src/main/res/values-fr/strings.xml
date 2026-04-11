@@ -22,6 +22,12 @@
     <string name="notification_worker_title">GreenGains — traitement des données</string>
     <string name="notification_worker_body">Traitement des dernières données capteurs</string>
 
+    <!-- Streak-at-risk notification -->
+    <string name="notification_streak_channel_name">Rappels de série</string>
+    <!-- %1$d = jours de série -->
+    <string name="notification_streak_title">Série de %1$d jours — toujours actif ?</string>
+    <string name="notification_streak_body">Vous n\'avez rien cartographié aujourd\'hui. Ouvrez l\'appli pour garder votre série.</string>
+
     <!-- Zone discovery notification -->
     <string name="notification_zone_channel_name">Découvertes de zones</string>
     <string name="notification_zone_title">Nouvelle zone cartographiée !</string>

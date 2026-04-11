@@ -20,11 +20,17 @@ import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
+import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.WorkManager
 import com.eremat.greengains.service.ForegroundService
 import com.eremat.greengains.util.AppLogger
+import com.eremat.greengains.worker.StreakAlertWorker
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
+import java.time.LocalTime
+import java.util.concurrent.TimeUnit
 
 /**
  * Bridges Flutter <-> native foreground service and handles permission requests.
@@ -43,6 +49,7 @@ class MainActivity : FlutterActivity() {
         AppLogger.init(this)
         AppLogger.i("MainActivity", "App started")
         checkAndRequestNotificationPermission()
+        scheduleStreakAlert()
     }
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
@@ -325,6 +332,33 @@ class MainActivity : FlutterActivity() {
             .build()
 
         manager.notify(NOTIFICATION_ID_ZONE, notification)
+    }
+
+    /**
+     * Schedules a daily streak-at-risk check around 8 pm local time.
+     * Uses KEEP policy so it is not rescheduled on every launch.
+     * The worker fires at most once per day and only when conditions are met.
+     */
+    private fun scheduleStreakAlert() {
+        // Compute initial delay to the next 8 pm (or immediate if past 8 pm today)
+        val now = LocalTime.now()
+        val target = LocalTime.of(20, 0)
+        val delayMinutes = if (now.isBefore(target)) {
+            (target.toSecondOfDay() - now.toSecondOfDay()) / 60L
+        } else {
+            // Already past 8 pm — schedule for next day
+            ((24 * 60 * 60) - now.toSecondOfDay() + target.toSecondOfDay()) / 60L
+        }
+
+        val request = PeriodicWorkRequestBuilder<StreakAlertWorker>(24, TimeUnit.HOURS)
+            .setInitialDelay(delayMinutes, TimeUnit.MINUTES)
+            .build()
+
+        WorkManager.getInstance(this).enqueueUniquePeriodicWork(
+            StreakAlertWorker.WORK_NAME,
+            ExistingPeriodicWorkPolicy.KEEP, // don't reset timing on every app launch
+            request,
+        )
     }
 
     /**

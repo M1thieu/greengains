@@ -45,21 +45,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
   double _prevDaysActive = 0;
   double _prevKm2 = 0;
 
-  StreamSubscription<UploadSuccessEvent>? _uploadSub;
+  StreamSubscription<ProfileUpdatedEvent>? _profileSub;
 
   @override
   void initState() {
     super.initState();
+    // One-time fetch on init — covers the case where Stats tab hasn't loaded yet.
+    // Subsequent updates (on upload) come from ProfileUpdatedEvent emitted by Stats.
     _loadProfileStats();
-    _uploadSub = AppEventBus.instance
-        .on<UploadSuccessEvent>()
-        .listen((_) => _loadProfileStats());
-  }
-
-  @override
-  void dispose() {
-    _uploadSub?.cancel();
-    super.dispose();
+    _profileSub = AppEventBus.instance
+        .on<ProfileUpdatedEvent>()
+        .listen((event) {
+      if (mounted) {
+        setState(() {
+          _totalUploads = event.totalUploads;
+          _daysActive = event.daysActive;
+          _coverageCells = event.coverageCells;
+        });
+      }
+    });
   }
 
   Future<void> _loadProfileStats() async {
@@ -74,6 +78,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
         });
       }
     } catch (_) {}
+  }
+
+  @override
+  void dispose() {
+    _profileSub?.cancel();
+    super.dispose();
   }
 
   @override
@@ -109,9 +119,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
   /// Users should sign in to unlock daily pot rewards and sync data
   Widget _buildSignedOutState(ThemeData theme, bool isDark, AppLocalizations l10n) {
     final navBottom = MediaQuery.paddingOf(context).bottom + AppTheme.floatingNavHeight + AppTheme.spaceSm;
-    return Padding(
+    return SingleChildScrollView(
       padding: EdgeInsets.fromLTRB(AppTheme.spaceLg, AppTheme.spaceMd, AppTheme.spaceLg, navBottom),
-      child: Column(
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          minHeight: MediaQuery.sizeOf(context).height - navBottom - AppTheme.spaceMd,
+        ),
+        child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(
@@ -172,6 +186,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
           ),
         ],
+        ),
       ),
     );
   }
@@ -195,23 +210,32 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-  /// REDESIGNED: Compact signed-in state (no scrolling required)
   Widget _buildSignedInState(User user, ThemeData theme, bool isDark, AppLocalizations l10n) {
     final navBottom = MediaQuery.paddingOf(context).bottom + AppTheme.floatingNavHeight + AppTheme.spaceSm;
-    return Padding(
-      padding: EdgeInsets.fromLTRB(AppTheme.spaceLg, AppTheme.spaceMd, AppTheme.spaceLg, navBottom),
-      child: Column(
-        children: [
-          _buildCompactUserHeader(user, theme, isDark, l10n),
-          const SizedBox(height: AppTheme.spaceMd),
-          _buildImpactRow(theme, isDark, l10n),
-          if (widget.onViewStats != null) ...[
-            const SizedBox(height: AppTheme.spaceSm),
-            _buildViewStatsButton(theme, isDark, l10n),
-          ],
-          const Spacer(),
-          _buildAccountSection(user, theme, isDark, l10n),
-        ],
+    final content = [
+      _buildCompactUserHeader(user, theme, isDark, l10n),
+      const SizedBox(height: AppTheme.spaceMd),
+      _buildImpactRow(theme, isDark, l10n),
+      if (widget.onViewStats != null) ...[
+        const SizedBox(height: AppTheme.spaceSm),
+        _buildViewStatsButton(theme, isDark, l10n),
+      ],
+    ];
+    return LayoutBuilder(
+      builder: (context, constraints) => SingleChildScrollView(
+        padding: EdgeInsets.fromLTRB(AppTheme.spaceLg, AppTheme.spaceMd, AppTheme.spaceLg, navBottom),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(minHeight: constraints.maxHeight - AppTheme.spaceMd - navBottom),
+          child: IntrinsicHeight(
+            child: Column(
+              children: [
+                ...content,
+                const Spacer(),
+                _buildAccountSection(user, theme, isDark, l10n),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

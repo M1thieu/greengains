@@ -374,11 +374,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chipPaused => 'Paused';
 
   @override
-  String get chipTapStart => 'Ready';
+  String get chipTapStart => 'Tap ▶ to start';
 
   @override
-  String get homeFirstUseHint =>
-      'Tap ▶ · maps your city silently while you move';
+  String get homeFirstUseHint => 'Maps your city silently while you move';
 
   @override
   String get uploadSuccessMessage => 'Contribution uploaded successfully!';
@@ -562,11 +561,14 @@ class AppLocalizationsEn extends AppLocalizations {
       'Track your earnings and payout history once monetization begins';
 
   @override
-  String get statsStartContributing => 'Start Contributing';
+  String get statsStartContributing => 'Nothing here yet';
 
   @override
   String get statsEmptyDescription =>
-      'Your statistics will appear here once you begin tracking';
+      'Head to the map and tap ▶ — your stats will appear after your first upload.';
+
+  @override
+  String get statsEmptyGoMap => 'Go to map';
 
   @override
   String get statsUpdatedPrefix => 'Updated ';
@@ -639,6 +641,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get chipZones => 'zones';
+
+  @override
+  String get chipSensors => 'sensors';
 
   @override
   String homeZonesMapped(int count) {

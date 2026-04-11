@@ -166,59 +166,56 @@ export async function userRoutes(fastify: FastifyInstance) {
           });
         }
 
-        // Streak calculation — gaps-and-islands algorithm (no nested aggregates).
-        // Groups consecutive upload dates by subtracting their row number from the
-        // date: consecutive dates produce the same value → same group.
-        // Current streak = length of the latest group, but only if it includes
-        // today or yesterday (grace period so streak survives through the day).
-        const streakResult = await pool.query<{
-          longest_streak: number;
-          current_streak: number;
-        }>(
-          `WITH daily AS (
-             SELECT DISTINCT DATE(timestamp_utc) AS d
+        // Streak + weekly queries are independent — run in parallel.
+        const [streakResult, weeklyResult] = await Promise.all([
+          pool.query<{
+            longest_streak: number;
+            current_streak: number;
+          }>(
+            `WITH daily AS (
+               SELECT DISTINCT DATE(timestamp_utc) AS d
+               FROM sensor_batches
+               WHERE user_id = $1
+             ),
+             numbered AS (
+               SELECT d, ROW_NUMBER() OVER (ORDER BY d DESC)::int AS rn
+               FROM daily
+             ),
+             groups AS (
+               SELECT (d + rn) AS grp, COUNT(*)::int AS len, MAX(d) AS latest_day
+               FROM numbered
+               GROUP BY grp
+             )
+             SELECT
+               MAX(len)                                              AS longest_streak,
+               COALESCE(
+                 (SELECT len FROM groups
+                  WHERE latest_day >= CURRENT_DATE - 1
+                  ORDER BY latest_day DESC LIMIT 1),
+                 0
+               )                                                     AS current_streak
+             FROM groups`,
+            [userId],
+          ),
+          // 7-day upload history (index 0 = 6 days ago, index 6 = today)
+          pool.query<{
+            upload_date: Date;
+            count: number;
+          }>(
+            `SELECT
+               DATE(timestamp_utc) AS upload_date,
+               COUNT(*)::int       AS count
              FROM sensor_batches
              WHERE user_id = $1
-           ),
-           numbered AS (
-             SELECT d, ROW_NUMBER() OVER (ORDER BY d DESC)::int AS rn
-             FROM daily
-           ),
-           groups AS (
-             SELECT (d + rn) AS grp, COUNT(*)::int AS len, MAX(d) AS latest_day
-             FROM numbered
-             GROUP BY grp
-           )
-           SELECT
-             MAX(len)                                              AS longest_streak,
-             COALESCE(
-               (SELECT len FROM groups
-                WHERE latest_day >= CURRENT_DATE - 1
-                ORDER BY latest_day DESC LIMIT 1),
-               0
-             )                                                     AS current_streak
-           FROM groups`,
-          [userId],
-        );
+               AND timestamp_utc >= CURRENT_DATE - INTERVAL '6 days'
+             GROUP BY DATE(timestamp_utc)
+             ORDER BY upload_date ASC`,
+            [userId],
+          ),
+        ]);
 
         const longestStreak = streakResult.rows[0]?.longest_streak ?? 0;
         const currentStreak = streakResult.rows[0]?.current_streak ?? 0;
-
-        // 7-day upload history (index 0 = 6 days ago, index 6 = today)
-        const weeklyResult = await pool.query<{
-          upload_date: Date;
-          count: number;
-        }>(
-          `SELECT
-             DATE(timestamp_utc) AS upload_date,
-             COUNT(*)::int       AS count
-           FROM sensor_batches
-           WHERE user_id = $1
-             AND timestamp_utc >= CURRENT_DATE - INTERVAL '6 days'
-           GROUP BY DATE(timestamp_utc)
-           ORDER BY upload_date ASC`,
-          [userId],
-        );
 
         const weekly: number[] = Array(7).fill(0);
         const todayMs = Date.UTC(

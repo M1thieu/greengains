@@ -19,7 +19,7 @@ const _kPulseCycle          = Duration(milliseconds: 1400);
 ///
 /// The dot pulses outward when actively tracking (Strava / Uber live-indicator
 /// pattern) and is static when paused or stopped.
-class TrackingStatusChip extends StatelessWidget {
+class TrackingStatusChip extends StatefulWidget {
   const TrackingStatusChip({
     super.key,
     required this.isTracking,
@@ -27,6 +27,7 @@ class TrackingStatusChip extends StatelessWidget {
     this.lastUpload,
     this.tileCount = 0,
     this.isUploading = false,
+    this.activeSensorCount = 0,
     this.onTap,
   });
 
@@ -37,23 +38,81 @@ class TrackingStatusChip extends StatelessWidget {
   final int tileCount;
   /// True while an upload is in progress — shows a small spinner instead of time ago.
   final bool isUploading;
+  /// How many sensor types have recent data — shown as "· N sensors" when > 0 and active.
+  final int activeSensorCount;
   /// Optional tap handler — shown with a subtle affordance when set.
   final VoidCallback? onTap;
+
+  @override
+  State<TrackingStatusChip> createState() => _TrackingStatusChipState();
+}
+
+class _TrackingStatusChipState extends State<TrackingStatusChip>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _flashCtrl;
+  late final Animation<double> _flashOpacity;
+
+  DateTime? _lastUploadSeen;
+
+  @override
+  void initState() {
+    super.initState();
+    _flashCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 600),
+    );
+    _flashOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _flashCtrl, curve: Curves.easeOut),
+    );
+  }
+
+  @override
+  void didUpdateWidget(TrackingStatusChip old) {
+    super.didUpdateWidget(old);
+    // New upload just landed — flash the chip
+    if (widget.lastUpload != null && widget.lastUpload != _lastUploadSeen) {
+      _lastUploadSeen = widget.lastUpload;
+      _flashCtrl.forward(from: 0.0).then((_) => _flashCtrl.reverse());
+    }
+  }
+
+  @override
+  void dispose() {
+    _flashCtrl.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final (dotColor, label) = _state(l10n);
-    final isActive = isTracking && !isPaused;
+    final isActive = widget.isTracking && !widget.isPaused;
 
     return GestureDetector(
-      onTap: onTap != null
+      onTap: widget.onTap != null
           ? () {
               HapticFeedback.lightImpact();
-              onTap!();
+              widget.onTap!();
             }
           : null,
-      child: Container(
+      child: AnimatedBuilder(
+        animation: _flashCtrl,
+        builder: (_, child) => Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(AppTheme.radiusPill),
+            boxShadow: _flashCtrl.value > 0
+                ? [
+                    BoxShadow(
+                      color: AppColors.primary.withValues(alpha: _flashOpacity.value * 0.5),
+                      blurRadius: 16,
+                      spreadRadius: 2,
+                    )
+                  ]
+                : null,
+          ),
+          child: child,
+        ),
+        child: Container(
         padding: const EdgeInsets.symmetric(
           horizontal: AppTheme.spaceSm,
           vertical: AppTheme.spaceXs,
@@ -78,12 +137,12 @@ class TrackingStatusChip extends StatelessWidget {
                 letterSpacing: 0.1,
               ),
             ),
-            if ((isTracking || isPaused) && tileCount > 0) ...[
+            if ((widget.isTracking || widget.isPaused) && widget.tileCount > 0) ...[
               const SizedBox(width: AppTheme.spaceXxs),
               Container(width: 1, height: _kChipDividerH, color: Colors.white24),
               const SizedBox(width: AppTheme.spaceXxs),
               Text(
-                '$tileCount',
+                '${widget.tileCount}',
                 style: TextStyle(
                   color: dotColor.withValues(alpha: 0.9),
                   fontSize: _kChipTimeSize,
@@ -99,8 +158,30 @@ class TrackingStatusChip extends StatelessWidget {
                 ),
               ),
             ],
-            if (isTracking || isPaused) ...[
-              if (isUploading) ...[
+            // Active sensor count — answers "is it actually capturing anything?"
+            if (isActive && widget.activeSensorCount > 0) ...[
+              const SizedBox(width: AppTheme.spaceXxs),
+              Container(width: 1, height: _kChipDividerH, color: Colors.white24),
+              const SizedBox(width: AppTheme.spaceXxs),
+              Text(
+                '${widget.activeSensorCount}',
+                style: const TextStyle(
+                  color: Colors.white54,
+                  fontSize: _kChipTimeSize,
+                  fontWeight: AppFontWeights.semibold,
+                ),
+              ),
+              const SizedBox(width: AppTheme.spaceXxxs),
+              Text(
+                context.l10n.chipSensors,
+                style: const TextStyle(
+                  color: Colors.white38,
+                  fontSize: _kChipTimeSize,
+                ),
+              ),
+            ],
+            if (widget.isTracking || widget.isPaused) ...[
+              if (widget.isUploading) ...[
                 const SizedBox(width: AppTheme.spaceXxs),
                 Container(width: 1, height: _kChipDividerH, color: Colors.white24),
                 const SizedBox(width: AppTheme.spaceXxs),
@@ -112,12 +193,12 @@ class TrackingStatusChip extends StatelessWidget {
                     valueColor: AlwaysStoppedAnimation<Color>(Colors.white54),
                   ),
                 ),
-              ] else if (lastUpload != null) ...[
+              ] else if (widget.lastUpload != null) ...[
                 const SizedBox(width: AppTheme.spaceXxs),
                 Container(width: 1, height: _kChipDividerH, color: Colors.white24),
                 const SizedBox(width: AppTheme.spaceXxs),
                 TimeAgoText(
-                  timestamp: lastUpload!,
+                  timestamp: widget.lastUpload!,
                   style: const TextStyle(
                     color: Colors.white60,
                     fontSize: _kChipTimeSize,
@@ -128,12 +209,13 @@ class TrackingStatusChip extends StatelessWidget {
           ],
         ),
       ),
+    ),
     );
   }
 
   (Color, String) _state(AppLocalizations l10n) {
-    if (isTracking && !isPaused) return (AppColors.primary, l10n.chipContributing);
-    if (isPaused) return (AppColors.warning, l10n.chipPaused);
+    if (widget.isTracking && !widget.isPaused) return (AppColors.primary, l10n.chipContributing);
+    if (widget.isPaused) return (AppColors.warning, l10n.chipPaused);
     return (Colors.grey, l10n.chipTapStart);
   }
 }

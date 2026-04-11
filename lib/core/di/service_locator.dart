@@ -3,7 +3,6 @@ import '../../data/local/database_helper.dart';
 import '../../data/repositories/contribution_repository.dart';
 import '../../services/location/foreground_location_service.dart';
 import '../../services/sensors/sensor_manager.dart';
-import '../../services/network/upload_queue_manager.dart';
 import '../../services/tracking/tracking_session_manager.dart';
 import '../../core/events/app_events.dart';
 import '../../core/app_preferences.dart';
@@ -32,7 +31,6 @@ Future<void> setupServiceLocator() async {
 
   getIt.registerSingleton<ForegroundLocationService>(ForegroundLocationService.instance);
   getIt.registerSingleton<SensorManager>(SensorManager.instance);
-  getIt.registerSingleton<UploadQueueManager>(UploadQueueManager.instance);
   getIt.registerSingleton<TrackingSessionManager>(TrackingSessionManager.instance);
 
   getIt.registerFactory<ContributionRepository>(() => ContributionRepository());

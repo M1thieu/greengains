@@ -40,6 +40,14 @@ class PreferenceKeys {
   static const lastMagneticMagnitude = 'last_magnetic_magnitude';
   static const lastMagneticTimestamp = 'last_magnetic_timestamp';
 
+  // One-time UX flags — stored in AppPreferences for consistency
+  static const trackingEverStarted = 'tracking_ever_started';
+  static const lastMilestoneCelebrated = 'last_milestone_celebrated';
+  static const totalUploadCount = 'total_upload_count';
+  static const reviewRequested = 'review_requested';
+
+  static const currentStreak = 'current_streak';
+
   static const _legacyDeviceId = 'device_id';
   static const _legacyForegroundServiceEnabled = 'foreground_service_enabled';
   static const _legacyTrackingPaused = 'tracking_paused';
@@ -400,6 +408,47 @@ class AppPreferences {
 
   Future<void> setFirebaseAuthToken(String value) async {
     await _sp.setString(PreferenceKeys.firebaseAuthToken, value);
+  }
+
+  // ── Streak (shared with native StreakAlertWorker) ─────────────────────────────
+
+  /// Written after each profile fetch so the native WorkManager worker can read it
+  /// without a network call. Key must match AppPrefs.CURRENT_STREAK in Kotlin
+  /// (flutter.flutter.current_streak — double-prefixed because AppPreferences uses the plugin).
+  int get currentStreak => _sp.getInt(PreferenceKeys.currentStreak) ?? 0;
+
+  Future<void> setCurrentStreak(int streak) async {
+    await _sp.setInt(PreferenceKeys.currentStreak, streak);
+  }
+
+  // ── One-time UX flags ────────────────────────────────────────────────────────
+
+  bool get trackingEverStarted =>
+      _sp.getBool(PreferenceKeys.trackingEverStarted) ?? false;
+
+  Future<void> setTrackingEverStarted() async {
+    await _sp.setBool(PreferenceKeys.trackingEverStarted, true);
+  }
+
+  int get lastMilestoneCelebrated =>
+      _sp.getInt(PreferenceKeys.lastMilestoneCelebrated) ?? 0;
+
+  Future<void> setLastMilestoneCelebrated(int milestone) async {
+    await _sp.setInt(PreferenceKeys.lastMilestoneCelebrated, milestone);
+  }
+
+  int get totalUploadCount =>
+      _sp.getInt(PreferenceKeys.totalUploadCount) ?? 0;
+
+  Future<void> setTotalUploadCount(int count) async {
+    await _sp.setInt(PreferenceKeys.totalUploadCount, count);
+  }
+
+  bool get reviewRequested =>
+      _sp.getBool(PreferenceKeys.reviewRequested) ?? false;
+
+  Future<void> setReviewRequested() async {
+    await _sp.setBool(PreferenceKeys.reviewRequested, true);
   }
 
   // ── Last known GPS position (for instant map centering on cold start) ───────

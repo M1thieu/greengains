@@ -9,6 +9,7 @@ import '../l10n/app_localizations.dart';
 import '../data/models/contribution_stats.dart';
 import '../data/repositories/contribution_repository.dart';
 import '../core/events/app_events.dart';
+import '../core/app_preferences.dart';
 import '../services/network/backend_client.dart';
 import '../core/constants.dart';
 
@@ -42,7 +43,10 @@ const _kMilestones = [5, 10, 25, 50, 100, 250, 500];
 ///   1. Local SQLite via ContributionRepository → total, today, streak (instant)
 ///   2. Backend /api/user/profile → weekly[7] upload counts per day
 class StatisticsScreen extends StatefulWidget {
-  const StatisticsScreen({super.key});
+  const StatisticsScreen({super.key, this.onGoToHome});
+
+  /// Switches to the Home tab — used by the empty-state CTA.
+  final VoidCallback? onGoToHome;
 
   @override
   State<StatisticsScreen> createState() => _StatisticsScreenState();
@@ -128,7 +132,8 @@ class _StatisticsScreenState extends State<StatisticsScreen>
   }
 
   Future<void> _loadStats() async {
-    setState(() => _isLoading = true);
+    // Only show skeleton on first load — subsequent reloads update in-place.
+    if (_stats == null) setState(() => _isLoading = true);
     try {
       final stats = await _contributionRepo.getStats();
       if (mounted) setState(() { _stats = stats; _isLoading = false; });
@@ -138,7 +143,8 @@ class _StatisticsScreenState extends State<StatisticsScreen>
   }
 
   Future<void> _loadWeeklyStats() async {
-    setState(() => _isLoadingWeekly = true);
+    // Only show chart skeleton on first load.
+    if (_weeklyData == null) setState(() => _isLoadingWeekly = true);
     try {
       final data = await BackendClient.get(kApiUserProfile);
       final profile = UserProfileResponse.fromJson(data);
@@ -149,6 +155,14 @@ class _StatisticsScreenState extends State<StatisticsScreen>
           _coverageCells = profile.coverageCells;
           _longestStreak = profile.longestStreak;
         });
+        AppEventBus.instance.emit(ProfileUpdatedEvent(
+          totalUploads: profile.totalUploads,
+          daysActive: profile.daysActive,
+          coverageCells: profile.coverageCells,
+          longestStreak: profile.longestStreak,
+        ));
+        // Persist streak for native StreakAlertWorker — no network call needed at 8pm.
+        unawaited(AppPreferences.instance.setCurrentStreak(profile.currentStreak));
       }
     } catch (_) {
       // Silently fail — local stats still visible
@@ -189,7 +203,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
       body: stillLoading
           ? _buildLoadingSkeleton(isDark)
           : effectiveTotal == 0
-              ? _buildEmptyState(context, theme, isDark)
+              ? _buildEmptyState(context, theme, isDark, l10n)
               : RefreshIndicator(
                   onRefresh: _refresh,
                   color: AppColors.primary,
@@ -652,19 +666,25 @@ class _StatisticsScreenState extends State<StatisticsScreen>
       ),
       child: Row(
         children: [
-          Text(
-            fullDate,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: AppColors.textSecondary(isDark),
-              fontWeight: AppFontWeights.medium,
+          Flexible(
+            child: Text(
+              fullDate,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: AppColors.textSecondary(isDark),
+                fontWeight: AppFontWeights.medium,
+              ),
+              overflow: TextOverflow.ellipsis,
             ),
           ),
           const SizedBox(width: AppTheme.spaceSm),
-          Text(
-            l10n.statsBarCalloutUploads(count),
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: AppColors.primary,
-              fontWeight: AppFontWeights.bold,
+          Flexible(
+            child: Text(
+              l10n.statsBarCalloutUploads(count),
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: AppColors.primary,
+                fontWeight: AppFontWeights.bold,
+              ),
+              overflow: TextOverflow.ellipsis,
             ),
           ),
           if (badge != null) ...[
@@ -682,6 +702,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                   color: AppColors.primary,
                   fontWeight: AppFontWeights.semibold,
                 ),
+                overflow: TextOverflow.ellipsis,
               ),
             ),
           ],
@@ -764,8 +785,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
     );
   }
 
-  Widget _buildEmptyState(BuildContext context, ThemeData theme, bool isDark) {
-    final l10n = context.l10n;
+  Widget _buildEmptyState(BuildContext context, ThemeData theme, bool isDark, AppLocalizations l10n) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(AppTheme.spaceLg),
@@ -781,6 +801,17 @@ class _StatisticsScreenState extends State<StatisticsScreen>
             Text(l10n.statsStartContributing, style: theme.textTheme.headlineSmall?.copyWith(fontWeight: AppFontWeights.semibold)),
             const SizedBox(height: AppTheme.spaceXs),
             Text(l10n.statsEmptyDescription, textAlign: TextAlign.center, style: theme.textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary(isDark))),
+            if (widget.onGoToHome != null) ...[
+              const SizedBox(height: AppTheme.spaceXl),
+              FilledButton.icon(
+                onPressed: () {
+                  HapticFeedback.lightImpact();
+                  widget.onGoToHome!();
+                },
+                icon: const Icon(Icons.map_outlined, size: AppIconSizes.sm),
+                label: Text(l10n.statsEmptyGoMap),
+              ),
+            ],
           ],
         ),
       ),

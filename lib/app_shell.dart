@@ -91,7 +91,7 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
         onPageChanged: (index) => setState(() => _currentIndex = index),
         children: [
           _KeepAlive(child: HomeScreen(onGoToStats: () => _onTabSelected(1))),
-          const _KeepAlive(child: StatisticsScreen()),
+          _KeepAlive(child: StatisticsScreen(onGoToHome: () => _onTabSelected(0))),
           _KeepAlive(child: ProfileScreen(onViewStats: () => _onTabSelected(1))),
         ],
       ),

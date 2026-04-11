@@ -86,3 +86,23 @@ class LocationPermissionChangedEvent extends AppEvent {
   @override
   String get debugInfo => 'granted=$granted';
 }
+
+/// Broadcast by StatisticsScreen after it fetches /api/user/profile.
+/// ProfileScreen subscribes to this instead of making its own API call.
+class ProfileUpdatedEvent extends AppEvent {
+  final int totalUploads;
+  final int daysActive;
+  final int coverageCells;
+  final int longestStreak;
+
+  ProfileUpdatedEvent({
+    required this.totalUploads,
+    required this.daysActive,
+    required this.coverageCells,
+    required this.longestStreak,
+  });
+
+  @override
+  String get debugInfo =>
+      'uploads=$totalUploads, days=$daysActive, cells=$coverageCells, streak=$longestStreak';
+}

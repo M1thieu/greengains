@@ -376,11 +376,11 @@ class AppLocalizationsFr extends AppLocalizations {
   String get chipPaused => 'En pause';
 
   @override
-  String get chipTapStart => 'Prêt';
+  String get chipTapStart => 'Appuyer ▶';
 
   @override
   String get homeFirstUseHint =>
-      'Appuyez sur ▶ · cartographie la ville silencieusement';
+      'Cartographie la ville silencieusement pendant vos déplacements';
 
   @override
   String get uploadSuccessMessage => 'Contribution envoyée avec succès !';
@@ -565,11 +565,14 @@ class AppLocalizationsFr extends AppLocalizations {
       'Suivez vos gains et l\'historique des paiements une fois la monétisation lancée';
 
   @override
-  String get statsStartContributing => 'Commencer à contribuer';
+  String get statsStartContributing => 'Rien à afficher pour l\'instant';
 
   @override
   String get statsEmptyDescription =>
-      'Vos statistiques apparaîtront ici une fois que vous aurez commencé le suivi';
+      'Allez sur la carte et appuyez sur ▶ — vos stats apparaîtront après votre premier envoi.';
+
+  @override
+  String get statsEmptyGoMap => 'Aller sur la carte';
 
   @override
   String get statsUpdatedPrefix => 'Mis à jour ';
@@ -643,6 +646,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get chipZones => 'zones';
+
+  @override
+  String get chipSensors => 'capteurs';
 
   @override
   String homeZonesMapped(int count) {

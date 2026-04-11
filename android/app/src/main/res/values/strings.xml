@@ -23,6 +23,12 @@
     <string name="notification_worker_title">GreenGains — processing data</string>
     <string name="notification_worker_body">Crunching recent sensor batches</string>
 
+    <!-- Streak-at-risk notification — fires once at end of day if streak > 1 and no upload today -->
+    <string name="notification_streak_channel_name">Streak Reminders</string>
+    <!-- %1$d = streak days -->
+    <string name="notification_streak_title">%1$d-day streak — still going?</string>
+    <string name="notification_streak_body">You haven\'t mapped anything today. Open the app to keep your streak alive.</string>
+
     <!-- Zone discovery notification -->
     <string name="notification_zone_channel_name">Zone Discoveries</string>
     <string name="notification_zone_title">New zone mapped!</string>

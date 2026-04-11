@@ -178,8 +178,8 @@
 
   "chipContributing": "En cours",
   "chipPaused": "En pause",
-  "chipTapStart": "Prêt",
-  "homeFirstUseHint": "Appuyez sur ▶ · cartographie la ville silencieusement",
+  "chipTapStart": "Appuyer ▶",
+  "homeFirstUseHint": "Cartographie la ville silencieusement pendant vos déplacements",
 
   "uploadSuccessMessage": "Contribution envoyée avec succès !",
   "uploadSuccessNewZone": "Zone ajoutée · {count} zones cartographiées",
@@ -244,8 +244,9 @@
   "statsAchievementsDescription": "Débloquez des badges et jalons en contribuant",
   "statsEarningsTracking": "Suivi des gains",
   "statsEarningsDescription": "Suivez vos gains et l'historique des paiements une fois la monétisation lancée",
-  "statsStartContributing": "Commencer à contribuer",
-  "statsEmptyDescription": "Vos statistiques apparaîtront ici une fois que vous aurez commencé le suivi",
+  "statsStartContributing": "Rien à afficher pour l'instant",
+  "statsEmptyDescription": "Allez sur la carte et appuyez sur ▶ — vos stats apparaîtront après votre premier envoi.",
+  "statsEmptyGoMap": "Aller sur la carte",
   "statsUpdatedPrefix": "Mis à jour ",
   "statsDayMon": "Lun",
   "statsDayTue": "Mar",
@@ -278,6 +279,7 @@
   },
 
   "chipZones": "zones",
+  "chipSensors": "capteurs",
   "homeZonesMapped": "{count, plural, =1{1 zone cartographiée} other{{count} zones cartographiées}}",
   "@homeZonesMapped": {
     "placeholders": { "count": { "type": "int" } }

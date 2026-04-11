@@ -767,13 +767,13 @@ abstract class AppLocalizations {
   /// No description provided for @chipTapStart.
   ///
   /// In en, this message translates to:
-  /// **'Ready'**
+  /// **'Tap ▶ to start'**
   String get chipTapStart;
 
   /// No description provided for @homeFirstUseHint.
   ///
   /// In en, this message translates to:
-  /// **'Tap ▶ · maps your city silently while you move'**
+  /// **'Maps your city silently while you move'**
   String get homeFirstUseHint;
 
   /// No description provided for @uploadSuccessMessage.
@@ -1091,14 +1091,20 @@ abstract class AppLocalizations {
   /// No description provided for @statsStartContributing.
   ///
   /// In en, this message translates to:
-  /// **'Start Contributing'**
+  /// **'Nothing here yet'**
   String get statsStartContributing;
 
   /// No description provided for @statsEmptyDescription.
   ///
   /// In en, this message translates to:
-  /// **'Your statistics will appear here once you begin tracking'**
+  /// **'Head to the map and tap ▶ — your stats will appear after your first upload.'**
   String get statsEmptyDescription;
+
+  /// No description provided for @statsEmptyGoMap.
+  ///
+  /// In en, this message translates to:
+  /// **'Go to map'**
+  String get statsEmptyGoMap;
 
   /// No description provided for @statsUpdatedPrefix.
   ///
@@ -1232,6 +1238,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'zones'**
   String get chipZones;
+
+  /// No description provided for @chipSensors.
+  ///
+  /// In en, this message translates to:
+  /// **'sensors'**
+  String get chipSensors;
 
   /// No description provided for @homeZonesMapped.
   ///

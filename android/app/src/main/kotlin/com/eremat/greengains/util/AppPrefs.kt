@@ -65,4 +65,12 @@ object AppPrefs {
 
     /** Lifetime total successful uploads — shown alongside today's count in the notification. */
     const val UPLOADS_TOTAL_COUNT = "gg.uploads_total_count"
+
+    // ── Streak (written by Flutter after profile fetch, read by StreakAlertWorker) ──
+    /** Current consecutive-days streak — written by Flutter via AppPreferences.setCurrentStreak(). */
+    const val CURRENT_STREAK = "flutter.flutter.current_streak"
+
+    // ── Streak alert dedup (native-only) ──────────────────────────────────────
+    /** ISO date of the last streak-at-risk alert — prevents firing more than once per day. */
+    const val STREAK_ALERT_DATE = "gg.streak_alert_date"
 }
