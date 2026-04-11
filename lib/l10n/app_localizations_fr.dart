@@ -472,11 +472,11 @@ class AppLocalizationsFr extends AppLocalizations {
       'Chaque hexagone sur votre carte couvre environ 0,1 km². Cela représente la surface de votre ville que vous avez personnellement cartographiée.';
 
   @override
-  String get infoDataPtsTitle => 'Points de données';
+  String get infoDataPtsTitle => 'Envois';
 
   @override
   String get infoDataPtsBody =>
-      'Chaque envoi transmet un lot de mesures capteurs — lumière, pression, mouvement. Plus il y a de points, plus la couverture est riche.';
+      'Chaque envoi enregistre lumière, pression et mouvement pendant vos déplacements. Plus d\'envois = plus de détails sur votre carte.';
 
   @override
   String get infoDaysActiveTitle => 'Jours actifs';
@@ -729,21 +729,21 @@ class AppLocalizationsFr extends AppLocalizations {
       'Voir les données que vous contribuez en ce moment';
 
   @override
-  String get sensorInactiveTitle => 'Capteurs inactifs';
+  String get sensorInactiveTitle => 'Rien n\'est enregistré';
 
   @override
   String get sensorInactiveSubtitle =>
-      'Démarrez le suivi ci-dessus pour commencer à collecter des données';
+      'Démarrez le suivi pour commencer à enregistrer';
 
   @override
-  String get sensorPausedTitle => 'Capteurs en pause';
+  String get sensorPausedTitle => 'Enregistrement en pause';
 
   @override
   String get sensorPausedSubtitle =>
-      'Reprenez le suivi pour continuer à collecter des données';
+      'Reprenez le suivi pour continuer à enregistrer';
 
   @override
-  String get sensorCollectingFirst => 'Collecte des premières lectures…';
+  String get sensorCollectingFirst => 'Démarrage…';
 
   @override
   String get sensorAroundYou => 'Autour de vous';
@@ -997,7 +997,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get locationPermBannerBody =>
-      'Choisissez \'Toujours autoriser\' pour collecter en continu';
+      'Choisissez \'Toujours autoriser\' pour cartographier en arrière-plan';
 
   @override
   String get locationPermBannerFix => 'Corriger';
@@ -1084,7 +1084,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get alwaysOnBannerBody =>
-      'Définissez la localisation sur \'Toujours\' pour la collecte en arrière-plan';
+      'Définissez la localisation sur \'Toujours\' pour continuer à cartographier en arrière-plan';
 
   @override
   String get alwaysOnBannerFix => 'Corriger';

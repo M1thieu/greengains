@@ -469,11 +469,11 @@ class AppLocalizationsEn extends AppLocalizations {
       'Each hexagon on your map covers about 0.1 km². This shows how much of your city you have personally mapped so far.';
 
   @override
-  String get infoDataPtsTitle => 'Data points';
+  String get infoDataPtsTitle => 'Uploads';
 
   @override
   String get infoDataPtsBody =>
-      'Each upload sends a batch of sensor readings — light, pressure, movement. More data points means richer coverage in your mapped areas.';
+      'Each upload records light, pressure, and movement as you move. More uploads = more detail on your map.';
 
   @override
   String get infoDaysActiveTitle => 'Days active';
@@ -724,21 +724,19 @@ class AppLocalizationsEn extends AppLocalizations {
       'See what data you\'re contributing right now';
 
   @override
-  String get sensorInactiveTitle => 'Sensors inactive';
+  String get sensorInactiveTitle => 'Not recording';
 
   @override
-  String get sensorInactiveSubtitle =>
-      'Start tracking above to begin collecting data';
+  String get sensorInactiveSubtitle => 'Start tracking to begin recording';
 
   @override
-  String get sensorPausedTitle => 'Sensors paused';
+  String get sensorPausedTitle => 'Recording paused';
 
   @override
-  String get sensorPausedSubtitle =>
-      'Resume tracking to continue collecting data';
+  String get sensorPausedSubtitle => 'Resume tracking to keep recording';
 
   @override
-  String get sensorCollectingFirst => 'Collecting first readings…';
+  String get sensorCollectingFirst => 'Starting up…';
 
   @override
   String get sensorAroundYou => 'Around You';
@@ -990,7 +988,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get locationPermBannerBody =>
-      'Set to \'Allow all the time\' for 24/7 collection';
+      'Set to \'Allow all the time\' to map in the background';
 
   @override
   String get locationPermBannerFix => 'Fix';
@@ -1076,7 +1074,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get alwaysOnBannerBody =>
-      'Set location to \'Always\' for background collection';
+      'Set location to \'Always\' to keep mapping in the background';
 
   @override
   String get alwaysOnBannerFix => 'Fix';

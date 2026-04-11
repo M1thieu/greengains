@@ -929,13 +929,13 @@ abstract class AppLocalizations {
   /// No description provided for @infoDataPtsTitle.
   ///
   /// In en, this message translates to:
-  /// **'Data points'**
+  /// **'Uploads'**
   String get infoDataPtsTitle;
 
   /// No description provided for @infoDataPtsBody.
   ///
   /// In en, this message translates to:
-  /// **'Each upload sends a batch of sensor readings — light, pressure, movement. More data points means richer coverage in your mapped areas.'**
+  /// **'Each upload records light, pressure, and movement as you move. More uploads = more detail on your map.'**
   String get infoDataPtsBody;
 
   /// No description provided for @infoDaysActiveTitle.
@@ -1350,31 +1350,31 @@ abstract class AppLocalizations {
   /// No description provided for @sensorInactiveTitle.
   ///
   /// In en, this message translates to:
-  /// **'Sensors inactive'**
+  /// **'Not recording'**
   String get sensorInactiveTitle;
 
   /// No description provided for @sensorInactiveSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Start tracking above to begin collecting data'**
+  /// **'Start tracking to begin recording'**
   String get sensorInactiveSubtitle;
 
   /// No description provided for @sensorPausedTitle.
   ///
   /// In en, this message translates to:
-  /// **'Sensors paused'**
+  /// **'Recording paused'**
   String get sensorPausedTitle;
 
   /// No description provided for @sensorPausedSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Resume tracking to continue collecting data'**
+  /// **'Resume tracking to keep recording'**
   String get sensorPausedSubtitle;
 
   /// No description provided for @sensorCollectingFirst.
   ///
   /// In en, this message translates to:
-  /// **'Collecting first readings…'**
+  /// **'Starting up…'**
   String get sensorCollectingFirst;
 
   /// No description provided for @sensorAroundYou.
@@ -1794,7 +1794,7 @@ abstract class AppLocalizations {
   /// No description provided for @locationPermBannerBody.
   ///
   /// In en, this message translates to:
-  /// **'Set to \'Allow all the time\' for 24/7 collection'**
+  /// **'Set to \'Allow all the time\' to map in the background'**
   String get locationPermBannerBody;
 
   /// No description provided for @locationPermBannerFix.
@@ -1956,7 +1956,7 @@ abstract class AppLocalizations {
   /// No description provided for @alwaysOnBannerBody.
   ///
   /// In en, this message translates to:
-  /// **'Set location to \'Always\' for background collection'**
+  /// **'Set location to \'Always\' to keep mapping in the background'**
   String get alwaysOnBannerBody;
 
   /// No description provided for @alwaysOnBannerFix.

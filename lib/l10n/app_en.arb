@@ -217,8 +217,8 @@
 
   "infoKmTitle": "Territory mapped",
   "infoKmBody": "Each hexagon on your map covers about 0.1 km². This shows how much of your city you have personally mapped so far.",
-  "infoDataPtsTitle": "Data points",
-  "infoDataPtsBody": "Each upload sends a batch of sensor readings — light, pressure, movement. More data points means richer coverage in your mapped areas.",
+  "infoDataPtsTitle": "Uploads",
+  "infoDataPtsBody": "Each upload records light, pressure, and movement as you move. More uploads = more detail on your map.",
   "infoDaysActiveTitle": "Days active",
   "infoDaysActiveBody": "The number of distinct days you have contributed data. You do not need to contribute every day.",
   "infoBestDayTitle": "Best day",
@@ -317,11 +317,11 @@
 
   "sensorLiveReadings": "Live readings",
   "sensorLiveSubtitle": "See what data you're contributing right now",
-  "sensorInactiveTitle": "Sensors inactive",
-  "sensorInactiveSubtitle": "Start tracking above to begin collecting data",
-  "sensorPausedTitle": "Sensors paused",
-  "sensorPausedSubtitle": "Resume tracking to continue collecting data",
-  "sensorCollectingFirst": "Collecting first readings…",
+  "sensorInactiveTitle": "Not recording",
+  "sensorInactiveSubtitle": "Start tracking to begin recording",
+  "sensorPausedTitle": "Recording paused",
+  "sensorPausedSubtitle": "Resume tracking to keep recording",
+  "sensorCollectingFirst": "Starting up…",
   "sensorAroundYou": "Around You",
   "sensorMovement": "Movement",
   "sensorAcceleration": "Acceleration",
@@ -431,7 +431,7 @@
   "batteryDialogAllow": "Allow Background Run",
   "batteryDialogError": "Unable to open battery settings",
 
-  "locationPermBannerBody": "Set to 'Allow all the time' for 24/7 collection",
+  "locationPermBannerBody": "Set to 'Allow all the time' to map in the background",
   "locationPermBannerFix": "Fix",
 
   "legendYou": "You",
@@ -467,7 +467,7 @@
   "firstStartTitle": "You're live",
   "firstStartBody": "Walk, commute, live normally — your first zone will appear on the map soon",
 
-  "alwaysOnBannerBody": "Set location to 'Always' for background collection",
+  "alwaysOnBannerBody": "Set location to 'Always' to keep mapping in the background",
   "alwaysOnBannerFix": "Fix",
 
   "milestoneReachedTitle": "{count} zones mapped",

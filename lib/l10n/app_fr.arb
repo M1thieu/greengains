@@ -217,8 +217,8 @@
 
   "infoKmTitle": "Territoire cartographié",
   "infoKmBody": "Chaque hexagone sur votre carte couvre environ 0,1 km². Cela représente la surface de votre ville que vous avez personnellement cartographiée.",
-  "infoDataPtsTitle": "Points de données",
-  "infoDataPtsBody": "Chaque envoi transmet un lot de mesures capteurs — lumière, pression, mouvement. Plus il y a de points, plus la couverture est riche.",
+  "infoDataPtsTitle": "Envois",
+  "infoDataPtsBody": "Chaque envoi enregistre lumière, pression et mouvement pendant vos déplacements. Plus d'envois = plus de détails sur votre carte.",
   "infoDaysActiveTitle": "Jours actifs",
   "infoDaysActiveBody": "Le nombre de jours distincts où vous avez contribué. Pas besoin de contribuer tous les jours.",
   "infoBestDayTitle": "Meilleur jour",
@@ -317,11 +317,11 @@
 
   "sensorLiveReadings": "Lectures en direct",
   "sensorLiveSubtitle": "Voir les données que vous contribuez en ce moment",
-  "sensorInactiveTitle": "Capteurs inactifs",
-  "sensorInactiveSubtitle": "Démarrez le suivi ci-dessus pour commencer à collecter des données",
-  "sensorPausedTitle": "Capteurs en pause",
-  "sensorPausedSubtitle": "Reprenez le suivi pour continuer à collecter des données",
-  "sensorCollectingFirst": "Collecte des premières lectures…",
+  "sensorInactiveTitle": "Rien n'est enregistré",
+  "sensorInactiveSubtitle": "Démarrez le suivi pour commencer à enregistrer",
+  "sensorPausedTitle": "Enregistrement en pause",
+  "sensorPausedSubtitle": "Reprenez le suivi pour continuer à enregistrer",
+  "sensorCollectingFirst": "Démarrage…",
   "sensorAroundYou": "Autour de vous",
   "sensorMovement": "Mouvement",
   "sensorAcceleration": "Accélération",
@@ -431,7 +431,7 @@
   "batteryDialogAllow": "Autoriser l'exécution en arrière-plan",
   "batteryDialogError": "Impossible d'ouvrir les paramètres de la batterie",
 
-  "locationPermBannerBody": "Choisissez 'Toujours autoriser' pour collecter en continu",
+  "locationPermBannerBody": "Choisissez 'Toujours autoriser' pour cartographier en arrière-plan",
   "locationPermBannerFix": "Corriger",
 
   "legendYou": "Vous",
@@ -467,7 +467,7 @@
   "firstStartTitle": "Vous êtes en direct",
   "firstStartBody": "Marchez, navettez, vivez normalement — votre première zone apparaîtra bientôt sur la carte",
 
-  "alwaysOnBannerBody": "Définissez la localisation sur 'Toujours' pour la collecte en arrière-plan",
+  "alwaysOnBannerBody": "Définissez la localisation sur 'Toujours' pour continuer à cartographier en arrière-plan",
   "alwaysOnBannerFix": "Corriger",
 
   "milestoneReachedTitle": "{count} zones cartographiées",
