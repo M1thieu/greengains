@@ -48,42 +48,46 @@ internal object NotificationsHelper {
         isPaused: Boolean = false,
         uploadsToday: Int = 0,
         totalUploads: Int = 0,
+        currentStreak: Int = 0,
     ): Notification {
-        val actionIntent = Intent(context, ForegroundService::class.java).apply {
-            action = if (isPaused) {
-                ForegroundService.ACTION_RESUME_TRACKING
-            } else {
-                ForegroundService.ACTION_PAUSE_TRACKING
-            }
+        // Primary action — Pause ↔ Resume
+        val primaryIntent = Intent(context, ForegroundService::class.java).apply {
+            action = if (isPaused) ForegroundService.ACTION_RESUME_TRACKING
+                     else          ForegroundService.ACTION_PAUSE_TRACKING
         }
-        val actionPendingIntent = PendingIntent.getService(
-            context,
-            0,
-            actionIntent,
-            PendingIntent.FLAG_IMMUTABLE
+        val primaryPendingIntent = PendingIntent.getService(
+            context, 0, primaryIntent, PendingIntent.FLAG_IMMUTABLE
         )
-        val actionLabel = if (isPaused) {
-            context.getString(R.string.notification_action_resume)
-        } else {
-            context.getString(R.string.notification_action_pause)
-        }
+        val primaryLabel = if (isPaused) context.getString(R.string.notification_action_resume)
+                           else          context.getString(R.string.notification_action_pause)
 
-        // Title = status ("Contributing" or "Paused") — the bold first line users scan.
-        // Body  = count or instruction — secondary context below the title.
-        // setWhen: Android SystemUI auto-updates "X min. ago" — no refresh loop needed.
-        val title = if (isPaused) {
-            context.getString(R.string.notification_paused_title)
-        } else {
-            context.getString(R.string.notification_status_collecting)
+        // Stop action — always available; users shouldn't need to open the app to stop.
+        val stopIntent = Intent(context, ForegroundService::class.java).apply {
+            action = ForegroundService.ACTION_STOP_SERVICE
         }
+        val stopPendingIntent = PendingIntent.getService(
+            context, 1, stopIntent, PendingIntent.FLAG_IMMUTABLE
+        )
+
+        // Title = status ("Mapping your city" or "Paused") — bold first line users scan.
+        // Body  = upload counts or instruction.
+        // setWhen: Android SystemUI auto-updates "X min. ago" — no refresh loop needed.
+        val title = if (isPaused) context.getString(R.string.notification_paused_title)
+                    else          context.getString(R.string.notification_status_collecting)
 
         val body = when {
-            isPaused -> context.getString(R.string.notification_paused_body)
+            isPaused    -> context.getString(R.string.notification_paused_body)
             uploadsToday > 0 -> context.getString(
                 R.string.notification_readings_with_total, uploadsToday, totalUploads
             )
             else -> context.getString(R.string.notification_collecting_no_upload)
         }
+
+        // subText: streak nudge when streak > 1 and actively collecting.
+        // Appears in the notification header line next to the app name — subtle motivation.
+        val subText = if (!isPaused && currentStreak > 1)
+            context.getString(R.string.notification_subtext_streak, currentStreak)
+        else null
 
         val builder = NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_ID)
             .setContentTitle(title)
@@ -91,14 +95,18 @@ internal object NotificationsHelper {
             .setSmallIcon(R.mipmap.ic_launcher)
             .setColor(Color.parseColor("#10B981"))
             .setOngoing(true)
-            .setOnlyAlertOnce(true) // Don't buzz/sound on every count update
+            .setOnlyAlertOnce(true)
             .setWhen(lastUploadMillis ?: 0L)
             .setShowWhen(lastUploadMillis != null && !isPaused)
-            .addAction(R.mipmap.ic_launcher, actionLabel, actionPendingIntent)
+            // Action icons: 0 = hidden on Android 7+, avoids ic_launcher blob in action row.
+            .addAction(0, primaryLabel, primaryPendingIntent)
+            .addAction(0, context.getString(R.string.notification_action_stop), stopPendingIntent)
             .setForegroundServiceBehavior(NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE)
             .setContentIntent(Intent(context, MainActivity::class.java).let { notificationIntent ->
                 PendingIntent.getActivity(context, 0, notificationIntent, PendingIntent.FLAG_IMMUTABLE)
             })
+
+        if (subText != null) builder.setSubText(subText)
 
         return builder.build()
     }
@@ -116,8 +124,9 @@ internal object NotificationsHelper {
         isPaused: Boolean,
         uploadsToday: Int = 0,
         totalUploads: Int = 0,
+        currentStreak: Int = 0,
     ) {
-        manager.notify(NOTIFICATION_ID_SERVICE, buildNotification(context, lastUpload, isPaused, uploadsToday, totalUploads))
+        manager.notify(NOTIFICATION_ID_SERVICE, buildNotification(context, lastUpload, isPaused, uploadsToday, totalUploads, currentStreak))
     }
 
     fun buildWorkerNotification(context: Context): Notification {

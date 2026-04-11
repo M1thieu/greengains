@@ -18,6 +18,9 @@
     <!-- Notification actions -->
     <string name="notification_action_pause">Pause</string>
     <string name="notification_action_resume">Resume</string>
+    <string name="notification_action_stop">Stop</string>
+    <!-- %1$d = streak days — shown in notification header when streak > 1 -->
+    <string name="notification_subtext_streak">%1$d-day streak</string>
 
     <!-- Background worker notification -->
     <string name="notification_worker_title">GreenGains — processing data</string>

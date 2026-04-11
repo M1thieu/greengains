@@ -17,6 +17,9 @@
     <!-- Notification actions -->
     <string name="notification_action_pause">Pause</string>
     <string name="notification_action_resume">Reprendre</string>
+    <string name="notification_action_stop">Arrêter</string>
+    <!-- %1$d = jours de série -->
+    <string name="notification_subtext_streak">Série de %1$d jours</string>
 
     <!-- Background worker notification -->
     <string name="notification_worker_title">GreenGains — traitement des données</string>
