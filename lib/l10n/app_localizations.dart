@@ -1982,6 +1982,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Keep mapping'**
   String get milestoneReachedCta;
+
+  /// No description provided for @firstUploadTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your first zone is on the map!'**
+  String get firstUploadTitle;
+
+  /// No description provided for @firstUploadBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your phone just recorded its first area. Walk more and watch your map grow.'**
+  String get firstUploadBody;
+
+  /// No description provided for @firstUploadCta.
+  ///
+  /// In en, this message translates to:
+  /// **'See my map'**
+  String get firstUploadCta;
+
+  /// No description provided for @onboardingSocialProof.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} people already mapping their cities'**
+  String onboardingSocialProof(int count);
 }
 
 class _AppLocalizationsDelegate

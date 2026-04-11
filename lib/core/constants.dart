@@ -15,6 +15,7 @@ const kApiTilesGlobal  = '/api/tiles/global';
 const kApiUserProfile  = '/api/user/profile';
 const kApiUserConsent  = '/api/user/consent';
 const kApiRegisterDevice = '/register-device';
+const kApiStatsGlobal  = '/api/stats/global';
 
 // ─── API / Network ────────────────────────────────────────────────────────────
 /// Default Dio connect + receive timeout for all backend calls.

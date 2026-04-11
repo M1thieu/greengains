@@ -1101,4 +1101,19 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get milestoneReachedCta => 'Continuer à cartographier';
+
+  @override
+  String get firstUploadTitle => 'Votre première zone est sur la carte !';
+
+  @override
+  String get firstUploadBody =>
+      'Votre téléphone vient d\'enregistrer sa première zone. Bougez et regardez votre carte s\'agrandir.';
+
+  @override
+  String get firstUploadCta => 'Voir ma carte';
+
+  @override
+  String onboardingSocialProof(int count) {
+    return '$count personnes cartographient déjà leur ville';
+  }
 }

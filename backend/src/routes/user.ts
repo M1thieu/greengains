@@ -21,6 +21,10 @@ import {
 interface TileCacheEntry { data: unknown; expiresAt: number; }
 const _globalTileCache = new Map<string, TileCacheEntry>();
 
+// ─── In-memory cache for global stats (1-hour TTL) ───────────────────────────
+interface StatsCacheEntry { data: { activeMappers: number; totalZones: number }; expiresAt: number; }
+let _globalStatsCache: StatsCacheEntry | null = null;
+
 // ─── Shared global tile query ─────────────────────────────────────────────────
 
 /**
@@ -357,6 +361,51 @@ export async function userRoutes(fastify: FastifyInstance) {
         return reply.send(await fetchGlobalTiles());
       } catch (error) {
         request.log.error({ err: error }, 'Global tiles fetch error');
+        return reply.code(500).send({ error: 'Internal Server Error', requestId: request.id });
+      }
+    },
+  );
+
+  /**
+   * GET /api/stats/global
+   * Public community stats — active mapper count + total zones.
+   * No auth required. Cached 1 hour — changes slowly.
+   */
+  fastify.get(
+    '/api/stats/global',
+    async (request: FastifyRequest, reply: FastifyReply) => {
+      const CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour
+      const CACHE_TTL_S  = 3600;
+
+      // Simple in-memory cache — one slot, no key needed.
+      const now = Date.now();
+      if (_globalStatsCache && _globalStatsCache.expiresAt > now) {
+        reply.header('Cache-Control', `public, max-age=${CACHE_TTL_S}`);
+        return reply.send(_globalStatsCache.data);
+      }
+
+      try {
+        const pool = getPool();
+        const result = await pool.query<{
+          active_mappers: number;
+          total_zones: number;
+        }>(
+          `SELECT
+             COUNT(DISTINCT user_id)::int                                  AS active_mappers,
+             COUNT(DISTINCT h3_res9) FILTER (WHERE h3_res9 IS NOT NULL)::int AS total_zones
+           FROM sensor_batches
+           WHERE timestamp_utc > NOW() - INTERVAL '30 days'`,
+        );
+        const row = result.rows[0];
+        const data = {
+          activeMappers: row?.active_mappers ?? 0,
+          totalZones:    row?.total_zones    ?? 0,
+        };
+        _globalStatsCache = { data, expiresAt: now + CACHE_TTL_MS };
+        reply.header('Cache-Control', `public, max-age=${CACHE_TTL_S}`);
+        return reply.send(data);
+      } catch (error) {
+        request.log.error({ err: error }, 'Global stats fetch error');
         return reply.code(500).send({ error: 'Internal Server Error', requestId: request.id });
       }
     },

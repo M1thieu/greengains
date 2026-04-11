@@ -142,6 +142,17 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       if (!mounted) return;
       final newCount = _h3Tiles.where((t) => t.boundary != null).length;
       final gained = newCount - prevCount;
+      // First upload ever — show special celebration before regular snackbar.
+      if (!_prefs.firstUploadCelebrated && newCount > 0) {
+        unawaited(_prefs.setFirstUploadCelebrated());
+        HapticFeedback.mediumImpact();
+        showModalBottomSheet(
+          context: context,
+          backgroundColor: Colors.transparent,
+          builder: (_) => const _FirstUploadSheet(),
+        );
+        return; // skip generic snackbar — sheet is richer
+      }
       final msg = gained > 0
           ? context.l10n.uploadSuccessNewZone(newCount)
           : context.l10n.uploadSuccessMessage;
@@ -793,6 +804,89 @@ class _MilestoneSheet extends StatelessWidget {
                 child: FilledButton(
                   onPressed: () => Navigator.of(context).pop(),
                   child: Text(l10n.milestoneReachedCta),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// First-upload celebration sheet — shown exactly once when the user's first
+/// zone appears on the map. Replaces the generic "Map updated!" snackbar.
+class _FirstUploadSheet extends StatelessWidget {
+  const _FirstUploadSheet();
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = context.isDarkMode;
+    final l10n = context.l10n;
+    final theme = Theme.of(context);
+
+    return Container(
+      margin: const EdgeInsets.symmetric(
+        horizontal: AppTheme.spaceMd,
+        vertical: AppTheme.spaceSm,
+      ),
+      decoration: BoxDecoration(
+        color: AppColors.surface(isDark),
+        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+        border: Border.all(color: AppColors.primary.withValues(alpha: 0.35)),
+      ),
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.all(AppTheme.spaceLg),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Center(
+                child: Container(
+                  width: 32,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: AppColors.textSecondary(isDark).withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: AppTheme.spaceLg),
+              Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                  color: AppColors.primaryAlpha(0.15),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.map_outlined, color: AppColors.primary, size: AppIconSizes.lg),
+              ),
+              const SizedBox(height: AppTheme.spaceMd),
+              Text(
+                l10n.firstUploadTitle,
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: AppFontWeights.bold,
+                  color: AppColors.primary,
+                  letterSpacing: -0.3,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: AppTheme.spaceSm),
+              Text(
+                l10n.firstUploadBody,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: AppColors.textSecondary(isDark),
+                  height: 1.5,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: AppTheme.spaceXl),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: Text(l10n.firstUploadCta),
                 ),
               ),
             ],

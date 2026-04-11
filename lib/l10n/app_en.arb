@@ -475,5 +475,14 @@
     "placeholders": { "count": { "type": "int" } }
   },
   "milestoneReachedBody": "You're building a real map of your city. Keep going.",
-  "milestoneReachedCta": "Keep mapping"
+  "milestoneReachedCta": "Keep mapping",
+
+  "firstUploadTitle": "Your first zone is on the map!",
+  "firstUploadBody": "Your phone just recorded its first area. Walk more and watch your map grow.",
+  "firstUploadCta": "See my map",
+
+  "onboardingSocialProof": "{count} people already mapping their cities",
+  "@onboardingSocialProof": {
+    "placeholders": { "count": { "type": "int" } }
+  }
 }

@@ -1089,4 +1089,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get milestoneReachedCta => 'Keep mapping';
+
+  @override
+  String get firstUploadTitle => 'Your first zone is on the map!';
+
+  @override
+  String get firstUploadBody =>
+      'Your phone just recorded its first area. Walk more and watch your map grow.';
+
+  @override
+  String get firstUploadCta => 'See my map';
+
+  @override
+  String onboardingSocialProof(int count) {
+    return '$count people already mapping their cities';
+  }
 }

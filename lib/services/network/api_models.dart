@@ -88,3 +88,17 @@ class ReferralStatsResponse {
         conversions:   (json['conversions']   as num?)?.toInt() ?? 0,
       );
 }
+
+// ── Community stats ─────────────────────────────────────────────────────────
+
+class GlobalStatsResponse {
+  final int activeMappers;
+  final int totalZones;
+  const GlobalStatsResponse({required this.activeMappers, required this.totalZones});
+
+  factory GlobalStatsResponse.fromJson(Map<String, dynamic> json) =>
+      GlobalStatsResponse(
+        activeMappers: (json['activeMappers'] as num?)?.toInt() ?? 0,
+        totalZones:    (json['totalZones']    as num?)?.toInt() ?? 0,
+      );
+}

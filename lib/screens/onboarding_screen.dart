@@ -41,12 +41,22 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   late final PageController _pageController;
   late int _currentPage;
   bool _signingIn = false;
+  int? _activeMappers; // null = not yet loaded / failed
 
   @override
   void initState() {
     super.initState();
     _currentPage = widget.initialPage;
     _pageController = PageController(initialPage: widget.initialPage);
+    _fetchMapperCount();
+  }
+
+  Future<void> _fetchMapperCount() async {
+    try {
+      final data = await BackendClient.get(kApiStatsGlobal);
+      final count = GlobalStatsResponse.fromJson(data).activeMappers;
+      if (mounted && count > 0) setState(() => _activeMappers = count);
+    } catch (_) {} // non-critical — show nothing if it fails
   }
 
   @override
@@ -259,6 +269,26 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               ),
               textAlign: TextAlign.center,
             ),
+            if (_activeMappers != null) ...[
+              const SizedBox(height: AppTheme.spaceMd),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppTheme.spaceMd,
+                  vertical: AppTheme.spaceXs,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryAlpha(0.1),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                ),
+                child: Text(
+                  l10n.onboardingSocialProof(_activeMappers!),
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: AppColors.primary,
+                    fontWeight: AppFontWeights.medium,
+                  ),
+                ),
+              ),
+            ],
             const Spacer(),
 
             // Privacy Policy / TOS — split-placeholder pattern:
