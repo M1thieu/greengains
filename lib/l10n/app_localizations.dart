@@ -1287,6 +1287,12 @@ abstract class AppLocalizations {
   /// **'Community'**
   String get tileInfoCommunity;
 
+  /// No description provided for @tileOnlyYouMapped.
+  ///
+  /// In en, this message translates to:
+  /// **'Only you\'ve recorded this area'**
+  String get tileOnlyYouMapped;
+
   /// No description provided for @tileInfoSamples.
   ///
   /// In en, this message translates to:

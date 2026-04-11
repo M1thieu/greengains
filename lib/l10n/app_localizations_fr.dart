@@ -679,6 +679,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get tileInfoCommunity => 'Communauté';
 
   @override
+  String get tileOnlyYouMapped => 'Seul(e) toi as cartographié cette zone';
+
+  @override
   String tileInfoSamples(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

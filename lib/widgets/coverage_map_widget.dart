@@ -1271,6 +1271,25 @@ class TileInfoSheet extends StatelessWidget {
                             const SizedBox(height: AppTheme.spaceXxxs),
                             _TimeAgoLine(timestamp: tile.lastUpdate!, isDark: isDark),
                           ],
+                          if (isPersonal && tile.deviceCount == 1) ...[
+                            const SizedBox(height: AppTheme.spaceXs),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: AppTheme.spaceXs, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: AppColors.primary.withValues(alpha: 0.12),
+                                borderRadius: BorderRadius.circular(AppTheme.radiusPill),
+                              ),
+                              child: Text(
+                                l10n.tileOnlyYouMapped,
+                                style: TextStyle(
+                                  color: AppColors.primary,
+                                  fontSize: 11,
+                                  fontWeight: AppFontWeights.semibold,
+                                ),
+                              ),
+                            ),
+                          ],
                         ],
                       ),
                     ),

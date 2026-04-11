@@ -40,6 +40,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   int? _totalUploads;
   int? _daysActive;
   int? _coverageCells;
+  int? _currentStreak;
   // Previous display values — so count-up never resets to 0 on reload
   double _prevTotalUploads = 0;
   double _prevDaysActive = 0;
@@ -75,6 +76,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           _totalUploads = profile.totalUploads;
           _daysActive = profile.daysActive;
           _coverageCells = profile.coverageCells;
+          _currentStreak = profile.currentStreak;
         });
       }
     } catch (_) {}
@@ -467,6 +469,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
             ),
           ],
+          if (_currentStreak != null) ...[
+            const SizedBox(height: AppTheme.spaceMd),
+            _StreakDots(currentStreak: _currentStreak!),
+          ],
         ],
       ),
     );
@@ -493,5 +499,35 @@ class _ProfileScreenState extends State<ProfileScreen> {
         AppSnackbars.showError(context, l10n.errorGeneric);
       }
     }
+  }
+}
+
+/// 7-dot streak visualizer. Rightmost N dots filled = currentStreak days.
+/// Empty dots show the gap — creates immediate "I should fill this in" tension.
+class _StreakDots extends StatelessWidget {
+  const _StreakDots({required this.currentStreak});
+  final int currentStreak;
+
+  @override
+  Widget build(BuildContext context) {
+    final filled = currentStreak.clamp(0, 7);
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: List.generate(7, (i) {
+        final active = i >= (7 - filled);
+        return AnimatedContainer(
+          duration: const Duration(milliseconds: 300),
+          width: 8,
+          height: 8,
+          margin: const EdgeInsets.symmetric(horizontal: AppTheme.spaceTiny),
+          decoration: BoxDecoration(
+            color: active
+                ? AppColors.primary
+                : AppColors.primary.withValues(alpha: 0.18),
+            shape: BoxShape.circle,
+          ),
+        );
+      }),
+    );
   }
 }

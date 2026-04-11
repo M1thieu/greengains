@@ -290,6 +290,7 @@
   "tileInfoAreaLabel": "surface",
   "tileInfoPersonal": "Personnel",
   "tileInfoCommunity": "Communauté",
+  "tileOnlyYouMapped": "Seul(e) toi as cartographié cette zone",
   "tileInfoSamples": "{count, plural, =1{1 mesure} other{{count} mesures}}",
   "@tileInfoSamples": {
     "placeholders": {
