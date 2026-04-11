@@ -17,11 +17,14 @@ import '../widgets/coverage_map_widget.dart';
 import '../widgets/tracking_status_chip.dart';
 import '../widgets/tracking_fab.dart';
 import '../widgets/sensor_section.dart';
+import '../models/sensor_models.dart';
 
 // My Location button: 48×48 standard touch target.
 const _kLocationBtnSize = AppTheme.minTouchTarget; // 48
 // H3 resolution for live cell highlight (res 9 ≈ 174m edge length — city block scale)
 const _kLiveCellResolution = 9;
+// FAB height — kept in sync with _kFabSize in tracking_fab.dart
+const _kFabHeight = 72.0;
 
 /// Home screen — full-screen map layout.
 ///
@@ -48,6 +51,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   bool _batteryPromptOpen = false;
   StreamSubscription<UploadSuccessEvent>? _uploadSuccessSub;
+  /// Zone count at the moment tracking started (this foreground session).
+  /// 0 = tracking was already running when app opened — no delta shown.
+  int _sessionStartZoneCount = 0;
   /// True when map is actively following the user's GPS position.
   final _followModeNotifier = ValueNotifier<bool>(false);
   StreamSubscription? _locationStreamSub;
@@ -76,8 +82,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   void _handleServiceRunningChange() {
     if (_locationService.isRunning.value) {
+      // Snapshot zone count so we can show "+N new" delta during this session.
+      _sessionStartZoneCount = _h3Tiles.where((t) => t.boundary != null).length;
       _checkBatteryOptimization();
       _maybeShowFirstStart();
+    } else {
+      _sessionStartZoneCount = 0;
     }
   }
 
@@ -502,10 +512,33 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                   alignment: Alignment.centerLeft,
                   child: _ZoneCountPill(
                     count: _h3Tiles.where((t) => t.boundary != null).length,
+                    sessionNew: _sessionStartZoneCount > 0
+                        ? (_h3Tiles.where((t) => t.boundary != null).length - _sessionStartZoneCount).clamp(0, 999)
+                        : 0,
                     onTap: widget.onGoToStats,
                   ),
                 ),
               ),
+
+            // ── 1c. Live sensor ticker — centered above FAB when recording ──
+            ListenableBuilder(
+              listenable: Listenable.merge([
+                _locationService.isRunning,
+                _locationService.isPaused,
+              ]),
+              builder: (context, _) {
+                final isActive = _locationService.isRunning.value &&
+                    !_locationService.isPaused.value;
+                if (!isActive) return const SizedBox.shrink();
+                return Positioned(
+                  left: 0,
+                  right: 0,
+                  bottom: bottomPadding + AppTheme.floatingNavHeight +
+                      AppTheme.spaceLg + _kFabHeight + AppTheme.spaceSm,
+                  child: const Center(child: _LiveDataTicker()),
+                );
+              },
+            ),
 
             // ── 2. FAB (center-bottom, above floating nav bar) ───────────
             Positioned(
@@ -577,10 +610,13 @@ class _FirstUseHint extends StatelessWidget {
 }
 
 /// Compact pill showing personal zone count — retention hook (territory growing).
+/// When [sessionNew] > 0 also shows "+N new" in green to highlight session progress.
 /// Solid dark pill matching TrackingStatusChip style.
 class _ZoneCountPill extends StatelessWidget {
-  const _ZoneCountPill({required this.count, this.onTap});
+  const _ZoneCountPill({required this.count, this.sessionNew = 0, this.onTap});
   final int count;
+  /// New zones added in the current tracking session. 0 = hide delta.
+  final int sessionNew;
   final VoidCallback? onTap;
 
   @override
@@ -595,6 +631,23 @@ class _ZoneCountPill extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
+          if (sessionNew > 0) ...[
+            Text(
+              '+$sessionNew',
+              style: const TextStyle(
+                color: AppColors.primary,
+                fontSize: 12.0,
+                fontWeight: AppFontWeights.bold,
+                letterSpacing: 0.2,
+              ),
+            ),
+            Container(
+              width: 1,
+              height: 10,
+              margin: const EdgeInsets.symmetric(horizontal: AppTheme.spaceXxs),
+              color: Colors.white24,
+            ),
+          ],
           Text(
             context.l10n.homeZonesMapped(count),
             style: const TextStyle(
@@ -980,6 +1033,138 @@ class _SensorLiveSheet extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+}
+
+// ── Live sensor ticker ────────────────────────────────────────────────────────
+
+/// Three-chip strip showing live sensor readings while tracking is active.
+/// Positioned centered above the FAB — makes the foreground feel like a live
+/// data instrument rather than a static map + button.
+///
+/// Updates in real-time via sensor streams. Each chip uses the standard sensor
+/// color (light=amber, pressure=blue, movement=teal) for instant recognition.
+class _LiveDataTicker extends StatefulWidget {
+  const _LiveDataTicker();
+
+  @override
+  State<_LiveDataTicker> createState() => _LiveDataTickerState();
+}
+
+class _LiveDataTickerState extends State<_LiveDataTicker> {
+  final _svc = ForegroundLocationService.instance;
+  LightData? _light;
+  PressureData? _pressure;
+  AccelerometerData? _accel;
+  final List<StreamSubscription<dynamic>> _subs = [];
+
+  @override
+  void initState() {
+    super.initState();
+    // Seed from cached last-known values (instant display on open)
+    _light    = _svc.lastLight;
+    _pressure = _svc.lastPressure;
+    _accel    = _svc.lastAccelerometer;
+    // Stream updates
+    _subs.add(_svc.lightStream.listen((d) {
+      if (mounted) setState(() => _light = d);
+    }));
+    _subs.add(_svc.pressureStream.listen((d) {
+      if (mounted) setState(() => _pressure = d);
+    }));
+    _subs.add(_svc.accelerometerStream.listen((d) {
+      if (mounted) setState(() => _accel = d);
+    }));
+  }
+
+  @override
+  void dispose() {
+    for (final s in _subs) { s.cancel(); }
+    super.dispose();
+  }
+
+  String _luxLabel(double lux) {
+    if (lux >= 10000) return '${(lux / 1000).toStringAsFixed(0)}k lx';
+    if (lux >= 1000) return '${(lux / 1000).toStringAsFixed(1)}k lx';
+    return '${lux.toStringAsFixed(0)} lx';
+  }
+
+  String _accelLabel(double mag) {
+    if (mag < 2.0) return 'still';
+    if (mag < 8.0) return 'moving';
+    return 'active';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Build list of (icon, color, label) for sensors that have data
+    final entries = <(IconData, Color, String)>[];
+    if (_light != null) {
+      entries.add((Icons.light_mode_outlined, AppColors.light, _luxLabel(_light!.lux)));
+    }
+    if (_pressure != null) {
+      entries.add((Icons.compress, AppColors.pressure, '${_pressure!.hPa.toStringAsFixed(0)} hPa'));
+    }
+    if (_accel != null) {
+      entries.add((Icons.vibration, AppColors.movement, _accelLabel(_accel!.magnitude)));
+    }
+    if (entries.isEmpty) return const SizedBox.shrink();
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        for (int i = 0; i < entries.length; i++) ...[
+          if (i > 0) const SizedBox(width: AppTheme.spaceXxxs + 1),
+          _TickerChip(
+            icon: entries[i].$1,
+            color: entries[i].$2,
+            label: entries[i].$3,
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+/// Single sensor reading chip for the live data ticker.
+class _TickerChip extends StatelessWidget {
+  const _TickerChip({
+    required this.icon,
+    required this.color,
+    required this.label,
+  });
+  final IconData icon;
+  final Color color;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppTheme.spaceSm,
+        vertical: AppTheme.spaceXxs + 1,
+      ),
+      decoration: BoxDecoration(
+        color: const Color(0xCC111927),
+        borderRadius: BorderRadius.circular(AppTheme.radiusPill),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 11, color: color),
+          const SizedBox(width: AppTheme.spaceXxs),
+          Text(
+            label,
+            style: TextStyle(
+              color: color,
+              fontSize: 12,
+              fontWeight: AppFontWeights.semibold,
+              letterSpacing: 0.2,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
