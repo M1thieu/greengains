@@ -510,24 +510,37 @@ class _StreakDots extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final filled = currentStreak.clamp(0, 7);
+    final l10n = context.l10n;
     return Row(
       mainAxisSize: MainAxisSize.min,
-      children: List.generate(7, (i) {
-        final active = i >= (7 - filled);
-        return AnimatedContainer(
-          duration: const Duration(milliseconds: 300),
-          width: 8,
-          height: 8,
-          margin: const EdgeInsets.symmetric(horizontal: AppTheme.spaceTiny),
-          decoration: BoxDecoration(
-            color: active
-                ? AppColors.primary
-                : AppColors.primary.withValues(alpha: 0.18),
-            shape: BoxShape.circle,
+      children: [
+        ...List.generate(7, (i) {
+          final active = i >= (7 - filled);
+          return AnimatedContainer(
+            duration: const Duration(milliseconds: 300),
+            width: 8,
+            height: 8,
+            margin: const EdgeInsets.symmetric(horizontal: AppTheme.spaceTiny),
+            decoration: BoxDecoration(
+              color: active
+                  ? AppColors.primary
+                  : AppColors.primary.withValues(alpha: 0.18),
+              shape: BoxShape.circle,
+            ),
+          );
+        }),
+        const SizedBox(width: AppTheme.spaceXs),
+        Text(
+          '$currentStreak ${l10n.statsStreakLabel}',
+          style: theme.textTheme.labelSmall?.copyWith(
+            color: AppColors.textTertiary(isDark),
+            fontWeight: AppFontWeights.medium,
           ),
-        );
-      }),
+        ),
+      ],
     );
   }
 }
