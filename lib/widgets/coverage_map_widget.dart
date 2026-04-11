@@ -1338,13 +1338,18 @@ class TileInfoSheet extends StatelessWidget {
                       ],
                     ),
                     const SizedBox(height: AppTheme.spaceXxxs + 2),
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(AppTheme.radiusPill),
-                      child: LinearProgressIndicator(
-                        value: qualityPct / 100,
-                        minHeight: 5,
-                        backgroundColor: AppColors.border(isDark),
-                        valueColor: AlwaysStoppedAnimation<Color>(qualityColor),
+                    TweenAnimationBuilder<double>(
+                      tween: Tween(begin: 0.0, end: qualityPct / 100),
+                      duration: const Duration(milliseconds: 600),
+                      curve: Curves.easeOut,
+                      builder: (_, value, __) => ClipRRect(
+                        borderRadius: BorderRadius.circular(AppTheme.radiusPill),
+                        child: LinearProgressIndicator(
+                          value: value,
+                          minHeight: 5,
+                          backgroundColor: AppColors.border(isDark),
+                          valueColor: AlwaysStoppedAnimation<Color>(qualityColor),
+                        ),
                       ),
                     ),
                   ],

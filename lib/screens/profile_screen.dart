@@ -93,25 +93,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final isDark = context.isDarkMode;
     final l10n = context.l10n;
 
+    // Signed-out: plain scaffold with app bar
+    if (user == null) {
+      return Scaffold(
+        appBar: AppBar(
+          actions: [_settingsButton(context, l10n)],
+        ),
+        body: _buildSignedOutState(theme, isDark, l10n),
+      );
+    }
+
+    // Signed-in: collapsing SliverAppBar — avatar expands, shrinks on scroll
     return Scaffold(
-      appBar: AppBar(
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.settings_outlined),
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => const SettingsScreen(),
-                ),
-              );
-            },
-            tooltip: l10n.navSettings,
-          ),
-        ],
+      body: _buildSignedInState(user, theme, isDark, l10n),
+    );
+  }
+
+  Widget _settingsButton(BuildContext context, AppLocalizations l10n) {
+    return IconButton(
+      icon: const Icon(Icons.settings_outlined),
+      onPressed: () => Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => const SettingsScreen()),
       ),
-      body: user == null
-          ? _buildSignedOutState(theme, isDark, l10n)
-          : _buildSignedInState(user, theme, isDark, l10n),
+      tooltip: l10n.navSettings,
     );
   }
 
@@ -212,31 +216,42 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Widget _buildSignedInState(User user, ThemeData theme, bool isDark, AppLocalizations l10n) {
     final navBottom = MediaQuery.paddingOf(context).bottom + AppTheme.floatingNavHeight + AppTheme.spaceSm;
-    final content = [
-      _buildCompactUserHeader(user, theme, isDark, l10n),
-      const SizedBox(height: AppTheme.spaceMd),
-      _buildImpactRow(theme, isDark, l10n),
-      if (widget.onViewStats != null) ...[
-        const SizedBox(height: AppTheme.spaceSm),
-        _buildViewStatsButton(theme, isDark, l10n),
-      ],
-    ];
-    return LayoutBuilder(
-      builder: (context, constraints) => SingleChildScrollView(
-        padding: EdgeInsets.fromLTRB(AppTheme.spaceLg, AppTheme.spaceMd, AppTheme.spaceLg, navBottom),
-        child: ConstrainedBox(
-          constraints: BoxConstraints(minHeight: constraints.maxHeight - AppTheme.spaceMd - navBottom),
-          child: IntrinsicHeight(
-            child: Column(
-              children: [
-                ...content,
-                const Spacer(),
-                _buildAccountSection(user, theme, isDark, l10n),
-              ],
+
+    return CustomScrollView(
+      slivers: [
+        SliverAppBar(
+          expandedHeight: 240,
+          pinned: true,
+          actions: [_settingsButton(context, l10n)],
+          flexibleSpace: FlexibleSpaceBar(
+            collapseMode: CollapseMode.pin,
+            background: SafeArea(
+              bottom: false,
+              child: _buildCompactUserHeader(user, theme, isDark, l10n),
             ),
           ),
         ),
-      ),
+        SliverPadding(
+          padding: EdgeInsets.fromLTRB(
+            AppTheme.spaceLg,
+            AppTheme.spaceMd,
+            AppTheme.spaceLg,
+            navBottom,
+          ),
+          sliver: SliverList(
+            delegate: SliverChildListDelegate([
+              _buildImpactRow(theme, isDark, l10n),
+              if (widget.onViewStats != null) ...[
+                const SizedBox(height: AppTheme.spaceSm),
+                _buildViewStatsButton(theme, isDark, l10n),
+              ],
+              const SizedBox(height: AppTheme.spaceXl),
+              _buildAccountSection(user, theme, isDark, l10n),
+              const SizedBox(height: AppTheme.spaceSm),
+            ]),
+          ),
+        ),
+      ],
     );
   }
 

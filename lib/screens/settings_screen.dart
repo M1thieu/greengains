@@ -143,6 +143,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 _SettingsSectionTitle(text: l10n.settingsPrivacy),
                 _SettingsToggleRow(
                   icon: Icons.location_on_outlined,
+                  iconColor: AppColors.pressure,
                   title: l10n.settingsLocationSharing,
                   subtitle: l10n.settingsLocationDescription,
                   value: _prefs.shareLocation,
@@ -156,6 +157,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 const Divider(height: AppTheme.spaceLg, thickness: 0.5),
                 _SettingsToggleRow(
                   icon: Icons.podcasts_outlined,
+                  iconColor: AppColors.movement,
                   title: l10n.settingsMobileData,
                   subtitle: l10n.settingsMobileDataDescription,
                   value: _prefs.useMobileUploads,
@@ -194,6 +196,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 const Divider(height: AppTheme.spaceLg, thickness: 0.5),
                 _SettingsNavRow(
                   icon: Icons.sensors_outlined,
+                  iconColor: AppColors.light,
                   title: l10n.settingsDiagnostics,
                   subtitle: l10n.settingsDiagnosticsDesc,
                   onTap: () => Navigator.of(context).push(
@@ -306,6 +309,7 @@ class _SettingsToggleRow extends StatelessWidget {
     required this.subtitle,
     required this.value,
     required this.onChanged,
+    this.iconColor,
   });
 
   final IconData icon;
@@ -313,15 +317,17 @@ class _SettingsToggleRow extends StatelessWidget {
   final String subtitle;
   final bool value;
   final ValueChanged<bool> onChanged;
+  final Color? iconColor;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final color = iconColor ?? (value ? AppColors.primary : AppColors.textTertiary(isDark));
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, size: AppIconSizes.sm, color: value ? AppColors.primary : AppColors.textTertiary(isDark)),
+        _IconBox(icon: icon, color: color),
         const SizedBox(width: AppTheme.spaceMd),
         Expanded(
           child: Column(
@@ -359,12 +365,14 @@ class _SettingsNavRow extends StatelessWidget {
     required this.title,
     required this.subtitle,
     required this.onTap,
+    this.iconColor,
   });
 
   final IconData icon;
   final String title;
   final String subtitle;
   final VoidCallback onTap;
+  final Color? iconColor;
 
   @override
   Widget build(BuildContext context) {
@@ -377,7 +385,7 @@ class _SettingsNavRow extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: AppTheme.spaceXs),
         child: Row(
           children: [
-            Icon(icon, size: AppIconSizes.sm, color: AppColors.textTertiary(isDark)),
+            _IconBox(icon: icon, color: iconColor ?? AppColors.textTertiary(isDark)),
             const SizedBox(width: AppTheme.spaceSm),
             Expanded(
               child: Column(
@@ -431,6 +439,27 @@ class _DataInfoRow extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// Rounded square icon container — iOS Settings style.
+/// Gives each row a color-coded visual anchor without decorative clutter.
+class _IconBox extends StatelessWidget {
+  const _IconBox({required this.icon, required this.color});
+  final IconData icon;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 32,
+      height: 32,
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+      ),
+      child: Icon(icon, size: AppIconSizes.xs, color: color),
     );
   }
 }

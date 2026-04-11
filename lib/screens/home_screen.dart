@@ -402,6 +402,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
+      isScrollControlled: true,
       builder: (_) => TileInfoSheet(tile: tile, isDark: isDark, l10n: l10n),
     );
   }
