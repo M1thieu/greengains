@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:share_plus/share_plus.dart';
 import '../core/app_preferences.dart';
 import '../core/extensions/context_extensions.dart';
 import '../core/themes.dart';
@@ -263,6 +264,20 @@ class _ReferralInviteCardState extends State<ReferralInviteCard> {
                 },
           icon: const Icon(Icons.copy, size: AppIconSizes.xs),
           label: Text(context.l10n.referralCopyLink),
+        ),
+        IconButton(
+          tooltip: context.l10n.referralShareLink,
+          onPressed: referralLink == null
+              ? null
+              : () async {
+                  await ReferralService.instance.registerReferralInvite(
+                    referralCode: referralCode!,
+                  );
+                  await SharePlus.instance.share(ShareParams(
+                    uri: Uri.parse(referralLink),
+                  ));
+                },
+          icon: const Icon(Icons.ios_share, size: AppIconSizes.sm),
         ),
       ],
     );

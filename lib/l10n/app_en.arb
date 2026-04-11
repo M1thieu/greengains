@@ -383,6 +383,7 @@
   "referralInviteDescription": "Invite friends to map more of your city. Every person adds streets you haven't walked yet.",
   "referralLinkCopied": "Referral link copied",
   "referralCopyLink": "Copy link",
+  "referralShareLink": "Share invite link",
   "referralConversions": "{count, plural, =0{No friends joined yet} =1{1 friend joined} other{{count} friends joined}}",
   "@referralConversions": {
     "placeholders": {

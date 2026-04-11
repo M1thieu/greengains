@@ -904,6 +904,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get referralCopyLink => 'Copier le lien';
 
   @override
+  String get referralShareLink => 'Partager le lien d\'invitation';
+
+  @override
   String referralConversions(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

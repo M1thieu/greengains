@@ -1659,6 +1659,12 @@ abstract class AppLocalizations {
   /// **'Copy link'**
   String get referralCopyLink;
 
+  /// No description provided for @referralShareLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Share invite link'**
+  String get referralShareLink;
+
   /// No description provided for @referralConversions.
   ///
   /// In en, this message translates to:

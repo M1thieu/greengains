@@ -383,6 +383,7 @@
   "referralInviteDescription": "Invitez des amis à cartographier votre ville. Chaque personne ajoute des rues que vous n'avez pas encore parcourues.",
   "referralLinkCopied": "Lien de parrainage copié",
   "referralCopyLink": "Copier le lien",
+  "referralShareLink": "Partager le lien d'invitation",
   "referralConversions": "{count, plural, =0{Aucun ami rejoint pour l'instant} =1{1 ami a rejoint} other{{count} amis ont rejoint}}",
   "@referralConversions": {
     "placeholders": {
