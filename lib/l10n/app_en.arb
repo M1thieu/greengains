@@ -181,8 +181,8 @@
   "chipTapStart": "Tap ▶ to start",
   "homeFirstUseHint": "Maps your city silently while you move",
 
-  "uploadSuccessMessage": "Contribution uploaded successfully!",
-  "uploadSuccessNewZone": "Zone added · {count} zones mapped",
+  "uploadSuccessMessage": "Map updated!",
+  "uploadSuccessNewZone": "New area · {count} zones on your map",
   "@uploadSuccessNewZone": {
     "placeholders": { "count": { "type": "int" } }
   },
@@ -203,7 +203,7 @@
   "statsTotal": "Total",
   "statsCoverage": "Zones",
   "statsAreasLabel": "areas mapped",
-  "statsDataPtsLabel": "readings",
+  "statsDataPtsLabel": "uploads",
   "statsKmMapped": "km² mapped",
   "statsBestDay": "best day",
   "statsStreakLabel": "streak",

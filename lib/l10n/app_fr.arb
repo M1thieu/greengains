@@ -181,8 +181,8 @@
   "chipTapStart": "Appuyer ▶",
   "homeFirstUseHint": "Cartographie la ville silencieusement pendant vos déplacements",
 
-  "uploadSuccessMessage": "Contribution envoyée avec succès !",
-  "uploadSuccessNewZone": "Zone ajoutée · {count} zones cartographiées",
+  "uploadSuccessMessage": "Carte mise à jour !",
+  "uploadSuccessNewZone": "Nouvelle zone · {count} sur votre carte",
   "@uploadSuccessNewZone": {
     "placeholders": { "count": { "type": "int" } }
   },
@@ -203,7 +203,7 @@
   "statsTotal": "Total",
   "statsCoverage": "Zones",
   "statsAreasLabel": "zones cartographiées",
-  "statsDataPtsLabel": "mesures",
+  "statsDataPtsLabel": "envois",
   "statsKmMapped": "km² cartographiés",
   "statsBestDay": "meilleur jour",
   "statsStreakLabel": "série",

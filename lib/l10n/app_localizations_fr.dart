@@ -383,11 +383,11 @@ class AppLocalizationsFr extends AppLocalizations {
       'Cartographie la ville silencieusement pendant vos déplacements';
 
   @override
-  String get uploadSuccessMessage => 'Contribution envoyée avec succès !';
+  String get uploadSuccessMessage => 'Carte mise à jour !';
 
   @override
   String uploadSuccessNewZone(int count) {
-    return 'Zone ajoutée · $count zones cartographiées';
+    return 'Nouvelle zone · $count sur votre carte';
   }
 
   @override
@@ -433,7 +433,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get statsAreasLabel => 'zones cartographiées';
 
   @override
-  String get statsDataPtsLabel => 'mesures';
+  String get statsDataPtsLabel => 'envois';
 
   @override
   String get statsKmMapped => 'km² cartographiés';

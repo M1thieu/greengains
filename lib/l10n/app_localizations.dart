@@ -779,13 +779,13 @@ abstract class AppLocalizations {
   /// No description provided for @uploadSuccessMessage.
   ///
   /// In en, this message translates to:
-  /// **'Contribution uploaded successfully!'**
+  /// **'Map updated!'**
   String get uploadSuccessMessage;
 
   /// No description provided for @uploadSuccessNewZone.
   ///
   /// In en, this message translates to:
-  /// **'Zone added · {count} zones mapped'**
+  /// **'New area · {count} zones on your map'**
   String uploadSuccessNewZone(int count);
 
   /// No description provided for @semanticsRefreshMap.
@@ -869,7 +869,7 @@ abstract class AppLocalizations {
   /// No description provided for @statsDataPtsLabel.
   ///
   /// In en, this message translates to:
-  /// **'readings'**
+  /// **'uploads'**
   String get statsDataPtsLabel;
 
   /// No description provided for @statsKmMapped.

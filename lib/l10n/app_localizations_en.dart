@@ -380,11 +380,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeFirstUseHint => 'Maps your city silently while you move';
 
   @override
-  String get uploadSuccessMessage => 'Contribution uploaded successfully!';
+  String get uploadSuccessMessage => 'Map updated!';
 
   @override
   String uploadSuccessNewZone(int count) {
-    return 'Zone added · $count zones mapped';
+    return 'New area · $count zones on your map';
   }
 
   @override
@@ -430,7 +430,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get statsAreasLabel => 'areas mapped';
 
   @override
-  String get statsDataPtsLabel => 'readings';
+  String get statsDataPtsLabel => 'uploads';
 
   @override
   String get statsKmMapped => 'km² mapped';
