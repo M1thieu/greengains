@@ -9,18 +9,18 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
-  String get onboardingWelcomeTitle => 'Your city, mapped block by block';
+  String get onboardingWelcomeTitle => 'Watch your city fill in as you walk';
 
   @override
   String get onboardingWelcomeSubtitle =>
       'Your phone quietly reads light, pressure, and movement as you move. No interaction needed — you walk, it maps.';
 
   @override
-  String get onboardingFeature1Title => 'Runs silently';
+  String get onboardingFeature1Title => 'No tapping. Ever.';
 
   @override
   String get onboardingFeature1Description =>
-      'Works in the background while you commute, walk, or sleep. No tapping, no setup — ever again.';
+      'Start once, forget about it. Your map fills in automatically while you commute, walk, or run — zero interaction required.';
 
   @override
   String get onboardingFeature2Title => 'Private by default';
@@ -377,7 +377,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chipTapStart => 'Tap ▶ to start';
 
   @override
-  String get homeFirstUseHint => 'Maps your city silently while you move';
+  String get homeFirstUseHint =>
+      'Tap ▶ — watch your first zone appear on the map';
 
   @override
   String get uploadSuccessMessage => 'Map updated!';
@@ -1080,11 +1081,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get permissionPrimingCta => 'Enable location';
 
   @override
-  String get firstStartTitle => 'You\'re live';
+  String get firstStartTitle => 'It\'s filling in';
 
   @override
   String get firstStartBody =>
-      'Walk, commute, live normally — your first zone will appear on the map soon';
+      'Move normally — your zones appear on the map as you go. Walk new streets to fill in more.';
 
   @override
   String get alwaysOnBannerBody =>
@@ -1106,11 +1107,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get milestoneReachedCta => 'Keep mapping';
 
   @override
-  String get firstUploadTitle => 'Your first zone is on the map!';
+  String get firstUploadTitle => 'Your first zone filled in!';
 
   @override
   String get firstUploadBody =>
-      'Your phone just recorded its first area. Walk more and watch your map grow.';
+      'Keep moving — every new street fills another zone. Walk somewhere new to expand your map.';
 
   @override
   String get firstUploadCta => 'See my map';

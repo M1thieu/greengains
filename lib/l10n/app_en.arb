@@ -1,10 +1,10 @@
 {
   "@@locale": "en",
 
-  "onboardingWelcomeTitle": "Your city, mapped block by block",
+  "onboardingWelcomeTitle": "Watch your city fill in as you walk",
   "onboardingWelcomeSubtitle": "Your phone quietly reads light, pressure, and movement as you move. No interaction needed — you walk, it maps.",
-  "onboardingFeature1Title": "Runs silently",
-  "onboardingFeature1Description": "Works in the background while you commute, walk, or sleep. No tapping, no setup — ever again.",
+  "onboardingFeature1Title": "No tapping. Ever.",
+  "onboardingFeature1Description": "Start once, forget about it. Your map fills in automatically while you commute, walk, or run — zero interaction required.",
   "onboardingFeature2Title": "Private by default",
   "onboardingFeature2Description": "Your route is never stored. Data is bundled with thousands of others before it leaves your phone — no location history, no personal trace.",
   "onboardingFeature3Title": "Your walks, on the map",
@@ -179,7 +179,7 @@
   "chipContributing": "Mapping",
   "chipPaused": "Paused",
   "chipTapStart": "Tap ▶ to start",
-  "homeFirstUseHint": "Maps your city silently while you move",
+  "homeFirstUseHint": "Tap ▶ — watch your first zone appear on the map",
 
   "uploadSuccessMessage": "Map updated!",
   "uploadSuccessNewZone": "New area · {count} zones on your map",
@@ -469,8 +469,8 @@
   "permissionPrimingCollects": "We collect ambient light, pressure and motion — never your identity",
   "permissionPrimingCta": "Enable location",
 
-  "firstStartTitle": "You're live",
-  "firstStartBody": "Walk, commute, live normally — your first zone will appear on the map soon",
+  "firstStartTitle": "It's filling in",
+  "firstStartBody": "Move normally — your zones appear on the map as you go. Walk new streets to fill in more.",
 
   "alwaysOnBannerBody": "Set location to 'Always' to keep mapping in the background",
   "alwaysOnBannerFix": "Fix",
@@ -482,8 +482,8 @@
   "milestoneReachedBody": "You're building a real map of your city. Keep going.",
   "milestoneReachedCta": "Keep mapping",
 
-  "firstUploadTitle": "Your first zone is on the map!",
-  "firstUploadBody": "Your phone just recorded its first area. Walk more and watch your map grow.",
+  "firstUploadTitle": "Your first zone filled in!",
+  "firstUploadBody": "Keep moving — every new street fills another zone. Walk somewhere new to expand your map.",
   "firstUploadCta": "See my map",
 
   "onboardingSocialProof": "{count} people already mapping their cities",

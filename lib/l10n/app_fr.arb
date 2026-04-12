@@ -1,10 +1,10 @@
 {
   "@@locale": "fr",
 
-  "onboardingWelcomeTitle": "Votre ville, cartographiée rue par rue",
+  "onboardingWelcomeTitle": "Regardez votre ville se remplir au fil de vos pas",
   "onboardingWelcomeSubtitle": "Votre téléphone mesure silencieusement lumière, pression et mouvement pendant vos déplacements. Aucune interaction nécessaire — vous marchez, il cartographie.",
-  "onboardingFeature1Title": "Fonctionne silencieusement",
-  "onboardingFeature1Description": "Actif en arrière-plan pendant vos trajets, promenades ou sommeil. Aucune interaction nécessaire, jamais.",
+  "onboardingFeature1Title": "Zéro interaction. Jamais.",
+  "onboardingFeature1Description": "Lancez une fois, oubliez-le. Votre carte se remplit automatiquement pendant vos trajets, promenades ou footing — sans rien toucher.",
   "onboardingFeature2Title": "Privé par défaut",
   "onboardingFeature2Description": "Votre trajet n'est jamais conservé. Les données sont regroupées avec des milliers d'autres avant de quitter votre téléphone — aucun historique, aucune trace.",
   "onboardingFeature3Title": "Vos trajets, sur la carte",
@@ -179,7 +179,7 @@
   "chipContributing": "En cours",
   "chipPaused": "En pause",
   "chipTapStart": "Appuyer ▶",
-  "homeFirstUseHint": "Cartographie la ville silencieusement pendant vos déplacements",
+  "homeFirstUseHint": "Appuyez sur ▶ — regardez votre première zone apparaître",
 
   "uploadSuccessMessage": "Carte mise à jour !",
   "uploadSuccessNewZone": "Nouvelle zone · {count} sur votre carte",
@@ -469,8 +469,8 @@
   "permissionPrimingCollects": "Nous collectons la lumière ambiante, la pression et le mouvement — jamais votre identité",
   "permissionPrimingCta": "Activer la localisation",
 
-  "firstStartTitle": "Vous êtes en direct",
-  "firstStartBody": "Marchez, navettez, vivez normalement — votre première zone apparaîtra bientôt sur la carte",
+  "firstStartTitle": "Ça se remplit",
+  "firstStartBody": "Bougez normalement — vos zones apparaissent sur la carte au fil de vos déplacements. Explorez de nouvelles rues pour en remplir davantage.",
 
   "alwaysOnBannerBody": "Définissez la localisation sur 'Toujours' pour continuer à cartographier en arrière-plan",
   "alwaysOnBannerFix": "Corriger",
@@ -482,8 +482,8 @@
   "milestoneReachedBody": "Vous construisez une vraie carte de votre ville. Continuez.",
   "milestoneReachedCta": "Continuer à cartographier",
 
-  "firstUploadTitle": "Votre première zone est sur la carte !",
-  "firstUploadBody": "Votre téléphone vient d'enregistrer sa première zone. Bougez et regardez votre carte s'agrandir.",
+  "firstUploadTitle": "Votre première zone est remplie !",
+  "firstUploadBody": "Continuez à bouger — chaque nouvelle rue remplit une zone. Explorez un nouveau chemin pour agrandir votre carte.",
   "firstUploadCta": "Voir ma carte",
 
   "onboardingSocialProof": "{count} personnes cartographient déjà leur ville",

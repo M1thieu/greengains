@@ -101,7 +101,7 @@ abstract class AppLocalizations {
   /// No description provided for @onboardingWelcomeTitle.
   ///
   /// In en, this message translates to:
-  /// **'Your city, mapped block by block'**
+  /// **'Watch your city fill in as you walk'**
   String get onboardingWelcomeTitle;
 
   /// No description provided for @onboardingWelcomeSubtitle.
@@ -113,13 +113,13 @@ abstract class AppLocalizations {
   /// No description provided for @onboardingFeature1Title.
   ///
   /// In en, this message translates to:
-  /// **'Runs silently'**
+  /// **'No tapping. Ever.'**
   String get onboardingFeature1Title;
 
   /// No description provided for @onboardingFeature1Description.
   ///
   /// In en, this message translates to:
-  /// **'Works in the background while you commute, walk, or sleep. No tapping, no setup — ever again.'**
+  /// **'Start once, forget about it. Your map fills in automatically while you commute, walk, or run — zero interaction required.'**
   String get onboardingFeature1Description;
 
   /// No description provided for @onboardingFeature2Title.
@@ -773,7 +773,7 @@ abstract class AppLocalizations {
   /// No description provided for @homeFirstUseHint.
   ///
   /// In en, this message translates to:
-  /// **'Maps your city silently while you move'**
+  /// **'Tap ▶ — watch your first zone appear on the map'**
   String get homeFirstUseHint;
 
   /// No description provided for @uploadSuccessMessage.
@@ -1974,13 +1974,13 @@ abstract class AppLocalizations {
   /// No description provided for @firstStartTitle.
   ///
   /// In en, this message translates to:
-  /// **'You\'re live'**
+  /// **'It\'s filling in'**
   String get firstStartTitle;
 
   /// No description provided for @firstStartBody.
   ///
   /// In en, this message translates to:
-  /// **'Walk, commute, live normally — your first zone will appear on the map soon'**
+  /// **'Move normally — your zones appear on the map as you go. Walk new streets to fill in more.'**
   String get firstStartBody;
 
   /// No description provided for @alwaysOnBannerBody.
@@ -2016,13 +2016,13 @@ abstract class AppLocalizations {
   /// No description provided for @firstUploadTitle.
   ///
   /// In en, this message translates to:
-  /// **'Your first zone is on the map!'**
+  /// **'Your first zone filled in!'**
   String get firstUploadTitle;
 
   /// No description provided for @firstUploadBody.
   ///
   /// In en, this message translates to:
-  /// **'Your phone just recorded its first area. Walk more and watch your map grow.'**
+  /// **'Keep moving — every new street fills another zone. Walk somewhere new to expand your map.'**
   String get firstUploadBody;
 
   /// No description provided for @firstUploadCta.

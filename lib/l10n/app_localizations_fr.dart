@@ -9,18 +9,19 @@ class AppLocalizationsFr extends AppLocalizations {
   AppLocalizationsFr([String locale = 'fr']) : super(locale);
 
   @override
-  String get onboardingWelcomeTitle => 'Votre ville, cartographiée rue par rue';
+  String get onboardingWelcomeTitle =>
+      'Regardez votre ville se remplir au fil de vos pas';
 
   @override
   String get onboardingWelcomeSubtitle =>
       'Votre téléphone mesure silencieusement lumière, pression et mouvement pendant vos déplacements. Aucune interaction nécessaire — vous marchez, il cartographie.';
 
   @override
-  String get onboardingFeature1Title => 'Fonctionne silencieusement';
+  String get onboardingFeature1Title => 'Zéro interaction. Jamais.';
 
   @override
   String get onboardingFeature1Description =>
-      'Actif en arrière-plan pendant vos trajets, promenades ou sommeil. Aucune interaction nécessaire, jamais.';
+      'Lancez une fois, oubliez-le. Votre carte se remplit automatiquement pendant vos trajets, promenades ou footing — sans rien toucher.';
 
   @override
   String get onboardingFeature2Title => 'Privé par défaut';
@@ -380,7 +381,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get homeFirstUseHint =>
-      'Cartographie la ville silencieusement pendant vos déplacements';
+      'Appuyez sur ▶ — regardez votre première zone apparaître';
 
   @override
   String get uploadSuccessMessage => 'Carte mise à jour !';
@@ -1092,11 +1093,11 @@ class AppLocalizationsFr extends AppLocalizations {
   String get permissionPrimingCta => 'Activer la localisation';
 
   @override
-  String get firstStartTitle => 'Vous êtes en direct';
+  String get firstStartTitle => 'Ça se remplit';
 
   @override
   String get firstStartBody =>
-      'Marchez, navettez, vivez normalement — votre première zone apparaîtra bientôt sur la carte';
+      'Bougez normalement — vos zones apparaissent sur la carte au fil de vos déplacements. Explorez de nouvelles rues pour en remplir davantage.';
 
   @override
   String get alwaysOnBannerBody =>
@@ -1118,11 +1119,11 @@ class AppLocalizationsFr extends AppLocalizations {
   String get milestoneReachedCta => 'Continuer à cartographier';
 
   @override
-  String get firstUploadTitle => 'Votre première zone est sur la carte !';
+  String get firstUploadTitle => 'Votre première zone est remplie !';
 
   @override
   String get firstUploadBody =>
-      'Votre téléphone vient d\'enregistrer sa première zone. Bougez et regardez votre carte s\'agrandir.';
+      'Continuez à bouger — chaque nouvelle rue remplit une zone. Explorez un nouveau chemin pour agrandir votre carte.';
 
   @override
   String get firstUploadCta => 'Voir ma carte';
