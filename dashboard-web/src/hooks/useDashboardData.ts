@@ -102,7 +102,8 @@ export function useDashboardData({ timeRange, bucket, geohash, selectedSensor, r
         const [data, readings, coverage, prevData] = await Promise.all([
           safeApiCall(() => getAggregatedData(params), () => generateMockAggregatedData(), onFallback),
           safeApiCall(() => getSensorReadings(selectedSensor, params), () => generateMockSensorReadings(selectedSensor, timeRange), onFallback),
-          safeApiCall(() => getCoverageData({ hours }), () => [] as CoverageItem[], onFallback),
+          // Coverage failure is NOT a demo fallback — empty coverage is a valid state
+          safeApiCall(() => getCoverageData({ hours }), () => [] as CoverageItem[]),
           getAggregatedData(prevParams).catch(() => null),
         ])
 
@@ -166,7 +167,7 @@ export function useDashboardData({ timeRange, bucket, geohash, selectedSensor, r
             },
             {
               label: t('kpi.zonesCovered'),
-              value: zonesCount > 0 ? String(zonesCount) : '—',
+              value: String(zonesCount),
               sub: t('kpi.geohashAreas'),
               trend: '', up: true, color: '#0ea5e9',
               pct: Math.min((zonesCount / 50) * 100, 100),
@@ -223,7 +224,7 @@ export function useDashboardData({ timeRange, bucket, geohash, selectedSensor, r
       } catch (err) {
         if (cancelled) return
         setApiError(err instanceof Error ? err.message : 'Failed to fetch data')
-        setKpis(BLANK_KPIS)
+        setKpis(blankKpis())
       } finally {
         if (!cancelled) setIsLoading(false)
       }

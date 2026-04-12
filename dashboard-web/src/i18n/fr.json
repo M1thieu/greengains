@@ -1,0 +1,185 @@
+{
+  "nav": {
+    "brand": "GreenGains",
+    "platform": "Plateforme analytique",
+    "tabs": {
+      "overview": "Vue d'ensemble",
+      "aggregates": "Agrégats",
+      "coverage": "Couverture",
+      "network": "Réseau"
+    },
+    "search": "Rechercher",
+    "signOut": "Déconnexion",
+    "demo": "Démo"
+  },
+  "login": {
+    "title": "GreenGains",
+    "subtitle": "Plateforme de données environnementales",
+    "tagline": "Crowdsourcé · Hyperlocal · Temps réel",
+    "signInGoogle": "Connexion avec Google",
+    "signingIn": "Connexion...",
+    "demoAccess": "Accès démo",
+    "loading": "Chargement..."
+  },
+  "status": {
+    "operational": "Tous les systèmes opérationnels",
+    "demo": "Mode démo",
+    "degraded": "Dégradé — voir les alertes",
+    "contributors_one": "{{count}} contributeur",
+    "contributors_other": "{{count}} contributeurs",
+    "zones_one": "{{count}} zone",
+    "zones_other": "{{count}} zones",
+    "updated": "Mis à jour {{time}}",
+    "live": "Live · {{interval}}",
+    "dailyData": "Données journalières",
+    "window": "Fenêtre {{range}}",
+    "noContributors": "Aucun contributeur",
+    "dataTo": "Données jusqu'à {{time}}"
+  },
+  "kpi": {
+    "totalSamples": "Total mesures",
+    "zonesCovered": "Zones couvertes",
+    "contributors": "Contributeurs",
+    "avgQuality": "Qualité moy.",
+    "readings": "mesures",
+    "geohashAreas": "zones geohash",
+    "activeInPeriod": "actifs sur la période",
+    "validReadings": "mesures valides"
+  },
+  "filters": {
+    "range": "Période",
+    "apply": "Appliquer",
+    "applying": "Application...",
+    "clearAll": "Tout effacer",
+    "quality": "Qualité {{min}}–{{max}}",
+    "light": "Lumière {{min}}–{{max}} lux",
+    "minDevices": "≥ {{count}} appareils",
+    "dataPoints": "{{count}} pts · {{sensor}}",
+    "loading": "Chargement…"
+  },
+  "overview": {
+    "sensorData": "Données capteurs",
+    "telemetry": "Télémétrie environnementale · {{range}}",
+    "exportCsv": "Exporter CSV",
+    "exporting": "Export...",
+    "filters": "Filtres",
+    "coverageTitle": "Couverture",
+    "coverageZones": "{{count}} zones actives",
+    "coverageEmpty": "Aucune donnée de couverture"
+  },
+  "aggregates": {
+    "title": "Agrégats bruts",
+    "subtitle5m": "Fenêtres 5 minutes · {{range}}",
+    "subtitleDaily": "Fenêtres journalières · {{range}}"
+  },
+  "coverage": {
+    "title": "Couverture géospatiale",
+    "subtitle": "{{count}} zones geohash actives sur les derniers {{range}}"
+  },
+  "network": {
+    "contributors": "Contributeurs",
+    "activeIn": "actifs sur {{range}}",
+    "zonesMapped": "Zones cartographiées",
+    "geohashAreas": "zones geohash couvertes",
+    "deviceHours": "Heures appareils",
+    "totalLogged": "couverture totale enregistrée",
+    "coverageByZone": "Couverture par zone",
+    "sortedBy": "Triées par densité — {{range}}",
+    "exportCsv": "Exporter CSV",
+    "exporting": "Export...",
+    "noData": "Aucune donnée de couverture sur cette période",
+    "colZone": "Zone",
+    "colSamples": "Mesures",
+    "colQuality": "Qualité",
+    "colDeviceH": "Heures app.",
+    "colLastActive": "Dernière activité",
+    "active": "ACTIF",
+    "clearZone": "Cliquer pour retirer le filtre de zone",
+    "drillZone": "Explorer la zone {{geohash}}",
+    "activeRecent": "Actif il y a <1h",
+    "lastSeenH": "Vu il y a {{h}}h",
+    "lastSeenD": "Vu il y a {{d}}j"
+  },
+  "alerts": {
+    "critical": "Critique",
+    "warning": "Avertissement",
+    "dismiss": "Ignorer",
+    "noData": "Aucune donnée capteur sur cette période",
+    "noContributors": "Aucun contributeur actif sur cette période",
+    "qualityDegraded": "Qualité dégradée — {{pct}}% de mesures valides",
+    "staleData": "Dernier batch il y a {{hours}}h — l'appareil a peut-être arrêté d'envoyer"
+  },
+  "sensors": {
+    "light": "Lumière",
+    "movement": "Mouvement",
+    "pressure": "Pression",
+    "quality": "Qualité"
+  },
+  "dataTable": {
+    "colTime": "Heure",
+    "colGeohash": "Geohash",
+    "colSamples": "Mesures",
+    "colDevices": "Appareils",
+    "colAvgLight": "Lumière moy.",
+    "colMovement": "Mouvement",
+    "colQuality": "Qualité",
+    "loading": "Chargement...",
+    "emptyTitle": "Aucune donnée agrégée",
+    "emptyHint": "Aucune mesure disponible sur cette période. Élargissez la plage ou vérifiez l'onglet Vue d'ensemble."
+  },
+  "commandPalette": {
+    "placeholder": "Rechercher...",
+    "noResults": "Aucune commande trouvée",
+    "navigate": "↑↓ Naviguer",
+    "select": "Entrée pour sélectionner",
+    "close": "ESC pour fermer",
+    "sensorLight": "Capteur Lumière",
+    "sensorLightDesc": "Voir les données de luminosité",
+    "sensorMovement": "Capteur Mouvement",
+    "sensorMovementDesc": "Voir les données de mouvement",
+    "sensorPressure": "Capteur Pression",
+    "sensorPressureDesc": "Voir la pression atmosphérique",
+    "sensorQuality": "Capteur Qualité",
+    "sensorQualityDesc": "Voir les métriques qualité",
+    "range24h": "24 dernières heures",
+    "range24hDesc": "Voir les données du jour",
+    "range7d": "7 derniers jours",
+    "range7dDesc": "Voir les données de la semaine",
+    "range30d": "30 derniers jours",
+    "range30dDesc": "Voir les données du mois"
+  },
+  "coverageMap": {
+    "zones": "Zones",
+    "avgQuality": "Qualité moy.",
+    "totalSamples": "Mesures totales",
+    "deviceHours": "Heures app.",
+    "qualityBreakdown": "Répartition qualité",
+    "good": "{{count}} bon",
+    "warn": "{{count}} moyen",
+    "poor": "{{count}} faible",
+    "loading": "Chargement de la couverture...",
+    "emptyTitle": "Aucune couverture géospatiale",
+    "emptyHint": "Aucun capteur n'a rapporté de données sur cette période. Ajustez la plage ou les filtres.",
+    "zoneRow": "{{samples}}K mesures · {{hours}}h de couverture",
+    "filteringBy": "Filtrage par zone",
+    "clearZone": "Effacer",
+    "active": "Actif"
+  },
+  "chart": {
+    "avgSensor": "MOY {{sensor}}",
+    "average": "MOYENNE",
+    "p95": "P95",
+    "p95Desc": "95e pct",
+    "min": "MIN",
+    "peak": "MAX",
+    "readings": "MESURES",
+    "noData": "Aucune donnée sur cette période",
+    "noDataHint": "Élargissez la plage ou vérifiez vos filtres"
+  },
+  "common": {
+    "pro": "PRO",
+    "refresh": "Actualiser",
+    "search": "Rechercher (Cmd+K)",
+    "dismiss": "Ignorer"
+  }
+}

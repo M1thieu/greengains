@@ -147,30 +147,35 @@ export default function Dashboard({ onLogout }: DashboardProps) {
         <div className={`h-7 flex items-center justify-between px-6 text-[11px] font-medium border-b transition-all ${
           !systemOk ? 'bg-red-900/20 border-red-700/40 text-red-400'
           : usingMockData ? 'bg-amber-900/20 border-amber-700/30 text-amber-400'
-          : 'bg-[#0b1f17] border-[#10b981]/15 text-[#10b981]'
+          : 'bg-[#071210] border-[#10b981]/10 text-[#10b981]'
         }`}>
-          <span>{!systemOk ? t('status.degraded') : usingMockData ? t('status.demo') : t('status.operational')}</span>
-          <div className="flex items-center gap-5">
-            <span className="text-slate-500">{activeSensorCount > 0 ? t('status.contributors', { count: activeSensorCount }) : t('status.noContributors')}</span>
-            {coverageData.length > 0 && <span className="text-slate-500">{t('status.zones', { count: coverageData.length })}</span>}
-            <span className="text-slate-500">
-              {lastRefreshed ? t('status.updated', { time: formatLastRefreshed(lastRefreshed) }) : t('status.window', { range: timeRange })}
-            </span>
+          <div className="flex items-center gap-4">
+            {usingMockData && <span className="font-semibold">{t('status.demo')}</span>}
+            {!systemOk && <span className="font-semibold">{t('status.degraded')}</span>}
+            {systemOk && !usingMockData && (
+              <span className="text-[#10b981]/70">{t('status.operational')}</span>
+            )}
+          </div>
+          <div className="flex items-center gap-4 text-slate-500">
+            {activeSensorCount > 0 && (
+              <span>{t('status.contributors', { count: activeSensorCount })}</span>
+            )}
+            {lastRefreshed && (
+              <span>{t('status.updated', { time: formatLastRefreshed(lastRefreshed) })}</span>
+            )}
             {latestSensorDataAt && (
               <span
-                className={`text-slate-500 ${
-                  Date.now() - latestSensorDataAt.getTime() > 2 * 60 * 60 * 1000 ? 'text-amber-500' : ''
-                }`}
+                className={Date.now() - latestSensorDataAt.getTime() > 2 * 60 * 60 * 1000 ? 'text-amber-500' : ''}
                 title="Timestamp of the most recent sensor batch"
               >
-                Data to {formatLastRefreshed(latestSensorDataAt)}
+                {t('status.dataTo', { time: formatLastRefreshed(latestSensorDataAt) })}
               </span>
             )}
             <div className="flex items-center gap-1.5">
               {(timeRange === '24h' || timeRange === '7d') ? (
                 <>
                   <div className="pulse-live h-1.5 w-1.5 rounded-full bg-[#10b981]" />
-                  <span>{t('status.live', { interval: timeRange === '24h' ? '60s' : '5m' })}</span>
+                  <span className="text-[#10b981]/80">{t('status.live', { interval: timeRange === '24h' ? '60s' : '5m' })}</span>
                 </>
               ) : (
                 <span className="text-slate-600">{t('status.dailyData')}</span>
@@ -316,15 +321,15 @@ export default function Dashboard({ onLogout }: DashboardProps) {
           {isInitialLoad ? (
             <KPISkeleton />
           ) : (
-            <div className="grid grid-cols-4 gap-4 fade-in">
+            <div className="grid grid-cols-4 gap-3 fade-in">
               {kpis.map((kpi, i) => (
-                <div key={i} className="kpi-card rounded-lg overflow-hidden cursor-default group" style={{ borderLeft: `3px solid ${kpi.color}` }}>
-                  <div className="px-5 pt-2.5 pb-1">
-                    <p className="text-xs text-slate-400 uppercase tracking-widest mb-1">{kpi.label}</p>
-                    <div className="flex items-end justify-between">
-                      <p className="text-2xl font-bold text-white leading-none number-pop">{kpi.value}</p>
+                <div key={i} className="kpi-card rounded-lg overflow-hidden cursor-default group" style={{ borderTop: `2px solid ${kpi.color}22`, borderLeft: `3px solid ${kpi.color}` }}>
+                  <div className="px-4 pt-3 pb-1">
+                    <p className="text-[10px] text-slate-500 uppercase tracking-widest font-medium mb-2">{kpi.label}</p>
+                    <div className="flex items-end justify-between gap-2">
+                      <p className="text-[28px] font-bold text-white leading-none number-pop tabular-nums">{kpi.value}</p>
                       {kpi.trend && (
-                        <span className={`text-[10px] font-semibold mb-0.5 px-1.5 py-0.5 rounded transition-all ${
+                        <span className={`text-[10px] font-semibold mb-1 px-1.5 py-0.5 rounded-md whitespace-nowrap ${
                           kpi.up
                             ? 'text-[#10b981] bg-[#10b981]/10'
                             : 'text-red-400 bg-red-400/10'
@@ -333,11 +338,11 @@ export default function Dashboard({ onLogout }: DashboardProps) {
                         </span>
                       )}
                     </div>
-                    <p className="text-xs text-slate-500 mt-1">{kpi.sub}</p>
+                    <p className="text-[11px] text-slate-500 mt-1.5">{kpi.sub}</p>
                   </div>
-                  {/* Sparkline — only on cards that have daily activity data */}
+                  {/* Sparkline or progress bar */}
                   {kpi.sparkData && kpi.sparkData.some(v => v > 0) ? (
-                    <div className="h-8 px-1 opacity-60 group-hover:opacity-100 transition-opacity">
+                    <div className="h-9 px-1 mt-1 opacity-50 group-hover:opacity-80 transition-opacity duration-300">
                       <ResponsiveContainer width="100%" height="100%">
                         <LineChart data={kpi.sparkData.map((v, idx) => ({ v, idx }))}>
                           <Line
@@ -352,8 +357,8 @@ export default function Dashboard({ onLogout }: DashboardProps) {
                       </ResponsiveContainer>
                     </div>
                   ) : (
-                    <div className="mx-5 mb-2.5 mt-2 h-px bg-slate-800 rounded-full overflow-hidden">
-                      <div className="h-full rounded-full transition-all duration-500" style={{ width: `${kpi.pct}%`, background: `${kpi.color}50` }} />
+                    <div className="mx-4 mb-3 mt-2 h-px bg-slate-800/80 rounded-full overflow-hidden">
+                      <div className="h-full rounded-full transition-all duration-700" style={{ width: `${kpi.pct}%`, background: `${kpi.color}60` }} />
                     </div>
                   )}
                 </div>

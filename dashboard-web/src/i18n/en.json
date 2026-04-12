@@ -1,0 +1,185 @@
+{
+  "nav": {
+    "brand": "GreenGains",
+    "platform": "Analytics Platform",
+    "tabs": {
+      "overview": "Overview",
+      "aggregates": "Aggregates",
+      "coverage": "Coverage",
+      "network": "Network"
+    },
+    "search": "Search",
+    "signOut": "Sign out",
+    "demo": "Demo"
+  },
+  "login": {
+    "title": "GreenGains",
+    "subtitle": "Environmental data platform",
+    "tagline": "Crowdsourced · Hyperlocal · Real-time",
+    "signInGoogle": "Sign in with Google",
+    "signingIn": "Signing in...",
+    "demoAccess": "Demo Access",
+    "loading": "Loading..."
+  },
+  "status": {
+    "operational": "All systems operational",
+    "demo": "Demo mode",
+    "degraded": "Degraded — check alerts",
+    "contributors_one": "{{count}} contributor",
+    "contributors_other": "{{count}} contributors",
+    "zones_one": "{{count}} zone",
+    "zones_other": "{{count}} zones",
+    "updated": "Updated {{time}}",
+    "live": "Live · {{interval}}",
+    "dailyData": "Daily data",
+    "window": "{{range}} window",
+    "noContributors": "No contributors",
+    "dataTo": "Data to {{time}}"
+  },
+  "kpi": {
+    "totalSamples": "Total Samples",
+    "zonesCovered": "Zones Covered",
+    "contributors": "Contributors",
+    "avgQuality": "Avg Quality",
+    "readings": "readings",
+    "geohashAreas": "geohash areas",
+    "activeInPeriod": "active in period",
+    "validReadings": "valid readings"
+  },
+  "filters": {
+    "range": "Range",
+    "apply": "Apply",
+    "applying": "Applying...",
+    "clearAll": "Clear all",
+    "quality": "Quality {{min}}–{{max}}",
+    "light": "Light {{min}}–{{max}} lux",
+    "minDevices": "≥ {{count}} devices",
+    "dataPoints": "{{count}} pts · {{sensor}}",
+    "loading": "Loading…"
+  },
+  "overview": {
+    "sensorData": "Sensor Data",
+    "telemetry": "Environmental telemetry · {{range}}",
+    "exportCsv": "Export CSV",
+    "exporting": "Exporting...",
+    "filters": "Filters",
+    "coverageTitle": "Coverage",
+    "coverageZones": "{{count}} active zones",
+    "coverageEmpty": "No coverage data yet"
+  },
+  "aggregates": {
+    "title": "Raw Aggregates",
+    "subtitle5m": "5-minute windows · {{range}}",
+    "subtitleDaily": "Daily windows · {{range}}"
+  },
+  "coverage": {
+    "title": "Geospatial Coverage",
+    "subtitle": "{{count}} geohash areas active in last {{range}}"
+  },
+  "network": {
+    "contributors": "Contributors",
+    "activeIn": "active in {{range}}",
+    "zonesMapped": "Zones Mapped",
+    "geohashAreas": "geohash areas covered",
+    "deviceHours": "Device Hours",
+    "totalLogged": "total coverage logged",
+    "coverageByZone": "Coverage by Zone",
+    "sortedBy": "Sorted by sample density — {{range}}",
+    "exportCsv": "Export CSV",
+    "exporting": "Exporting...",
+    "noData": "No coverage data in this period",
+    "colZone": "Zone",
+    "colSamples": "Samples",
+    "colQuality": "Quality",
+    "colDeviceH": "Device·h",
+    "colLastActive": "Last Active",
+    "active": "ACTIVE",
+    "clearZone": "Click to clear zone filter",
+    "drillZone": "Drill into zone {{geohash}}",
+    "activeRecent": "Active <1h ago",
+    "lastSeenH": "Last seen {{h}}h ago",
+    "lastSeenD": "Last seen {{d}}d ago"
+  },
+  "alerts": {
+    "critical": "Critical",
+    "warning": "Warning",
+    "dismiss": "Dismiss",
+    "noData": "No sensor data in this time window",
+    "noContributors": "No active contributors in this period",
+    "qualityDegraded": "Data quality degraded — {{pct}}% valid readings",
+    "staleData": "Latest sensor batch is {{hours}}h old — device may have stopped uploading"
+  },
+  "sensors": {
+    "light": "Light",
+    "movement": "Movement",
+    "pressure": "Pressure",
+    "quality": "Quality"
+  },
+  "dataTable": {
+    "colTime": "Time",
+    "colGeohash": "Geohash",
+    "colSamples": "Samples",
+    "colDevices": "Devices",
+    "colAvgLight": "Avg Light",
+    "colMovement": "Movement",
+    "colQuality": "Quality",
+    "loading": "Loading data...",
+    "emptyTitle": "No aggregated data",
+    "emptyHint": "No readings available for this time range. Try selecting a wider period or check the Overview tab."
+  },
+  "commandPalette": {
+    "placeholder": "Search commands...",
+    "noResults": "No commands found",
+    "navigate": "↑↓ Navigate",
+    "select": "Enter to select",
+    "close": "ESC to close",
+    "sensorLight": "Select Light Sensor",
+    "sensorLightDesc": "View light level data",
+    "sensorMovement": "Select Movement Sensor",
+    "sensorMovementDesc": "View motion detection data",
+    "sensorPressure": "Select Pressure Sensor",
+    "sensorPressureDesc": "View atmospheric pressure",
+    "sensorQuality": "Select Quality Sensor",
+    "sensorQualityDesc": "View air quality metrics",
+    "range24h": "Last 24 Hours",
+    "range24hDesc": "View last day of data",
+    "range7d": "Last 7 Days",
+    "range7dDesc": "View week of data",
+    "range30d": "Last 30 Days",
+    "range30dDesc": "View month of data"
+  },
+  "coverageMap": {
+    "zones": "Zones",
+    "avgQuality": "Avg Quality",
+    "totalSamples": "Total Samples",
+    "deviceHours": "Device·hours",
+    "qualityBreakdown": "Quality breakdown",
+    "good": "{{count}} good",
+    "warn": "{{count}} warn",
+    "poor": "{{count}} poor",
+    "loading": "Loading coverage data...",
+    "emptyTitle": "No geospatial coverage",
+    "emptyHint": "No sensors reported data in this time window. Try adjusting the time range or filters.",
+    "zoneRow": "{{samples}}K samples · {{hours}}h device coverage",
+    "filteringBy": "Filtering by zone",
+    "clearZone": "Clear",
+    "active": "Active"
+  },
+  "chart": {
+    "avgSensor": "AVG {{sensor}}",
+    "average": "AVERAGE",
+    "p95": "P95",
+    "p95Desc": "95th pct",
+    "min": "MIN",
+    "peak": "PEAK",
+    "readings": "READINGS",
+    "noData": "No data for this period",
+    "noDataHint": "Try a wider time range or check your filters"
+  },
+  "common": {
+    "pro": "PRO",
+    "refresh": "Refresh data",
+    "search": "Search (Cmd+K)",
+    "dismiss": "Dismiss"
+  }
+}
