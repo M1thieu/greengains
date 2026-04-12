@@ -66,6 +66,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
   int? _backendTotalUploads;
   int? _coverageCells; // distinct H3 res-9 cells ever contributed
   int? _longestStreak;
+  int? _backendCurrentStreak;
   bool _isLoadingWeekly = true;
   // Previous km² value — used as animation start on reload so it never resets to 0
   double _prevKm2 = 0;
@@ -154,6 +155,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
           _backendTotalUploads = profile.totalUploads;
           _coverageCells = profile.coverageCells;
           _longestStreak = profile.longestStreak;
+          _backendCurrentStreak = profile.currentStreak;
         });
         AppEventBus.instance.emit(ProfileUpdatedEvent(
           totalUploads: profile.totalUploads,
@@ -293,7 +295,9 @@ class _StatisticsScreenState extends State<StatisticsScreen>
 
   Widget _buildSupportingTrio(ThemeData theme, bool isDark) {
     final l10n = context.l10n;
-    final streak = _stats?.currentStreak ?? 0;
+    final streak = (_stats?.currentStreak ?? 0) > 0
+        ? _stats!.currentStreak
+        : (_backendCurrentStreak ?? 0);
     final record = _longestStreak ?? 0;
     final tiles = [
       (value: '${_stats?.uploadsToday ?? 0}', label: l10n.statsToday, color: AppColors.pressure),

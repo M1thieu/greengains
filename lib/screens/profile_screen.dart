@@ -222,7 +222,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return CustomScrollView(
       slivers: [
         SliverAppBar(
-          expandedHeight: 240,
+          expandedHeight: 272,
           pinned: true,
           actions: [_settingsButton(context, l10n)],
           flexibleSpace: FlexibleSpaceBar(
@@ -469,7 +469,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
             ),
           ],
-          if (_currentStreak != null) ...[
+          if (_currentStreak != null && _currentStreak! > 0) ...[
             const SizedBox(height: AppTheme.spaceMd),
             _StreakDots(currentStreak: _currentStreak!),
           ],
