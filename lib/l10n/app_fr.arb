@@ -491,6 +491,8 @@
     "placeholders": { "count": { "type": "int" } }
   },
 
+  "statsMapGrowing": "carte en cours — continuez à marcher",
+  "statsWeeklyChartOffline": "Graphique hebdomadaire disponible une fois connecté",
   "uploadMilestone": "{count} envois — continuez !",
   "@uploadMilestone": {
     "placeholders": { "count": { "type": "int" } }

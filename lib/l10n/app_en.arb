@@ -491,6 +491,8 @@
     "placeholders": { "count": { "type": "int" } }
   },
 
+  "statsMapGrowing": "map growing — keep walking",
+  "statsWeeklyChartOffline": "Weekly chart loads once connected",
   "uploadMilestone": "{count} uploads — keep going!",
   "@uploadMilestone": {
     "placeholders": { "count": { "type": "int" } }

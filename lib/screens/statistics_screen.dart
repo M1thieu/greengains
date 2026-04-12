@@ -235,6 +235,9 @@ class _StatisticsScreenState extends State<StatisticsScreen>
     // H3 res-9 hex = 0.1053 km² — tangible territory the user can picture.
     final zones = _coverageCells ?? 0;
     final km2 = zones * 0.1053;
+    // When territory isn't computed yet (H3 pending), fall back to upload count
+    // as the hero metric so the card always shows a meaningful number.
+    final showKm2 = zones > 0;
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(AppTheme.radiusLg),
@@ -245,37 +248,59 @@ class _StatisticsScreenState extends State<StatisticsScreen>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              TweenAnimationBuilder<double>(
-                key: ValueKey(_coverageCells),
-                tween: Tween(begin: _prevKm2, end: km2),
-                duration: const Duration(milliseconds: 900),
-                curve: Curves.easeOut,
-                onEnd: () => _prevKm2 = km2,
-                builder: (_, value, __) => Text(
-                  value < 1.0 ? value.toStringAsFixed(2) : value.toStringAsFixed(1),
+              if (showKm2)
+                TweenAnimationBuilder<double>(
+                  key: ValueKey(_coverageCells),
+                  tween: Tween(begin: _prevKm2, end: km2),
+                  duration: const Duration(milliseconds: 900),
+                  curve: Curves.easeOut,
+                  onEnd: () => _prevKm2 = km2,
+                  builder: (_, value, __) => Text(
+                    value < 1.0 ? value.toStringAsFixed(2) : value.toStringAsFixed(1),
+                    style: theme.textTheme.displayLarge?.copyWith(
+                      fontWeight: AppFontWeights.bold,
+                      letterSpacing: _kLetterSpacingDisplay,
+                      height: _kLineHeightTight,
+                    ),
+                  ),
+                )
+              else
+                Text(
+                  '$totalUploads',
                   style: theme.textTheme.displayLarge?.copyWith(
                     fontWeight: AppFontWeights.bold,
                     letterSpacing: _kLetterSpacingDisplay,
                     height: _kLineHeightTight,
                   ),
                 ),
-              ),
               const SizedBox(height: AppTheme.spaceXxs),
               Row(
                 children: [
                   Text(
-                    l10n.statsKmMapped.toUpperCase(),
+                    showKm2
+                        ? l10n.statsKmMapped.toUpperCase()
+                        : l10n.statsDataPtsLabel.toUpperCase(),
                     style: theme.textTheme.labelSmall?.copyWith(
                       color: AppColors.primary,
                       letterSpacing: _kLetterSpacingCaps,
                       fontWeight: AppFontWeights.semibold,
                     ),
                   ),
-                  _InfoIcon(title: l10n.infoKmTitle, body: l10n.infoKmBody),
-                  if (totalUploads > 0) ...[
+                  if (showKm2) _InfoIcon(title: l10n.infoKmTitle, body: l10n.infoKmBody),
+                  if (showKm2 && totalUploads > 0) ...[
                     const SizedBox(width: AppTheme.spaceSm),
                     Text(
                       '$totalUploads ${l10n.statsDataPtsLabel}',
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: AppColors.textTertiary(isDark),
+                        fontWeight: AppFontWeights.medium,
+                      ),
+                    ),
+                  ],
+                  if (!showKm2) ...[
+                    const SizedBox(width: AppTheme.spaceSm),
+                    Text(
+                      l10n.statsMapGrowing,
                       style: theme.textTheme.labelSmall?.copyWith(
                         color: AppColors.textTertiary(isDark),
                         fontWeight: AppFontWeights.medium,
@@ -299,10 +324,13 @@ class _StatisticsScreenState extends State<StatisticsScreen>
         ? _stats!.currentStreak
         : (_backendCurrentStreak ?? 0);
     final record = _longestStreak ?? 0;
+    // Show — only while truly loading; once data is in, show the real number (even 0)
+    final streakLoaded = _stats != null || _backendCurrentStreak != null;
+    final recordLoaded = _longestStreak != null;
     final tiles = [
       (value: '${_stats?.uploadsToday ?? 0}', label: l10n.statsToday, color: AppColors.pressure),
-      (value: streak > 0 ? '${streak}d' : '—', label: l10n.statsStreakLabel, color: AppColors.light),
-      (value: record > 0 ? '${record}d' : '—', label: l10n.statsRecordStreak, color: AppColors.quality),
+      (value: streakLoaded ? (streak > 0 ? '${streak}d' : '0') : '—', label: l10n.statsStreakLabel, color: AppColors.light),
+      (value: recordLoaded ? (record > 0 ? '${record}d' : '0') : '—', label: l10n.statsRecordStreak, color: AppColors.quality),
     ];
 
     return Row(
@@ -739,7 +767,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
               ),
             ],
           ),
-          const SizedBox(height: AppTheme.spaceLg),
+          const SizedBox(height: AppTheme.spaceMd),
           Row(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
@@ -747,7 +775,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                 '$todayCount',
                 style: theme.textTheme.displayMedium?.copyWith(
                   fontWeight: AppFontWeights.bold,
-                  color: AppColors.primary,
+                  color: todayCount > 0 ? AppColors.primary : AppColors.textSecondary(isDark),
                   letterSpacing: -1,
                   height: 1,
                 ),
@@ -756,7 +784,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
               Padding(
                 padding: const EdgeInsets.only(bottom: AppTheme.spaceXxs),
                 child: Text(
-                  l10n.statsToday.toLowerCase(),
+                  l10n.statsDataPtsLabel,
                   style: theme.textTheme.titleMedium?.copyWith(
                     color: AppColors.textSecondary(isDark),
                     fontWeight: AppFontWeights.medium,
@@ -764,6 +792,13 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                 ),
               ),
             ],
+          ),
+          const SizedBox(height: AppTheme.spaceXs),
+          Text(
+            l10n.statsWeeklyChartOffline,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: AppColors.textTertiary(isDark),
+            ),
           ),
         ],
       ),
