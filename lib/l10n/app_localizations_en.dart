@@ -23,25 +23,25 @@ class AppLocalizationsEn extends AppLocalizations {
       'Works in the background while you commute, walk, or sleep. No tapping, no setup — ever again.';
 
   @override
-  String get onboardingFeature2Title => 'Anonymized by design';
+  String get onboardingFeature2Title => 'Private by default';
 
   @override
   String get onboardingFeature2Description =>
-      'Your data is bundled with thousands of others before it ever leaves your device. No location history, no personal data — ever.';
+      'Your route is never stored. Data is bundled with thousands of others before it leaves your phone — no location history, no personal trace.';
 
   @override
-  String get onboardingFeature3Title => 'Real data, real impact';
+  String get onboardingFeature3Title => 'Your walks, on the map';
 
   @override
   String get onboardingFeature3Description =>
-      'Your walks appear on a live city map used by researchers and planners. Every street you cover adds data that never existed before.';
+      'Each street you cover appears on your personal map. Together, contributors are building the first ground-level picture of city life.';
 
   @override
-  String get onboardingSignInTitle => 'Join the network';
+  String get onboardingSignInTitle => 'Your map starts here';
 
   @override
   String get onboardingSignInSubtitle =>
-      'Sign in once — your coverage map and progress follow you everywhere.';
+      'Sign in to keep your map and streak synced across devices.';
 
   @override
   String get onboardingCloudSync => 'Live Coverage Map';
@@ -524,7 +524,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get statsKeepContributing => 'Keep contributing to track trends';
 
   @override
-  String get statsActivityTrend => 'Activity Trend';
+  String get statsActivityTrend => 'Your week';
 
   @override
   String get statsLast7Days => 'Last 7 days';
@@ -565,7 +565,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get statsEmptyDescription =>
-      'Head to the map and tap ▶ — your stats will appear after your first upload.';
+      'Go to the map and tap ▶ to start. Your first zone will appear within minutes.';
 
   @override
   String get statsEmptyGoMap => 'Go to map';
@@ -1119,6 +1119,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String onboardingSocialProof(int count) {
     return '$count people already mapping their cities';
   }
+
+  @override
+  String get statsMapGrowing => 'map growing — keep walking';
+
+  @override
+  String get statsWeeklyChartOffline => 'Weekly chart loads once connected';
 
   @override
   String uploadMilestone(int count) {

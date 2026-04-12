@@ -23,25 +23,25 @@ class AppLocalizationsFr extends AppLocalizations {
       'Actif en arrière-plan pendant vos trajets, promenades ou sommeil. Aucune interaction nécessaire, jamais.';
 
   @override
-  String get onboardingFeature2Title => 'Anonymisé par conception';
+  String get onboardingFeature2Title => 'Privé par défaut';
 
   @override
   String get onboardingFeature2Description =>
-      'Vos données sont regroupées avec des milliers d\'autres avant de quitter votre appareil. Aucun historique de position, aucune donnée personnelle — jamais.';
+      'Votre trajet n\'est jamais conservé. Les données sont regroupées avec des milliers d\'autres avant de quitter votre téléphone — aucun historique, aucune trace.';
 
   @override
-  String get onboardingFeature3Title => 'Des données réelles, un impact réel';
+  String get onboardingFeature3Title => 'Vos trajets, sur la carte';
 
   @override
   String get onboardingFeature3Description =>
-      'Vos trajets apparaissent sur une carte en direct utilisée par des chercheurs et des urbanistes. Chaque rue parcourue ajoute une donnée qui n\'existait pas avant.';
+      'Chaque rue parcourue apparaît sur votre carte personnelle. Ensemble, les contributeurs construisent le premier portrait au sol de la vie urbaine.';
 
   @override
-  String get onboardingSignInTitle => 'Rejoindre le réseau';
+  String get onboardingSignInTitle => 'Votre carte commence ici';
 
   @override
   String get onboardingSignInSubtitle =>
-      'Une seule connexion — votre carte et vos progrès vous suivent partout.';
+      'Connectez-vous pour garder votre carte et votre série synchronisées sur tous vos appareils.';
 
   @override
   String get onboardingCloudSync => 'Carte de couverture en direct';
@@ -528,7 +528,7 @@ class AppLocalizationsFr extends AppLocalizations {
       'Continuez à contribuer pour suivre les tendances';
 
   @override
-  String get statsActivityTrend => 'Tendance d\'activité';
+  String get statsActivityTrend => 'Cette semaine';
 
   @override
   String get statsLast7Days => '7 derniers jours';
@@ -569,7 +569,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get statsEmptyDescription =>
-      'Allez sur la carte et appuyez sur ▶ — vos stats apparaîtront après votre premier envoi.';
+      'Allez sur la carte et appuyez sur ▶. Votre première zone apparaîtra en quelques minutes.';
 
   @override
   String get statsEmptyGoMap => 'Aller sur la carte';
@@ -1131,6 +1131,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String onboardingSocialProof(int count) {
     return '$count personnes cartographient déjà leur ville';
   }
+
+  @override
+  String get statsMapGrowing => 'carte en cours — continuez à marcher';
+
+  @override
+  String get statsWeeklyChartOffline =>
+      'Graphique hebdomadaire disponible une fois connecté';
 
   @override
   String uploadMilestone(int count) {

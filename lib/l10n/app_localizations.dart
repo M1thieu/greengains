@@ -125,37 +125,37 @@ abstract class AppLocalizations {
   /// No description provided for @onboardingFeature2Title.
   ///
   /// In en, this message translates to:
-  /// **'Anonymized by design'**
+  /// **'Private by default'**
   String get onboardingFeature2Title;
 
   /// No description provided for @onboardingFeature2Description.
   ///
   /// In en, this message translates to:
-  /// **'Your data is bundled with thousands of others before it ever leaves your device. No location history, no personal data — ever.'**
+  /// **'Your route is never stored. Data is bundled with thousands of others before it leaves your phone — no location history, no personal trace.'**
   String get onboardingFeature2Description;
 
   /// No description provided for @onboardingFeature3Title.
   ///
   /// In en, this message translates to:
-  /// **'Real data, real impact'**
+  /// **'Your walks, on the map'**
   String get onboardingFeature3Title;
 
   /// No description provided for @onboardingFeature3Description.
   ///
   /// In en, this message translates to:
-  /// **'Your walks appear on a live city map used by researchers and planners. Every street you cover adds data that never existed before.'**
+  /// **'Each street you cover appears on your personal map. Together, contributors are building the first ground-level picture of city life.'**
   String get onboardingFeature3Description;
 
   /// No description provided for @onboardingSignInTitle.
   ///
   /// In en, this message translates to:
-  /// **'Join the network'**
+  /// **'Your map starts here'**
   String get onboardingSignInTitle;
 
   /// No description provided for @onboardingSignInSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Sign in once — your coverage map and progress follow you everywhere.'**
+  /// **'Sign in to keep your map and streak synced across devices.'**
   String get onboardingSignInSubtitle;
 
   /// No description provided for @onboardingCloudSync.
@@ -1025,7 +1025,7 @@ abstract class AppLocalizations {
   /// No description provided for @statsActivityTrend.
   ///
   /// In en, this message translates to:
-  /// **'Activity Trend'**
+  /// **'Your week'**
   String get statsActivityTrend;
 
   /// No description provided for @statsLast7Days.
@@ -1097,7 +1097,7 @@ abstract class AppLocalizations {
   /// No description provided for @statsEmptyDescription.
   ///
   /// In en, this message translates to:
-  /// **'Head to the map and tap ▶ — your stats will appear after your first upload.'**
+  /// **'Go to the map and tap ▶ to start. Your first zone will appear within minutes.'**
   String get statsEmptyDescription;
 
   /// No description provided for @statsEmptyGoMap.
@@ -2036,6 +2036,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count} people already mapping their cities'**
   String onboardingSocialProof(int count);
+
+  /// No description provided for @statsMapGrowing.
+  ///
+  /// In en, this message translates to:
+  /// **'map growing — keep walking'**
+  String get statsMapGrowing;
+
+  /// No description provided for @statsWeeklyChartOffline.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly chart loads once connected'**
+  String get statsWeeklyChartOffline;
 
   /// No description provided for @uploadMilestone.
   ///
