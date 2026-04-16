@@ -25,6 +25,19 @@ const _globalTileCache = new Map<string, TileCacheEntry>();
 interface StatsCacheEntry { data: { activeMappers: number; totalZones: number }; expiresAt: number; }
 let _globalStatsCache: StatsCacheEntry | null = null;
 
+// ─── Per-user profile cache (60s TTL) ────────────────────────────────────────
+// Eliminates repeated DB hits on every stats screen open / app resume.
+// Invalidated on upload (via invalidateProfileCache) so fresh data appears
+// within one minute after a user uploads — acceptable staleness for a stats view.
+const USER_PROFILE_CACHE_TTL_MS = 60_000;
+interface ProfileCacheEntry { data: unknown; expiresAt: number; }
+const _profileCache = new Map<string, ProfileCacheEntry>();
+
+/** Call after a successful upload to ensure next profile fetch is fresh. */
+export function invalidateProfileCache(userId: string): void {
+  _profileCache.delete(userId);
+}
+
 // ─── Shared global tile query ─────────────────────────────────────────────────
 
 /**
@@ -122,6 +135,12 @@ export async function userRoutes(fastify: FastifyInstance) {
     async (request: FastifyRequest, reply: FastifyReply) => {
       const userId = request.user!.uid;
 
+      // Serve from cache when fresh — avoids 3 DB queries on every stats open.
+      const cached = _profileCache.get(userId);
+      if (cached && cached.expiresAt > Date.now()) {
+        return reply.send(cached.data);
+      }
+
       try {
         const pool = getPool();
 
@@ -153,7 +172,7 @@ export async function userRoutes(fastify: FastifyInstance) {
         const row = statsResult.rows[0];
 
         if (!row || row.total_batches === 0) {
-          return reply.send({
+          const emptyData = {
             uid: userId,
             stats: {
               totalUploads: 0,
@@ -167,7 +186,9 @@ export async function userRoutes(fastify: FastifyInstance) {
               lastUploadDate: null,
               weekly: Array(7).fill(0),
             },
-          });
+          };
+          // Don't cache empty — new user may upload moments later.
+          return reply.send(emptyData);
         }
 
         // Streak + weekly queries are independent — run in parallel.
@@ -233,7 +254,7 @@ export async function userRoutes(fastify: FastifyInstance) {
           if (daysAgo >= 0 && daysAgo < 7) weekly[6 - daysAgo] = wr.count;
         }
 
-        return reply.send({
+        const profileData = {
           uid: userId,
           createdAt: row.first_upload_date,
           stats: {
@@ -248,7 +269,9 @@ export async function userRoutes(fastify: FastifyInstance) {
             lastUploadDate: row.last_upload_date,
             weekly,
           },
-        });
+        };
+        _profileCache.set(userId, { data: profileData, expiresAt: Date.now() + USER_PROFILE_CACHE_TTL_MS });
+        return reply.send(profileData);
       } catch (error) {
         request.log.error({ err: error, userId }, 'Profile fetch error');
         return reply.code(500).send({ error: 'Internal Server Error', requestId: request.id });
