@@ -38,6 +38,77 @@ export function invalidateProfileCache(userId: string): void {
   _profileCache.delete(userId);
 }
 
+/**
+ * Refreshes user_profile_cache for the given user after an upload.
+ * Runs the same 3 aggregate queries as the profile endpoint, but only on the
+ * write path (infrequent) — reads then hit the cache row instead.
+ * Fire-and-forget: called without await so the upload response isn't delayed.
+ */
+export async function refreshUserProfileCache(userId: string): Promise<void> {
+  try {
+    const pool = getPool();
+    // Single query: all scalar stats + streak in one pass using CTEs.
+    // Indexes idx_sb_user_h3 + idx_sb_user_date (added in 20260416 migration) make this fast.
+    await pool.query(
+      `WITH scalar AS (
+         SELECT
+           COUNT(*)::int                                                  AS total_batches,
+           COUNT(DISTINCT h3_res9) FILTER (WHERE h3_res9 IS NOT NULL)::int AS coverage_cells,
+           COUNT(DISTINCT DATE(timestamp_utc))::int                      AS days_active,
+           MIN(timestamp_utc)                                            AS first_upload_at,
+           MAX(timestamp_utc)                                            AS last_upload_at
+         FROM sensor_batches
+         WHERE user_id = $1
+       ),
+       daily AS (
+         SELECT DISTINCT DATE(timestamp_utc) AS d
+         FROM sensor_batches
+         WHERE user_id = $1
+       ),
+       numbered AS (
+         SELECT d, ROW_NUMBER() OVER (ORDER BY d DESC)::int AS rn FROM daily
+       ),
+       groups AS (
+         SELECT (d + rn) AS grp, COUNT(*)::int AS len, MAX(d) AS latest_day
+         FROM numbered GROUP BY grp
+       ),
+       streak AS (
+         SELECT
+           MAX(len) AS longest_streak,
+           COALESCE(
+             (SELECT len FROM groups WHERE latest_day >= CURRENT_DATE - 1
+              ORDER BY latest_day DESC LIMIT 1), 0
+           ) AS current_streak
+         FROM groups
+       )
+       INSERT INTO user_profile_cache (
+         user_id, total_batches, coverage_cells, days_active,
+         current_streak, longest_streak, first_upload_at, last_upload_at, updated_at
+       )
+       SELECT
+         $1,
+         s.total_batches, s.coverage_cells, s.days_active,
+         k.current_streak, k.longest_streak,
+         s.first_upload_at, s.last_upload_at,
+         NOW()
+       FROM scalar s, streak k
+       ON CONFLICT (user_id) DO UPDATE SET
+         total_batches   = EXCLUDED.total_batches,
+         coverage_cells  = EXCLUDED.coverage_cells,
+         days_active     = EXCLUDED.days_active,
+         current_streak  = EXCLUDED.current_streak,
+         longest_streak  = EXCLUDED.longest_streak,
+         first_upload_at = EXCLUDED.first_upload_at,
+         last_upload_at  = EXCLUDED.last_upload_at,
+         updated_at      = EXCLUDED.updated_at`,
+      [userId],
+    );
+  } catch (err) {
+    // Non-fatal — profile endpoint falls back to live queries if cache is missing.
+    console.error('[refreshUserProfileCache] failed:', err);
+  }
+}
+
 // ─── Shared global tile query ─────────────────────────────────────────────────
 
 /**
@@ -135,7 +206,7 @@ export async function userRoutes(fastify: FastifyInstance) {
     async (request: FastifyRequest, reply: FastifyReply) => {
       const userId = request.user!.uid;
 
-      // Serve from cache when fresh — avoids 3 DB queries on every stats open.
+      // Serve from in-memory cache when fresh (60s TTL).
       const cached = _profileCache.get(userId);
       if (cached && cached.expiresAt > Date.now()) {
         return reply.send(cached.data);
@@ -144,92 +215,39 @@ export async function userRoutes(fastify: FastifyInstance) {
       try {
         const pool = getPool();
 
-        // Single query for all scalar stats — avoids 5 round-trips.
-        // Queries sensor_batches directly (source of truth for user_id attribution;
-        // user_stats.user_id can be stale if device was reinstalled).
-        const statsResult = await pool.query<{
+        // Try user_profile_cache first — single PK lookup, ~0.1ms.
+        // Falls through to live sensor_batches queries if row is missing
+        // (first-ever load before any upload has occurred).
+        const cacheRow = await pool.query<{
           total_batches: number;
-          uploads_today: number;
-          days_active: number;
-          device_count: number;
           coverage_cells: number;
-          first_upload_date: Date | null;
-          last_upload_date: Date | null;
+          days_active: number;
+          current_streak: number;
+          longest_streak: number;
+          first_upload_at: Date | null;
+          last_upload_at: Date | null;
         }>(
-          `SELECT
-             COUNT(*)::int                                                 AS total_batches,
-             COUNT(*) FILTER (WHERE DATE(timestamp_utc) = CURRENT_DATE)::int AS uploads_today,
-             COUNT(DISTINCT DATE(timestamp_utc))::int                     AS days_active,
-             COUNT(DISTINCT device_hash)::int                             AS device_count,
-             COUNT(DISTINCT h3_res9) FILTER (WHERE h3_res9 IS NOT NULL)::int AS coverage_cells,
-             MIN(timestamp_utc)                                           AS first_upload_date,
-             MAX(timestamp_utc)                                           AS last_upload_date
-           FROM sensor_batches
+          `SELECT total_batches, coverage_cells, days_active,
+                  current_streak, longest_streak,
+                  first_upload_at, last_upload_at
+           FROM user_profile_cache
            WHERE user_id = $1`,
           [userId],
         );
 
-        const row = statsResult.rows[0];
-
-        if (!row || row.total_batches === 0) {
-          const emptyData = {
-            uid: userId,
-            stats: {
-              totalUploads: 0,
-              uploadsToday: 0,
-              daysActive: 0,
-              currentStreak: 0,
-              longestStreak: 0,
-              coverageCells: 0,
-              deviceCount: 0,
-              firstUploadDate: null,
-              lastUploadDate: null,
-              weekly: Array(7).fill(0),
-            },
-          };
-          // Don't cache empty — new user may upload moments later.
-          return reply.send(emptyData);
-        }
-
-        // Streak + weekly queries are independent — run in parallel.
-        const [streakResult, weeklyResult] = await Promise.all([
-          pool.query<{
-            longest_streak: number;
-            current_streak: number;
-          }>(
-            `WITH daily AS (
-               SELECT DISTINCT DATE(timestamp_utc) AS d
-               FROM sensor_batches
-               WHERE user_id = $1
-             ),
-             numbered AS (
-               SELECT d, ROW_NUMBER() OVER (ORDER BY d DESC)::int AS rn
-               FROM daily
-             ),
-             groups AS (
-               SELECT (d + rn) AS grp, COUNT(*)::int AS len, MAX(d) AS latest_day
-               FROM numbered
-               GROUP BY grp
-             )
-             SELECT
-               MAX(len)                                              AS longest_streak,
-               COALESCE(
-                 (SELECT len FROM groups
-                  WHERE latest_day >= CURRENT_DATE - 1
-                  ORDER BY latest_day DESC LIMIT 1),
-                 0
-               )                                                     AS current_streak
-             FROM groups`,
+        // uploads_today always comes from sensor_batches — not cached (changes intraday).
+        // device_count also live — rarely needed and fast with existing index.
+        const [liveResult, weeklyResult] = await Promise.all([
+          pool.query<{ uploads_today: number; device_count: number }>(
+            `SELECT
+               COUNT(*) FILTER (WHERE DATE(timestamp_utc) = CURRENT_DATE)::int AS uploads_today,
+               COUNT(DISTINCT device_hash)::int                                AS device_count
+             FROM sensor_batches
+             WHERE user_id = $1`,
             [userId],
           ),
-          // 7-day upload history (index 0 = 6 days ago, index 6 = today)
-          pool.query<{
-            upload_date: Date;
-            count: number;
-          }>(
-            `SELECT
-               DATE(timestamp_utc) AS upload_date,
-               COUNT(*)::int       AS count
+          pool.query<{ upload_date: Date; count: number }>(
+            `SELECT DATE(timestamp_utc) AS upload_date, COUNT(*)::int AS count
              FROM sensor_batches
              WHERE user_id = $1
                AND timestamp_utc >= CURRENT_DATE - INTERVAL '6 days'
@@ -238,9 +256,6 @@ export async function userRoutes(fastify: FastifyInstance) {
             [userId],
           ),
         ]);
-
-        const longestStreak = streakResult.rows[0]?.longest_streak ?? 0;
-        const currentStreak = streakResult.rows[0]?.current_streak ?? 0;
 
         const weekly: number[] = Array(7).fill(0);
         const todayMs = Date.UTC(
@@ -254,19 +269,89 @@ export async function userRoutes(fastify: FastifyInstance) {
           if (daysAgo >= 0 && daysAgo < 7) weekly[6 - daysAgo] = wr.count;
         }
 
+        const live = liveResult.rows[0];
+
+        // No cache row AND no live uploads — new user.
+        if (!cacheRow.rows[0] && (live?.uploads_today ?? 0) === 0 && weekly.every(v => v === 0)) {
+          const emptyData = {
+            uid: userId,
+            stats: {
+              totalUploads: 0, uploadsToday: 0, daysActive: 0,
+              currentStreak: 0, longestStreak: 0, coverageCells: 0,
+              deviceCount: 0, firstUploadDate: null, lastUploadDate: null,
+              weekly: Array(7).fill(0),
+            },
+          };
+          return reply.send(emptyData);
+        }
+
+        // If no cache row yet, fall back to full live query for scalar stats.
+        let totalUploads: number;
+        let coverageCells: number;
+        let daysActive: number;
+        let currentStreak: number;
+        let longestStreak: number;
+        let firstUploadDate: Date | null;
+        let lastUploadDate: Date | null;
+
+        if (cacheRow.rows[0]) {
+          const c = cacheRow.rows[0];
+          totalUploads   = c.total_batches;
+          coverageCells  = c.coverage_cells;
+          daysActive     = c.days_active;
+          currentStreak  = c.current_streak;
+          longestStreak  = c.longest_streak;
+          firstUploadDate = c.first_upload_at;
+          lastUploadDate  = c.last_upload_at;
+        } else {
+          // Cache miss — run full live queries (same as before Fix 3).
+          const [scalarResult, streakResult] = await Promise.all([
+            pool.query<{
+              total_batches: number; days_active: number; coverage_cells: number;
+              first_upload_date: Date | null; last_upload_date: Date | null;
+            }>(
+              `SELECT
+                 COUNT(*)::int                                                  AS total_batches,
+                 COUNT(DISTINCT DATE(timestamp_utc))::int                      AS days_active,
+                 COUNT(DISTINCT h3_res9) FILTER (WHERE h3_res9 IS NOT NULL)::int AS coverage_cells,
+                 MIN(timestamp_utc)                                            AS first_upload_date,
+                 MAX(timestamp_utc)                                            AS last_upload_date
+               FROM sensor_batches WHERE user_id = $1`,
+              [userId],
+            ),
+            pool.query<{ longest_streak: number; current_streak: number }>(
+              `WITH daily AS (SELECT DISTINCT DATE(timestamp_utc) AS d FROM sensor_batches WHERE user_id = $1),
+               numbered AS (SELECT d, ROW_NUMBER() OVER (ORDER BY d DESC)::int AS rn FROM daily),
+               groups AS (SELECT (d + rn) AS grp, COUNT(*)::int AS len, MAX(d) AS latest_day FROM numbered GROUP BY grp)
+               SELECT MAX(len) AS longest_streak,
+                 COALESCE((SELECT len FROM groups WHERE latest_day >= CURRENT_DATE - 1 ORDER BY latest_day DESC LIMIT 1), 0) AS current_streak
+               FROM groups`,
+              [userId],
+            ),
+          ]);
+          const s = scalarResult.rows[0];
+          totalUploads    = s?.total_batches   ?? 0;
+          coverageCells   = s?.coverage_cells  ?? 0;
+          daysActive      = s?.days_active     ?? 0;
+          currentStreak   = streakResult.rows[0]?.current_streak ?? 0;
+          longestStreak   = streakResult.rows[0]?.longest_streak ?? 0;
+          firstUploadDate = s?.first_upload_date ?? null;
+          lastUploadDate  = s?.last_upload_date  ?? null;
+        }
+
         const profileData = {
           uid: userId,
-          createdAt: row.first_upload_date,
+          createdAt: firstUploadDate,
           stats: {
-            totalUploads: row.total_batches,
-            uploadsToday: row.uploads_today,
-            daysActive: row.days_active,
+            totalUploads,
+            uploadsToday:   live?.uploads_today ?? 0,
+            daysActive,
             currentStreak,
             longestStreak,
-            coverageCells: row.coverage_cells,
-            deviceCount: row.device_count,
-            firstUploadDate: row.first_upload_date,
-            lastUploadDate: row.last_upload_date,
+            coverageCells,
+            deviceCount:    live?.device_count ?? 0,
+            firstUploadDate,
+            lastUploadDate,
             weekly,
           },
         };

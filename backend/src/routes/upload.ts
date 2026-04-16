@@ -7,7 +7,7 @@ import { deviceOrFirebaseAuth } from '../middleware/auth';
 import { getPool } from '../database';
 import { UploadBatchSchema, UploadBatch, SensorReading, StoragePayload } from '../models/upload';
 import { H3_RES_PERSONAL, H3_RES_GLOBAL } from '../constants';
-import { invalidateProfileCache } from './user';
+import { invalidateProfileCache, refreshUserProfileCache } from './user';
 import {
   vectorMagnitude,
   analyzeQuality,
@@ -305,8 +305,12 @@ export async function uploadRoutes(fastify: FastifyInstance) {
 
         request.log.info(logData, 'Stored sensor batch');
 
-        // Invalidate profile cache so next stats open reflects the new upload.
-        if (userId) invalidateProfileCache(userId);
+        // Invalidate in-memory cache + refresh DB cache — both fire-and-forget
+        // so the 202 response isn't delayed. Next profile read gets fresh data.
+        if (userId) {
+          invalidateProfileCache(userId);
+          refreshUserProfileCache(userId); // intentionally no await
+        }
 
         return reply.code(202).send({ accepted_records: readingsCount });
       } catch (error) {
