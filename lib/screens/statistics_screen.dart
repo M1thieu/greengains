@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import 'package:shimmer/shimmer.dart';
 import '../core/extensions/context_extensions.dart';
 import '../core/themes.dart';
 import '../l10n/app_localizations.dart';
@@ -53,7 +54,7 @@ class StatisticsScreen extends StatefulWidget {
 }
 
 class _StatisticsScreenState extends State<StatisticsScreen>
-    with TickerProviderStateMixin {
+    with TickerProviderStateMixin, WidgetsBindingObserver {
   final _contributionRepo = ContributionRepository();
 
   // Local stats (always available, even offline)
@@ -65,11 +66,12 @@ class _StatisticsScreenState extends State<StatisticsScreen>
   // Backend lifetime stats — fallback when local SQLite is empty (fresh reinstall)
   int? _backendTotalUploads;
   int? _coverageCells; // distinct H3 res-9 cells ever contributed
-  int? _longestStreak;
-  int? _backendCurrentStreak;
+  int? _daysActive;
   bool _isLoadingWeekly = true;
   // Previous km² value — used as animation start on reload so it never resets to 0
   double _prevKm2 = 0;
+  // Community stats — active mapper count from /api/stats/global (1h server cache)
+  int? _activeMappers;
 
   StreamSubscription<UploadSuccessEvent>? _uploadSuccessSub;
   StreamSubscription<StatsUpdatedEvent>? _statsUpdatedSub;
@@ -83,6 +85,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _loadStats();
     _loadWeeklyStats();
 
@@ -100,16 +103,25 @@ class _StatisticsScreenState extends State<StatisticsScreen>
 
     _entranceCtrl = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 700),
+      duration: const Duration(milliseconds: 800),
     )..forward();
-    _cardAnims = List.generate(4, (i) => CurvedAnimation(
+    _cardAnims = List.generate(6, (i) => CurvedAnimation(
       parent: _entranceCtrl,
-      curve: Interval(i * 0.12, (i * 0.12 + 0.55).clamp(0.0, 1.0), curve: Curves.easeOut),
+      curve: Interval(i * 0.10, (i * 0.10 + 0.55).clamp(0.0, 1.0), curve: Curves.easeOut),
     ));
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _loadStats();
+      _loadWeeklyStats();
+    }
+  }
+
+  @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _uploadSuccessSub?.cancel();
     _statsUpdatedSub?.cancel();
     _entranceCtrl.dispose();
@@ -138,7 +150,8 @@ class _StatisticsScreenState extends State<StatisticsScreen>
     try {
       final stats = await _contributionRepo.getStats();
       if (mounted) setState(() { _stats = stats; _isLoading = false; });
-    } catch (_) {
+    } catch (e) {
+      debugPrint('Local stats load failed: $e');
       if (mounted) setState(() => _isLoading = false);
     }
   }
@@ -147,15 +160,20 @@ class _StatisticsScreenState extends State<StatisticsScreen>
     // Only show chart skeleton on first load.
     if (_weeklyData == null) setState(() => _isLoadingWeekly = true);
     try {
-      final data = await BackendClient.get(kApiUserProfile);
-      final profile = UserProfileResponse.fromJson(data);
+      // Profile + global community stats run in parallel — same auth, different cache TTLs.
+      final results = await Future.wait([
+        BackendClient.get(kApiUserProfile),
+        BackendClient.get(kApiStatsGlobal).catchError((_) => <String, dynamic>{}),
+      ]);
+      final profile = UserProfileResponse.fromJson(results[0]);
+      final global = GlobalStatsResponse.fromJson(results[1]);
       if (mounted) {
         setState(() {
           _weeklyData = profile.weekly;
           _backendTotalUploads = profile.totalUploads;
           _coverageCells = profile.coverageCells;
-          _longestStreak = profile.longestStreak;
-          _backendCurrentStreak = profile.currentStreak;
+          _daysActive = profile.daysActive;
+          if (global.activeMappers > 0) _activeMappers = global.activeMappers;
         });
         AppEventBus.instance.emit(ProfileUpdatedEvent(
           totalUploads: profile.totalUploads,
@@ -190,37 +208,34 @@ class _StatisticsScreenState extends State<StatisticsScreen>
     // Show skeleton while either local OR backend is still loading (first render)
     final stillLoading = _isLoading || (_isLoadingWeekly && _backendTotalUploads == null && effectiveTotal == 0);
 
+    final topPad = MediaQuery.paddingOf(context).top + AppTheme.spaceSm;
+    final bottomPad = MediaQuery.paddingOf(context).bottom + AppTheme.floatingNavHeight + AppTheme.spaceMd;
+
     return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.statsScreenTitle),
-        actions: [
-          if (!stillLoading && effectiveTotal > 0)
-            IconButton(
-              icon: const Icon(Icons.refresh),
-              onPressed: _refresh,
-              tooltip: l10n.tooltipRefresh,
-            ),
-        ],
-      ),
       body: stillLoading
-          ? _buildLoadingSkeleton(isDark)
+          ? SafeArea(child: _buildLoadingSkeleton(isDark))
           : effectiveTotal == 0
-              ? _buildEmptyState(context, theme, isDark, l10n)
+              ? SafeArea(child: _buildEmptyState(context, theme, isDark, l10n))
               : RefreshIndicator(
                   onRefresh: _refresh,
                   color: AppColors.primary,
                   child: ListView(
                     padding: AppTheme.pagePadding.copyWith(
-                      bottom: MediaQuery.paddingOf(context).bottom + AppTheme.floatingNavHeight + AppTheme.spaceMd,
+                      top: topPad,
+                      bottom: bottomPad,
                     ),
                     children: [
                       _withEntrance(_buildHeroCard(theme, isDark, l10n), 0),
                       const SizedBox(height: AppTheme.spaceSm),
-                      _withEntrance(_buildSupportingTrio(theme, isDark), 1),
+                      if ((_stats?.currentStreak ?? 0) >= 3) ...[
+                        _withEntrance(_StreakBanner(streak: _stats!.currentStreak, isDark: isDark), 1),
+                        const SizedBox(height: AppTheme.spaceSm),
+                      ],
+                      _withEntrance(_buildSupportingTrio(theme, isDark), 2),
                       const SizedBox(height: AppTheme.spaceSm),
-                      _withEntrance(_buildMilestoneRow(theme, isDark, l10n), 2),
+                      _withEntrance(_buildMilestoneRow(theme, isDark, l10n), 3),
                       const SizedBox(height: AppTheme.spaceSm),
-                      _withEntrance(_buildActivityChart(theme, isDark, l10n), 3),
+                      _withEntrance(_buildActivityChart(theme, isDark, l10n), 4),
                     ],
                   ),
                 ),
@@ -286,27 +301,82 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                       fontWeight: AppFontWeights.semibold,
                     ),
                   ),
-                  if (showKm2) _InfoIcon(title: l10n.infoKmTitle, body: l10n.infoKmBody),
                   if (showKm2 && totalUploads > 0) ...[
                     const SizedBox(width: AppTheme.spaceSm),
-                    Text(
-                      '$totalUploads ${l10n.statsDataPtsLabel}',
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: AppColors.textTertiary(isDark),
-                        fontWeight: AppFontWeights.medium,
+                    Flexible(
+                      child: Text(
+                        '$totalUploads ${l10n.statsDataPtsLabel}',
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: AppColors.textTertiary(isDark),
+                          fontWeight: AppFontWeights.medium,
+                        ),
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                   ],
                   if (!showKm2) ...[
                     const SizedBox(width: AppTheme.spaceSm),
-                    Text(
-                      l10n.statsMapGrowing,
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: AppColors.textTertiary(isDark),
-                        fontWeight: AppFontWeights.medium,
+                    Flexible(
+                      child: Text(
+                        l10n.statsMapGrowing,
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: AppColors.textTertiary(isDark),
+                          fontWeight: AppFontWeights.medium,
+                        ),
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                   ],
+                ],
+              ),
+              // Archive anchor — "since Apr 2025" — territory feels permanent
+              if (_stats?.firstContributionAt != null) ...[
+                const SizedBox(height: AppTheme.spaceXxxs),
+                Text(
+                  l10n.statsSinceDate(DateFormat('MMM yyyy', Localizations.localeOf(context).toString()).format(_stats!.firstContributionAt!)),
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: AppColors.textTertiary(isDark),
+                    fontWeight: AppFontWeights.medium,
+                  ),
+                ),
+              ],
+              // Community context + View on map — bottom of hero
+              const SizedBox(height: AppTheme.spaceSm),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  if (_activeMappers != null && _activeMappers! > 0)
+                    Flexible(
+                      child: Text(
+                        l10n.statsCommunityMappers(_activeMappers!),
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: AppColors.textTertiary(isDark),
+                          fontWeight: AppFontWeights.medium,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  if (widget.onGoToHome != null)
+                    GestureDetector(
+                      onTap: () {
+                        HapticFeedback.selectionClick();
+                        widget.onGoToHome!();
+                      },
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            l10n.statsViewOnMap,
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              color: AppColors.primary,
+                              fontWeight: AppFontWeights.semibold,
+                            ),
+                          ),
+                          const SizedBox(width: 2),
+                          Icon(Icons.arrow_forward, size: 11, color: AppColors.primary),
+                        ],
+                      ),
+                    ),
                 ],
               ),
             ],
@@ -320,17 +390,16 @@ class _StatisticsScreenState extends State<StatisticsScreen>
 
   Widget _buildSupportingTrio(ThemeData theme, bool isDark) {
     final l10n = context.l10n;
-    final streak = (_stats?.currentStreak ?? 0) > 0
-        ? _stats!.currentStreak
-        : (_backendCurrentStreak ?? 0);
-    final record = _longestStreak ?? 0;
-    // Show — only while truly loading; once data is in, show the real number (even 0)
-    final streakLoaded = _stats != null || _backendCurrentStreak != null;
-    final recordLoaded = _longestStreak != null;
+    final daysActive = _daysActive ?? 0;
+    final daysLoaded = _daysActive != null;
+    final streak = _stats?.currentStreak ?? 0;
+    final uploadsToday = _stats?.uploadsToday ?? 0;
+    // Streak at risk: has a multi-day streak but hasn't mapped today yet.
+    final streakAtRisk = streak >= 3 && uploadsToday == 0;
     final tiles = [
-      (value: '${_stats?.uploadsToday ?? 0}', label: l10n.statsToday, color: AppColors.pressure),
-      (value: streakLoaded ? (streak > 0 ? '${streak}d' : '0') : '—', label: l10n.statsStreakLabel, color: AppColors.light),
-      (value: recordLoaded ? (record > 0 ? '${record}d' : '0') : '—', label: l10n.statsRecordStreak, color: AppColors.quality),
+      (value: '$uploadsToday', label: l10n.statsToday, color: streakAtRisk ? AppColors.warning : AppColors.pressure),
+      (value: '${_stats?.uploadsThisWeek ?? 0}', label: l10n.statsThisWeek, color: AppColors.light),
+      (value: daysLoaded ? '$daysActive' : '—', label: l10n.statsDaysActive, color: AppColors.quality),
     ];
 
     return Row(
@@ -806,21 +875,146 @@ class _StatisticsScreenState extends State<StatisticsScreen>
   }
 
 
+  // ─── Insight card (Dawarich-style contextual facts) ─────────────────────────
+
+  /// Returns null when there's nothing meaningful to show yet.
+  Widget? _buildInsightCard(ThemeData theme, bool isDark, AppLocalizations l10n) {
+    final weekly = _weeklyData;
+    final first = _stats?.firstContributionAt;
+    final days = _daysActive;
+    if (weekly == null && first == null && days == null) return null;
+
+    // Best day this week — day name + count
+    String? bestDayLabel;
+    if (weekly != null) {
+      final maxVal = weekly.fold(0, max);
+      if (maxVal > 0) {
+        final bestIdx = weekly.indexOf(maxVal);
+        final chartLocale = Localizations.localeOf(context).toString();
+        final bestDate = DateTime.now().subtract(Duration(days: 6 - bestIdx));
+        final name = bestIdx == 6
+            ? l10n.statsDayToday
+            : DateFormat('EEE', chartLocale).format(bestDate);
+        bestDayLabel = '$name — $maxVal ${l10n.statsDataPtsLabel}';
+      }
+    }
+
+    final currentStreak = _stats?.currentStreak ?? 0;
+    final insights = <(IconData, Color, String, String)>[
+      if (first != null)
+        (
+          Icons.history_outlined,
+          AppColors.movement,
+          l10n.statsMappingSince,
+          DateFormat('MMMM yyyy', Localizations.localeOf(context).toString()).format(first),
+        ),
+      if (bestDayLabel != null)
+        (
+          Icons.bar_chart_outlined,
+          AppColors.light,
+          l10n.statsBestDay,
+          bestDayLabel,
+        ),
+      if (days != null && days > 1)
+        (
+          Icons.calendar_today_outlined,
+          AppColors.quality,
+          l10n.statsDaysActive,
+          l10n.daysActive(days),
+        ),
+      if (currentStreak >= 2)
+        (
+          Icons.local_fire_department_outlined,
+          AppColors.warning,
+          l10n.statsStreakLabel,
+          l10n.statsStreakDays(currentStreak),
+        ),
+    ];
+
+    if (insights.isEmpty) return null;
+
+    return Container(
+      padding: const EdgeInsets.all(AppTheme.spaceMd),
+      decoration: AppTheme.surfaceContainer(isDark: isDark),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            l10n.statsHighlightsLabel,
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: AppColors.textSecondary(isDark),
+              letterSpacing: _kLetterSpacingCaps,
+              fontWeight: AppFontWeights.semibold,
+            ),
+          ),
+          const SizedBox(height: AppTheme.spaceSm),
+          ...insights.indexed.map((entry) {
+            final (i, insight) = entry;
+            final (icon, color, label, value) = insight;
+            return Padding(
+              padding: EdgeInsets.only(top: i > 0 ? AppTheme.spaceSm : 0),
+              child: Row(
+                children: [
+                  Icon(icon, size: AppIconSizes.xs, color: color),
+                  const SizedBox(width: AppTheme.spaceSm),
+                  Expanded(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Flexible(
+                          child: Text(
+                            label,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: AppColors.textSecondary(isDark),
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(width: AppTheme.spaceXs),
+                        Flexible(
+                          child: Text(
+                            value,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: AppColors.textPrimary(isDark),
+                              fontWeight: AppFontWeights.semibold,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                            textAlign: TextAlign.end,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }),
+        ],
+      ),
+    );
+  }
+
   Widget _buildLoadingSkeleton(bool isDark) {
-    final color = AppColors.textSecondary(isDark).withValues(alpha: 0.1);
-    final decoration = BoxDecoration(color: color, borderRadius: BorderRadius.circular(AppTheme.radiusMd));
-    return ListView(
-      padding: AppTheme.pagePadding,
-      physics: const NeverScrollableScrollPhysics(),
-      children: [
-        Container(height: _kSkeletonHeroH, decoration: decoration),
-        const SizedBox(height: AppTheme.spaceSm),
-        Row(children: List.generate(3, (_) => Expanded(child: Padding(padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceXxs), child: Container(height: 72, decoration: decoration))))),
-        const SizedBox(height: AppTheme.spaceLg),
-        Container(height: AppIconSizes.sm, width: _kSkeletonTitleW, decoration: decoration),
-        const SizedBox(height: AppTheme.spaceMd),
-        Container(height: _kChartH, decoration: decoration),
-      ],
+    final baseColor  = isDark ? const Color(0xFF1a2635) : const Color(0xFFE0E0E0);
+    final hlColor    = isDark ? const Color(0xFF243447) : const Color(0xFFF5F5F5);
+    final decoration = BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(AppTheme.radiusMd));
+    return Shimmer.fromColors(
+      baseColor: baseColor,
+      highlightColor: hlColor,
+      child: ListView(
+        padding: AppTheme.pagePadding,
+        physics: const NeverScrollableScrollPhysics(),
+        children: [
+          Container(height: _kSkeletonHeroH, decoration: decoration),
+          const SizedBox(height: AppTheme.spaceSm),
+          Row(children: List.generate(3, (_) => Expanded(child: Padding(padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceXxs), child: Container(height: 72, decoration: decoration))))),
+          const SizedBox(height: AppTheme.spaceLg),
+          Container(height: AppIconSizes.sm, width: _kSkeletonTitleW, decoration: decoration),
+          const SizedBox(height: AppTheme.spaceMd),
+          Container(height: _kChartH, decoration: decoration),
+        ],
+      ),
     );
   }
 
@@ -834,7 +1028,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
             Container(
               padding: const EdgeInsets.all(AppTheme.spaceXl),
               decoration: BoxDecoration(color: AppColors.primaryAlpha(0.08), shape: BoxShape.circle),
-              child: Icon(Icons.bar_chart_outlined, size: _kHeroIconSize, color: AppColors.primary),
+              child: Icon(Icons.terrain, size: _kHeroIconSize, color: AppColors.primary),
             ),
             const SizedBox(height: AppTheme.spaceLg),
             Text(l10n.statsStartContributing, style: theme.textTheme.headlineSmall?.copyWith(fontWeight: AppFontWeights.semibold)),
@@ -923,5 +1117,71 @@ void _showInfoSheet(BuildContext context, String title, String body, bool isDark
       ),
     ),
   );
+}
+
+// ── Streak banner ─────────────────────────────────────────────────────────────
+
+/// Compact horizontal card shown when current streak ≥ 3.
+/// Intentionally calm — no guilt messaging, just acknowledgement.
+/// The animated counter rolls in from 0 on first render for a subtle delight moment.
+class _StreakBanner extends StatelessWidget {
+  const _StreakBanner({required this.streak, required this.isDark});
+  final int streak;
+  final bool isDark;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppTheme.spaceMd,
+        vertical: AppTheme.spaceSm + 2,
+      ),
+      decoration: AppTheme.kpiCard(isDark: isDark, accentColor: AppColors.warning),
+      child: Row(
+        children: [
+          Icon(Icons.local_fire_department,
+              color: AppColors.warning, size: 20),
+          const SizedBox(width: AppTheme.spaceXs),
+          TweenAnimationBuilder<int>(
+            tween: IntTween(begin: 0, end: streak),
+            duration: const Duration(milliseconds: 500),
+            curve: Curves.easeOut,
+            builder: (_, value, __) => Text(
+              '$value',
+              style: const TextStyle(
+                fontSize: 22,
+                fontWeight: AppFontWeights.bold,
+                color: AppColors.warning,
+                letterSpacing: -0.5,
+                height: 1.0,
+              ),
+            ),
+          ),
+          const SizedBox(width: AppTheme.spaceXxs),
+          Text(
+            l10n.statsStreakLabel.toLowerCase(),
+            style: TextStyle(
+              fontSize: 13,
+              color: AppColors.textSecondary(isDark),
+              fontWeight: AppFontWeights.medium,
+            ),
+          ),
+          const Spacer(),
+          Flexible(
+            child: Text(
+              l10n.statsStreakDays(streak),
+              style: TextStyle(
+                fontSize: 12,
+                color: AppColors.textTertiary(isDark),
+              ),
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.end,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 

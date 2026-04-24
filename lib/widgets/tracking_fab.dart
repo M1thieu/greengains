@@ -14,11 +14,8 @@ const _kFabIconSize          = 32.0;
 const _kFabJellyDuration     = Duration(milliseconds: 420); // total squish→pop→settle
 const _kFabToggleDuration    = Duration(milliseconds: 220); // color/size transition
 const _kFabSwitchDuration    = Duration(milliseconds: 180); // icon crossfade
-const _kFabActiveShadowBlur    = 18.0;
-const _kFabIdleShadowBlur      = AppTheme.spaceXs;    // 8
-const _kFabActiveShadowSpread  = AppTheme.spaceXxxs;  // 2
-const _kFabActiveGlowBlur      = 40.0;  // outer ambient glow radius
-const _kFabActiveGlowSpread    = 4.0;
+const _kFabActiveShadowBlur   = 18.0;
+const _kFabActiveShadowSpread = AppTheme.spaceXxxs;  // 2
 
 /// Compact 56×56 FAB with jelly press feedback.
 ///
@@ -170,8 +167,8 @@ class _TrackingFabState extends State<TrackingFab>
     final l10n = context.l10n;
     final (icon, bgColor, fgColor, tooltip) = switch (true) {
       _ when _isToggling => (Icons.hourglass_empty, AppColors.surfaceElevated(true), AppColors.textSecondary(true), l10n.trackingFabStarting),
-      _ when isActive    => (Icons.pause,            AppColors.primary,              Colors.white,   l10n.trackingFabPause),
-      _ when isPaused    => (Icons.play_arrow,        AppColors.warning,              Colors.white,   l10n.trackingFabResume),
+      _ when isActive    => (Icons.pause,            const Color(0xFF111927),        Colors.white,   l10n.trackingFabPause),
+      _ when isPaused    => (Icons.play_arrow,        AppColors.primary,              Colors.white,   l10n.trackingFabResume),
       _                  => (Icons.play_arrow,        AppColors.primary,              Colors.white,   l10n.trackingFabStart),
     };
 
@@ -197,18 +194,21 @@ class _TrackingFabState extends State<TrackingFab>
               decoration: BoxDecoration(
                 gradient: gradient,
                 shape: BoxShape.circle,
+                border: isActive
+                    ? Border.all(color: AppColors.primary, width: 2)
+                    : null,
                 boxShadow: [
-                  // Outer ambient glow — only when active (Contributing state)
-                  if (isActive)
+                  // Outer ring — active tracking (green ring on dark FAB) or idle (green ring on green FAB)
+                  if (isActive || (!isRunning && !isPaused && !_isToggling))
                     BoxShadow(
-                      color: bgColor.withValues(alpha: 0.22),
-                      blurRadius: _kFabActiveGlowBlur,
-                      spreadRadius: _kFabActiveGlowSpread,
+                      color: AppColors.primary.withValues(alpha: 0.12),
+                      blurRadius: 0,
+                      spreadRadius: 6,
                     ),
-                  // Inner focused shadow — always present
+                  // Drop shadow
                   BoxShadow(
-                    color: bgColor.withValues(alpha: isActive ? 0.50 : 0.30),
-                    blurRadius: isActive ? _kFabActiveShadowBlur : _kFabIdleShadowBlur,
+                    color: bgColor.withValues(alpha: isActive ? 0.50 : 0.35),
+                    blurRadius: isActive ? _kFabActiveShadowBlur : 24,
                     spreadRadius: isActive ? _kFabActiveShadowSpread : 0,
                     offset: const Offset(0, AppTheme.spaceXxs),
                   ),

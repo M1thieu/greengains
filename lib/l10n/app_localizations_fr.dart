@@ -9,54 +9,39 @@ class AppLocalizationsFr extends AppLocalizations {
   AppLocalizationsFr([String locale = 'fr']) : super(locale);
 
   @override
-  String get onboardingWelcomeTitle =>
-      'Regardez votre ville se remplir au fil de vos pas';
+  String get onboardingWelcomeTitle => 'Remplissez votre terrain.';
 
   @override
   String get onboardingWelcomeSubtitle =>
-      'Votre téléphone mesure silencieusement lumière, pression et mouvement pendant vos déplacements. Aucune interaction nécessaire — vous marchez, il cartographie.';
+      'Bougez où vous voulez. Votre téléphone lit discrètement le monde — lumière, pression, mouvement — et le cartographie.';
 
   @override
   String get onboardingFeature1Title => 'Zéro interaction. Jamais.';
 
   @override
   String get onboardingFeature1Description =>
-      'Lancez une fois, oubliez-le. Votre carte se remplit automatiquement pendant vos trajets, promenades ou footing — sans rien toucher.';
+      'Lancez une fois, oubliez-le — votre carte se remplit pendant que vous bougez.';
 
   @override
   String get onboardingFeature2Title => 'Privé par défaut';
 
   @override
   String get onboardingFeature2Description =>
-      'Votre trajet n\'est jamais conservé. Les données sont regroupées avec des milliers d\'autres avant de quitter votre téléphone — aucun historique, aucune trace.';
+      'Votre trajet n\'est jamais conservé — les données sont anonymisées avant de quitter votre téléphone.';
 
   @override
-  String get onboardingFeature3Title => 'Vos trajets, sur la carte';
+  String get onboardingFeature3Title => 'Chaque rue, à vous.';
 
   @override
   String get onboardingFeature3Description =>
-      'Chaque rue parcourue apparaît sur votre carte personnelle. Ensemble, les contributeurs construisent le premier portrait au sol de la vie urbaine.';
+      'Chaque endroit visité se remplit sur votre carte — voyez jusqu\'où s\'étend votre terrain.';
 
   @override
-  String get onboardingSignInTitle => 'Votre carte commence ici';
+  String get onboardingSignInTitle => 'Votre territoire commence ici';
 
   @override
   String get onboardingSignInSubtitle =>
-      'Connectez-vous pour garder votre carte et votre série synchronisées sur tous vos appareils.';
-
-  @override
-  String get onboardingCloudSync => 'Carte de couverture en direct';
-
-  @override
-  String get onboardingCloudSyncDescription =>
-      'Regardez votre zone de couverture personnelle s\'agrandir en temps réel';
-
-  @override
-  String get onboardingFutureFeatures => 'Bientôt disponible';
-
-  @override
-  String get onboardingFutureDescription =>
-      'Jalons contributeurs, rapports d\'impact et bien plus';
+      'Connectez-vous pour garder votre territoire synchronisé sur tous vos appareils.';
 
   @override
   String onboardingPrivacyNotice(String privacyPolicy, String termsOfService) {
@@ -126,45 +111,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get noUploadYet => 'Aucun envoi pour le moment';
 
   @override
-  String get dailyPotTitle => 'Pot quotidien';
-
-  @override
-  String dailyPotClaimButton(int amount) {
-    return 'Récupérer $amount crédits';
-  }
-
-  @override
-  String dailyPotClaimed(int amount) {
-    return '+$amount crédits ! 🍯';
-  }
-
-  @override
-  String get dailyPotAlreadyClaimed =>
-      'Déjà récupéré aujourd\'hui ! Revenez demain';
-
-  @override
-  String dailyPotNeedMoreUploads(int count, String s) {
-    return 'Encore $count envoi$s pour débloquer';
-  }
-
-  @override
-  String dailyPotProgress(int current, int required) {
-    return '$current / $required envois';
-  }
-
-  @override
-  String credits(int count) {
-    return '$count crédits';
-  }
-
-  @override
-  String get totalCredits => 'Total de crédits';
-
-  @override
-  String get creditsEarned => 'Crédits gagnés';
-
-  @override
-  String get statsTitle => 'Votre impact';
+  String get statsTitle => 'Votre terrain';
 
   @override
   String get totalUploads => 'Total d\'envois';
@@ -250,25 +197,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settingsTheme => 'Thème';
 
   @override
-  String get settingsNotifications => 'Notifications';
-
-  @override
   String get settingsLocationSharing => 'Partage de position';
 
   @override
-  String get settingsLocationEnabled => 'Partage de position activé';
-
-  @override
-  String get settingsLocationDisabled => 'Partage de position désactivé';
-
-  @override
   String get settingsMobileData => 'Envoi sur données mobiles';
-
-  @override
-  String get settingsMobileDataEnabled => 'Envoyer sur données mobiles';
-
-  @override
-  String get settingsMobileDataDisabled => 'Envoyer uniquement en WiFi';
 
   @override
   String settingsVersion(String version) {
@@ -280,7 +212,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get permissionLocationMessage =>
-      'Autorisez la localisation pour commencer à cartographier votre ville.';
+      'Autorisez la localisation pour commencer à cartographier votre terrain.';
 
   @override
   String get permissionLocationButton => 'Autoriser';
@@ -352,11 +284,11 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get profileSignInPrompt =>
-      'Connectez-vous avec Google pour garder votre série et synchroniser votre carte.';
+      'Connectez-vous avec Google pour garder votre territoire synchronisé.';
 
   @override
   String get profileAnonymousNote =>
-      'Utilisation anonyme. Connectez-vous pour suivre votre progression.';
+      'Utilisation anonyme. Connectez-vous pour sauvegarder votre territoire.';
 
   @override
   String get profileUserFallback => 'Utilisateur';
@@ -365,23 +297,91 @@ class AppLocalizationsFr extends AppLocalizations {
   String get profileViewStats => 'Voir les statistiques';
 
   @override
-  String get profileContributionsHint => 'Suivez vos contributions';
+  String get profileContributionsHint => 'Voir votre territoire';
 
   @override
   String get profileSignedOut => 'Déconnecté';
 
   @override
-  String get chipContributing => 'En cours';
+  String get chipContributing => 'Cartographie';
 
   @override
   String get chipPaused => 'En pause';
 
   @override
-  String get chipTapStart => 'Appuyer ▶';
+  String get chipTapStart => 'Pas de suivi · Appuyer ▶';
+
+  @override
+  String chipDataPts(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count pts',
+      one: '1 pt',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String homeSessionZones(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '+$count zones complétées',
+      one: '+1 zone complétée',
+      zero: 'Analyse en cours',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get homeYourMap => 'VOTRE CARTE';
+
+  @override
+  String homeCityPct(String pct) {
+    return '$pct% de la ville explorée';
+  }
+
+  @override
+  String get profileImpactSection => 'VOTRE IMPACT';
+
+  @override
+  String get profileAccountSection => 'COMPTE';
 
   @override
   String get homeFirstUseHint =>
       'Appuyez sur ▶ — regardez votre première zone apparaître';
+
+  @override
+  String get homeFirstTrackingHint =>
+      'Capteur lumière, pression, mouvement — première zone après le premier envoi';
+
+  @override
+  String homeTrackingReadings(num count) {
+    final intl.NumberFormat countNumberFormat = intl.NumberFormat.compact(
+      locale: localeName,
+    );
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countString mesures capturées',
+      one: '1 mesure capturée',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String homeReturnHint(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count zones sur votre carte — appuyez sur ▶ pour continuer',
+      one: '1 zone sur votre carte — appuyez sur ▶ pour continuer',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get uploadSuccessMessage => 'Carte mise à jour !';
@@ -414,12 +414,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get statsToday => 'Aujourd\'hui';
 
   @override
-  String get statsStreak => 'Série';
-
-  @override
-  String statsStreakBest(int days) {
-    return 'RECORD ${days}J';
-  }
+  String get statsThisWeek => 'Cette semaine';
 
   @override
   String get statsDaysActive => 'Jours actifs';
@@ -434,19 +429,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get statsAreasLabel => 'zones cartographiées';
 
   @override
-  String get statsDataPtsLabel => 'envois';
+  String get statsDataPtsLabel => 'enregistrements';
 
   @override
   String get statsKmMapped => 'km² cartographiés';
 
   @override
-  String get statsBestDay => 'meilleur jour';
-
-  @override
-  String get statsStreakLabel => 'série';
-
-  @override
-  String get statsRecordStreak => 'record';
+  String get statsBestDay => 'Meilleur jour';
 
   @override
   String statsBarCalloutUploads(int count) {
@@ -470,63 +459,73 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get infoKmBody =>
-      'Chaque hexagone sur votre carte couvre environ 0,1 km². Cela représente la surface de votre ville que vous avez personnellement cartographiée.';
+      'Chaque hexagone couvre ~0,1 km² — c\'est votre empreinte personnelle sur la carte.';
 
   @override
   String get infoDataPtsTitle => 'Envois';
 
   @override
   String get infoDataPtsBody =>
-      'Chaque envoi enregistre lumière, pression et mouvement pendant vos déplacements. Plus d\'envois = plus de détails sur votre carte.';
+      'Chaque envoi capture lumière, pression et mouvement — plus d\'envois = carte plus dense.';
+
+  @override
+  String get infoTodayTitle => 'Enregistrements aujourd\'hui';
+
+  @override
+  String get infoTodayBody =>
+      'Mesures envoyées aujourd\'hui — lumière, pression et mouvement à chaque arrêt.';
+
+  @override
+  String get infoThisWeekTitle => 'Cette semaine';
+
+  @override
+  String get infoThisWeekBody =>
+      'Enregistrements des 7 derniers jours — la régularité enrichit la carte.';
 
   @override
   String get infoDaysActiveTitle => 'Jours actifs';
 
   @override
   String get infoDaysActiveBody =>
-      'Le nombre de jours où vous étiez actif. Pas besoin d\'être actif tous les jours.';
+      'Jours où vous avez contribué — pas besoin d\'être actif tous les jours.';
 
   @override
   String get infoBestDayTitle => 'Meilleur jour';
 
   @override
   String get infoBestDayBody =>
-      'Votre jour le plus actif cette semaine, mesuré en points de données envoyés. Un chiffre élevé signifie généralement plus de temps en extérieur.';
+      'Votre jour le plus actif cette semaine — souvent plus de temps en extérieur.';
 
   @override
   String get infoMilestoneTitle => 'Prochain palier';
 
   @override
   String get infoMilestoneBody =>
-      'Les paliers mesurent la croissance de votre territoire. Chaque nouvel hexagone cartographié compte pour le niveau suivant.';
+      'Chaque nouvelle zone cartographiée compte pour le prochain palier.';
 
   @override
   String get infoTileQualityTitle => 'Qualité de couverture';
 
   @override
   String get infoTileQualityBody =>
-      'La qualité reflète le nombre et la cohérence des mesures collectées dans cette zone. Vert = données solides, jaune = partiel, rouge = sparse.';
+      'Vert = bien couvert, jaune = partiel, rouge = plus de passages nécessaires.';
 
   @override
   String get infoTilePersonalTitle => 'Votre zone';
 
   @override
   String get infoTilePersonalBody =>
-      'Vous avez cartographié cette zone. Votre téléphone a enregistré ici lors de vos déplacements.';
+      'Votre téléphone a enregistré ici — c\'est votre terrain.';
 
   @override
   String get infoTileCommunityTitle => 'Zone communautaire';
 
   @override
   String get infoTileCommunityBody =>
-      'Cette zone a été cartographiée par d\'autres utilisateurs. Ensemble vous construisez une carte à l\'échelle de la ville.';
+      'Cartographié par d\'autres — leur terrain, pas le vôtre. Pas encore.';
 
   @override
   String get statsTotalContributions => 'Total des contributions';
-
-  @override
-  String get statsKeepContributing =>
-      'Continuez à contribuer pour suivre les tendances';
 
   @override
   String get statsActivityTrend => 'Cette semaine';
@@ -566,11 +565,11 @@ class AppLocalizationsFr extends AppLocalizations {
       'Suivez vos gains et l\'historique des paiements une fois la monétisation lancée';
 
   @override
-  String get statsStartContributing => 'Rien à afficher pour l\'instant';
+  String get statsStartContributing => 'Votre carte est vide.';
 
   @override
   String get statsEmptyDescription =>
-      'Allez sur la carte et appuyez sur ▶. Votre première zone apparaîtra en quelques minutes.';
+      'Appuyez sur ▶. Votre première zone attend d\'être cartographiée.';
 
   @override
   String get statsEmptyGoMap => 'Aller sur la carte';
@@ -603,45 +602,37 @@ class AppLocalizationsFr extends AppLocalizations {
   String get mapLoadingText => 'Chargement de la carte...';
 
   @override
-  String get mapComingSoonTitle => 'Carte de couverture bientôt disponible';
-
-  @override
-  String get mapComingSoonDescription =>
-      'Visualisation de la couverture en cours';
-
-  @override
   String get mapCenterTooltip => 'Centrer sur la position';
 
   @override
-  String get yourContributions => 'VOS ENVOIS';
+  String get yourContributions => 'VOTRE TERRITOIRE';
 
   @override
-  String get impactCardContext => 'envois — partagés anonymement';
+  String get impactCardContext => 'zones cartographiées';
 
   @override
   String get loadingStatsLabel => 'Chargement des statistiques';
 
   @override
   String get noContributionsYet =>
-      'Rien d\'enregistré pour l\'instant. Commencez le suivi.';
+      'Rien d\'enregistré — appuyez sur ▶ pour démarrer.';
 
   @override
   String get startContributingTitle => 'Commencer à cartographier';
 
   @override
   String get startContributingHint =>
-      'Votre téléphone cartographie silencieusement la ville pendant vos déplacements';
+      'Votre téléphone cartographie silencieusement pendant vos déplacements';
 
   @override
   String get areaCovered => 'Zone couverte';
 
   @override
-  String get activeStreak => 'Série active';
+  String get activeStreak => 'Territoire';
 
   @override
-  String contributionStatsSemanticsLabel(
-      String uploads, String area, String streak) {
-    return 'Vos contributions : $uploads. Zone couverte : $area. Série active : $streak.';
+  String contributionStatsSemanticsLabel(String uploads, String area) {
+    return 'Vos contributions : $uploads. Zone couverte : $area.';
   }
 
   @override
@@ -738,8 +729,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get sensorLiveReadings => 'Lectures en direct';
 
   @override
-  String get sensorLiveSubtitle =>
-      'Voir les données que vous contribuez en ce moment';
+  String get sensorLiveSubtitle => 'Lectures en temps réel de votre téléphone.';
 
   @override
   String get sensorInactiveTitle => 'Rien n\'est enregistré';
@@ -897,18 +887,11 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settingsDataRetention => 'Données conservées 7 jours (Gratuit)';
 
   @override
-  String get onboardingDataCollectedTitle => 'Ce que nous collectons';
-
-  @override
-  String get onboardingDataCollectedDescription =>
-      'Lumière, mouvement, pression et position anonyme — agrégés avec 100 000+ appareils avant toute analyse.';
-
-  @override
   String get referralInviteTitle => 'Inviter des amis';
 
   @override
   String get referralInviteDescription =>
-      'Invitez des amis à cartographier votre ville. Chaque personne ajoute des rues que vous n\'avez pas encore parcourues.';
+      'Chaque ami couvre un terrain que vous n\'avez pas encore atteint.';
 
   @override
   String get referralLinkCopied => 'Lien de parrainage copié';
@@ -938,20 +921,20 @@ class AppLocalizationsFr extends AppLocalizations {
   String get tooltipDismiss => 'Fermer';
 
   @override
+  String get statsHighlightsLabel => 'FAITS MARQUANTS';
+
+  @override
+  String get statsMappingSince => 'Cartographie depuis';
+
+  @override
   String get statsFailedToLoad => 'Impossible de charger les statistiques';
 
   @override
-  String get statsReadyToContribute => 'Prêt à contribuer ?';
+  String get statsReadyToContribute => 'Votre terrain vous attend.';
 
   @override
   String get statsFirstContributionHint =>
-      'Commencez le suivi pour faire votre première contribution';
-
-  @override
-  String get statsDayStreak => 'Jours de suite';
-
-  @override
-  String get offlineBannerMessage => 'Hors connexion · données en attente';
+      'Commencez le suivi pour cartographier votre première zone';
 
   @override
   String get statsWeeklyLabel => '7 JOURS';
@@ -962,15 +945,14 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get statsMilestoneLabel => 'Prochain palier';
+  String get statsMilestoneLabel => 'Niveau suivant';
 
   @override
   String get statsMilestoneHint =>
-      'Les récompenses se débloquent à ce palier — continuez à contribuer';
+      'Cartographiez suffisamment de terrain pour atteindre ce niveau et débloquer le suivant';
 
   @override
-  String get statsMilestoneElite =>
-      'Contributeur élite · tous les paliers atteints';
+  String get statsMilestoneElite => 'Tout cartographié · statut explorateur';
 
   @override
   String statsMilestoneRemaining(int count) {
@@ -989,11 +971,11 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get batteryDialogTitle => 'Maximisez votre impact';
+  String get batteryDialogTitle => 'Continuez à cartographier';
 
   @override
   String get batteryDialogBody =>
-      'Pour contribuer 24h/24, GreenGains doit fonctionner en arrière-plan sans être arrêté par le système.';
+      'Désactivez l\'optimisation de la batterie pour que l\'appli continue de cartographier en arrière-plan.';
 
   @override
   String get batteryDialogBodyBold =>
@@ -1082,22 +1064,35 @@ class AppLocalizationsFr extends AppLocalizations {
   String get permissionPrimingTitle => 'Une chose avant de commencer';
 
   @override
-  String get permissionPrimingBattery =>
-      'Moins de 1 % de batterie par heure — comme une appli météo';
+  String get permissionPrimingBattery => 'Batterie intelligente';
 
   @override
-  String get permissionPrimingCollects =>
-      'Nous collectons la lumière ambiante, la pression et le mouvement — jamais votre identité';
+  String get permissionPrimingBatteryDesc =>
+      'Moins d\'1 % par heure — s\'adapte automatiquement en arrière-plan';
+
+  @override
+  String get permissionPrimingCollects => 'Conçu pour la vie privée';
+
+  @override
+  String get permissionPrimingCollectsDesc =>
+      'Lumière, pression et mouvement uniquement — jamais votre trajet ni votre identité';
 
   @override
   String get permissionPrimingCta => 'Activer la localisation';
 
   @override
-  String get firstStartTitle => 'Ça se remplit';
+  String get settingsBatteryMode => 'Batterie intelligente';
+
+  @override
+  String get settingsBatteryModeDesc =>
+      'Discret à l\'arrêt, précis en mouvement — s\'adapte automatiquement';
+
+  @override
+  String get firstStartTitle => 'Cartographie en cours.';
 
   @override
   String get firstStartBody =>
-      'Bougez normalement — vos zones apparaissent sur la carte au fil de vos déplacements. Explorez de nouvelles rues pour en remplir davantage.';
+      'Bougez — les zones apparaissent au fil de vos pas.';
 
   @override
   String get alwaysOnBannerBody =>
@@ -1112,26 +1107,47 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get milestoneReachedBody =>
-      'Vous construisez une vraie carte de votre ville. Continuez.';
+  String get milestoneReachedBody => 'Jusqu\'où pouvez-vous aller ?';
 
   @override
-  String get milestoneReachedCta => 'Continuer à cartographier';
+  String get milestoneReachedCta => 'Continuer';
 
   @override
-  String get firstUploadTitle => 'Votre première zone est remplie !';
+  String get firstUploadTitle => 'Première zone cartographiée.';
 
   @override
   String get firstUploadBody =>
-      'Continuez à bouger — chaque nouvelle rue remplit une zone. Explorez un nouveau chemin pour agrandir votre carte.';
+      'Continuez à bouger — votre territoire grandit.';
 
   @override
   String get firstUploadCta => 'Voir ma carte';
 
   @override
   String onboardingSocialProof(int count) {
-    return '$count personnes cartographient déjà leur ville';
+    return '$count personnes cartographient déjà leur terrain';
   }
+
+  @override
+  String sessionSummaryZonesClaimed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'zones cartographiées',
+      one: 'zone cartographiée',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sessionSummaryTotal(int zones, String km2) {
+    return 'Territoire total : $zones zones · $km2 km²';
+  }
+
+  @override
+  String get sessionSummaryCta => 'Voir mon territoire';
+
+  @override
+  String get sessionSummaryDone => 'Terminé';
 
   @override
   String get statsMapGrowing => 'carte en cours — continuez à marcher';
@@ -1143,5 +1159,209 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String uploadMilestone(int count) {
     return '$count envois — continuez !';
+  }
+
+  @override
+  String get statsViewOnMap => 'Voir sur la carte';
+
+  @override
+  String statsCommunityMappers(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count contributeurs actifs ce mois',
+      one: '1 contributeur actif ce mois',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String tileFirstMapped(String date) {
+    return 'Cartographié le $date';
+  }
+
+  @override
+  String statsSinceDate(String date) {
+    return 'depuis $date';
+  }
+
+  @override
+  String get statsStreakLabel => 'Série';
+
+  @override
+  String statsStreakDays(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count jours de suite',
+      one: '1 jour de suite',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tileCommunityClaimCta =>
+      'Cartographiez ici pour conquérir cette zone';
+
+  @override
+  String get tileLowQualityHint => 'Repassez ici pour renforcer cette zone.';
+
+  @override
+  String homeCommunityScopeHint(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count zones cartographiées dans votre secteur',
+      one: '1 zone cartographiée dans votre secteur',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tileCivicNote =>
+      'Vos données enrichissent la carte environnementale.';
+
+  @override
+  String sessionSummaryShareText(int gained, int total, String km2) {
+    return 'J\'ai cartographié +$gained zones aujourd\'hui — $total zones au total · $km2 km²';
+  }
+
+  @override
+  String sensorLuxLabel(int lux) {
+    return '$lux lux';
+  }
+
+  @override
+  String sensorHpaLabel(String hpa) {
+    return '$hpa hPa';
+  }
+
+  @override
+  String sensorMovementLabel(String val) {
+    return 'mouvement $val';
+  }
+
+  @override
+  String get sensorLuxDark => 'sombre';
+
+  @override
+  String get sensorLuxIndoor => 'lumière intérieure';
+
+  @override
+  String get sensorLuxBright => 'lumineux';
+
+  @override
+  String get sensorLuxDirect => 'plein soleil';
+
+  @override
+  String get sensorMovementLow => 'immobile';
+
+  @override
+  String get sensorMovementMid => 'actif';
+
+  @override
+  String get sensorMovementHigh => 'fort trafic';
+
+  @override
+  String get sensorHpaLow => 'basse altitude';
+
+  @override
+  String get sensorHpaMid => 'altitude moyenne';
+
+  @override
+  String get sensorHpaHigh => 'haute altitude';
+
+  @override
+  String get tileSensorInsightsLabel => 'Ce que vos capteurs ont enregistré';
+
+  @override
+  String territoryHeroLabel(String neighborhood, int count) {
+    return '$neighborhood · $count zones';
+  }
+
+  @override
+  String get serverWakingUp => 'Démarrage en cours — encore un instant…';
+
+  @override
+  String referralNeighborhoodHook(String neighborhood) {
+    return 'Aidez à cartographier $neighborhood — chaque voisin couvre ce que vous n\'avez pas encore atteint.';
+  }
+
+  @override
+  String get onboardingActivateTitle => 'Presque là';
+
+  @override
+  String get onboardingActivateSubtitle =>
+      'Autorisez la localisation — votre téléphone cartographie pendant vos déplacements.';
+
+  @override
+  String get onboardingActivateCta => 'Commencer à cartographier';
+
+  @override
+  String homeMaxClusterHint(int count) {
+    return 'territoire de $count zones';
+  }
+
+  @override
+  String get firstUploadBadge => 'PREMIÈRE ZONE TÉLÉCHARGÉE';
+
+  @override
+  String get firstUploadHeadline => 'Votre première zone est sur la carte.';
+
+  @override
+  String get firstUploadSubtext =>
+      'Elle rejoint un registre de lumière, pression et mouvement — anonymisé, agrégé.';
+
+  @override
+  String get firstUploadSensorsLabel => 'CAPTEURS';
+
+  @override
+  String get firstUploadSensorsValue => 'lumière · mouvement · pression';
+
+  @override
+  String get firstUploadPrivacyLabel => 'CONFIDENTIALITÉ';
+
+  @override
+  String get firstUploadPrivacyValue => 'anonymisé';
+
+  @override
+  String get firstUploadKeepMappingCta => 'Continuer à cartographier';
+
+  @override
+  String get liveSensorsHeader => 'CAPTEURS EN DIRECT';
+
+  @override
+  String get liveSensorMotionLabel => 'Mouvement';
+
+  @override
+  String get liveSensorPressureLabel => 'Pression';
+
+  @override
+  String get sessionSummaryBadge => 'SESSION TERMINÉE';
+
+  @override
+  String get sessionSummaryZonesGainedLabel => 'ZONES GAGNÉES';
+
+  @override
+  String get sessionSummarySubline => 'nouveau terrain, tracé en';
+
+  @override
+  String get sessionSummaryWatermark => 'Cartographié avec GreenGains';
+
+  @override
+  String get sessionSummaryShareCta => 'Partager';
+
+  @override
+  String get sessionStatArea => 'SURFACE';
+
+  @override
+  String get sessionStatDuration => 'DURÉE';
+
+  @override
+  String get sessionStatTotal => 'TOTAL';
+
+  @override
+  String statsMilestoneTarget(int target) {
+    return '$target zones';
   }
 }

@@ -42,6 +42,7 @@ class PreferenceKeys {
 
   // One-time UX flags — stored in AppPreferences for consistency
   static const trackingEverStarted = 'tracking_ever_started';
+  static const lastKnownZoneCount = 'last_known_zone_count';
   static const lastMilestoneCelebrated = 'last_milestone_celebrated';
   static const totalUploadCount = 'total_upload_count';
   static const reviewRequested = 'review_requested';
@@ -49,6 +50,18 @@ class PreferenceKeys {
   static const lastUploadMilestoneCelebrated = 'last_upload_milestone_celebrated';
 
   static const currentStreak = 'current_streak';
+  static const lastSessionZonesGained = 'last_session_zones_gained';
+  static const lastSessionEndAt = 'last_session_end_at';
+
+  /// Primary neighborhood name computed from the user's most-mapped tile centroid.
+  static const territoryLabel = 'territory_label';
+
+  /// Last successful personal tile API response, JSON-encoded.
+  /// Loaded instantly on app open before network response arrives.
+  static const cachedPersonalTiles = 'cached_personal_tiles';
+
+  /// Last successful global tile API response, JSON-encoded.
+  static const cachedGlobalTiles = 'cached_global_tiles';
 
   static const _legacyDeviceId = 'device_id';
   static const _legacyForegroundServiceEnabled = 'foreground_service_enabled';
@@ -307,8 +320,8 @@ class AppPreferences {
       return existing;
     }
     final generated = _uuid.v4();
+    _deviceIdCache = generated; // set before await so concurrent calls short-circuit
     await _sp.setString(PreferenceKeys.deviceId, generated);
-    _deviceIdCache = generated;
     return generated;
   }
 
@@ -446,6 +459,32 @@ class AppPreferences {
     await _sp.setInt(PreferenceKeys.totalUploadCount, count);
   }
 
+  /// Zone count stored at last app open — used to compute delta for re-engagement banner.
+  int get lastKnownZoneCount =>
+      _sp.getInt(PreferenceKeys.lastKnownZoneCount) ?? 0;
+
+  Future<void> setLastKnownZoneCount(int count) async {
+    await _sp.setInt(PreferenceKeys.lastKnownZoneCount, count);
+  }
+
+  // ── Last session data — for return hint on home screen ──────────────────────
+
+  /// Zones gained in the last completed tracking session (0 if none yet).
+  int get lastSessionZonesGained =>
+      _sp.getInt(PreferenceKeys.lastSessionZonesGained) ?? 0;
+
+  /// When the last tracking session ended (null = never).
+  DateTime? get lastSessionEndAt {
+    final ms = _sp.getInt(PreferenceKeys.lastSessionEndAt);
+    return ms != null ? DateTime.fromMillisecondsSinceEpoch(ms) : null;
+  }
+
+  Future<void> saveLastSession({required int zonesGained}) async {
+    await _sp.setInt(PreferenceKeys.lastSessionZonesGained, zonesGained);
+    await _sp.setInt(PreferenceKeys.lastSessionEndAt,
+        DateTime.now().millisecondsSinceEpoch);
+  }
+
   bool get firstUploadCelebrated =>
       _sp.getBool(PreferenceKeys.firstUploadCelebrated) ?? false;
 
@@ -465,6 +504,28 @@ class AppPreferences {
 
   Future<void> setReviewRequested() async {
     await _sp.setBool(PreferenceKeys.reviewRequested, true);
+  }
+
+  /// Primary neighborhood name — computed once from the user's most-mapped tile centroid.
+  /// Null until first successful geocode. Shown in home hero + referral card.
+  String? get territoryLabel => _sp.getString(PreferenceKeys.territoryLabel);
+
+  Future<void> setTerritoryLabel(String name) async {
+    await _sp.setString(PreferenceKeys.territoryLabel, name);
+  }
+
+  /// Cached personal tile API response (raw JSON string). Null on first install.
+  String? get cachedPersonalTiles => _sp.getString(PreferenceKeys.cachedPersonalTiles);
+
+  Future<void> setCachedPersonalTiles(String json) async {
+    await _sp.setString(PreferenceKeys.cachedPersonalTiles, json);
+  }
+
+  /// Cached global tile API response (raw JSON string). Null on first install.
+  String? get cachedGlobalTiles => _sp.getString(PreferenceKeys.cachedGlobalTiles);
+
+  Future<void> setCachedGlobalTiles(String json) async {
+    await _sp.setString(PreferenceKeys.cachedGlobalTiles, json);
   }
 
   // ── Last known GPS position (for instant map centering on cold start) ───────

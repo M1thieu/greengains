@@ -164,6 +164,15 @@ class BackendClient {
   }
 }
 
+/// Shared Nominatim reverse-geocoding client.
+/// Single instance — used by home screen (territory label) and tile info sheet.
+final nominatimClient = Dio(BaseOptions(
+  baseUrl: 'https://nominatim.openstreetmap.org',
+  connectTimeout: const Duration(seconds: 8),
+  receiveTimeout: const Duration(seconds: 8),
+  headers: {'User-Agent': 'GreenGains/1.0 (com.eremat.greengains)'},
+));
+
 /// Legacy exception type — kept for any external callers.
 /// Prefer [ApiException] for new code.
 class BackendException implements Exception {

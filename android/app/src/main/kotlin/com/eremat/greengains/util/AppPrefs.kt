@@ -66,6 +66,9 @@ object AppPrefs {
     /** Lifetime total successful uploads — shown alongside today's count in the notification. */
     const val UPLOADS_TOTAL_COUNT = "gg.uploads_total_count"
 
+    /** Total personal mapped zones — written by Flutter after tile load, shown in notification. */
+    const val ZONES_TOTAL_COUNT = "flutter.flutter.last_known_zone_count"
+
     // ── Streak (written by Flutter after profile fetch, read by StreakAlertWorker) ──
     /** Current consecutive-days streak — written by Flutter via AppPreferences.setCurrentStreak(). */
     const val CURRENT_STREAK = "flutter.flutter.current_streak"

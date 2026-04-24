@@ -19,13 +19,18 @@ const kApiStatsGlobal  = '/api/stats/global';
 
 // ─── API / Network ────────────────────────────────────────────────────────────
 /// Default Dio connect + receive timeout for all backend calls.
-const kApiTimeout = Duration(seconds: 12);
+/// 60s covers Render free-tier cold starts (30-60s) + slow mobile networks.
+const kApiTimeout = Duration(seconds: 60);
 /// Short retry delay after a 401 (auth token race on cold start).
 const kRetryDelay401 = Duration(seconds: 2);
 /// Retry delay after a network / server error on tile load.
 const kRetryDelayNetError = Duration(seconds: 4);
 /// Retry delay for global tile load errors (slightly longer — lower priority).
 const kGlobalTileRetryDelay = Duration(seconds: 5);
+/// Maximum number of tile load retries before giving up (avoids infinite loop).
+const kMaxTileRetries = 3;
+/// How long to wait before showing the "Starting up…" cold-start hint.
+const kSlowLoadThreshold = Duration(seconds: 8);
 
 // ─── Upload Queue ────────────────────────────────────────────────────────────
 /// Base backoff for exponential retry (30 s → 60 s → 120 s → …).

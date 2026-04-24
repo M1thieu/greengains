@@ -7,21 +7,22 @@ class ContributionRepository {
 
   /// Get current statistics
   Future<ContributionStats> getStats() async {
-    final results = await Future.wait<int>([
+    final results = await Future.wait([
       _db.getTotalCount(),
       _db.getTodayCount(),
+      _db.getWeekCount(),
       _db.getStreak(),
+      _db.getFirstContributionDate(),
     ]);
 
     return ContributionStats(
-      totalUploads: results[0],
-      uploadsToday: results[1],
-      currentStreak: results[2],
+      totalUploads: results[0] as int,
+      uploadsToday: results[1] as int,
+      uploadsThisWeek: results[2] as int,
+      currentStreak: results[3] as int,
+      firstContributionAt: results[4] as DateTime?,
       loadedAt: DateTime.now(),
     );
   }
 
-  Future<TileCoverageStats> getTodayTileCoverage() async {
-    return _db.getTodayTileCoverage();
-  }
 }

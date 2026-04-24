@@ -117,27 +117,26 @@ export async function analyticsRoutes(fastify: FastifyInstance) {
           FROM sensor_aggregates_5m
           WHERE window_start >= $1
           GROUP BY geohash
+          HAVING SUM(device_count) >= $2
+          ORDER BY SUM(device_count) DESC
         `,
-        [from.toISOString()],
+        [from.toISOString(), query.min_devices],
       );
 
-      const items = result.rows
-        .map((row) => ({
-          geohash: row.geohash,
-          samples_count: Number(row.samples_count),
-          device_events: Number(row.device_events),
-          device_hours: Number(row.device_hours),
-          avg_light: numOrNull(row.avg_light),
-          avg_accel_rms: numOrNull(row.avg_accel_rms),
-          avg_gyro_rms: numOrNull(row.avg_gyro_rms),
-          movement_score: numOrNull(row.movement_score),
-          location_share: numOrNull(row.location_share),
-          quality_samples: numOrNull(row.quality_samples),
-          quality_valid_ratio: numOrNull(row.quality_valid_ratio),
-          quality_pocket_ratio: numOrNull(row.quality_pocket_ratio),
-        }))
-        .filter((item) => item.device_events >= query.min_devices)
-        .sort((a, b) => b.device_events - a.device_events);
+      const items = result.rows.map((row) => ({
+        geohash: row.geohash,
+        samples_count: Number(row.samples_count),
+        device_events: Number(row.device_events),
+        device_hours: Number(row.device_hours),
+        avg_light: numOrNull(row.avg_light),
+        avg_accel_rms: numOrNull(row.avg_accel_rms),
+        avg_gyro_rms: numOrNull(row.avg_gyro_rms),
+        movement_score: numOrNull(row.movement_score),
+        location_share: numOrNull(row.location_share),
+        quality_samples: numOrNull(row.quality_samples),
+        quality_valid_ratio: numOrNull(row.quality_valid_ratio),
+        quality_pocket_ratio: numOrNull(row.quality_pocket_ratio),
+      }));
 
       return { from: from.toISOString(), to: now.toISOString(), items };
     } catch (error) {

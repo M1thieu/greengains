@@ -309,7 +309,9 @@ export async function uploadRoutes(fastify: FastifyInstance) {
         // so the 202 response isn't delayed. Next profile read gets fresh data.
         if (userId) {
           invalidateProfileCache(userId);
-          refreshUserProfileCache(userId); // intentionally no await
+          refreshUserProfileCache(userId).catch((err: unknown) => // intentionally no await
+            fastify.log.error({ err, userId }, 'Profile cache refresh failed')
+          );
         }
 
         return reply.code(202).send({ accepted_records: readingsCount });

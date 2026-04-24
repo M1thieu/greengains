@@ -8,8 +8,11 @@ import 'package:flutter/services.dart';
 import 'package:maplibre_gl/maplibre_gl.dart';
 import 'package:h3_flutter/h3_flutter.dart' as h3f;
 import 'package:latlong2/latlong.dart' as ll;
+import 'package:dart_geohash/dart_geohash.dart';
+import 'package:intl/intl.dart';
 import '../core/extensions/context_extensions.dart';
 import '../core/themes.dart';
+import '../data/local/database_helper.dart';
 import '../data/models/h3_tile.dart';
 import '../l10n/app_localizations.dart';
 import 'time_ago_text.dart';
@@ -171,6 +174,9 @@ class CoverageMapWidget extends StatefulWidget {
   final EdgeInsets controlsPadding;
   /// Updated whenever follow mode toggles — lets parent show GPS fixed/not-fixed icon.
   final ValueNotifier<bool>? followModeNotifier;
+  /// When set, community tiles updated AFTER this timestamp are highlighted
+  /// as "new" — making the map feel alive between sessions.
+  final DateTime? lastSessionAt;
 
   const CoverageMapWidget({
     super.key,
@@ -187,6 +193,7 @@ class CoverageMapWidget extends StatefulWidget {
     this.recenterTrigger,
     this.controlsPadding = EdgeInsets.zero,
     this.followModeNotifier,
+    this.lastSessionAt,
   });
 
   @override
@@ -218,6 +225,9 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> {
     _followModeValue = value;
     widget.followModeNotifier?.value = value;
   }
+
+  // Cached H3 instance — loading the native lib is expensive, reuse across calls.
+  late final h3f.H3 _h3 = const h3f.H3Factory().load();
 
   // Timestamp of last programmatic camera move — used to suppress false
   // positives in _onCameraMove (animateCamera also triggers onCameraMove).
@@ -276,10 +286,33 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> {
   Map<String, dynamic> _tilesToGeoJson() {
     _tileById.clear();
     final features = <Map<String, dynamic>>[];
+
+    // Build set of res-8 parents for all personal tiles so we can skip global
+    // tiles that are already covered by the user's own data. Without this, every
+    // personal res-9 tile also renders a dim res-8 community overlay on top of it.
+    final personalParents = <BigInt>{};
+    for (final tile in widget.tiles) {
+      if (!tile.isGlobal && tile.h3Index.isNotEmpty) {
+        try {
+          final idx = BigInt.parse(tile.h3Index, radix: 16);
+          personalParents.add(_h3.cellToParent(idx, 8));
+        } catch (_) {}
+      }
+    }
+
     for (final tile in widget.tiles) {
       if (tile.boundary == null || tile.boundary!.isEmpty) continue;
+      // Skip global tile if the user already has personal coverage in that cell.
+      if (tile.isGlobal && tile.h3Index.isNotEmpty) {
+        try {
+          final idx = BigInt.parse(tile.h3Index, radix: 16);
+          if (personalParents.contains(idx)) continue;
+        } catch (_) {}
+      }
       _tileById[tile.h3Index] = tile;
-      final color = _colorHex(tile);
+      final isNew = _isNewSince(tile);
+      final color = isNew ? _newColorHex(tile) : _colorHex(tile);
+      final fillOpacity = isNew ? 0.32 : _fillOpacity(tile);
       // Centroid = average of boundary points — used for label placement
       final lats = tile.boundary!.map((p) => p.latitude);
       final lngs = tile.boundary!.map((p) => p.longitude);
@@ -290,7 +323,7 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> {
         'properties': {
           'h3Index': tile.h3Index,
           'color': color,
-          'fillOpacity': _fillOpacity(tile),
+          'fillOpacity': fillOpacity,
           'borderOpacity': _strokeOpacity(tile),
           'borderWidth': tile.isGlobal ? 0.0 : 1.8,
           // Label: quality % for personal, nothing for global (too cluttered)
@@ -387,6 +420,15 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> {
   // Colors communicate data quality — universally readable regardless of sensor
   // type. Green = high quality, yellow = medium, red = poor.
   // Global tiles are slightly dimmer so personal tiles always read as "yours".
+  // "New" community tiles (updated since last session) glow brighter — the map
+  // is alive between sessions.
+
+  /// True when this community tile was updated after the user's last session.
+  bool _isNewSince(H3Tile tile) {
+    final since = widget.lastSessionAt;
+    if (!tile.isGlobal || since == null || tile.lastUpdate == null) return false;
+    return tile.lastUpdate!.isAfter(since);
+  }
 
   /// Returns the effective quality score (0–100) for a tile.
   /// Uses qualityScore when available (global tiles), confidence otherwise.
@@ -406,6 +448,14 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> {
     if (q >= 75) return '#10b981';   // emerald-500 — high quality
     if (q >= 50) return '#fbbf24';   // amber-400   — medium
     return '#ef4444';                // red-400     — poor
+  }
+
+  /// Brighter color for community tiles new since last session.
+  static String _newColorHex(H3Tile tile) {
+    final q = _qualityPct(tile);
+    if (q >= 75) return '#10b981'; // full emerald — matches personal quality
+    if (q >= 50) return '#f59e0b'; // amber-400
+    return '#f87171';              // red-400
   }
 
   static double _fillOpacity(H3Tile tile) {
@@ -496,14 +546,17 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> {
     // doesn't exist yet at this point; MapLibre would silently drop this layer.
     // Grid fill and lines both start at zoom 11 — below that cells are
     // city-sized and a mosaic makes no visual sense (matching _gridRes logic).
+    // Ghost grid starts at zoom 9 (neighbourhood scale) so the hex mosaic is
+    // visible in a wider context — unclaimed cells read as "territory to fill",
+    // not just empty map. Fog-of-war psychology kicks in earlier.
     await ctrl.addFillLayer(
       _kSourceGrid,
       _kLayerGridFill,
       const FillLayerProperties(
         fillColor: '#1a3a52',  // dark blue-teal, clearly distinct from #111927 base
-        fillOpacity: 0.60,
+        fillOpacity: 0.65,
       ),
-      minzoom: 11.0,
+      minzoom: 9.0,
     );
 
     await ctrl.addLineLayer(
@@ -511,10 +564,10 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> {
       _kLayerGridLines,
       const LineLayerProperties(
         lineColor: '#ffffff',
-        lineOpacity: 0.12,
-        lineWidth: 0.7,
+        lineOpacity: 0.10,
+        lineWidth: 0.6,
       ),
-      minzoom: 11.0,
+      minzoom: 9.0,
     );
 
     // ── Data tiles fill ──
@@ -697,8 +750,7 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> {
     // Cheap center-cell dedup — gridDisk is centered on the center cell, so if
     // the center hasn't moved to a new H3 cell and zoom hasn't changed, the
     // computed disk is identical — skip the FFI call and GeoJSON rebuild.
-    final h3 = const h3f.H3Factory().load();
-    final centerCell = h3.geoToCell(
+    final centerCell = _h3.geoToCell(
       h3f.GeoCoord(lat: center.latitude, lon: center.longitude),
       res,
     );
@@ -1197,15 +1249,43 @@ class _LegendRow extends StatelessWidget {
 /// [isDark] and [l10n] are passed explicitly from the calling context because
 /// the modal route's BuildContext may not inherit AppLocalizations, causing
 /// `context.l10n` to throw and the sheet to render blank.
-class TileInfoSheet extends StatelessWidget {
+class TileInfoSheet extends StatefulWidget {
   const TileInfoSheet({super.key, required this.tile, required this.isDark, required this.l10n});
   final H3Tile tile;
   final bool isDark;
   final AppLocalizations l10n;
 
   @override
+  State<TileInfoSheet> createState() => _TileInfoSheetState();
+}
+
+class _TileInfoSheetState extends State<TileInfoSheet> {
+  DateTime? _firstMappedAt;
+
+  @override
+  void initState() {
+    super.initState();
+    if (!widget.tile.isGlobal && widget.tile.centroid != null) {
+      _loadFirstMappedDate();
+    }
+  }
+
+  Future<void> _loadFirstMappedDate() async {
+    final centroid = widget.tile.centroid!;
+    // Compute 7-char geohash from centroid to query local DB
+    final geohash = GeoHasher().encode(centroid.longitude, centroid.latitude, precision: 7);
+    final date = await DatabaseHelper.instance.getFirstContributionNearGeohash(geohash);
+    if (mounted && date != null) {
+      setState(() => _firstMappedAt = date);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final isPersonal = !tile.isGlobal;
+    final isPersonal = !widget.tile.isGlobal;
+    final tile = widget.tile;
+    final isDark = widget.isDark;
+    final l10n = widget.l10n;
     final theme = Theme.of(context);
 
     final qualityPct = tile.qualityScore != null
@@ -1267,7 +1347,17 @@ class TileInfoSheet extends StatelessWidget {
                               fontWeight: AppFontWeights.semibold,
                             ),
                           ),
-                          if (tile.lastUpdate != null) ...[
+                          if (isPersonal && _firstMappedAt != null) ...[
+                            const SizedBox(height: AppTheme.spaceXxxs),
+                            Text(
+                              l10n.tileFirstMapped(DateFormat('MMM d, yyyy', Localizations.localeOf(context).toString()).format(_firstMappedAt!)),
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: AppColors.primary.withValues(alpha: 0.85),
+                                fontWeight: AppFontWeights.medium,
+                              ),
+                            ),
+                          ] else if (tile.lastUpdate != null) ...[
                             const SizedBox(height: AppTheme.spaceXxxs),
                             _TimeAgoLine(timestamp: tile.lastUpdate!, isDark: isDark),
                           ],
@@ -1371,9 +1461,73 @@ class TileInfoSheet extends StatelessWidget {
                         ),
                       ),
                     ),
+                    // Low-quality hint — personal tile only, below 50%
+                    if (isPersonal && qualityPct < 50) ...[
+                      const SizedBox(height: AppTheme.spaceXxs),
+                      Text(
+                        l10n.tileLowQualityHint,
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: AppColors.error.withValues(alpha: 0.75),
+                          fontWeight: AppFontWeights.medium,
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),
+              // Sensor insights — personal tiles with data only
+              if (isPersonal && (tile.avgLux != null || tile.avgHpa != null || tile.avgMovement != null)) ...[
+                Divider(height: 1, thickness: 1, color: AppColors.border(isDark)),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                      AppTheme.spaceMd, AppTheme.spaceSm, AppTheme.spaceMd, AppTheme.spaceSm),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        l10n.tileSensorInsightsLabel,
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: AppColors.textSecondary(isDark),
+                          fontWeight: AppFontWeights.medium,
+                          letterSpacing: 0.4,
+                        ),
+                      ),
+                      const SizedBox(height: AppTheme.spaceXs),
+                      if (tile.avgLux != null)
+                        _SensorInsightRow(
+                          icon: Icons.light_mode_outlined,
+                          color: AppColors.light,
+                          value: l10n.sensorLuxLabel(tile.avgLux!),
+                          context: _luxContext(tile.avgLux!, l10n),
+                          isDark: isDark,
+                        ),
+                      if (tile.avgHpa != null) ...[
+                        if (tile.avgLux != null) const SizedBox(height: AppTheme.spaceXxxs + 2),
+                        _SensorInsightRow(
+                          icon: Icons.compress_outlined,
+                          color: AppColors.pressure,
+                          value: l10n.sensorHpaLabel(tile.avgHpa!.toStringAsFixed(1)),
+                          context: _hpaContext(tile.avgHpa!, l10n),
+                          isDark: isDark,
+                        ),
+                      ],
+                      if (tile.avgMovement != null) ...[
+                        if (tile.avgLux != null || tile.avgHpa != null)
+                          const SizedBox(height: AppTheme.spaceXxxs + 2),
+                        _SensorInsightRow(
+                          icon: Icons.vibration_outlined,
+                          color: AppColors.movement,
+                          value: l10n.sensorMovementLabel(tile.avgMovement!.toStringAsFixed(2)),
+                          context: _movementContext(tile.avgMovement!, l10n),
+                          isDark: isDark,
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ],
               // Divider
               Divider(height: 1, thickness: 1, color: AppColors.border(isDark)),
               // Stats row
@@ -1409,15 +1563,19 @@ class TileInfoSheet extends StatelessWidget {
               ),
               // Sensor pills
               Padding(
-                padding: const EdgeInsets.fromLTRB(
-                    AppTheme.spaceMd, 0, AppTheme.spaceMd, AppTheme.spaceLg),
+                padding: EdgeInsets.fromLTRB(
+                    AppTheme.spaceMd, 0, AppTheme.spaceMd,
+                    isPersonal ? AppTheme.spaceLg : AppTheme.spaceSm),
                 child: Row(
                   children: [
-                    Text(
-                      l10n.tileMeasuredWith,
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: AppColors.textSecondary(isDark),
+                    Flexible(
+                      child: Text(
+                        l10n.tileMeasuredWith,
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: AppColors.textSecondary(isDark),
+                        ),
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                     const SizedBox(width: AppTheme.spaceSm),
@@ -1431,6 +1589,55 @@ class TileInfoSheet extends StatelessWidget {
                   ],
                 ),
               ),
+              // Personal tile: civic note — one quiet line grounding the data in purpose
+              if (isPersonal) ...[
+                Divider(height: 1, thickness: 1, color: AppColors.border(isDark)),
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: AppTheme.spaceMd, vertical: AppTheme.spaceSm),
+                  child: Text(
+                    l10n.tileCivicNote,
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: AppColors.textTertiary(isDark),
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                ),
+              ],
+
+              // Community tile: subtle claim CTA
+              if (!isPersonal) ...[
+                Divider(height: 1, thickness: 1, color: AppColors.border(isDark)),
+                InkWell(
+                  onTap: () {
+                    HapticFeedback.selectionClick();
+                    Navigator.of(context).pop();
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: AppTheme.spaceMd, vertical: AppTheme.spaceMd),
+                    child: Row(
+                      children: [
+                        Icon(Icons.add_location_alt_outlined,
+                            size: 15, color: AppColors.primary),
+                        const SizedBox(width: AppTheme.spaceXs),
+                        Expanded(
+                          child: Text(
+                            l10n.tileCommunityClaimCta,
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: AppColors.primary,
+                              fontWeight: AppFontWeights.medium,
+                            ),
+                          ),
+                        ),
+                        Icon(Icons.chevron_right, size: 16, color: AppColors.primary),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ],
           ),
         ),
@@ -1443,11 +1650,26 @@ class TileInfoSheet extends StatelessWidget {
     return '$n';
   }
 
-  /// Approximate H3 res 9 cell area in metres (edge ≈ 174m, area ≈ 0.105 km²)
-  static String _areaMDisplay(H3Tile tile) {
-    const areaKm2 = 0.105;
-    if (areaKm2 >= 1.0) return '${areaKm2.toStringAsFixed(1)} km²';
-    return '${(areaKm2 * 1000).round()} m²';
+  /// H3 res 9 cell area — fixed ≈ 0.1 km² per cell.
+  static String _areaMDisplay(H3Tile tile) => '0.1 km²';
+
+  static String _luxContext(int lux, AppLocalizations l10n) {
+    if (lux < 50) return l10n.sensorLuxDark;
+    if (lux < 500) return l10n.sensorLuxIndoor;
+    if (lux < 10000) return l10n.sensorLuxBright;
+    return l10n.sensorLuxDirect;
+  }
+
+  static String _hpaContext(double hpa, AppLocalizations l10n) {
+    if (hpa > 1010) return l10n.sensorHpaLow;
+    if (hpa > 990) return l10n.sensorHpaMid;
+    return l10n.sensorHpaHigh;
+  }
+
+  static String _movementContext(double rms, AppLocalizations l10n) {
+    if (rms < 0.5) return l10n.sensorMovementLow;
+    if (rms < 2.0) return l10n.sensorMovementMid;
+    return l10n.sensorMovementHigh;
   }
 }
 
@@ -1547,6 +1769,48 @@ class _SensorPill extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppTheme.radiusSm),
       ),
       child: Icon(icon, size: 14, color: color),
+    );
+  }
+}
+
+/// One sensor insight row: icon · value — contextual label
+class _SensorInsightRow extends StatelessWidget {
+  const _SensorInsightRow({
+    required this.icon,
+    required this.color,
+    required this.value,
+    required this.context,
+    required this.isDark,
+  });
+  final IconData icon;
+  final Color color;
+  final String value;
+  final String context;
+  final bool isDark;
+
+  @override
+  Widget build(BuildContext buildContext) {
+    return Row(
+      children: [
+        Icon(icon, size: 13, color: color),
+        const SizedBox(width: AppTheme.spaceXs),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 12,
+            color: AppColors.textPrimary(isDark),
+            fontWeight: AppFontWeights.semibold,
+          ),
+        ),
+        const SizedBox(width: 5),
+        Text(
+          '— $context',
+          style: TextStyle(
+            fontSize: 12,
+            color: AppColors.textSecondary(isDark),
+          ),
+        ),
+      ],
     );
   }
 }

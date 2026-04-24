@@ -1,15 +1,19 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:math' as math;
+import 'dart:ui' as ui;
 import 'package:package_info_plus/package_info_plus.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:geolocator/geolocator.dart';
 import '../core/app_preferences.dart';
 import '../core/extensions/context_extensions.dart';
 import '../core/themes.dart';
 import '../l10n/app_localizations.dart';
 import '../services/auth/auth_service.dart';
+import '../services/location/foreground_location_service.dart';
 import '../services/network/backend_client.dart';
 import '../core/constants.dart';
 import '../utils/app_snackbars.dart';
@@ -41,6 +45,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   late final PageController _pageController;
   late int _currentPage;
   bool _signingIn = false;
+  bool _startingTracking = false;
   int? _activeMappers; // null = not yet loaded / failed
 
   @override
@@ -105,7 +110,16 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       AppSnackbars.showSuccess(context, l10n.signInSuccess);
       await Future.delayed(AppDurations.medium);
       if (!mounted) return;
-      widget.onComplete();
+      // First-time onboarding → advance to "start mapping" page.
+      // Re-sign-in (initialPage > 0) → complete immediately.
+      if (widget.initialPage > 0) {
+        widget.onComplete();
+      } else {
+        _pageController.nextPage(
+          duration: AppDurations.fast,
+          curve: AppMotion.standard,
+        );
+      }
     } catch (e) {
       debugPrint('Sign-in error: $e');
       if (!mounted) return;
@@ -116,24 +130,57 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   // Removed _skipSignIn() - all users must sign in with Google (no anonymous mode)
 
+  Future<void> _handleStartMapping() async {
+    if (_startingTracking) return;
+    setState(() => _startingTracking = true);
+    try {
+      var permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+      }
+      if (!mounted) return;
+      if (permission == LocationPermission.always ||
+          permission == LocationPermission.whileInUse) {
+        await ForegroundLocationService.instance.start();
+        if (mounted) widget.onComplete();
+      } else {
+        if (mounted) {
+          setState(() => _startingTracking = false);
+          AppSnackbars.showError(context, context.l10n.errorGeneric);
+        }
+      }
+    } catch (e) {
+      debugPrint('Start mapping error: $e');
+      if (mounted) {
+        setState(() => _startingTracking = false);
+        AppSnackbars.showError(context, context.l10n.errorGeneric);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final l10n = context.l10n;
 
+    // First-time onboarding has 3 pages; re-signin shows only sign-in (1 page).
+    final pageCount = widget.initialPage == 0 ? 3 : 1;
+
     return Scaffold(
       body: Stack(
         children: [
-          // PageView — 2 pages: Welcome → Sign In
+          // PageView — Welcome → Sign In → Start Mapping (first-time only)
           PageView(
             controller: _pageController,
+            physics: const NeverScrollableScrollPhysics(), // navigation is programmatic
             onPageChanged: (index) {
               setState(() => _currentPage = index);
             },
             children: [
-              _buildWelcomePage(theme, isDark, l10n),
+              if (widget.initialPage == 0) _buildWelcomePage(theme, isDark, l10n),
               _buildSignInPage(theme, isDark, l10n),
+              if (widget.initialPage == 0) _buildStartPage(theme, isDark, l10n),
             ],
           ),
 
@@ -149,7 +196,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: List.generate(
-                    2,
+                    pageCount,
                     (index) => AnimatedContainer(
                       duration: AppDurations.fast,
                       margin: const EdgeInsets.symmetric(horizontal: AppTheme.spaceXxs),
@@ -188,58 +235,74 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   // ── Page 1: Welcome ─────────────────────────────────────────────────────────
   Widget _buildWelcomePage(ThemeData theme, bool isDark, AppLocalizations l10n) {
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.all(AppTheme.spaceLg),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Spacer(),
-            Center(
-              child: Icon(
-                Icons.public,
-                size: _kWelcomeHeroSize,
-                color: AppColors.primary,
-              ),
-            ),
-            const SizedBox(height: AppTheme.spaceLg),
-            Text(
-              l10n.onboardingWelcomeTitle,
-              style: theme.textTheme.headlineLarge?.copyWith(
-                fontWeight: AppFontWeights.bold,
-                letterSpacing: -0.5,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: AppTheme.spaceXl),
-            _FeatureRow(
-              icon: Icons.directions_walk,
-              title: l10n.onboardingFeature1Title,
-              description: l10n.onboardingFeature1Description,
-              isDark: isDark,
-              theme: theme,
-            ),
-            const SizedBox(height: AppTheme.spaceSm),
-            _FeatureRow(
-              icon: Icons.shield_outlined,
-              title: l10n.onboardingFeature2Title,
-              description: l10n.onboardingFeature2Description,
-              isDark: isDark,
-              theme: theme,
-            ),
-            const SizedBox(height: AppTheme.spaceSm),
-            _FeatureRow(
-              icon: Icons.map_outlined,
-              title: l10n.onboardingFeature3Title,
-              description: l10n.onboardingFeature3Description,
-              isDark: isDark,
-              theme: theme,
-            ),
-            const Spacer(),
-          ],
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // Hex hero bleeds edge-to-edge from top (no safe area)
+        const SizedBox(
+          height: 260,
+          width: double.infinity,
+          child: _OnboardingHexHero(),
         ),
-      ),
+        Expanded(
+          child: SafeArea(
+            top: false,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(
+                  AppTheme.spaceLg, AppTheme.spaceLg,
+                  AppTheme.spaceLg, 120),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    l10n.onboardingWelcomeTitle,
+                    style: const TextStyle(
+                      fontSize: 30,
+                      fontWeight: AppFontWeights.semibold,
+                      letterSpacing: -0.8,
+                      height: 1.12,
+                      color: Color(0xF5FFFFFF),
+                    ),
+                  ),
+                  const SizedBox(height: AppTheme.spaceSm),
+                  Text(
+                    l10n.onboardingWelcomeSubtitle,
+                    style: TextStyle(
+                      fontSize: 15,
+                      height: 1.5,
+                      color: Colors.white.withValues(alpha: 0.58),
+                    ),
+                  ),
+                  const Spacer(),
+                  _FeatureRow(
+                    icon: Icons.battery_saver_outlined,
+                    title: l10n.onboardingFeature1Title,
+                    description: l10n.onboardingFeature1Description,
+                    isDark: isDark,
+                    theme: theme,
+                  ),
+                  const SizedBox(height: AppTheme.spaceMd),
+                  _FeatureRow(
+                    icon: Icons.shield_outlined,
+                    title: l10n.onboardingFeature2Title,
+                    description: l10n.onboardingFeature2Description,
+                    isDark: isDark,
+                    theme: theme,
+                  ),
+                  const SizedBox(height: AppTheme.spaceMd),
+                  _FeatureRow(
+                    icon: Icons.map_outlined,
+                    title: l10n.onboardingFeature3Title,
+                    description: l10n.onboardingFeature3Description,
+                    isDark: isDark,
+                    theme: theme,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -401,6 +464,79 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       ),
     );
   }
+
+  // ── Page 3: Start Mapping ─────────────────────────────────────────────────────
+  Widget _buildStartPage(ThemeData theme, bool isDark, AppLocalizations l10n) {
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.all(AppTheme.spaceLg),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Spacer(),
+            Center(
+              child: Icon(
+                Icons.map_outlined,
+                size: _kWelcomeHeroSize,
+                color: AppColors.primary,
+              ),
+            ),
+            const SizedBox(height: AppTheme.spaceLg),
+            Text(
+              l10n.onboardingActivateTitle,
+              style: theme.textTheme.headlineLarge?.copyWith(
+                fontWeight: AppFontWeights.bold,
+                letterSpacing: -0.5,
+              ),
+            ),
+            const SizedBox(height: AppTheme.spaceXs),
+            Text(
+              l10n.onboardingActivateSubtitle,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: AppColors.textSecondary(isDark),
+                height: 1.5,
+              ),
+            ),
+            const SizedBox(height: AppTheme.spaceXl),
+            _FeatureRow(
+              icon: Icons.battery_saver_outlined,
+              title: l10n.permissionPrimingBattery,
+              description: l10n.permissionPrimingBatteryDesc,
+              isDark: isDark,
+              theme: theme,
+            ),
+            const SizedBox(height: AppTheme.spaceSm),
+            _FeatureRow(
+              icon: Icons.security_outlined,
+              title: l10n.permissionPrimingCollects,
+              description: l10n.permissionPrimingCollectsDesc,
+              isDark: isDark,
+              theme: theme,
+            ),
+            const Spacer(),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton(
+                onPressed: _startingTracking ? null : _handleStartMapping,
+                child: _startingTracking
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2.5,
+                          valueColor: AlwaysStoppedAnimation(Colors.white),
+                        ),
+                      )
+                    : Text(l10n.onboardingActivateCta),
+              ),
+            ),
+            const SizedBox(height: AppTheme.spaceXxl),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 // ── Onboarding feature row ────────────────────────────────────────────────────
@@ -425,30 +561,202 @@ class _FeatureRow extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, size: AppIconSizes.md, color: AppColors.primary),
-        const SizedBox(width: AppTheme.spaceMd),
+        SizedBox(
+          width: 32, height: 32,
+          child: Icon(icon, size: 20, color: Colors.white.withValues(alpha: 0.7)),
+        ),
+        const SizedBox(width: AppTheme.spaceSm),
         Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: theme.textTheme.titleSmall?.copyWith(
-                  fontWeight: AppFontWeights.semibold,
+          child: Padding(
+            padding: const EdgeInsets.only(top: 4),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: AppFontWeights.semibold,
+                    color: Color(0xEBFFFFFF),
+                    letterSpacing: -0.1,
+                  ),
                 ),
-              ),
-              const SizedBox(height: AppTheme.spaceXxxs),
-              Text(
-                description,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: AppColors.textSecondary(isDark),
-                  height: 1.4,
-                ),
-              ),
-            ],
+                if (description.isNotEmpty) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    description,
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Colors.white.withValues(alpha: 0.5),
+                      height: 1.4,
+                    ),
+                  ),
+                ],
+              ],
+            ),
           ),
         ),
       ],
     );
   }
+}
+
+// ── Onboarding hex hero animation ────────────────────────────────────────────
+
+class _OnboardingHexHero extends StatefulWidget {
+  const _OnboardingHexHero();
+
+  @override
+  State<_OnboardingHexHero> createState() => _OnboardingHexHeroState();
+}
+
+class _OnboardingHexHeroState extends State<_OnboardingHexHero>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _ctrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 2000));
+    _ctrl.addStatusListener((status) {
+      if (status == AnimationStatus.completed) {
+        Future.delayed(const Duration(milliseconds: 1500), () {
+          if (mounted) { _ctrl.reset(); _ctrl.forward(); }
+        });
+      }
+    });
+    _ctrl.forward();
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _ctrl,
+      builder: (_, __) => CustomPaint(
+        painter: _OnboardingHexPainter(_ctrl.value),
+        child: const SizedBox.expand(),
+      ),
+    );
+  }
+}
+
+class _OnboardingHexPainter extends CustomPainter {
+  const _OnboardingHexPainter(this.t);
+  final double t;
+
+  static const _hexR = 22.0;
+  static const _radius = 7;
+  static const _fillRatio = 0.22;
+  static const _newRatio = 0.10;
+  static const _seed = 11;
+
+  (double, double) _hexToPixel(int q, int r) {
+    final x = _hexR * (3 / 2 * q);
+    final y = _hexR * (math.sqrt(3) / 2 * q + math.sqrt(3) * r);
+    return (x, y);
+  }
+
+  ui.Path _hexPath(double cx, double cy, double r) {
+    final path = ui.Path();
+    for (int i = 0; i < 6; i++) {
+      final angle = (i * 60 - 30) * math.pi / 180;
+      final x = cx + r * math.cos(angle);
+      final y = cy + r * math.sin(angle);
+      if (i == 0) { path.moveTo(x, y); } else { path.lineTo(x, y); }
+    }
+    path.close();
+    return path;
+  }
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final cx = size.width / 2;
+    final cy = size.height * 0.58;
+
+    // Street grid
+    final streetPaint = Paint()
+      ..color = Colors.white.withValues(alpha: 0.04)
+      ..strokeWidth = 0.6;
+    for (int i = 0; i < size.height / 28 + 2; i++) {
+      canvas.drawLine(Offset(0, i * 28.0), Offset(size.width, i * 28.0 + 6), streetPaint);
+    }
+    for (int i = 0; i < size.width / 28 + 2; i++) {
+      canvas.drawLine(Offset(i * 28.0, 0), Offset(i * 28.0 + 8, size.height), streetPaint);
+    }
+
+    // Generate cells
+    final rng = math.Random(_seed);
+    final cells = <(int, int, bool, bool, int)>[];
+    for (int q = -_radius; q <= _radius; q++) {
+      final rMin = math.max(-_radius, -q - _radius);
+      final rMax = math.min(_radius, -q + _radius);
+      for (int r = rMin; r <= rMax; r++) {
+        final dist = (q.abs() + r.abs() + (q + r).abs()) ~/ 2;
+        final isClaimed = rng.nextDouble() < _fillRatio;
+        final isNew = isClaimed && rng.nextDouble() < (_newRatio / _fillRatio);
+        cells.add((q, r, isClaimed, isNew, dist));
+      }
+    }
+
+    for (final (q, r, claimed, isNew, dist) in cells) {
+      final (px, py) = _hexToPixel(q, r);
+      final x = cx + px;
+      final y = cy + py;
+
+      if (x < -_hexR * 2 || x > size.width + _hexR * 2) continue;
+      if (y < -_hexR * 2 || y > size.height + _hexR * 2) continue;
+
+      final revealAt = dist / (_radius + 1.0);
+      final opacity = ((t - revealAt) / 0.25).clamp(0.0, 1.0);
+      if (opacity <= 0) continue;
+
+      final path = _hexPath(x, y, _hexR * 0.94);
+
+      if (claimed) {
+        if (isNew) {
+          canvas.drawPath(path, Paint()
+            ..color = const Color(0xFF10b981).withValues(alpha: 0.55 * opacity)
+            ..style = PaintingStyle.fill);
+          canvas.drawPath(path, Paint()
+            ..color = const Color(0xFF10b981).withValues(alpha: opacity)
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 1.0);
+        } else {
+          canvas.drawPath(path, Paint()
+            ..color = const Color(0xFF10b981).withValues(alpha: 0.20 * opacity)
+            ..style = PaintingStyle.fill);
+          canvas.drawPath(path, Paint()
+            ..color = const Color(0xFF10b981).withValues(alpha: 0.45 * opacity)
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 0.6);
+        }
+      } else {
+        canvas.drawPath(path, Paint()
+          ..color = Colors.white.withValues(alpha: 0.04 * opacity)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 0.4);
+      }
+    }
+
+    // Fade to background at bottom
+    canvas.drawRect(
+      Rect.fromLTWH(0, size.height * 0.55, size.width, size.height * 0.45),
+      Paint()
+        ..shader = ui.Gradient.linear(
+          Offset(0, size.height * 0.55),
+          Offset(0, size.height),
+          [Colors.transparent, const Color(0xFF0F1A1E)],
+        ),
+    );
+  }
+
+  @override
+  bool shouldRepaint(_OnboardingHexPainter old) => old.t != t;
 }

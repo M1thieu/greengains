@@ -2,15 +2,11 @@ package com.eremat.greengains
 
 import android.app.ActivityManager
 import android.app.ApplicationExitInfo
-import android.app.NotificationChannel
-import android.app.NotificationManager
-import android.app.PendingIntent
 import android.Manifest.permission.ACCESS_COARSE_LOCATION
 import android.Manifest.permission.ACCESS_FINE_LOCATION
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.graphics.Color
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -18,10 +14,7 @@ import android.os.PowerManager
 import android.provider.Settings
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
-import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
-import androidx.work.ExistingPeriodicWorkPolicy
-import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import com.eremat.greengains.service.ForegroundService
 import com.eremat.greengains.util.AppLogger
@@ -29,8 +22,6 @@ import com.eremat.greengains.worker.StreakAlertWorker
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
-import java.time.LocalTime
-import java.util.concurrent.TimeUnit
 
 /**
  * Bridges Flutter <-> native foreground service and handles permission requests.
@@ -40,8 +31,6 @@ class MainActivity : FlutterActivity() {
     companion object {
         private const val LOCATION_PERMISSION_REQUEST_CODE = 1001
         private const val NOTIFICATION_PERMISSION_REQUEST_CODE = 1002
-        private const val ZONE_CHANNEL_ID = "zone_discoveries"
-        private const val NOTIFICATION_ID_ZONE = 3
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -49,7 +38,10 @@ class MainActivity : FlutterActivity() {
         AppLogger.init(this)
         AppLogger.i("MainActivity", "App started")
         checkAndRequestNotificationPermission()
-        scheduleStreakAlert()
+        // Cancel any previously scheduled alert workers — only the foreground
+        // service notification is used. Workers that fire their own notifications
+        // are disabled so the app never interrupts users unprompted.
+        WorkManager.getInstance(this).cancelUniqueWork(StreakAlertWorker.WORK_NAME)
     }
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
@@ -108,12 +100,6 @@ class MainActivity : FlutterActivity() {
                     "flushSensorBuffers" -> {
                         // Flush FIFO buffers to get fresh data in UI
                         result.success(sendServiceAction(ForegroundService.ACTION_FLUSH_FIFO))
-                    }
-                    "showZoneNotification" -> {
-                        val newZones = call.argument<Int>("newZones") ?: 0
-                        val totalZones = call.argument<Int>("totalZones") ?: 0
-                        showZoneNotification(newZones, totalZones)
-                        result.success(true)
                     }
                     else -> result.notImplemented()
                 }
@@ -286,79 +272,6 @@ class MainActivity : FlutterActivity() {
         } catch (_: Exception) {
             false
         }
-    }
-
-    /**
-     * Posts a heads-up notification when the user discovers new zones.
-     * Uses a separate low-priority channel so it doesn't interrupt ongoing service notifications.
-     */
-    private fun showZoneNotification(newZones: Int, totalZones: Int) {
-        val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val existing = manager.getNotificationChannel(ZONE_CHANNEL_ID)
-            if (existing == null) {
-                val channel = NotificationChannel(
-                    ZONE_CHANNEL_ID,
-                    getString(R.string.notification_zone_channel_name),
-                    NotificationManager.IMPORTANCE_DEFAULT
-                ).apply {
-                    enableVibration(true)
-                    setShowBadge(true)
-                }
-                manager.createNotificationChannel(channel)
-            }
-        }
-
-        val body = if (newZones == 1) {
-            getString(R.string.notification_zone_body_single, totalZones)
-        } else {
-            getString(R.string.notification_zone_body_multiple, newZones, totalZones)
-        }
-
-        val tapIntent = PendingIntent.getActivity(
-            this, 0,
-            Intent(this, MainActivity::class.java),
-            PendingIntent.FLAG_IMMUTABLE
-        )
-
-        val notification = NotificationCompat.Builder(this, ZONE_CHANNEL_ID)
-            .setContentTitle(getString(R.string.notification_zone_title))
-            .setContentText(body)
-            .setSmallIcon(R.mipmap.ic_launcher)
-            .setColor(Color.parseColor("#10B981"))
-            .setAutoCancel(true)
-            .setContentIntent(tapIntent)
-            .build()
-
-        manager.notify(NOTIFICATION_ID_ZONE, notification)
-    }
-
-    /**
-     * Schedules a daily streak-at-risk check around 8 pm local time.
-     * Uses KEEP policy so it is not rescheduled on every launch.
-     * The worker fires at most once per day and only when conditions are met.
-     */
-    private fun scheduleStreakAlert() {
-        // Compute initial delay to the next 8 pm (or immediate if past 8 pm today)
-        val now = LocalTime.now()
-        val target = LocalTime.of(20, 0)
-        val delayMinutes = if (now.isBefore(target)) {
-            (target.toSecondOfDay() - now.toSecondOfDay()) / 60L
-        } else {
-            // Already past 8 pm — schedule for next day
-            ((24 * 60 * 60) - now.toSecondOfDay() + target.toSecondOfDay()) / 60L
-        }
-
-        val request = PeriodicWorkRequestBuilder<StreakAlertWorker>(24, TimeUnit.HOURS)
-            .setInitialDelay(delayMinutes, TimeUnit.MINUTES)
-            .build()
-
-        WorkManager.getInstance(this).enqueueUniquePeriodicWork(
-            StreakAlertWorker.WORK_NAME,
-            ExistingPeriodicWorkPolicy.KEEP, // don't reset timing on every app launch
-            request,
-        )
     }
 
     /**

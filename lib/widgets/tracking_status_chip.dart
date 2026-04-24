@@ -8,7 +8,6 @@ import '../widgets/time_ago_text.dart';
 // ── Chip layout constants ─────────────────────────────────────────────────────
 const _kChipDotSize         = AppTheme.spaceXs;   // 8 — solid dot diameter
 const _kChipDotArea         = AppTheme.spaceMd;   // 16 — pulse ring reserved area
-const _kChipDividerH        = AppTheme.spaceSm;   // 12 — separator line height
 const _kChipLabelSize       = 13.0;               // between bodySmall(12) and bodyMedium(14)
 const _kChipTimeSize        = 12.0;               // matches bodySmall
 const _kPulseCycle          = Duration(milliseconds: 1400);
@@ -28,19 +27,18 @@ class TrackingStatusChip extends StatefulWidget {
     this.tileCount = 0,
     this.isUploading = false,
     this.activeSensorCount = 0,
+    this.pendingReadings = 0,
     this.onTap,
   });
 
   final bool isTracking;
   final bool isPaused;
   final DateTime? lastUpload;
-  /// Personal H3 tile count — shown as "· N zones" when > 0 and tracking/paused.
   final int tileCount;
-  /// True while an upload is in progress — shows a small spinner instead of time ago.
   final bool isUploading;
-  /// How many sensor types have recent data — shown as "· N sensors" when > 0 and active.
   final int activeSensorCount;
-  /// Optional tap handler — shown with a subtle affordance when set.
+  /// Pending readings in buffer — shown inline when actively tracking.
+  final int pendingReadings;
   final VoidCallback? onTap;
 
   @override
@@ -118,10 +116,13 @@ class _TrackingStatusChipState extends State<TrackingStatusChip>
           vertical: AppTheme.spaceXs,
         ),
         decoration: BoxDecoration(
-          // Solid dark pill — always floats over the dark map, blur not needed.
-          // No border: cleaner, less "plastic" than frosted glass.
-          color: const Color(0xCC111927),
+          color: isActive
+              ? const Color(0xCC0B1E15)
+              : const Color(0xCC111927),
           borderRadius: BorderRadius.circular(AppTheme.radiusPill),
+          border: isActive
+              ? Border.all(color: AppColors.primary.withValues(alpha: 0.40))
+              : null,
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -137,54 +138,36 @@ class _TrackingStatusChipState extends State<TrackingStatusChip>
                 letterSpacing: 0.1,
               ),
             ),
-            if ((widget.isTracking || widget.isPaused) && widget.tileCount > 0) ...[
-              const SizedBox(width: AppTheme.spaceXxs),
-              Container(width: 1, height: _kChipDividerH, color: Colors.white24),
-              const SizedBox(width: AppTheme.spaceXxs),
+            // Active tracking: show live reading count. Paused: show zone count.
+            if (isActive && widget.pendingReadings > 0) ...[
+              const SizedBox(width: AppTheme.spaceXxs + 1),
+              Text('·', style: TextStyle(color: Colors.white.withValues(alpha: 0.3), fontSize: _kChipLabelSize)),
+              const SizedBox(width: AppTheme.spaceXxs + 1),
               Text(
-                '${widget.tileCount}',
+                context.l10n.chipDataPts(widget.pendingReadings),
                 style: TextStyle(
-                  color: dotColor.withValues(alpha: 0.9),
+                  color: AppColors.primary.withValues(alpha: 0.85),
                   fontSize: _kChipTimeSize,
-                  fontWeight: AppFontWeights.semibold,
+                  fontWeight: AppFontWeights.medium,
                 ),
               ),
-              const SizedBox(width: AppTheme.spaceXxxs),
+            ] else if (widget.isPaused && widget.tileCount > 0) ...[
+              const SizedBox(width: AppTheme.spaceXxs + 1),
+              Text('·', style: TextStyle(color: Colors.white.withValues(alpha: 0.3), fontSize: _kChipLabelSize)),
+              const SizedBox(width: AppTheme.spaceXxs + 1),
               Text(
-                context.l10n.chipZones,
-                style: const TextStyle(
-                  color: Colors.white54,
+                '${widget.tileCount} ${context.l10n.chipZones}',
+                style: TextStyle(
+                  color: Colors.white.withValues(alpha: 0.75),
                   fontSize: _kChipTimeSize,
                 ),
               ),
             ],
-            // Active sensor count — answers "is it actually capturing anything?"
-            if (isActive && widget.activeSensorCount > 0) ...[
-              const SizedBox(width: AppTheme.spaceXxs),
-              Container(width: 1, height: _kChipDividerH, color: Colors.white24),
-              const SizedBox(width: AppTheme.spaceXxs),
-              Text(
-                '${widget.activeSensorCount}',
-                style: const TextStyle(
-                  color: Colors.white54,
-                  fontSize: _kChipTimeSize,
-                  fontWeight: AppFontWeights.semibold,
-                ),
-              ),
-              const SizedBox(width: AppTheme.spaceXxxs),
-              Text(
-                context.l10n.chipSensors,
-                style: const TextStyle(
-                  color: Colors.white38,
-                  fontSize: _kChipTimeSize,
-                ),
-              ),
-            ],
-            if (widget.isTracking || widget.isPaused) ...[
+            if (widget.isPaused) ...[
               if (widget.isUploading) ...[
-                const SizedBox(width: AppTheme.spaceXxs),
-                Container(width: 1, height: _kChipDividerH, color: Colors.white24),
-                const SizedBox(width: AppTheme.spaceXxs),
+                const SizedBox(width: AppTheme.spaceXxs + 1),
+                Text('·', style: TextStyle(color: Colors.white.withValues(alpha: 0.3), fontSize: _kChipLabelSize)),
+                const SizedBox(width: AppTheme.spaceXxs + 1),
                 const SizedBox(
                   width: _kChipTimeSize,
                   height: _kChipTimeSize,
@@ -194,13 +177,13 @@ class _TrackingStatusChipState extends State<TrackingStatusChip>
                   ),
                 ),
               ] else if (widget.lastUpload != null) ...[
-                const SizedBox(width: AppTheme.spaceXxs),
-                Container(width: 1, height: _kChipDividerH, color: Colors.white24),
-                const SizedBox(width: AppTheme.spaceXxs),
+                const SizedBox(width: AppTheme.spaceXxs + 1),
+                Text('·', style: TextStyle(color: Colors.white.withValues(alpha: 0.3), fontSize: _kChipLabelSize)),
+                const SizedBox(width: AppTheme.spaceXxs + 1),
                 TimeAgoText(
                   timestamp: widget.lastUpload!,
-                  style: const TextStyle(
-                    color: Colors.white60,
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.6),
                     fontSize: _kChipTimeSize,
                   ),
                 ),

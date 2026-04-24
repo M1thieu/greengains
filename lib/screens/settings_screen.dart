@@ -55,6 +55,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       body: ListView(
         padding: AppTheme.pagePadding,
         children: [
+          // ── Appearance ──────────────────────────────────────────────────
           _SettingsSectionContainer(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -66,68 +67,34 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     final l = context.l10n;
                     return SegmentedButton<ThemeMode>(
                       segments: [
-                        ButtonSegment(
-                          value: ThemeMode.light,
-                          icon: const Icon(Icons.light_mode),
-                          label: Text(l.settingsThemeLight),
-                        ),
-                        ButtonSegment(
-                          value: ThemeMode.dark,
-                          icon: const Icon(Icons.dark_mode),
-                          label: Text(l.settingsThemeDark),
-                        ),
-                        ButtonSegment(
-                          value: ThemeMode.system,
-                          icon: const Icon(Icons.auto_mode),
-                          label: Text(l.settingsThemeAuto),
-                        ),
+                        ButtonSegment(value: ThemeMode.light, icon: const Icon(Icons.light_mode), label: Text(l.settingsThemeLight)),
+                        ButtonSegment(value: ThemeMode.dark,  icon: const Icon(Icons.dark_mode),  label: Text(l.settingsThemeDark)),
+                        ButtonSegment(value: ThemeMode.system, icon: const Icon(Icons.auto_mode), label: Text(l.settingsThemeAuto)),
                       ],
                       selected: {_themeController.mode},
-                      onSelectionChanged: (Set<ThemeMode> newSelection) {
+                      onSelectionChanged: (s) {
                         HapticFeedback.selectionClick();
-                        _themeController.setMode(newSelection.first);
+                        _themeController.setMode(s.first);
                       },
                     );
                   },
                 ),
-              ],
-            ),
-          ),
-
-          _SettingsSectionContainer(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _SettingsSectionTitle(text: l10n.settingsLanguage),
+                const SizedBox(height: AppTheme.spaceMd),
                 ListenableBuilder(
                   listenable: _languageController,
                   builder: (context, _) {
                     final l = context.l10n;
                     return SegmentedButton<String?>(
                       segments: [
-                        ButtonSegment(
-                          value: null,
-                          icon: const Icon(Icons.auto_mode),
-                          label: Text(l.settingsLanguageSystem),
-                        ),
-                        ButtonSegment(
-                          value: 'en',
-                          icon: const Icon(Icons.language),
-                          label: Text(l.settingsLanguageEnglish),
-                        ),
-                        ButtonSegment(
-                          value: 'fr',
-                          icon: const Icon(Icons.language),
-                          label: Text(l.settingsLanguageFrench),
-                        ),
+                        ButtonSegment(value: null,  icon: const Icon(Icons.auto_mode), label: Text(l.settingsLanguageSystem)),
+                        ButtonSegment(value: 'en',  icon: const Icon(Icons.language),  label: Text(l.settingsLanguageEnglish)),
+                        ButtonSegment(value: 'fr',  icon: const Icon(Icons.language),  label: Text(l.settingsLanguageFrench)),
                       ],
                       selected: {_languageController.locale?.languageCode},
-                      onSelectionChanged: (Set<String?> newSelection) {
+                      onSelectionChanged: (s) {
                         HapticFeedback.selectionClick();
-                        final code = newSelection.first;
-                        _languageController.setLocale(
-                          code != null ? Locale(code) : null,
-                        );
+                        final code = s.first;
+                        _languageController.setLocale(code != null ? Locale(code) : null);
                       },
                     );
                   },
@@ -136,6 +103,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
           ),
 
+          // ── Privacy ──────────────────────────────────────────────────────
           _SettingsSectionContainer(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -149,9 +117,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   value: _prefs.shareLocation,
                   onChanged: (value) {
                     HapticFeedback.selectionClick();
-                    setState(() {
-                      _prefs.setShareLocation(value);
-                    });
+                    setState(() => _prefs.setShareLocation(value));
                   },
                 ),
                 const Divider(height: AppTheme.spaceLg, thickness: 0.5),
@@ -163,15 +129,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   value: _prefs.useMobileUploads,
                   onChanged: (value) {
                     HapticFeedback.selectionClick();
-                    setState(() {
-                      _prefs.setUseMobileUploads(value);
-                    });
+                    setState(() => _prefs.setUseMobileUploads(value));
                   },
                 ),
               ],
             ),
           ),
 
+          // ── Data ─────────────────────────────────────────────────────────
           _SettingsSectionContainer(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -188,21 +153,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   }(),
                 ),
                 const Divider(height: AppTheme.spaceLg, thickness: 0.5),
-                _DataInfoRow(
-                  icon: Icons.schedule_outlined,
-                  iconColor: AppColors.movement,
-                  label: l10n.settingsDataRetention,
-                ),
-                const Divider(height: AppTheme.spaceLg, thickness: 0.5),
                 _SettingsNavRow(
                   icon: Icons.sensors_outlined,
                   iconColor: AppColors.light,
                   title: l10n.settingsDiagnostics,
                   subtitle: l10n.settingsDiagnosticsDesc,
                   onTap: () => Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => const DiagnosticsScreen(),
-                    ),
+                    MaterialPageRoute(builder: (_) => const DiagnosticsScreen()),
                   ),
                 ),
               ],
@@ -429,13 +386,19 @@ class _DataInfoRow extends StatelessWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, size: AppIconSizes.sm, color: iconColor ?? AppColors.textTertiary(isDark)),
+        Padding(
+          padding: const EdgeInsets.only(top: 1),
+          child: Icon(icon, size: AppIconSizes.sm, color: iconColor ?? AppColors.textTertiary(isDark)),
+        ),
         const SizedBox(width: AppTheme.spaceSm),
-        Text(
-          label,
-          style: theme.textTheme.bodyMedium?.copyWith(
-            color: AppColors.textSecondary(isDark),
+        Expanded(
+          child: Text(
+            label,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: AppColors.textSecondary(isDark),
+            ),
           ),
         ),
       ],

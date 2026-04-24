@@ -20,6 +20,7 @@ class ForegroundLocationService {
   final _magneticFieldController = StreamController<MagneticFieldData>.broadcast();
   final _isRunningNotifier = ValueNotifier<bool>(false);
   final _isPausedNotifier = ValueNotifier<bool>(false);
+  final pendingReadings = ValueNotifier<int>(0);
 
   Stream<LocationData> get locationStream => _locationController.stream;
   Stream<LightData> get lightStream => _lightController.stream;
@@ -140,6 +141,9 @@ class ForegroundLocationService {
         case 'onNativeUploadStatus':
           _handleNativeUploadStatus(call.arguments as Map);
           break;
+        case 'onBufferUpdate':
+          pendingReadings.value = (call.arguments as num?)?.toInt() ?? 0;
+          break;
         case 'onTrackingPaused':
           final paused = (call.arguments as bool?) ?? false;
           _isPausedNotifier.value = paused;
@@ -147,6 +151,7 @@ class ForegroundLocationService {
         case 'onServiceStopped':
           _isRunningNotifier.value = false;
           _isPausedNotifier.value = false;
+          pendingReadings.value = 0;
           uploadStatus.value = const UploadStatusSnapshot();
           // Stop tracking session (service was killed)
           await _sessionManager.stopSession(reason: 'service_stopped');

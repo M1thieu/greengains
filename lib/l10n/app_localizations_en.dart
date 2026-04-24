@@ -9,53 +9,39 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
-  String get onboardingWelcomeTitle => 'Watch your city fill in as you walk';
+  String get onboardingWelcomeTitle => 'Fill in your ground.';
 
   @override
   String get onboardingWelcomeSubtitle =>
-      'Your phone quietly reads light, pressure, and movement as you move. No interaction needed — you walk, it maps.';
+      'Walk anywhere. Your phone quietly reads the world — light, pressure, motion — and maps it.';
 
   @override
   String get onboardingFeature1Title => 'No tapping. Ever.';
 
   @override
   String get onboardingFeature1Description =>
-      'Start once, forget about it. Your map fills in automatically while you commute, walk, or run — zero interaction required.';
+      'Start once, forget about it — your map fills in while you move.';
 
   @override
   String get onboardingFeature2Title => 'Private by default';
 
   @override
   String get onboardingFeature2Description =>
-      'Your route is never stored. Data is bundled with thousands of others before it leaves your phone — no location history, no personal trace.';
+      'Your route is never stored — readings are anonymized before they leave your phone.';
 
   @override
-  String get onboardingFeature3Title => 'Your walks, on the map';
+  String get onboardingFeature3Title => 'Every street, yours.';
 
   @override
   String get onboardingFeature3Description =>
-      'Each street you cover appears on your personal map. Together, contributors are building the first ground-level picture of city life.';
+      'Every place you visit fills in on your map — see how far your ground reaches.';
 
   @override
-  String get onboardingSignInTitle => 'Your map starts here';
+  String get onboardingSignInTitle => 'Your territory starts here';
 
   @override
   String get onboardingSignInSubtitle =>
-      'Sign in to keep your map and streak synced across devices.';
-
-  @override
-  String get onboardingCloudSync => 'Live Coverage Map';
-
-  @override
-  String get onboardingCloudSyncDescription =>
-      'Watch your personal coverage area grow in real time';
-
-  @override
-  String get onboardingFutureFeatures => 'Coming Soon';
-
-  @override
-  String get onboardingFutureDescription =>
-      'Contributor milestones, impact reports, and more';
+      'Sign in to keep your territory synced across devices.';
 
   @override
   String onboardingPrivacyNotice(String privacyPolicy, String termsOfService) {
@@ -125,45 +111,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noUploadYet => 'No upload yet';
 
   @override
-  String get dailyPotTitle => 'Daily Pot';
-
-  @override
-  String dailyPotClaimButton(int amount) {
-    return 'Claim $amount Credits';
-  }
-
-  @override
-  String dailyPotClaimed(int amount) {
-    return '+$amount credits! 🍯';
-  }
-
-  @override
-  String get dailyPotAlreadyClaimed =>
-      'Already claimed today! Come back tomorrow';
-
-  @override
-  String dailyPotNeedMoreUploads(int count, String s) {
-    return 'Need $count more upload$s to unlock';
-  }
-
-  @override
-  String dailyPotProgress(int current, int required) {
-    return '$current / $required uploads';
-  }
-
-  @override
-  String credits(int count) {
-    return '$count credits';
-  }
-
-  @override
-  String get totalCredits => 'Total Credits';
-
-  @override
-  String get creditsEarned => 'Credits Earned';
-
-  @override
-  String get statsTitle => 'Your Impact';
+  String get statsTitle => 'Your Ground';
 
   @override
   String get totalUploads => 'Total Uploads';
@@ -248,25 +196,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsTheme => 'Theme';
 
   @override
-  String get settingsNotifications => 'Notifications';
-
-  @override
   String get settingsLocationSharing => 'Location Sharing';
 
   @override
-  String get settingsLocationEnabled => 'Location sharing enabled';
-
-  @override
-  String get settingsLocationDisabled => 'Location sharing disabled';
-
-  @override
   String get settingsMobileData => 'Mobile Data Upload';
-
-  @override
-  String get settingsMobileDataEnabled => 'Upload on mobile data';
-
-  @override
-  String get settingsMobileDataDisabled => 'Upload on WiFi only';
 
   @override
   String settingsVersion(String version) {
@@ -278,7 +211,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get permissionLocationMessage =>
-      'Allow location to start mapping your city.';
+      'Allow location to start mapping your ground.';
 
   @override
   String get permissionLocationButton => 'Grant Permission';
@@ -349,11 +282,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get profileSignInPrompt =>
-      'Sign in with Google to keep your streak and sync your map across devices.';
+      'Sign in with Google to keep your territory synced across devices.';
 
   @override
   String get profileAnonymousNote =>
-      'Using anonymously. Sign in to track your streak.';
+      'Using anonymously. Sign in to save your territory.';
 
   @override
   String get profileUserFallback => 'User';
@@ -362,7 +295,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileViewStats => 'View Statistics';
 
   @override
-  String get profileContributionsHint => 'Track your contributions';
+  String get profileContributionsHint => 'See your territory';
 
   @override
   String get profileSignedOut => 'Signed out';
@@ -374,11 +307,79 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chipPaused => 'Paused';
 
   @override
-  String get chipTapStart => 'Tap ▶ to start';
+  String get chipTapStart => 'Not tracking · Tap ▶ to start';
+
+  @override
+  String chipDataPts(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count pts',
+      one: '1 pt',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String homeSessionZones(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '+$count zones filled in',
+      one: '+1 zone filled in',
+      zero: 'Scanning your surroundings',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get homeYourMap => 'YOUR MAP';
+
+  @override
+  String homeCityPct(String pct) {
+    return '$pct% of city filled';
+  }
+
+  @override
+  String get profileImpactSection => 'YOUR IMPACT';
+
+  @override
+  String get profileAccountSection => 'ACCOUNT';
 
   @override
   String get homeFirstUseHint =>
       'Tap ▶ — watch your first zone appear on the map';
+
+  @override
+  String get homeFirstTrackingHint =>
+      'Scanning light, pressure and motion — first zone after first upload';
+
+  @override
+  String homeTrackingReadings(num count) {
+    final intl.NumberFormat countNumberFormat = intl.NumberFormat.compact(
+      locale: localeName,
+    );
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countString readings captured',
+      one: '1 reading captured',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String homeReturnHint(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count zones on your map — tap ▶ to keep growing',
+      one: '1 zone on your map — tap ▶ to keep growing',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get uploadSuccessMessage => 'Map updated!';
@@ -411,12 +412,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get statsToday => 'Today';
 
   @override
-  String get statsStreak => 'Streak';
-
-  @override
-  String statsStreakBest(int days) {
-    return 'BEST ${days}D';
-  }
+  String get statsThisWeek => 'This week';
 
   @override
   String get statsDaysActive => 'Days Active';
@@ -428,22 +424,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get statsCoverage => 'Zones';
 
   @override
-  String get statsAreasLabel => 'areas mapped';
+  String get statsAreasLabel => 'zones mapped';
 
   @override
-  String get statsDataPtsLabel => 'uploads';
+  String get statsDataPtsLabel => 'recordings';
 
   @override
   String get statsKmMapped => 'km² mapped';
 
   @override
-  String get statsBestDay => 'best day';
-
-  @override
-  String get statsStreakLabel => 'streak';
-
-  @override
-  String get statsRecordStreak => 'record';
+  String get statsBestDay => 'Best day';
 
   @override
   String statsBarCalloutUploads(int count) {
@@ -467,62 +457,73 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get infoKmBody =>
-      'Each hexagon on your map covers about 0.1 km². This shows how much of your city you have personally mapped so far.';
+      'Each hexagon covers ~0.1 km² — this is your personal footprint on the map.';
 
   @override
   String get infoDataPtsTitle => 'Uploads';
 
   @override
   String get infoDataPtsBody =>
-      'Each upload records light, pressure, and movement as you move. More uploads = more detail on your map.';
+      'Each upload captures light, pressure, and movement — more uploads means a denser map.';
+
+  @override
+  String get infoTodayTitle => 'Recordings today';
+
+  @override
+  String get infoTodayBody =>
+      'Sensor readings uploaded today — light, pressure, and movement at each stop.';
+
+  @override
+  String get infoThisWeekTitle => 'This week';
+
+  @override
+  String get infoThisWeekBody =>
+      'Recordings over the last 7 days — consistency builds richer map data.';
 
   @override
   String get infoDaysActiveTitle => 'Days active';
 
   @override
   String get infoDaysActiveBody =>
-      'The number of days you were active. No need to be active every day.';
+      'Days you contributed — no need to be active every day.';
 
   @override
   String get infoBestDayTitle => 'Best day';
 
   @override
   String get infoBestDayBody =>
-      'Your most active day this week, measured by data points uploaded. A higher number usually means more time outdoors.';
+      'Your most active day this week — usually means more time outdoors.';
 
   @override
   String get infoMilestoneTitle => 'Next milestone';
 
   @override
   String get infoMilestoneBody =>
-      'Milestones track your territory growth. Each new hexagon you map counts toward the next level.';
+      'Each new area you map counts toward the next milestone.';
 
   @override
   String get infoTileQualityTitle => 'Coverage quality';
 
   @override
   String get infoTileQualityBody =>
-      'Quality reflects how many sensor readings were collected in this area and how consistent they are. Green = solid data, yellow = partial, red = sparse.';
+      'Green = well covered, yellow = partial, red = needs more passes.';
 
   @override
   String get infoTilePersonalTitle => 'Your area';
 
   @override
   String get infoTilePersonalBody =>
-      'You mapped this area. Your phone recorded here during your travels.';
+      'Your phone recorded here — this is your ground.';
 
   @override
   String get infoTileCommunityTitle => 'Community area';
 
   @override
   String get infoTileCommunityBody =>
-      'This area was mapped by other users. Together you\'re building a city-wide map.';
+      'Mapped by others — their ground, not yours. Yet.';
 
   @override
   String get statsTotalContributions => 'Total Contributions';
-
-  @override
-  String get statsKeepContributing => 'Keep contributing to track trends';
 
   @override
   String get statsActivityTrend => 'Your week';
@@ -562,11 +563,11 @@ class AppLocalizationsEn extends AppLocalizations {
       'Track your earnings and payout history once monetization begins';
 
   @override
-  String get statsStartContributing => 'Nothing here yet';
+  String get statsStartContributing => 'Your map is blank.';
 
   @override
   String get statsEmptyDescription =>
-      'Go to the map and tap ▶ to start. Your first zone will appear within minutes.';
+      'Tap ▶. Your first zone is waiting to be mapped.';
 
   @override
   String get statsEmptyGoMap => 'Go to map';
@@ -599,45 +600,36 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mapLoadingText => 'Loading map...';
 
   @override
-  String get mapComingSoonTitle => 'Coverage Heatmap Coming Soon';
-
-  @override
-  String get mapComingSoonDescription =>
-      'Tile coverage visualization in progress';
-
-  @override
   String get mapCenterTooltip => 'Center on location';
 
   @override
-  String get yourContributions => 'YOUR UPLOADS';
+  String get yourContributions => 'YOUR TERRITORY';
 
   @override
-  String get impactCardContext => 'uploads — shared anonymously';
+  String get impactCardContext => 'zones mapped';
 
   @override
   String get loadingStatsLabel => 'Loading your stats';
 
   @override
-  String get noContributionsYet =>
-      'Nothing recorded yet. Start tracking to begin.';
+  String get noContributionsYet => 'Nothing recorded yet — tap ▶ to start.';
 
   @override
   String get startContributingTitle => 'Start mapping';
 
   @override
   String get startContributingHint =>
-      'Your phone maps the city silently while you go about your day';
+      'Your phone maps your world silently while you go about your day';
 
   @override
   String get areaCovered => 'Area covered';
 
   @override
-  String get activeStreak => 'Active streak';
+  String get activeStreak => 'Territory';
 
   @override
-  String contributionStatsSemanticsLabel(
-      String uploads, String area, String streak) {
-    return 'Your contributions: $uploads. Area covered: $area. Active streak: $streak.';
+  String contributionStatsSemanticsLabel(String uploads, String area) {
+    return 'Your contributions: $uploads. Area covered: $area.';
   }
 
   @override
@@ -733,20 +725,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sensorLiveReadings => 'Live readings';
 
   @override
-  String get sensorLiveSubtitle =>
-      'See what data you\'re contributing right now';
+  String get sensorLiveSubtitle => 'Real-time sensor readings from your phone.';
 
   @override
   String get sensorInactiveTitle => 'Not recording';
 
   @override
-  String get sensorInactiveSubtitle => 'Start tracking to begin recording';
+  String get sensorInactiveSubtitle => 'Start tracking to see live readings.';
 
   @override
   String get sensorPausedTitle => 'Recording paused';
 
   @override
-  String get sensorPausedSubtitle => 'Resume tracking to keep recording';
+  String get sensorPausedSubtitle => 'Resume to see live readings.';
 
   @override
   String get sensorCollectingFirst => 'Starting up…';
@@ -887,18 +878,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsDataRetention => 'Data kept for 7 days (Free)';
 
   @override
-  String get onboardingDataCollectedTitle => 'What we collect';
-
-  @override
-  String get onboardingDataCollectedDescription =>
-      'Light, motion, pressure and anonymous location — aggregated with 100,000+ devices before any analysis.';
-
-  @override
   String get referralInviteTitle => 'Invite friends';
 
   @override
   String get referralInviteDescription =>
-      'Invite friends to map more of your city. Every person adds streets you haven\'t walked yet.';
+      'Every friend covers ground you haven\'t reached yet.';
 
   @override
   String get referralLinkCopied => 'Referral link copied';
@@ -928,20 +912,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tooltipDismiss => 'Dismiss';
 
   @override
+  String get statsHighlightsLabel => 'HIGHLIGHTS';
+
+  @override
+  String get statsMappingSince => 'Mapping since';
+
+  @override
   String get statsFailedToLoad => 'Failed to load stats';
 
   @override
-  String get statsReadyToContribute => 'Ready to contribute?';
+  String get statsReadyToContribute => 'Your ground is waiting.';
 
   @override
   String get statsFirstContributionHint =>
-      'Start tracking to make your first contribution';
-
-  @override
-  String get statsDayStreak => 'Day Streak';
-
-  @override
-  String get offlineBannerMessage => 'No connection · data queued locally';
+      'Start tracking to map your first area';
 
   @override
   String get statsWeeklyLabel => '7 DAYS';
@@ -952,23 +936,22 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get statsMilestoneLabel => 'Next reward';
+  String get statsMilestoneLabel => 'Next level';
 
   @override
   String get statsMilestoneHint =>
-      'Rewards unlock when you reach this milestone — keep contributing';
+      'Map enough ground to reach this level and unlock the next one';
 
   @override
-  String get statsMilestoneElite =>
-      'Elite contributor · all milestones reached';
+  String get statsMilestoneElite => 'Fully mapped · explorer status';
 
   @override
   String statsMilestoneRemaining(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count areas to go',
-      one: '1 area to go',
+      other: '$count zones to go',
+      one: '1 zone to go',
     );
     return '$_temp0';
   }
@@ -979,15 +962,15 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get batteryDialogTitle => 'Maximize Your Impact';
+  String get batteryDialogTitle => 'Keep mapping';
 
   @override
   String get batteryDialogBody =>
-      'To contribute 24/7, GreenGains needs to run in the background without being killed by the system.';
+      'Disable battery optimization so the app keeps mapping in the background.';
 
   @override
   String get batteryDialogBodyBold =>
-      'Please disable \"Battery Optimization\" for GreenGains in the next screen.';
+      'Disable \"Battery Optimization\" for GreenGains on the next screen.';
 
   @override
   String get batteryDialogDismissForever => 'Don\'t show again';
@@ -1070,22 +1053,34 @@ class AppLocalizationsEn extends AppLocalizations {
   String get permissionPrimingTitle => 'One thing before we start';
 
   @override
-  String get permissionPrimingBattery =>
-      'Less than 1% battery per hour — same as a weather app';
+  String get permissionPrimingBattery => 'Smart battery';
 
   @override
-  String get permissionPrimingCollects =>
-      'We collect ambient light, pressure and motion — never your identity';
+  String get permissionPrimingBatteryDesc =>
+      'Less than 1% per hour — adapts automatically in background';
+
+  @override
+  String get permissionPrimingCollects => 'Private by design';
+
+  @override
+  String get permissionPrimingCollectsDesc =>
+      'Light, pressure and motion only — never your route or identity';
 
   @override
   String get permissionPrimingCta => 'Enable location';
 
   @override
-  String get firstStartTitle => 'It\'s filling in';
+  String get settingsBatteryMode => 'Smart battery';
 
   @override
-  String get firstStartBody =>
-      'Move normally — your zones appear on the map as you go. Walk new streets to fill in more.';
+  String get settingsBatteryModeDesc =>
+      'Quiet when still, precise when moving — adapts automatically';
+
+  @override
+  String get firstStartTitle => 'Mapping ground.';
+
+  @override
+  String get firstStartBody => 'Move — zones appear as you go.';
 
   @override
   String get alwaysOnBannerBody =>
@@ -1100,26 +1095,46 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get milestoneReachedBody =>
-      'You\'re building a real map of your city. Keep going.';
+  String get milestoneReachedBody => 'How far can you go?';
 
   @override
-  String get milestoneReachedCta => 'Keep mapping';
+  String get milestoneReachedCta => 'Keep going';
 
   @override
-  String get firstUploadTitle => 'Your first zone filled in!';
+  String get firstUploadTitle => 'First area mapped.';
 
   @override
-  String get firstUploadBody =>
-      'Keep moving — every new street fills another zone. Walk somewhere new to expand your map.';
+  String get firstUploadBody => 'Keep moving — your territory is growing.';
 
   @override
   String get firstUploadCta => 'See my map';
 
   @override
   String onboardingSocialProof(int count) {
-    return '$count people already mapping their cities';
+    return '$count people already mapping their ground';
   }
+
+  @override
+  String sessionSummaryZonesClaimed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'zones mapped',
+      one: 'zone mapped',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sessionSummaryTotal(int zones, String km2) {
+    return 'Total territory: $zones zones · $km2 km²';
+  }
+
+  @override
+  String get sessionSummaryCta => 'See my territory';
+
+  @override
+  String get sessionSummaryDone => 'Done';
 
   @override
   String get statsMapGrowing => 'map growing — keep walking';
@@ -1130,5 +1145,207 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String uploadMilestone(int count) {
     return '$count uploads — keep going!';
+  }
+
+  @override
+  String get statsViewOnMap => 'View on map';
+
+  @override
+  String statsCommunityMappers(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count mappers active this month',
+      one: '1 mapper active this month',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String tileFirstMapped(String date) {
+    return 'First mapped $date';
+  }
+
+  @override
+  String statsSinceDate(String date) {
+    return 'since $date';
+  }
+
+  @override
+  String get statsStreakLabel => 'Streak';
+
+  @override
+  String statsStreakDays(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count days in a row',
+      one: '1 day in a row',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tileCommunityClaimCta => 'Map here to add this to your territory';
+
+  @override
+  String get tileLowQualityHint => 'Pass here again to strengthen this zone.';
+
+  @override
+  String homeCommunityScopeHint(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count zones mapped in your area',
+      one: '1 zone mapped in your area',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tileCivicNote => 'Your data adds to the environmental record.';
+
+  @override
+  String sessionSummaryShareText(int gained, int total, String km2) {
+    return 'I mapped +$gained zones today — $total zones total · $km2 km²';
+  }
+
+  @override
+  String sensorLuxLabel(int lux) {
+    return '$lux lux';
+  }
+
+  @override
+  String sensorHpaLabel(String hpa) {
+    return '$hpa hPa';
+  }
+
+  @override
+  String sensorMovementLabel(String val) {
+    return 'movement $val';
+  }
+
+  @override
+  String get sensorLuxDark => 'dim';
+
+  @override
+  String get sensorLuxIndoor => 'indoor light';
+
+  @override
+  String get sensorLuxBright => 'bright';
+
+  @override
+  String get sensorLuxDirect => 'direct sunlight';
+
+  @override
+  String get sensorMovementLow => 'still';
+
+  @override
+  String get sensorMovementMid => 'active';
+
+  @override
+  String get sensorMovementHigh => 'heavy traffic';
+
+  @override
+  String get sensorHpaLow => 'low elevation';
+
+  @override
+  String get sensorHpaMid => 'mid elevation';
+
+  @override
+  String get sensorHpaHigh => 'high elevation';
+
+  @override
+  String get tileSensorInsightsLabel => 'What your sensors recorded';
+
+  @override
+  String territoryHeroLabel(String neighborhood, int count) {
+    return '$neighborhood · $count zones';
+  }
+
+  @override
+  String get serverWakingUp => 'Starting up — hang tight…';
+
+  @override
+  String referralNeighborhoodHook(String neighborhood) {
+    return 'Help map $neighborhood — every neighbor fills in what you haven\'t reached.';
+  }
+
+  @override
+  String get onboardingActivateTitle => 'Almost there';
+
+  @override
+  String get onboardingActivateSubtitle =>
+      'Allow location access — your phone maps as you move.';
+
+  @override
+  String get onboardingActivateCta => 'Start mapping';
+
+  @override
+  String homeMaxClusterHint(int count) {
+    return 'biggest territory: $count zones';
+  }
+
+  @override
+  String get firstUploadBadge => 'FIRST ZONE UPLOADED';
+
+  @override
+  String get firstUploadHeadline => 'Your first zone is on the map.';
+
+  @override
+  String get firstUploadSubtext =>
+      'It joins an open record of light, pressure and motion — anonymously, aggregated.';
+
+  @override
+  String get firstUploadSensorsLabel => 'SENSORS';
+
+  @override
+  String get firstUploadSensorsValue => 'light · motion · pressure';
+
+  @override
+  String get firstUploadPrivacyLabel => 'PRIVACY';
+
+  @override
+  String get firstUploadPrivacyValue => 'anonymised';
+
+  @override
+  String get firstUploadKeepMappingCta => 'Keep mapping';
+
+  @override
+  String get liveSensorsHeader => 'LIVE SENSORS';
+
+  @override
+  String get liveSensorMotionLabel => 'Motion';
+
+  @override
+  String get liveSensorPressureLabel => 'Pressure';
+
+  @override
+  String get sessionSummaryBadge => 'SESSION COMPLETE';
+
+  @override
+  String get sessionSummaryZonesGainedLabel => 'ZONES GAINED';
+
+  @override
+  String get sessionSummarySubline => 'new ground, painted in';
+
+  @override
+  String get sessionSummaryWatermark => 'Mapped with GreenGains';
+
+  @override
+  String get sessionSummaryShareCta => 'Share card';
+
+  @override
+  String get sessionStatArea => 'AREA';
+
+  @override
+  String get sessionStatDuration => 'DURATION';
+
+  @override
+  String get sessionStatTotal => 'TOTAL';
+
+  @override
+  String statsMilestoneTarget(int target) {
+    return '$target zones';
   }
 }

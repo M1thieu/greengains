@@ -50,20 +50,23 @@ export async function refreshUserProfileCache(userId: string): Promise<void> {
     // Single query: all scalar stats + streak in one pass using CTEs.
     // Indexes idx_sb_user_h3 + idx_sb_user_date (added in 20260416 migration) make this fast.
     await pool.query(
-      `WITH scalar AS (
+      `WITH base AS (
+         SELECT timestamp_utc, h3_res9
+         FROM sensor_batches
+         WHERE user_id = $1
+       ),
+       scalar AS (
          SELECT
            COUNT(*)::int                                                  AS total_batches,
            COUNT(DISTINCT h3_res9) FILTER (WHERE h3_res9 IS NOT NULL)::int AS coverage_cells,
            COUNT(DISTINCT DATE(timestamp_utc))::int                      AS days_active,
            MIN(timestamp_utc)                                            AS first_upload_at,
            MAX(timestamp_utc)                                            AS last_upload_at
-         FROM sensor_batches
-         WHERE user_id = $1
+         FROM base
        ),
        daily AS (
          SELECT DISTINCT DATE(timestamp_utc) AS d
-         FROM sensor_batches
-         WHERE user_id = $1
+         FROM base
        ),
        numbered AS (
          SELECT d, ROW_NUMBER() OVER (ORDER BY d DESC)::int AS rn FROM daily
@@ -304,39 +307,48 @@ export async function userRoutes(fastify: FastifyInstance) {
           firstUploadDate = c.first_upload_at;
           lastUploadDate  = c.last_upload_at;
         } else {
-          // Cache miss — run full live queries (same as before Fix 3).
-          const [scalarResult, streakResult] = await Promise.all([
-            pool.query<{
-              total_batches: number; days_active: number; coverage_cells: number;
-              first_upload_date: Date | null; last_upload_date: Date | null;
-            }>(
-              `SELECT
-                 COUNT(*)::int                                                  AS total_batches,
-                 COUNT(DISTINCT DATE(timestamp_utc))::int                      AS days_active,
+          // Cache miss — single CTE scans sensor_batches once for both scalar
+          // aggregates and streak computation (previously 2 parallel queries).
+          const missResult = await pool.query<{
+            total_batches: number; days_active: number; coverage_cells: number;
+            first_upload_date: Date | null; last_upload_date: Date | null;
+            longest_streak: number; current_streak: number;
+          }>(
+            `WITH base AS (
+               SELECT timestamp_utc, h3_res9
+               FROM sensor_batches
+               WHERE user_id = $1
+             ),
+             scalars AS (
+               SELECT
+                 COUNT(*)::int                                                    AS total_batches,
+                 COUNT(DISTINCT DATE(timestamp_utc))::int                        AS days_active,
                  COUNT(DISTINCT h3_res9) FILTER (WHERE h3_res9 IS NOT NULL)::int AS coverage_cells,
-                 MIN(timestamp_utc)                                            AS first_upload_date,
-                 MAX(timestamp_utc)                                            AS last_upload_date
-               FROM sensor_batches WHERE user_id = $1`,
-              [userId],
-            ),
-            pool.query<{ longest_streak: number; current_streak: number }>(
-              `WITH daily AS (SELECT DISTINCT DATE(timestamp_utc) AS d FROM sensor_batches WHERE user_id = $1),
-               numbered AS (SELECT d, ROW_NUMBER() OVER (ORDER BY d DESC)::int AS rn FROM daily),
-               groups AS (SELECT (d + rn) AS grp, COUNT(*)::int AS len, MAX(d) AS latest_day FROM numbered GROUP BY grp)
-               SELECT MAX(len) AS longest_streak,
-                 COALESCE((SELECT len FROM groups WHERE latest_day >= CURRENT_DATE - 1 ORDER BY latest_day DESC LIMIT 1), 0) AS current_streak
-               FROM groups`,
-              [userId],
-            ),
-          ]);
-          const s = scalarResult.rows[0];
-          totalUploads    = s?.total_batches   ?? 0;
-          coverageCells   = s?.coverage_cells  ?? 0;
-          daysActive      = s?.days_active     ?? 0;
-          currentStreak   = streakResult.rows[0]?.current_streak ?? 0;
-          longestStreak   = streakResult.rows[0]?.longest_streak ?? 0;
-          firstUploadDate = s?.first_upload_date ?? null;
-          lastUploadDate  = s?.last_upload_date  ?? null;
+                 MIN(timestamp_utc)                                              AS first_upload_date,
+                 MAX(timestamp_utc)                                              AS last_upload_date
+               FROM base
+             ),
+             daily AS (SELECT DISTINCT DATE(timestamp_utc) AS d FROM base),
+             numbered AS (SELECT d, ROW_NUMBER() OVER (ORDER BY d DESC)::int AS rn FROM daily),
+             groups AS (SELECT (d + rn) AS grp, COUNT(*)::int AS len, MAX(d) AS latest_day FROM numbered GROUP BY grp)
+             SELECT
+               s.*,
+               COALESCE((SELECT MAX(len) FROM groups), 0) AS longest_streak,
+               COALESCE(
+                 (SELECT len FROM groups WHERE latest_day >= CURRENT_DATE - 1 ORDER BY latest_day DESC LIMIT 1),
+                 0
+               ) AS current_streak
+             FROM scalars s`,
+            [userId],
+          );
+          const m = missResult.rows[0];
+          totalUploads    = m?.total_batches   ?? 0;
+          coverageCells   = m?.coverage_cells  ?? 0;
+          daysActive      = m?.days_active     ?? 0;
+          currentStreak   = m?.current_streak  ?? 0;
+          longestStreak   = m?.longest_streak  ?? 0;
+          firstUploadDate = m?.first_upload_date ?? null;
+          lastUploadDate  = m?.last_upload_date  ?? null;
         }
 
         const profileData = {
@@ -385,13 +397,19 @@ export async function userRoutes(fastify: FastifyInstance) {
           batch_count: number;
           device_count: number;
           last_update: Date;
+          avg_lux: number | null;
+          avg_hpa: number | null;
+          avg_movement: number | null;
         }>(
           `SELECT
              h3_res9,
-             batch_json->>'geohash'           AS geohash,
-             COUNT(*)::int                    AS batch_count,
-             COUNT(DISTINCT device_hash)::int AS device_count,
-             MAX(timestamp_utc)               AS last_update
+             batch_json->>'geohash'                                            AS geohash,
+             COUNT(*)::int                                                      AS batch_count,
+             COUNT(DISTINCT device_hash)::int                                   AS device_count,
+             MAX(timestamp_utc)                                                 AS last_update,
+             AVG((batch_json->'summary'->'light'->>'avg')::numeric)             AS avg_lux,
+             AVG((batch_json->'summary'->'pressure'->>'avg')::numeric)          AS avg_hpa,
+             AVG((batch_json->'summary'->>'accel_rms')::numeric)                AS avg_movement
            FROM sensor_batches
            WHERE user_id = $1
              AND (h3_res9 IS NOT NULL OR batch_json->>'geohash' IS NOT NULL)
@@ -402,7 +420,13 @@ export async function userRoutes(fastify: FastifyInstance) {
         );
 
         // Resolve each row to a final h3 cell. Rows mapping to the same cell are merged.
-        const tileMap = new Map<string, { batchCount: number; deviceCount: number; lastUpdate: Date }>();
+        // Sensor averages are batch-count-weighted so denser tiles aren't diluted by sparse rows.
+        const tileMap = new Map<string, {
+          batchCount: number; deviceCount: number; lastUpdate: Date;
+          luxSum: number; luxCount: number;
+          hpaSum: number; hpaCount: number;
+          movementSum: number; movementCount: number;
+        }>();
         for (const row of tilesResult.rows) {
           let h3Index: string | null = row.h3_res9;
           if (!h3Index && row.geohash) {
@@ -416,8 +440,16 @@ export async function userRoutes(fastify: FastifyInstance) {
             existing.batchCount += row.batch_count;
             existing.deviceCount = Math.max(existing.deviceCount, row.device_count);
             if (row.last_update > existing.lastUpdate) existing.lastUpdate = row.last_update;
+            if (row.avg_lux !== null) { existing.luxSum += row.avg_lux * row.batch_count; existing.luxCount += row.batch_count; }
+            if (row.avg_hpa !== null) { existing.hpaSum += row.avg_hpa * row.batch_count; existing.hpaCount += row.batch_count; }
+            if (row.avg_movement !== null) { existing.movementSum += row.avg_movement * row.batch_count; existing.movementCount += row.batch_count; }
           } else {
-            tileMap.set(h3Index, { batchCount: row.batch_count, deviceCount: row.device_count, lastUpdate: row.last_update });
+            tileMap.set(h3Index, {
+              batchCount: row.batch_count, deviceCount: row.device_count, lastUpdate: row.last_update,
+              luxSum: row.avg_lux !== null ? row.avg_lux * row.batch_count : 0, luxCount: row.avg_lux !== null ? row.batch_count : 0,
+              hpaSum: row.avg_hpa !== null ? row.avg_hpa * row.batch_count : 0, hpaCount: row.avg_hpa !== null ? row.batch_count : 0,
+              movementSum: row.avg_movement !== null ? row.avg_movement * row.batch_count : 0, movementCount: row.avg_movement !== null ? row.batch_count : 0,
+            });
           }
         }
 
@@ -435,6 +467,9 @@ export async function userRoutes(fastify: FastifyInstance) {
               sampleCount: stats.batchCount,
               deviceCount: stats.deviceCount,
               lastUpdate: stats.lastUpdate,
+              avgLux:      stats.luxCount      > 0 ? Math.round(stats.luxSum      / stats.luxCount)      : null,
+              avgHpa:      stats.hpaCount      > 0 ? Math.round((stats.hpaSum     / stats.hpaCount) * 10) / 10 : null,
+              avgMovement: stats.movementCount > 0 ? Math.round((stats.movementSum / stats.movementCount) * 100) / 100 : null,
             };
           });
 

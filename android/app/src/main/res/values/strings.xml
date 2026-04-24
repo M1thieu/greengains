@@ -3,40 +3,59 @@
     <!-- MapLibre GL requires a non-empty token; Protomaps auth is handled via URL key -->
     <string name="mapbox_access_token">maplibre_no_token_needed</string>
 
-    <!-- Foreground service notification — title = status, body = count or instruction -->
-    <string name="notification_status_collecting">Mapping your city</string>
+    <!-- Foreground service notification — title = status, body = progress (zone-first) -->
+    <string name="notification_status_collecting">Filling in your map</string>
+    <string name="notification_status_stationary">Watching the area</string>
     <string name="notification_paused_title">Paused</string>
-    <string name="notification_paused_body">Tap Resume to keep your map growing</string>
-    <string name="notification_collecting_no_upload">Waiting for first upload…</string>
-    <plurals name="notification_readings_today">
-        <item quantity="one">1 upload today</item>
-        <item quantity="other">%d uploads today</item>
-    </plurals>
-    <!-- %1$d = today count, %2$d = lifetime total -->
-    <string name="notification_readings_with_total">%1$d today · %2$d total uploads</string>
+    <string name="notification_paused_body">Resume to keep mapping</string>
+    <string name="notification_collecting_no_upload">Move around to start mapping</string>
+    <!-- Zone-first body strings — shown when zonesTotal > 0 -->
+    <!-- %1$d = zones total -->
+    <string name="notification_body_zones_uploading">%1$d zones · uploading now</string>
+    <string name="notification_body_zones_collecting">%1$d zones · collecting</string>
+    <!-- %1$d = zones total (stationary state) -->
+    <string name="notification_body_stationary">%1$d zones · scanning quietly</string>
+    <!-- %1$d = zones total (paused state) -->
+    <string name="notification_body_paused_zones">%1$d zones on your map</string>
+    <!-- Fallback body strings when no zones yet — readings count -->
+    <!-- %d = readings count -->
+    <string name="notification_readings_uploading">%d readings · uploading now</string>
+
+    <!-- Expanded BigText — compact status line: "Synced 5min ago  ·  moving" -->
+    <string name="notification_sync_uploading">Syncing now</string>
+    <!-- %s = elapsed time e.g. "5min ago" -->
+    <string name="notification_sync_uploaded">Synced %s</string>
+    <string name="notification_sync_none">Not synced yet</string>
+    <string name="notification_motion_moving">moving</string>
+    <string name="notification_motion_stationary">stationary</string>
+    <string name="notification_expanded_paused">Tap Resume to keep mapping.</string>
 
     <!-- Notification actions -->
     <string name="notification_action_pause">Pause</string>
     <string name="notification_action_resume">Resume</string>
     <string name="notification_action_stop">Stop</string>
-    <!-- %1$d = streak days — shown in notification header when streak > 1 -->
-    <string name="notification_subtext_streak">%1$d-day streak</string>
+
+    <!-- Upload elapsed time — shown in expanded status line -->
+    <string name="notification_upload_just_now">just now</string>
+    <string name="notification_upload_minutes_ago">%dmin ago</string>
+    <string name="notification_upload_hours_ago">%dh ago</string>
+    <string name="notification_upload_yesterday">yesterday</string>
 
     <!-- Background worker notification -->
-    <string name="notification_worker_title">GreenGains — processing data</string>
-    <string name="notification_worker_body">Finishing your latest upload</string>
+    <string name="notification_worker_title">GreenGains — syncing</string>
+    <string name="notification_worker_body">Saving your territory data</string>
 
-    <!-- Streak-at-risk notification — fires once at end of day if streak > 1 and no upload today -->
-    <string name="notification_streak_channel_name">Streak Reminders</string>
-    <!-- %1$d = streak days -->
-    <string name="notification_streak_title">%1$d-day streak — still going?</string>
-    <string name="notification_streak_body">You haven\'t mapped anything today. Open the app to keep your streak alive.</string>
+    <!-- Re-engagement notification — fires if no activity today -->
+    <string name="notification_streak_channel_name">Territory Reminders</string>
+    <string name="notification_streak_title">Your ground is waiting</string>
+    <string name="notification_streak_body">Open the app and keep moving — every new street fills in your map.</string>
 
-    <!-- Zone discovery notification -->
-    <string name="notification_zone_channel_name">Zone Discoveries</string>
-    <string name="notification_zone_title">New zone mapped!</string>
-    <!-- %1$d = total zones -->
-    <string name="notification_zone_body_single">%1$d zones total — keep going!</string>
-    <!-- %1$d = new zones, %2$d = total zones -->
-    <string name="notification_zone_body_multiple">+%1$d new zones · %2$d total</string>
+    <!-- Weekly ambient digest — passive territory summary, no call-to-action -->
+    <string name="notification_weekly_channel_name">Weekly Territory Update</string>
+    <string name="notification_weekly_title">Your territory this week</string>
+    <!-- %1$d = new zones, %2$d = total -->
+    <string name="notification_weekly_body_growth">+%1$d new zones — %2$d total on your map</string>
+    <!-- %1$d = total (no change week-over-week) -->
+    <string name="notification_weekly_body_stable">%1$d zones mapped so far</string>
+
 </resources>

@@ -23,9 +23,13 @@ class ReferralInviteCard extends StatefulWidget {
   const ReferralInviteCard({
     super.key,
     required this.user,
+    this.neighborhoodName,
   });
 
   final User user;
+  /// Primary neighborhood name — when set, shows a geographic hook line
+  /// ("Help map Belleville — every neighbor fills in what you haven't reached.")
+  final String? neighborhoodName;
 
   @override
   State<ReferralInviteCard> createState() => _ReferralInviteCardState();
@@ -93,7 +97,12 @@ class _ReferralInviteCardState extends State<ReferralInviteCard> {
         ? null
         : 'https://greengains.eremat.org/invite/$referralCode';
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Card(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+        side: BorderSide(color: AppColors.border(isDark), width: 1),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(AppTheme.spaceMd),
         child: Column(
@@ -137,16 +146,24 @@ class _ReferralInviteCardState extends State<ReferralInviteCard> {
                   ),
               ],
             ),
+            if (widget.neighborhoodName != null) ...[
+              const SizedBox(height: AppTheme.spaceXs),
+              Text(
+                context.l10n.referralNeighborhoodHook(widget.neighborhoodName!),
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: AppColors.textSecondary(isDark),
+                ),
+              ),
+            ],
             const SizedBox(height: AppTheme.spaceMd),
             // 3-step visual flow: Share → They join → You earn
             Row(
-              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                _ReferralStep(icon: Icons.share_outlined, label: context.l10n.referralStepShare),
+                Expanded(child: _ReferralStep(icon: Icons.share_outlined, label: context.l10n.referralStepShare)),
                 _ReferralStepArrow(),
-                _ReferralStep(icon: Icons.person_add_outlined, label: context.l10n.referralStepJoin),
+                Expanded(child: _ReferralStep(icon: Icons.person_add_outlined, label: context.l10n.referralStepJoin)),
                 _ReferralStepArrow(),
-                _ReferralStep(icon: Icons.map_outlined, label: context.l10n.referralStepEarn),
+                Expanded(child: _ReferralStep(icon: Icons.map_outlined, label: context.l10n.referralStepEarn)),
               ],
             ),
             if (_conversions != null) ...[
@@ -155,8 +172,8 @@ class _ReferralInviteCardState extends State<ReferralInviteCard> {
                 context.l10n.referralConversions(_conversions!),
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: _conversions! > 0
-                      ? theme.colorScheme.primary
-                      : theme.textTheme.bodySmall?.color?.withValues(alpha: 0.6),
+                      ? AppColors.primary
+                      : AppColors.textSecondary(isDark),
                 ),
               ),
             ],
@@ -165,11 +182,13 @@ class _ReferralInviteCardState extends State<ReferralInviteCard> {
               padding: const EdgeInsets.all(_kCodePad),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(_kCodeRadius),
-                color: theme.colorScheme.surfaceContainerHighest,
+                color: AppColors.surfaceElevated(isDark),
+                border: Border.all(color: AppColors.border(isDark)),
               ),
               child: _buildCodeBar(
                 context: context,
                 theme: theme,
+                isDark: isDark,
                 referralCode: referralCode,
                 referralLink: referralLink,
               ),
@@ -192,47 +211,31 @@ class _ReferralInviteCardState extends State<ReferralInviteCard> {
   Widget _buildCodeBar({
     required BuildContext context,
     required ThemeData theme,
+    required bool isDark,
     required String? referralCode,
     required String? referralLink,
   }) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final codeText = Text(
-          referralCode ?? (_hasLoadError ? context.l10n.errorGeneric : context.l10n.loading),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: theme.textTheme.titleMedium?.copyWith(
-            fontFeatures: const [FontFeature.tabularFigures()],
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            referralCode ?? (_hasLoadError ? context.l10n.errorGeneric : context.l10n.loading),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontFeatures: const [FontFeature.tabularFigures()],
+              fontWeight: AppFontWeights.semibold,
+              letterSpacing: 0.5,
+              color: AppColors.textPrimary(isDark),
+            ),
           ),
-        );
-        final actionButtons = _buildCodeActions(
+        ),
+        _buildCodeActions(
           context: context,
           referralCode: referralCode,
           referralLink: referralLink,
-        );
-
-        if (constraints.maxWidth < 360) {
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              codeText,
-              const SizedBox(height: AppTheme.spaceXs),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [actionButtons],
-              ),
-            ],
-          );
-        }
-
-        return Row(
-          children: [
-            Expanded(child: codeText),
-            const SizedBox(width: AppTheme.spaceXs),
-            actionButtons,
-          ],
-        );
-      },
+        ),
+      ],
     );
   }
 
@@ -294,12 +297,13 @@ class _ReferralStep extends StatelessWidget {
     final theme = Theme.of(context);
     return Column(
       mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Container(
           width: _kStepCircleSize,
           height: _kStepCircleSize,
           decoration: BoxDecoration(
-            color: AppColors.primaryAlpha(0.1),
+            color: AppColors.primaryAlpha(0.18),
             shape: BoxShape.circle,
           ),
           child: Icon(icon, size: AppIconSizes.sm, color: AppColors.primary),
@@ -307,8 +311,12 @@ class _ReferralStep extends StatelessWidget {
         const SizedBox(height: AppTheme.spaceXxs),
         Text(
           label,
+          textAlign: TextAlign.center,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
           style: theme.textTheme.labelSmall?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
+            color: theme.colorScheme.onSurface.withValues(alpha: 0.75),
+            fontWeight: AppFontWeights.medium,
           ),
         ),
       ],
@@ -330,7 +338,7 @@ class _ReferralStepArrow extends StatelessWidget {
       child: Icon(
         Icons.arrow_forward_ios,
         size: _kStepArrowIconSize,
-        color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
+        color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.55),
       ),
     );
   }

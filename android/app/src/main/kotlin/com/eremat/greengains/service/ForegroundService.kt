@@ -93,6 +93,10 @@ class ForegroundService : Service() {
     private var nativeSamplerJob: Job? = null
     private var trackingPausedState: Boolean = false
 
+    // Session wall-clock start — used to compute elapsed time shown in the notification.
+    // Set when sensors start, cleared on pause or stop.
+    private var sessionStartMillis: Long? = null
+
     // Data Flows
     private val _lightFlow = MutableStateFlow<Float?>(null)
     private val _pressureFlow = MutableStateFlow<Float?>(null)
@@ -283,7 +287,7 @@ class ForegroundService : Service() {
         // Android 8+ requirement - call IMMEDIATELY before any other logic
         if (!running) {
             val lastUpload = NotificationsHelper.readLastUploadFromPrefs(this)
-            val notification = NotificationsHelper.buildNotification(this, lastUpload, trackingPausedState, readUploadsTodayFromPrefs(), readTotalUploadsFromPrefs(), readCurrentStreakFromPrefs())
+            val notification = NotificationsHelper.buildNotification(this, lastUpload, trackingPausedState, readUploadsTodayFromPrefs(), readTotalUploadsFromPrefs(), readZonesTotalFromPrefs(), currentMotionState.name, nativeUploader?.getBufferSize() ?: 0)
             ServiceCompat.startForeground(
                 this,
                 NotificationsHelper.NOTIFICATION_ID_SERVICE,
@@ -342,7 +346,7 @@ class ForegroundService : Service() {
 
         // Start Notification
         val lastUpload = NotificationsHelper.readLastUploadFromPrefs(this)
-        val notification = NotificationsHelper.buildNotification(this, lastUpload, trackingPausedState, readUploadsTodayFromPrefs(), readTotalUploadsFromPrefs(), readCurrentStreakFromPrefs())
+        val notification = NotificationsHelper.buildNotification(this, lastUpload, trackingPausedState, readUploadsTodayFromPrefs(), readTotalUploadsFromPrefs(), readZonesTotalFromPrefs())
         ServiceCompat.startForeground(
             this,
             NotificationsHelper.NOTIFICATION_ID_SERVICE,
@@ -362,6 +366,7 @@ class ForegroundService : Service() {
     }
 
     private fun startTracking() {
+        sessionStartMillis = System.currentTimeMillis()
         lightSensor.start()
         barometer.start()
         motionSensors.start()
@@ -394,6 +399,7 @@ class ForegroundService : Service() {
 
     private fun pauseTracking() {
         if (!running || trackingPausedState) return
+        sessionStartMillis = null
         trackingPausedState = true
         trackingPaused = true
         setTrackingPausedPref(true)
@@ -428,6 +434,7 @@ class ForegroundService : Service() {
     }
 
     private fun stopForegroundService() {
+        sessionStartMillis = null
         running = false
         trackingPausedState = false
         trackingPaused = false
@@ -496,6 +503,20 @@ class ForegroundService : Service() {
     private fun updateGpsPriority(motionState: MotionState) {
         if (motionState == currentMotionState) return
 
+        val wasStationary = currentMotionState == MotionState.STATIONARY
+        val becomingStationary = motionState == MotionState.STATIONARY
+
+        // Proximity is a wakeup sensor — no FIFO, fires an immediate CPU interrupt on every
+        // change. When stationary the user isn't moving in/out of pockets, so the cost is
+        // pure overhead. Stop it when still, restart when motion resumes.
+        if (becomingStationary && !wasStationary) {
+            proximitySensor.stop()
+            Log.d(TAG, "Proximity sensor paused — STATIONARY mode")
+        } else if (!becomingStationary && wasStationary) {
+            proximitySensor.start()
+            Log.d(TAG, "Proximity sensor resumed — motion detected")
+        }
+
         val (newPriority, newInterval) = gpsConfigFor(motionState)
         val (curPriority, curInterval) = gpsConfigFor(currentMotionState)
 
@@ -555,6 +576,8 @@ class ForegroundService : Service() {
                 val snapshot = captureSensorSnapshot()
                 if (snapshot != null) {
                     nativeUploader?.addReading(snapshot)
+                    val bufSize = nativeUploader?.getBufferSize() ?: 0
+                    postToFlutter("bufferSize") { it.invokeMethod("onBufferUpdate", bufSize) }
                 }
                 intervalMs = when (currentMotionState) {
                     MotionState.STATIONARY -> NATIVE_SAMPLE_INTERVAL_STATIONARY_MS
@@ -705,7 +728,12 @@ class ForegroundService : Service() {
         if (event.type == NativeUploadEventType.SUCCESS && ::notificationManager.isInitialized) {
             val uploadsToday = incrementUploadsToday()
             val uploadsTotal = readTotalUploadsFromPrefs()
-            NotificationsHelper.notifyUpdate(this, notificationManager, event.timestamp, trackingPausedState, uploadsToday, uploadsTotal, readCurrentStreakFromPrefs())
+            NotificationsHelper.notifyUpdate(
+                this, notificationManager, event.timestamp, trackingPausedState,
+                uploadsToday, uploadsTotal, readZonesTotalFromPrefs(),
+                currentMotionState.name, nativeUploader?.getBufferSize() ?: 0,
+                sessionStartMillis = sessionStartMillis,
+            )
         }
     }
 
@@ -738,6 +766,9 @@ class ForegroundService : Service() {
         val prefs = getSharedPreferences(AppPrefs.NAME, Context.MODE_PRIVATE)
         return prefs.getInt(AppPrefs.UPLOADS_TOTAL_COUNT, 0)
     }
+
+    private fun readZonesTotalFromPrefs(): Int =
+        NotificationsHelper.readZonesTotalFromPrefs(this)
 
     private fun readCurrentStreakFromPrefs(): Int {
         val prefs = getSharedPreferences(AppPrefs.NAME, Context.MODE_PRIVATE)
@@ -856,7 +887,12 @@ class ForegroundService : Service() {
         val lastUpload = NotificationsHelper.readLastUploadFromPrefs(this)
         val uploadsToday = readUploadsTodayFromPrefs()
         val uploadsTotal = readTotalUploadsFromPrefs()
-        NotificationsHelper.notifyUpdate(this, notificationManager, lastUpload, trackingPausedState, uploadsToday, uploadsTotal, readCurrentStreakFromPrefs())
+        NotificationsHelper.notifyUpdate(
+            this, notificationManager, lastUpload, trackingPausedState,
+            uploadsToday, uploadsTotal, readZonesTotalFromPrefs(),
+            currentMotionState.name, nativeUploader?.getBufferSize() ?: 0,
+            sessionStartMillis = sessionStartMillis,
+        )
     }
 
     private fun sendTrackingPausedToFlutter(paused: Boolean) {

@@ -215,49 +215,42 @@ class DatabaseHelper {
     return Sqflite.firstIntValue(result) ?? 0;
   }
 
-  /// Get today's tile coverage split by day/night (distinct geohash per period)
-  Future<TileCoverageStats> getTodayTileCoverage() async {
+  /// Get the first time the user contributed in a geohash area (7-char prefix ≈ 152m).
+  /// Used to show "First mapped [date]" in tile info for personal tiles.
+  Future<DateTime?> getFirstContributionNearGeohash(String geohashPrefix) async {
+    final db = await database;
+    final prefix = geohashPrefix.length > 7 ? geohashPrefix.substring(0, 7) : geohashPrefix;
+    final result = await db.rawQuery(
+      'SELECT MIN(timestamp) as first FROM contributions WHERE success = 1 AND geohash LIKE ?',
+      ['$prefix%'],
+    );
+    final raw = Sqflite.firstIntValue(result);
+    if (raw == null || raw == 0) return null;
+    return DateTime.fromMillisecondsSinceEpoch(raw);
+  }
+
+  /// Get the date of the user's first successful contribution (null if none)
+  Future<DateTime?> getFirstContributionDate() async {
+    final db = await database;
+    final result = await db.rawQuery(
+      'SELECT MIN(timestamp) as first FROM contributions WHERE success = 1',
+    );
+    final raw = Sqflite.firstIntValue(result);
+    if (raw == null || raw == 0) return null;
+    return DateTime.fromMillisecondsSinceEpoch(raw);
+  }
+
+  /// Get this week's uploads count (Monday–Sunday)
+  Future<int> getWeekCount() async {
     final db = await database;
     final now = DateTime.now();
-    final todayStart = DateTime(now.year, now.month, now.day);
+    final weekStart = DateTime(now.year, now.month, now.day - (now.weekday - 1));
 
-    final results = await db.rawQuery(
-      '''
-        SELECT part, COUNT(*) as count
-        FROM (
-          SELECT DISTINCT
-            geohash,
-            CASE
-              WHEN CAST(STRFTIME('%H', datetime(timestamp / 1000, 'unixepoch', 'localtime')) AS INTEGER)
-                BETWEEN $kDayStartHour AND ${kDayEndHour - 1} THEN 'day'
-              ELSE 'night'
-            END as part
-          FROM contributions
-          WHERE success = 1
-            AND geohash IS NOT NULL
-            AND geohash != ''
-            AND timestamp >= ?
-        ) t
-        GROUP BY part
-      ''',
-      [todayStart.millisecondsSinceEpoch],
+    final result = await db.rawQuery(
+      'SELECT COUNT(*) as count FROM contributions WHERE timestamp >= ? AND success = 1',
+      [weekStart.millisecondsSinceEpoch],
     );
-
-    var day = 0;
-    var night = 0;
-    for (final row in results) {
-      final part = row['part']?.toString();
-      final count = row['count'] is int
-          ? row['count'] as int
-          : int.tryParse(row['count']?.toString() ?? '') ?? 0;
-      if (part == 'day') {
-        day = count;
-      } else if (part == 'night') {
-        night = count;
-      }
-    }
-
-    return TileCoverageStats(dayTiles: day, nightTiles: night);
+    return Sqflite.firstIntValue(result) ?? 0;
   }
 
   /// Get current streak (consecutive days with uploads)
@@ -275,22 +268,33 @@ class DatabaseHelper {
     if (results.isEmpty) return 0;
 
     int streak = 0;
-    DateTime? expectedDate = DateTime.now();
+    final today = DateTime.now();
+    // Mirror the backend rule: a streak is alive if the most recent upload
+    // was today OR yesterday (the day isn't over yet).
+    DateTime expectedDate = DateTime(today.year, today.month, today.day);
+    final yesterday = expectedDate.subtract(const Duration(days: 1));
+    bool firstRow = true;
 
     for (final row in results) {
       final dateStr = row['date'] as String;
       final date = DateTime.parse(dateStr);
-
-      // Normalize to start of day
       final normalizedDate = DateTime(date.year, date.month, date.day);
-      final normalizedExpected =
-          DateTime(expectedDate!.year, expectedDate.month, expectedDate.day);
 
-      if (normalizedDate == normalizedExpected) {
-        streak++;
-        expectedDate = normalizedDate.subtract(const Duration(days: 1));
+      if (firstRow) {
+        firstRow = false;
+        if (normalizedDate == expectedDate || normalizedDate == yesterday) {
+          streak++;
+          expectedDate = normalizedDate.subtract(const Duration(days: 1));
+        } else {
+          break;
+        }
       } else {
-        break;
+        if (normalizedDate == expectedDate) {
+          streak++;
+          expectedDate = normalizedDate.subtract(const Duration(days: 1));
+        } else {
+          break;
+        }
       }
     }
 

@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/node';
 import { PoolClient } from 'pg';
 import { latLngToCell } from 'h3-js';
 import { getPool } from '../database';
@@ -71,15 +72,17 @@ let lastPurgeDate: string | null = null; // UTC date string — purge runs at mo
 
 export async function startAggregationJob(): Promise<void> {
   // Run once immediately, then schedule interval
-  await runAggregationJob().catch((error) =>
-    console.error('[aggregation] initial run failed:', { err: error }),
-  );
+  await runAggregationJob().catch((error) => {
+    console.error('[aggregation] initial run failed:', { err: error });
+    Sentry.captureException(error, { tags: { job: 'aggregation', phase: 'initial' } });
+  });
   aggregationTimer = setInterval(() => {
     const start = Date.now();
-    runAggregationJob()
-      .catch((error) =>
-        console.error('[aggregation] scheduled run failed', { err: error, elapsedMs: Date.now() - start }),
-      );
+    runAggregationJob().catch((error) => {
+      const elapsedMs = Date.now() - start;
+      console.error('[aggregation] scheduled run failed', { err: error, elapsedMs });
+      Sentry.captureException(error, { tags: { job: 'aggregation', phase: 'scheduled' }, extra: { elapsedMs } });
+    });
   }, AGGREGATION_JOB_INTERVAL_MS);
 }
 

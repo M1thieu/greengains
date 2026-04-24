@@ -59,6 +59,8 @@ dependencies:
   in_app_review: ^2.0.9
   maplibre_gl: ^0.25.0
   share_plus: ^12.0.2
+  shimmer: ^3.0.0
+  cached_network_image: ^3.4.1
   # permission_handler
 
 dev_dependencies:

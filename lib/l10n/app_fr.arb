@@ -1,20 +1,16 @@
 {
   "@@locale": "fr",
 
-  "onboardingWelcomeTitle": "Regardez votre ville se remplir au fil de vos pas",
-  "onboardingWelcomeSubtitle": "Votre téléphone mesure silencieusement lumière, pression et mouvement pendant vos déplacements. Aucune interaction nécessaire — vous marchez, il cartographie.",
+  "onboardingWelcomeTitle": "Remplissez votre terrain.",
+  "onboardingWelcomeSubtitle": "Bougez où vous voulez. Votre téléphone lit discrètement le monde — lumière, pression, mouvement — et le cartographie.",
   "onboardingFeature1Title": "Zéro interaction. Jamais.",
-  "onboardingFeature1Description": "Lancez une fois, oubliez-le. Votre carte se remplit automatiquement pendant vos trajets, promenades ou footing — sans rien toucher.",
+  "onboardingFeature1Description": "Lancez une fois, oubliez-le — votre carte se remplit pendant que vous bougez.",
   "onboardingFeature2Title": "Privé par défaut",
-  "onboardingFeature2Description": "Votre trajet n'est jamais conservé. Les données sont regroupées avec des milliers d'autres avant de quitter votre téléphone — aucun historique, aucune trace.",
-  "onboardingFeature3Title": "Vos trajets, sur la carte",
-  "onboardingFeature3Description": "Chaque rue parcourue apparaît sur votre carte personnelle. Ensemble, les contributeurs construisent le premier portrait au sol de la vie urbaine.",
-  "onboardingSignInTitle": "Votre carte commence ici",
-  "onboardingSignInSubtitle": "Connectez-vous pour garder votre carte et votre série synchronisées sur tous vos appareils.",
-  "onboardingCloudSync": "Carte de couverture en direct",
-  "onboardingCloudSyncDescription": "Regardez votre zone de couverture personnelle s'agrandir en temps réel",
-  "onboardingFutureFeatures": "Bientôt disponible",
-  "onboardingFutureDescription": "Jalons contributeurs, rapports d'impact et bien plus",
+  "onboardingFeature2Description": "Votre trajet n'est jamais conservé — les données sont anonymisées avant de quitter votre téléphone.",
+  "onboardingFeature3Title": "Chaque rue, à vous.",
+  "onboardingFeature3Description": "Chaque endroit visité se remplit sur votre carte — voyez jusqu'où s'étend votre terrain.",
+  "onboardingSignInTitle": "Votre territoire commence ici",
+  "onboardingSignInSubtitle": "Connectez-vous pour garder votre territoire synchronisé sur tous vos appareils.",
   "onboardingPrivacyNotice": "En continuant, vous acceptez notre {privacyPolicy} et nos {termsOfService}.",
   "@onboardingPrivacyNotice": {
     "placeholders": {
@@ -50,45 +46,7 @@
   },
   "noUploadYet": "Aucun envoi pour le moment",
 
-  "dailyPotTitle": "Pot quotidien",
-  "dailyPotClaimButton": "Récupérer {amount} crédits",
-  "@dailyPotClaimButton": {
-    "placeholders": {
-      "amount": {"type": "int"}
-    }
-  },
-  "dailyPotClaimed": "+{amount} crédits ! 🍯",
-  "@dailyPotClaimed": {
-    "placeholders": {
-      "amount": {"type": "int"}
-    }
-  },
-  "dailyPotAlreadyClaimed": "Déjà récupéré aujourd'hui ! Revenez demain",
-  "dailyPotNeedMoreUploads": "Encore {count} envoi{s} pour débloquer",
-  "@dailyPotNeedMoreUploads": {
-    "placeholders": {
-      "count": {"type": "int"},
-      "s": {"type": "String"}
-    }
-  },
-  "dailyPotProgress": "{current} / {required} envois",
-  "@dailyPotProgress": {
-    "placeholders": {
-      "current": {"type": "int"},
-      "required": {"type": "int"}
-    }
-  },
-
-  "credits": "{count} crédits",
-  "@credits": {
-    "placeholders": {
-      "count": {"type": "int"}
-    }
-  },
-  "totalCredits": "Total de crédits",
-  "creditsEarned": "Crédits gagnés",
-
-  "statsTitle": "Votre impact",
+  "statsTitle": "Votre terrain",
   "totalUploads": "Total d'envois",
   "todayUploads": "Envois du jour",
   "coverageTiles": "Tuiles couvertes",
@@ -128,13 +86,8 @@
   "settingsLanguageEnglish": "English",
   "settingsLanguageFrench": "Français",
   "settingsTheme": "Thème",
-  "settingsNotifications": "Notifications",
   "settingsLocationSharing": "Partage de position",
-  "settingsLocationEnabled": "Partage de position activé",
-  "settingsLocationDisabled": "Partage de position désactivé",
   "settingsMobileData": "Envoi sur données mobiles",
-  "settingsMobileDataEnabled": "Envoyer sur données mobiles",
-  "settingsMobileDataDisabled": "Envoyer uniquement en WiFi",
   "settingsVersion": "Version {version}",
   "@settingsVersion": {
     "placeholders": {
@@ -143,7 +96,7 @@
   },
 
   "permissionLocationTitle": "Autorisation de localisation",
-  "permissionLocationMessage": "Autorisez la localisation pour commencer à cartographier votre ville.",
+  "permissionLocationMessage": "Autorisez la localisation pour commencer à cartographier votre terrain.",
   "permissionLocationButton": "Autoriser",
   "permissionBatteryTitle": "Optimisation de la batterie",
   "permissionBatteryMessage": "Veuillez désactiver l'optimisation de la batterie pour un suivi en arrière-plan fiable.",
@@ -169,17 +122,41 @@
   "error": "Erreur",
 
   "profileNotSignedIn": "Non connecté",
-  "profileSignInPrompt": "Connectez-vous avec Google pour garder votre série et synchroniser votre carte.",
-  "profileAnonymousNote": "Utilisation anonyme. Connectez-vous pour suivre votre progression.",
+  "profileSignInPrompt": "Connectez-vous avec Google pour garder votre territoire synchronisé.",
+  "profileAnonymousNote": "Utilisation anonyme. Connectez-vous pour sauvegarder votre territoire.",
   "profileUserFallback": "Utilisateur",
   "profileViewStats": "Voir les statistiques",
-  "profileContributionsHint": "Suivez vos contributions",
+  "profileContributionsHint": "Voir votre territoire",
   "profileSignedOut": "Déconnecté",
 
-  "chipContributing": "En cours",
+  "chipContributing": "Cartographie",
   "chipPaused": "En pause",
-  "chipTapStart": "Appuyer ▶",
+  "chipTapStart": "Pas de suivi · Appuyer ▶",
+  "chipDataPts": "{count, plural, =1{1 pt} other{{count} pts}}",
+  "@chipDataPts": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "homeSessionZones": "{count, plural, =0{Analyse en cours} =1{+1 zone complétée} other{+{count} zones complétées}}",
+  "@homeSessionZones": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "homeYourMap": "VOTRE CARTE",
+  "homeCityPct": "{pct}% de la ville explorée",
+  "@homeCityPct": {
+    "placeholders": { "pct": { "type": "String" } }
+  },
+  "profileImpactSection": "VOTRE IMPACT",
+  "profileAccountSection": "COMPTE",
   "homeFirstUseHint": "Appuyez sur ▶ — regardez votre première zone apparaître",
+  "homeFirstTrackingHint": "Capteur lumière, pression, mouvement — première zone après le premier envoi",
+  "homeTrackingReadings": "{count, plural, =1{1 mesure capturée} other{{count} mesures capturées}}",
+  "@homeTrackingReadings": {
+    "placeholders": { "count": { "type": "num", "format": "compact" } }
+  },
+  "homeReturnHint": "{count, plural, =1{1 zone sur votre carte — appuyez sur ▶ pour continuer} other{{count} zones sur votre carte — appuyez sur ▶ pour continuer}}",
+  "@homeReturnHint": {
+    "placeholders": { "count": { "type": "int" } }
+  },
 
   "uploadSuccessMessage": "Carte mise à jour !",
   "uploadSuccessNewZone": "Nouvelle zone · {count} sur votre carte",
@@ -194,20 +171,14 @@
 
   "statsScreenTitle": "Statistiques",
   "statsToday": "Aujourd'hui",
-  "statsStreak": "Série",
-  "statsStreakBest": "RECORD {days}J",
-  "@statsStreakBest": {
-    "placeholders": { "days": { "type": "int" } }
-  },
+  "statsThisWeek": "Cette semaine",
   "statsDaysActive": "Jours actifs",
   "statsTotal": "Total",
   "statsCoverage": "Zones",
   "statsAreasLabel": "zones cartographiées",
-  "statsDataPtsLabel": "envois",
+  "statsDataPtsLabel": "enregistrements",
   "statsKmMapped": "km² cartographiés",
-  "statsBestDay": "meilleur jour",
-  "statsStreakLabel": "série",
-  "statsRecordStreak": "record",
+  "statsBestDay": "Meilleur jour",
   "statsBarCalloutUploads": "{count, plural, =1{1 envoi} other{{count} envois}}",
   "@statsBarCalloutUploads": {
     "placeholders": { "count": { "type": "int" } }
@@ -216,23 +187,26 @@
   "statsBarCalloutBest": "Meilleur jour",
 
   "infoKmTitle": "Territoire cartographié",
-  "infoKmBody": "Chaque hexagone sur votre carte couvre environ 0,1 km². Cela représente la surface de votre ville que vous avez personnellement cartographiée.",
+  "infoKmBody": "Chaque hexagone couvre ~0,1 km² — c'est votre empreinte personnelle sur la carte.",
   "infoDataPtsTitle": "Envois",
-  "infoDataPtsBody": "Chaque envoi enregistre lumière, pression et mouvement pendant vos déplacements. Plus d'envois = plus de détails sur votre carte.",
+  "infoDataPtsBody": "Chaque envoi capture lumière, pression et mouvement — plus d'envois = carte plus dense.",
+  "infoTodayTitle": "Enregistrements aujourd'hui",
+  "infoTodayBody": "Mesures envoyées aujourd'hui — lumière, pression et mouvement à chaque arrêt.",
+  "infoThisWeekTitle": "Cette semaine",
+  "infoThisWeekBody": "Enregistrements des 7 derniers jours — la régularité enrichit la carte.",
   "infoDaysActiveTitle": "Jours actifs",
-  "infoDaysActiveBody": "Le nombre de jours où vous étiez actif. Pas besoin d'être actif tous les jours.",
+  "infoDaysActiveBody": "Jours où vous avez contribué — pas besoin d'être actif tous les jours.",
   "infoBestDayTitle": "Meilleur jour",
-  "infoBestDayBody": "Votre jour le plus actif cette semaine, mesuré en points de données envoyés. Un chiffre élevé signifie généralement plus de temps en extérieur.",
+  "infoBestDayBody": "Votre jour le plus actif cette semaine — souvent plus de temps en extérieur.",
   "infoMilestoneTitle": "Prochain palier",
-  "infoMilestoneBody": "Les paliers mesurent la croissance de votre territoire. Chaque nouvel hexagone cartographié compte pour le niveau suivant.",
+  "infoMilestoneBody": "Chaque nouvelle zone cartographiée compte pour le prochain palier.",
   "infoTileQualityTitle": "Qualité de couverture",
-  "infoTileQualityBody": "La qualité reflète le nombre et la cohérence des mesures collectées dans cette zone. Vert = données solides, jaune = partiel, rouge = sparse.",
+  "infoTileQualityBody": "Vert = bien couvert, jaune = partiel, rouge = plus de passages nécessaires.",
   "infoTilePersonalTitle": "Votre zone",
-  "infoTilePersonalBody": "Vous avez cartographié cette zone. Votre téléphone a enregistré ici lors de vos déplacements.",
+  "infoTilePersonalBody": "Votre téléphone a enregistré ici — c'est votre terrain.",
   "infoTileCommunityTitle": "Zone communautaire",
-  "infoTileCommunityBody": "Cette zone a été cartographiée par d'autres utilisateurs. Ensemble vous construisez une carte à l'échelle de la ville.",
+  "infoTileCommunityBody": "Cartographié par d'autres — leur terrain, pas le vôtre. Pas encore.",
   "statsTotalContributions": "Total des contributions",
-  "statsKeepContributing": "Continuez à contribuer pour suivre les tendances",
   "statsActivityTrend": "Cette semaine",
   "statsLast7Days": "7 derniers jours",
   "statsTodayLabel": "AUJOURD'HUI",
@@ -244,8 +218,8 @@
   "statsAchievementsDescription": "Débloquez des badges et jalons en contribuant",
   "statsEarningsTracking": "Suivi des gains",
   "statsEarningsDescription": "Suivez vos gains et l'historique des paiements une fois la monétisation lancée",
-  "statsStartContributing": "Rien à afficher pour l'instant",
-  "statsEmptyDescription": "Allez sur la carte et appuyez sur ▶. Votre première zone apparaîtra en quelques minutes.",
+  "statsStartContributing": "Votre carte est vide.",
+  "statsEmptyDescription": "Appuyez sur ▶. Votre première zone attend d'être cartographiée.",
   "statsEmptyGoMap": "Aller sur la carte",
   "statsUpdatedPrefix": "Mis à jour ",
   "statsDayMon": "Lun",
@@ -257,24 +231,21 @@
   "statsDayToday": "Aujourd'hui",
 
   "mapLoadingText": "Chargement de la carte...",
-  "mapComingSoonTitle": "Carte de couverture bientôt disponible",
-  "mapComingSoonDescription": "Visualisation de la couverture en cours",
   "mapCenterTooltip": "Centrer sur la position",
 
-  "yourContributions": "VOS ENVOIS",
-  "impactCardContext": "envois — partagés anonymement",
+  "yourContributions": "VOTRE TERRITOIRE",
+  "impactCardContext": "zones cartographiées",
   "loadingStatsLabel": "Chargement des statistiques",
-  "noContributionsYet": "Rien d'enregistré pour l'instant. Commencez le suivi.",
+  "noContributionsYet": "Rien d'enregistré — appuyez sur ▶ pour démarrer.",
   "startContributingTitle": "Commencer à cartographier",
-  "startContributingHint": "Votre téléphone cartographie silencieusement la ville pendant vos déplacements",
+  "startContributingHint": "Votre téléphone cartographie silencieusement pendant vos déplacements",
   "areaCovered": "Zone couverte",
-  "activeStreak": "Série active",
-  "contributionStatsSemanticsLabel": "Vos contributions : {uploads}. Zone couverte : {area}. Série active : {streak}.",
+  "activeStreak": "Territoire",
+  "contributionStatsSemanticsLabel": "Vos contributions : {uploads}. Zone couverte : {area}.",
   "@contributionStatsSemanticsLabel": {
     "placeholders": {
       "uploads": {"type": "String"},
-      "area": {"type": "String"},
-      "streak": {"type": "String"}
+      "area": {"type": "String"}
     }
   },
 
@@ -320,7 +291,7 @@
   },
 
   "sensorLiveReadings": "Lectures en direct",
-  "sensorLiveSubtitle": "Voir les données que vous contribuez en ce moment",
+  "sensorLiveSubtitle": "Lectures en temps réel de votre téléphone.",
   "sensorInactiveTitle": "Rien n'est enregistré",
   "sensorInactiveSubtitle": "Démarrez le suivi pour commencer à enregistrer",
   "sensorPausedTitle": "Enregistrement en pause",
@@ -380,11 +351,8 @@
     }
   },
   "settingsDataRetention": "Données conservées 7 jours (Gratuit)",
-  "onboardingDataCollectedTitle": "Ce que nous collectons",
-  "onboardingDataCollectedDescription": "Lumière, mouvement, pression et position anonyme — agrégés avec 100\u202f000+ appareils avant toute analyse.",
-
   "referralInviteTitle": "Inviter des amis",
-  "referralInviteDescription": "Invitez des amis à cartographier votre ville. Chaque personne ajoute des rues que vous n'avez pas encore parcourues.",
+  "referralInviteDescription": "Chaque ami couvre un terrain que vous n'avez pas encore atteint.",
   "referralLinkCopied": "Lien de parrainage copié",
   "referralCopyLink": "Copier le lien",
   "referralShareLink": "Partager le lien d'invitation",
@@ -398,20 +366,19 @@
   "tooltipRefresh": "Actualiser",
   "tooltipDismiss": "Fermer",
 
+  "statsHighlightsLabel": "FAITS MARQUANTS",
+  "statsMappingSince": "Cartographie depuis",
   "statsFailedToLoad": "Impossible de charger les statistiques",
-  "statsReadyToContribute": "Prêt à contribuer ?",
-  "statsFirstContributionHint": "Commencez le suivi pour faire votre première contribution",
-  "statsDayStreak": "Jours de suite",
-
-  "offlineBannerMessage": "Hors connexion · données en attente",
+  "statsReadyToContribute": "Votre terrain vous attend.",
+  "statsFirstContributionHint": "Commencez le suivi pour cartographier votre première zone",
 
   "statsWeeklyLabel": "7 JOURS",
 
   "statsWeeklyTotal": "{count} cette semaine",
 
-  "statsMilestoneLabel": "Prochain palier",
-  "statsMilestoneHint": "Les récompenses se débloquent à ce palier — continuez à contribuer",
-  "statsMilestoneElite": "Contributeur élite · tous les paliers atteints",
+  "statsMilestoneLabel": "Niveau suivant",
+  "statsMilestoneHint": "Cartographiez suffisamment de terrain pour atteindre ce niveau et débloquer le suivant",
+  "statsMilestoneElite": "Tout cartographié · statut explorateur",
   "statsMilestoneRemaining": "{count, plural, =1{1 zone restante} other{{count} zones restantes}}",
   "@statsMilestoneRemaining": {
     "placeholders": { "count": { "type": "int" } }
@@ -428,8 +395,8 @@
     }
   },
 
-  "batteryDialogTitle": "Maximisez votre impact",
-  "batteryDialogBody": "Pour contribuer 24h/24, GreenGains doit fonctionner en arrière-plan sans être arrêté par le système.",
+  "batteryDialogTitle": "Continuez à cartographier",
+  "batteryDialogBody": "Désactivez l'optimisation de la batterie pour que l'appli continue de cartographier en arrière-plan.",
   "batteryDialogBodyBold": "Veuillez désactiver l'« Optimisation de la batterie » pour GreenGains dans l'écran suivant.",
   "batteryDialogDismissForever": "Ne plus afficher",
   "batteryDialogLater": "Plus tard",
@@ -465,12 +432,16 @@
   "legendCommunitySub": "Cartographié par d'autres contributeurs",
 
   "permissionPrimingTitle": "Une chose avant de commencer",
-  "permissionPrimingBattery": "Moins de 1 % de batterie par heure — comme une appli météo",
-  "permissionPrimingCollects": "Nous collectons la lumière ambiante, la pression et le mouvement — jamais votre identité",
+  "permissionPrimingBattery": "Batterie intelligente",
+  "permissionPrimingBatteryDesc": "Moins d'1 % par heure — s'adapte automatiquement en arrière-plan",
+  "permissionPrimingCollects": "Conçu pour la vie privée",
+  "permissionPrimingCollectsDesc": "Lumière, pression et mouvement uniquement — jamais votre trajet ni votre identité",
   "permissionPrimingCta": "Activer la localisation",
+  "settingsBatteryMode": "Batterie intelligente",
+  "settingsBatteryModeDesc": "Discret à l'arrêt, précis en mouvement — s'adapte automatiquement",
 
-  "firstStartTitle": "Ça se remplit",
-  "firstStartBody": "Bougez normalement — vos zones apparaissent sur la carte au fil de vos déplacements. Explorez de nouvelles rues pour en remplir davantage.",
+  "firstStartTitle": "Cartographie en cours.",
+  "firstStartBody": "Bougez — les zones apparaissent au fil de vos pas.",
 
   "alwaysOnBannerBody": "Définissez la localisation sur 'Toujours' pour continuer à cartographier en arrière-plan",
   "alwaysOnBannerFix": "Corriger",
@@ -479,22 +450,141 @@
   "@milestoneReachedTitle": {
     "placeholders": { "count": { "type": "int" } }
   },
-  "milestoneReachedBody": "Vous construisez une vraie carte de votre ville. Continuez.",
-  "milestoneReachedCta": "Continuer à cartographier",
+  "milestoneReachedBody": "Jusqu'où pouvez-vous aller ?",
+  "milestoneReachedCta": "Continuer",
 
-  "firstUploadTitle": "Votre première zone est remplie !",
-  "firstUploadBody": "Continuez à bouger — chaque nouvelle rue remplit une zone. Explorez un nouveau chemin pour agrandir votre carte.",
+  "firstUploadTitle": "Première zone cartographiée.",
+  "firstUploadBody": "Continuez à bouger — votre territoire grandit.",
   "firstUploadCta": "Voir ma carte",
 
-  "onboardingSocialProof": "{count} personnes cartographient déjà leur ville",
+  "onboardingSocialProof": "{count} personnes cartographient déjà leur terrain",
   "@onboardingSocialProof": {
     "placeholders": { "count": { "type": "int" } }
   },
 
+  "sessionSummaryZonesClaimed": "{count, plural, =1{zone cartographiée} other{zones cartographiées}}",
+  "@sessionSummaryZonesClaimed": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "sessionSummaryTotal": "Territoire total : {zones} zones · {km2} km²",
+  "@sessionSummaryTotal": {
+    "placeholders": {
+      "zones": { "type": "int" },
+      "km2": { "type": "String" }
+    }
+  },
+  "sessionSummaryCta": "Voir mon territoire",
+  "sessionSummaryDone": "Terminé",
   "statsMapGrowing": "carte en cours — continuez à marcher",
   "statsWeeklyChartOffline": "Graphique hebdomadaire disponible une fois connecté",
   "uploadMilestone": "{count} envois — continuez !",
   "@uploadMilestone": {
     "placeholders": { "count": { "type": "int" } }
+  },
+  "statsViewOnMap": "Voir sur la carte",
+  "statsCommunityMappers": "{count, plural, =1{1 contributeur actif ce mois} other{{count} contributeurs actifs ce mois}}",
+  "@statsCommunityMappers": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "tileFirstMapped": "Cartographié le {date}",
+  "@tileFirstMapped": {
+    "placeholders": { "date": { "type": "String" } }
+  },
+
+  "statsSinceDate": "depuis {date}",
+  "@statsSinceDate": {
+    "placeholders": { "date": { "type": "String" } }
+  },
+  "statsStreakLabel": "Série",
+  "statsStreakDays": "{count, plural, =1{1 jour de suite} other{{count} jours de suite}}",
+  "@statsStreakDays": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+
+  "tileCommunityClaimCta": "Cartographiez ici pour conquérir cette zone",
+  "tileLowQualityHint": "Repassez ici pour renforcer cette zone.",
+  "homeCommunityScopeHint": "{count, plural, =1{1 zone cartographiée dans votre secteur} other{{count} zones cartographiées dans votre secteur}}",
+  "@homeCommunityScopeHint": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "tileCivicNote": "Vos données enrichissent la carte environnementale.",
+  "sessionSummaryShareText": "J'ai cartographié +{gained} zones aujourd'hui — {total} zones au total · {km2} km²",
+  "@sessionSummaryShareText": {
+    "placeholders": {
+      "gained": { "type": "int" },
+      "total": { "type": "int" },
+      "km2": { "type": "String" }
+    }
+  },
+
+  "sensorLuxLabel": "{lux} lux",
+  "@sensorLuxLabel": { "placeholders": { "lux": { "type": "int" } } },
+  "sensorHpaLabel": "{hpa} hPa",
+  "@sensorHpaLabel": { "placeholders": { "hpa": { "type": "String" } } },
+  "sensorMovementLabel": "mouvement {val}",
+  "@sensorMovementLabel": { "placeholders": { "val": { "type": "String" } } },
+
+  "sensorLuxDark": "sombre",
+  "sensorLuxIndoor": "lumière intérieure",
+  "sensorLuxBright": "lumineux",
+  "sensorLuxDirect": "plein soleil",
+
+  "sensorMovementLow": "immobile",
+  "sensorMovementMid": "actif",
+  "sensorMovementHigh": "fort trafic",
+
+  "sensorHpaLow": "basse altitude",
+  "sensorHpaMid": "altitude moyenne",
+  "sensorHpaHigh": "haute altitude",
+
+  "tileSensorInsightsLabel": "Ce que vos capteurs ont enregistré",
+
+  "territoryHeroLabel": "{neighborhood} · {count} zones",
+  "@territoryHeroLabel": {
+    "placeholders": {
+      "neighborhood": { "type": "String" },
+      "count": { "type": "int" }
+    }
+  },
+  "serverWakingUp": "Démarrage en cours — encore un instant…",
+  "referralNeighborhoodHook": "Aidez à cartographier {neighborhood} — chaque voisin couvre ce que vous n'avez pas encore atteint.",
+  "@referralNeighborhoodHook": {
+    "placeholders": { "neighborhood": { "type": "String" } }
+  },
+
+  "onboardingActivateTitle": "Presque là",
+  "onboardingActivateSubtitle": "Autorisez la localisation — votre téléphone cartographie pendant vos déplacements.",
+  "onboardingActivateCta": "Commencer à cartographier",
+
+  "homeMaxClusterHint": "territoire de {count} zones",
+  "@homeMaxClusterHint": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+
+  "firstUploadBadge": "PREMIÈRE ZONE TÉLÉCHARGÉE",
+  "firstUploadHeadline": "Votre première zone est sur la carte.",
+  "firstUploadSubtext": "Elle rejoint un registre de lumière, pression et mouvement — anonymisé, agrégé.",
+  "firstUploadSensorsLabel": "CAPTEURS",
+  "firstUploadSensorsValue": "lumière · mouvement · pression",
+  "firstUploadPrivacyLabel": "CONFIDENTIALITÉ",
+  "firstUploadPrivacyValue": "anonymisé",
+  "firstUploadKeepMappingCta": "Continuer à cartographier",
+
+  "liveSensorsHeader": "CAPTEURS EN DIRECT",
+  "liveSensorMotionLabel": "Mouvement",
+  "liveSensorPressureLabel": "Pression",
+
+  "sessionSummaryBadge": "SESSION TERMINÉE",
+  "sessionSummaryZonesGainedLabel": "ZONES GAGNÉES",
+  "sessionSummarySubline": "nouveau terrain, tracé en",
+  "sessionSummaryWatermark": "Cartographié avec GreenGains",
+  "sessionSummaryShareCta": "Partager",
+  "sessionStatArea": "SURFACE",
+  "sessionStatDuration": "DURÉE",
+  "sessionStatTotal": "TOTAL",
+
+  "statsMilestoneTarget": "{target} zones",
+  "@statsMilestoneTarget": {
+    "placeholders": { "target": { "type": "int" } }
   }
 }

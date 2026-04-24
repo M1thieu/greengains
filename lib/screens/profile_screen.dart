@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../core/extensions/context_extensions.dart';
@@ -13,7 +14,7 @@ import '../l10n/app_localizations.dart';
 import '../core/app_preferences.dart';
 import '../services/auth/auth_service.dart';
 import '../utils/app_snackbars.dart';
-// import '../widgets/referral_invite_card.dart'; // BETA: referral deferred to v1.1
+import '../widgets/referral_invite_card.dart';
 import 'settings_screen.dart';
 
 // ── Profile layout constants ──────────────────────────────────────────────────
@@ -25,10 +26,7 @@ const _kAvatarRingWidth      = 2.5;            // gradient ring around avatar
 /// Profile screen showing user information and quick stats
 /// REDESIGNED: Compact layout that fits without scrolling
 class ProfileScreen extends StatefulWidget {
-  const ProfileScreen({super.key, this.onViewStats});
-
-  /// Called when the user taps "View Statistics" — used by AppShell to switch tabs.
-  final VoidCallback? onViewStats;
+  const ProfileScreen({super.key});
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
@@ -40,7 +38,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   int? _totalUploads;
   int? _daysActive;
   int? _coverageCells;
-  int? _currentStreak;
   // Previous display values — so count-up never resets to 0 on reload
   double _prevTotalUploads = 0;
   double _prevDaysActive = 0;
@@ -76,10 +73,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
           _totalUploads = profile.totalUploads;
           _daysActive = profile.daysActive;
           _coverageCells = profile.coverageCells;
-          _currentStreak = profile.currentStreak;
         });
       }
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('Profile stats load failed: $e');
+    }
   }
 
   @override
@@ -107,7 +105,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     // Signed-in: collapsing SliverAppBar — avatar expands, shrinks on scroll
     return Scaffold(
-      body: _buildSignedInState(user, theme, isDark, l10n),
+      body: RefreshIndicator(
+        onRefresh: _loadProfileStats,
+        color: AppColors.primary,
+        child: _buildSignedInState(user, theme, isDark, l10n),
+      ),
     );
   }
 
@@ -222,7 +224,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return CustomScrollView(
       slivers: [
         SliverAppBar(
-          expandedHeight: 272,
+          expandedHeight: 265,
           pinned: true,
           actions: [_settingsButton(context, l10n)],
           flexibleSpace: FlexibleSpaceBar(
@@ -242,12 +244,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
           sliver: SliverList(
             delegate: SliverChildListDelegate([
+              _ProfileSectionLabel(l10n.profileImpactSection, isDark: isDark),
+              const SizedBox(height: AppTheme.spaceXs),
               _buildImpactRow(theme, isDark, l10n),
-              if (widget.onViewStats != null) ...[
-                const SizedBox(height: AppTheme.spaceSm),
-                _buildViewStatsButton(theme, isDark, l10n),
-              ],
               const SizedBox(height: AppTheme.spaceXl),
+              if (!user.isAnonymous) ...[
+                ReferralInviteCard(
+                  user: user,
+                  neighborhoodName: AppPreferences.instance.territoryLabel,
+                ),
+                const SizedBox(height: AppTheme.spaceXl),
+              ],
+              _ProfileSectionLabel(l10n.profileAccountSection, isDark: isDark),
+              const SizedBox(height: AppTheme.spaceXs),
               _buildAccountSection(user, theme, isDark, l10n),
               const SizedBox(height: AppTheme.spaceSm),
             ]),
@@ -257,38 +266,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildViewStatsButton(ThemeData theme, bool isDark, AppLocalizations l10n) {
-    return SizedBox(
-      width: double.infinity,
-      child: OutlinedButton.icon(
-        onPressed: () {
-          HapticFeedback.lightImpact();
-          widget.onViewStats!();
-        },
-        icon: const Icon(Icons.bar_chart, size: AppIconSizes.sm),
-        label: Text(l10n.profileViewStats),
-        style: OutlinedButton.styleFrom(
-          foregroundColor: AppColors.primary,
-          side: BorderSide(color: AppColors.primary.withValues(alpha: 0.35)),
-          minimumSize: const Size.fromHeight(AppTheme.minTouchTarget),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-          ),
-        ),
-      ),
-    );
-  }
-
   /// Account section — sign out + anonymous notice.
   Widget _buildAccountSection(User user, ThemeData theme, bool isDark, AppLocalizations l10n) {
     if (!user.isAnonymous) {
-      return TextButton.icon(
-        onPressed: _handleSignOut,
-        icon: Icon(Icons.logout, size: AppIconSizes.sm),
-        label: Text(l10n.profileSignOut),
-        style: TextButton.styleFrom(
-          foregroundColor: AppColors.error.withValues(alpha: 0.75),
-          minimumSize: const Size.fromHeight(AppTheme.minTouchTarget),
+      return InkWell(
+        onTap: _handleSignOut,
+        borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: AppTheme.spaceXs),
+          child: Row(
+            children: [
+              Icon(Icons.logout, size: AppIconSizes.sm, color: AppColors.textTertiary(isDark)),
+              const SizedBox(width: AppTheme.spaceSm),
+              Text(
+                l10n.profileSignOut,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: AppColors.textSecondary(isDark),
+                ),
+              ),
+            ],
+          ),
         ),
       );
     }
@@ -313,7 +310,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   /// 3-column impact stat row shown below the user header
   Widget _buildImpactRow(ThemeData theme, bool isDark, AppLocalizations l10n) {
     final km2 = _coverageCells != null ? (_coverageCells! * 0.1053) : null;
-    final kmDisplay = km2 == null ? '—' : (km2 < 1.0 ? km2.toStringAsFixed(2) : km2.toStringAsFixed(1));
+    final kmDisplay = (km2 == null || km2 == 0.0) ? '—' : (km2 < 1.0 ? km2.toStringAsFixed(2) : km2.toStringAsFixed(1));
     final tiles = [
       (
         value: _totalUploads != null ? '$_totalUploads' : '—',
@@ -362,7 +359,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  if (numeric != null)
+                  if (numeric != null && numeric > 0)
                     TweenAnimationBuilder<double>(
                       key: ValueKey(numeric),
                       tween: Tween(begin: prevValues[i], end: numeric),
@@ -415,18 +412,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
               shape: BoxShape.circle,
               color: AppColors.primary.withValues(alpha: 0.25),
             ),
-            child: CircleAvatar(
-              radius: _kAvatarRadius,
-              backgroundImage: user.photoURL != null
-                  ? NetworkImage(user.photoURL!)
-                  : null,
-              onBackgroundImageError: user.photoURL != null
-                  ? (exception, stackTrace) {}
-                  : null,
-              child: user.photoURL == null
-                  ? const Icon(Icons.person, size: _kAvatarFallbackSize)
-                  : null,
-            ),
+            child: user.photoURL != null
+                ? CircleAvatar(
+                    radius: _kAvatarRadius,
+                    backgroundImage: CachedNetworkImageProvider(user.photoURL!),
+                  )
+                : CircleAvatar(
+                    radius: _kAvatarRadius,
+                    child: const Icon(Icons.person, size: _kAvatarFallbackSize),
+                  ),
           ),
           const SizedBox(height: AppTheme.spaceMd),
 
@@ -469,10 +463,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
             ),
           ],
-          if (_currentStreak != null && _currentStreak! > 0) ...[
-            const SizedBox(height: AppTheme.spaceMd),
-            _StreakDots(currentStreak: _currentStreak!),
-          ],
         ],
       ),
     );
@@ -502,45 +492,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 }
 
-/// 7-dot streak visualizer. Rightmost N dots filled = currentStreak days.
-/// Empty dots show the gap — creates immediate "I should fill this in" tension.
-class _StreakDots extends StatelessWidget {
-  const _StreakDots({required this.currentStreak});
-  final int currentStreak;
+class _ProfileSectionLabel extends StatelessWidget {
+  const _ProfileSectionLabel(this.text, {required this.isDark});
+  final String text;
+  final bool isDark;
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final filled = currentStreak.clamp(0, 7);
-    final l10n = context.l10n;
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        ...List.generate(7, (i) {
-          final active = i >= (7 - filled);
-          return AnimatedContainer(
-            duration: const Duration(milliseconds: 300),
-            width: 8,
-            height: 8,
-            margin: const EdgeInsets.symmetric(horizontal: AppTheme.spaceTiny),
-            decoration: BoxDecoration(
-              color: active
-                  ? AppColors.primary
-                  : AppColors.primary.withValues(alpha: 0.18),
-              shape: BoxShape.circle,
-            ),
-          );
-        }),
-        const SizedBox(width: AppTheme.spaceXs),
-        Text(
-          '$currentStreak ${l10n.statsStreakLabel}',
-          style: theme.textTheme.labelSmall?.copyWith(
-            color: AppColors.textTertiary(isDark),
-            fontWeight: AppFontWeights.medium,
-          ),
-        ),
-      ],
+    return Text(
+      text,
+      style: TextStyle(
+        fontSize: 10,
+        fontWeight: AppFontWeights.semibold,
+        color: AppColors.textTertiary(isDark),
+        letterSpacing: 1.2,
+      ),
     );
   }
 }
+

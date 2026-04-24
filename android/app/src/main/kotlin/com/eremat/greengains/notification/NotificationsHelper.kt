@@ -17,6 +17,17 @@ import java.time.Instant
 
 internal object NotificationsHelper {
 
+    /** Short elapsed-time label for "X ago" style upload timestamps. */
+    private fun formatElapsedUpload(context: Context, lastUploadMillis: Long): String {
+        val elapsedMs = System.currentTimeMillis() - lastUploadMillis
+        return when {
+            elapsedMs < 90_000L -> context.getString(R.string.notification_upload_just_now)
+            elapsedMs < 3_600_000L -> context.getString(R.string.notification_upload_minutes_ago, elapsedMs / 60_000)
+            elapsedMs < 86_400_000L -> context.getString(R.string.notification_upload_hours_ago, elapsedMs / 3_600_000)
+            else -> context.getString(R.string.notification_upload_yesterday)
+        }
+    }
+
     // v2 channel — renames the user-visible label from "Location Tracking" to
     // "Sensor Collection". Old channel is deleted on first run so Android picks up the new name.
     private const val NOTIFICATION_CHANNEL_ID = "sensor_collection_v2"
@@ -48,7 +59,10 @@ internal object NotificationsHelper {
         isPaused: Boolean = false,
         uploadsToday: Int = 0,
         totalUploads: Int = 0,
-        currentStreak: Int = 0,
+        zonesTotal: Int = 0,
+        motionState: String = "UNKNOWN",
+        readingsCount: Int = 0,
+        sessionStartMillis: Long? = null,
     ): Notification {
         // Primary action — Pause ↔ Resume
         val primaryIntent = Intent(context, ForegroundService::class.java).apply {
@@ -61,7 +75,6 @@ internal object NotificationsHelper {
         val primaryLabel = if (isPaused) context.getString(R.string.notification_action_resume)
                            else          context.getString(R.string.notification_action_pause)
 
-        // Stop action — always available; users shouldn't need to open the app to stop.
         val stopIntent = Intent(context, ForegroundService::class.java).apply {
             action = ForegroundService.ACTION_STOP_SERVICE
         }
@@ -69,52 +82,87 @@ internal object NotificationsHelper {
             context, 1, stopIntent, PendingIntent.FLAG_IMMUTABLE
         )
 
-        // Title = status ("Mapping your city" or "Paused") — bold first line users scan.
-        // Body  = upload counts or instruction.
-        // setWhen: Android SystemUI auto-updates "X min. ago" — no refresh loop needed.
-        val title = if (isPaused) context.getString(R.string.notification_paused_title)
-                    else          context.getString(R.string.notification_status_collecting)
+        val title = when {
+            isPaused -> context.getString(R.string.notification_paused_title)
+            motionState == "STATIONARY" -> context.getString(R.string.notification_status_stationary)
+            else -> context.getString(R.string.notification_status_collecting)
+        }
 
+        val isUploadingNow = lastUploadMillis != null &&
+            (System.currentTimeMillis() - lastUploadMillis) < 15_000L
+
+        // Collapsed body — zone count is the primary signal. Elapsed time is now
+        // handled by the native chronometer (setUsesChronometer) so the body stays
+        // clean without custom refresh logic.
         val body = when {
-            isPaused    -> context.getString(R.string.notification_paused_body)
-            uploadsToday > 0 -> context.getString(
-                R.string.notification_readings_with_total, uploadsToday, totalUploads
-            )
+            isPaused ->
+                if (zonesTotal > 0) context.getString(R.string.notification_body_paused_zones, zonesTotal)
+                else context.getString(R.string.notification_paused_body)
+            motionState == "STATIONARY" && zonesTotal > 0 ->
+                context.getString(R.string.notification_body_stationary, zonesTotal)
+            zonesTotal > 0 ->
+                if (isUploadingNow) context.getString(R.string.notification_body_zones_uploading, zonesTotal)
+                else context.getString(R.string.notification_body_zones_collecting, zonesTotal)
+            readingsCount > 0 ->
+                context.getString(R.string.notification_readings_uploading, readingsCount)
             else -> context.getString(R.string.notification_collecting_no_upload)
         }
 
-        // subText: streak nudge when streak > 1 and actively collecting.
-        // Appears in the notification header line next to the app name — subtle motivation.
-        val subText = if (!isPaused && currentStreak > 1)
-            context.getString(R.string.notification_subtext_streak, currentStreak)
-        else null
+        // Compact status line: "Uploaded 5 min ago  ·  moving" — factual, no fluff.
+        val uploadPart = when {
+            isPaused        -> null
+            isUploadingNow  -> context.getString(R.string.notification_sync_uploading)
+            lastUploadMillis != null ->
+                context.getString(R.string.notification_sync_uploaded, formatElapsedUpload(context, lastUploadMillis))
+            else            -> context.getString(R.string.notification_sync_none)
+        }
+        val motionPart = when {
+            isPaused -> null
+            motionState == "STATIONARY" -> context.getString(R.string.notification_motion_stationary)
+            else -> context.getString(R.string.notification_motion_moving)
+        }
+        val infoLine = when {
+            isPaused -> context.getString(R.string.notification_expanded_paused)
+            uploadPart != null && motionPart != null -> "$uploadPart  ·  $motionPart"
+            else -> uploadPart ?: motionPart ?: ""
+        }
+        val bigText = "$body\n$infoLine"
 
-        val builder = NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_ID)
+        val isActive = !isPaused
+        // Sensors actively running = show indeterminate bar (visual proof of life).
+        // Stationary or paused = clear it (honest — nothing is happening).
+        val sensorsRunning = isActive && motionState != "STATIONARY"
+        return NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_ID)
             .setContentTitle(title)
             .setContentText(body)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(bigText))
             .setSmallIcon(R.mipmap.ic_launcher)
             .setColor(Color.parseColor("#10B981"))
+            .setColorized(isActive)
             .setOngoing(true)
             .setOnlyAlertOnce(true)
-            .setWhen(lastUploadMillis ?: 0L)
-            .setShowWhen(lastUploadMillis != null && !isPaused)
-            // Action icons: 0 = hidden on Android 7+, avoids ic_launcher blob in action row.
+            .setProgress(0, 0, sensorsRunning)
+            .setUsesChronometer(isActive && sessionStartMillis != null)
+            .setWhen(sessionStartMillis ?: System.currentTimeMillis())
+            .setShowWhen(isActive && sessionStartMillis != null)
             .addAction(0, primaryLabel, primaryPendingIntent)
             .addAction(0, context.getString(R.string.notification_action_stop), stopPendingIntent)
             .setForegroundServiceBehavior(NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE)
             .setContentIntent(Intent(context, MainActivity::class.java).let { notificationIntent ->
                 PendingIntent.getActivity(context, 0, notificationIntent, PendingIntent.FLAG_IMMUTABLE)
             })
-
-        if (subText != null) builder.setSubText(subText)
-
-        return builder.build()
+            .build()
     }
 
     fun readLastUploadFromPrefs(context: Context): Long? {
         val prefs = context.getSharedPreferences(AppPrefs.NAME, Context.MODE_PRIVATE)
         val raw = prefs.getString(AppPrefs.LAST_UPLOAD_AT, null) ?: return null
         return runCatching { Instant.parse(raw).toEpochMilli() }.getOrNull()
+    }
+
+    fun readZonesTotalFromPrefs(context: Context): Int {
+        val prefs = context.getSharedPreferences(AppPrefs.NAME, Context.MODE_PRIVATE)
+        return prefs.getInt(AppPrefs.ZONES_TOTAL_COUNT, 0)
     }
 
     fun notifyUpdate(
@@ -124,9 +172,15 @@ internal object NotificationsHelper {
         isPaused: Boolean,
         uploadsToday: Int = 0,
         totalUploads: Int = 0,
-        currentStreak: Int = 0,
+        zonesTotal: Int = 0,
+        motionState: String = "UNKNOWN",
+        readingsCount: Int = 0,
+        sessionStartMillis: Long? = null,
     ) {
-        manager.notify(NOTIFICATION_ID_SERVICE, buildNotification(context, lastUpload, isPaused, uploadsToday, totalUploads, currentStreak))
+        manager.notify(NOTIFICATION_ID_SERVICE, buildNotification(
+            context, lastUpload, isPaused, uploadsToday, totalUploads, zonesTotal,
+            motionState, readingsCount, sessionStartMillis,
+        ))
     }
 
     fun buildWorkerNotification(context: Context): Notification {

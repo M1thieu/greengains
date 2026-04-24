@@ -13,9 +13,16 @@ class H3Tile {
   final List<LatLng>? boundary;
   /// When this tile was last contributed to — shown in TileInfoSheet.
   final DateTime? lastUpdate;
+  /// Centroid of the tile — used locally to compute geohash for first-mapped lookup.
+  final LatLng? centroid;
 
   /// True for community/global tiles (other users); false for personal tiles.
   final bool isGlobal;
+
+  /// Sensor aggregates — only populated for personal tiles (from batch_json).
+  final int? avgLux;       // average illuminance (lux)
+  final double? avgHpa;    // average barometric pressure (hPa)
+  final double? avgMovement; // average accelerometer RMS
 
   const H3Tile({
     required this.h3Index,
@@ -25,7 +32,11 @@ class H3Tile {
     required this.deviceCount,
     this.boundary,
     this.lastUpdate,
+    this.centroid,
     this.isGlobal = false,
+    this.avgLux,
+    this.avgHpa,
+    this.avgMovement,
   });
 
   /// Parses a tile from the backend API JSON.
@@ -47,6 +58,13 @@ class H3Tile {
     if (rawLastUpdate != null) {
       lastUpdate = DateTime.tryParse(rawLastUpdate);
     }
+    LatLng? centroid;
+    final rawCentroid = json['centroid'] as Map<String, dynamic>?;
+    if (rawCentroid != null) {
+      final lat = (rawCentroid['lat'] as num?)?.toDouble();
+      final lng = (rawCentroid['lng'] as num?)?.toDouble();
+      if (lat != null && lng != null) centroid = LatLng(lat, lng);
+    }
     return H3Tile(
       h3Index: hexIndex,
       confidence: (json['confidence'] as num?)?.toDouble() ?? 0.5,
@@ -55,7 +73,11 @@ class H3Tile {
       deviceCount: (json['deviceCount'] as num?)?.toInt() ?? 1,
       boundary: boundary,
       lastUpdate: lastUpdate,
+      centroid: centroid,
       isGlobal: isGlobal,
+      avgLux: (json['avgLux'] as num?)?.toInt(),
+      avgHpa: (json['avgHpa'] as num?)?.toDouble(),
+      avgMovement: (json['avgMovement'] as num?)?.toDouble(),
     );
   }
 }

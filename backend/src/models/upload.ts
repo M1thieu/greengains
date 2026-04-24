@@ -50,7 +50,9 @@ export const UploadBatchSchema = z.object({
    *  Stored in batch_json; the (device_hash, timestamp_utc) unique index deduplicates
    *  retries as long as the client sends the same frozen timestamp. */
   batch_id: z.string().uuid().optional(),
-  timestamp: z.coerce.date(),
+  timestamp: z.coerce.date()
+    .refine(d => d <= new Date(Date.now() + 5 * 60_000), { message: 'Timestamp too far in future' })
+    .refine(d => d >= new Date(Date.now() - 30 * 24 * 3600_000), { message: 'Timestamp too old' }),
   batch: z.array(SensorReadingSchema).min(1).max(500),
   location: LocationDataSchema.optional(),
   geohash: z.string().max(12).optional(),

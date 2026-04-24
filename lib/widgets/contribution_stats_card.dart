@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '../core/events/app_events.dart';
 import '../core/extensions/context_extensions.dart';
 import '../core/themes.dart';
@@ -229,7 +230,7 @@ class ContributionStatsCardState extends State<ContributionStatsCard>
                 borderRadius: BorderRadius.circular(AppTheme.radiusSm),
               ),
               child: Icon(
-                Icons.eco_outlined,
+                Icons.terrain,
                 color: AppColors.primary,
                 size: AppIconSizes.md,
               ),
@@ -266,7 +267,6 @@ class ContributionStatsCardState extends State<ContributionStatsCard>
     // Milestone detection
     final bool isFirstUpload = _stats.totalUploads == 1;
     final bool isMilestone = _stats.totalUploads > 0 && (_stats.totalUploads % 10 == 0 || _stats.totalUploads % 50 == 0 || _stats.totalUploads % 100 == 0);
-    final bool hasStreak = _stats.currentStreak >= 3;
 
     return AnimatedBuilder(
       animation: _pulseAnimation,
@@ -329,7 +329,7 @@ class ContributionStatsCardState extends State<ContributionStatsCard>
                   : null,
             ),
             child: Icon(
-              (isMilestone || isFirstUpload) ? Icons.celebration : Icons.eco,
+              (isMilestone || isFirstUpload) ? Icons.celebration : Icons.terrain,
               color: (isMilestone || isFirstUpload)
                   ? Colors.white
                   : AppColors.primary,
@@ -356,24 +356,21 @@ class ContributionStatsCardState extends State<ContributionStatsCard>
                     _buildCompactStat(
                       theme,
                       isDark,
-                      label: context.l10n.statsToday,
-                      value: '${_stats.uploadsToday}',
+                      label: context.l10n.statsThisWeek,
+                      value: '${_stats.uploadsThisWeek}',
                     ),
-                    if (_stats.currentStreak > 0) ...[
-                      _buildDivider(isDark),
-                      _buildCompactStat(
-                        theme,
-                        isDark,
-                        label: context.l10n.statsDayStreak,
-                        value: '${_stats.currentStreak}',
-                        icon: Icons.local_fire_department,
-                        iconColor: hasStreak ? AppColors.warning : (AppColors.textSecondary(isDark)),
-                      ),
-                    ],
                   ],
                 ),
-                if (_stats.loadedAt != null) ...[
-                  const SizedBox(height: AppTheme.spaceXxs),
+                const SizedBox(height: AppTheme.spaceXxs),
+                if (_stats.firstContributionAt != null)
+                  Text(
+                    context.l10n.statsSinceDate(DateFormat('MMM yyyy', Localizations.localeOf(context).toString()).format(_stats.firstContributionAt!)),
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: AppColors.textSecondary(isDark).withValues(alpha: 0.6),
+                      fontSize: 11,
+                    ),
+                  )
+                else if (_stats.loadedAt != null)
                   TimeAgoText(
                     timestamp: _stats.loadedAt!,
                     prefix: context.l10n.statsUpdatedPrefix,
@@ -381,7 +378,6 @@ class ContributionStatsCardState extends State<ContributionStatsCard>
                       color: AppColors.textSecondary(isDark).withValues(alpha: 0.7),
                     ),
                   ),
-                ],
               ],
             ),
           ),
