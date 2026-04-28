@@ -309,7 +309,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get chipPaused => 'En pause';
 
   @override
-  String get chipTapStart => 'Pas de suivi · Appuyer ▶';
+  String get chipTapStart => 'Appuie sur ▶ pour commencer';
 
   @override
   String chipDataPts(int count) {
@@ -547,22 +547,19 @@ class AppLocalizationsFr extends AppLocalizations {
   String get statsAchievements => 'Réalisations';
 
   @override
-  String get statsEarnings => 'Gains';
+  String get statsEarnings => '';
 
   @override
-  String get statsVisualizationNote =>
-      'Visualisation basée sur votre activité actuelle';
+  String get statsVisualizationNote => '';
 
   @override
-  String get statsAchievementsDescription =>
-      'Débloquez des badges et jalons en contribuant';
+  String get statsAchievementsDescription => '';
 
   @override
-  String get statsEarningsTracking => 'Suivi des gains';
+  String get statsEarningsTracking => '';
 
   @override
-  String get statsEarningsDescription =>
-      'Suivez vos gains et l\'historique des paiements une fois la monétisation lancée';
+  String get statsEarningsDescription => '';
 
   @override
   String get statsStartContributing => 'Votre carte est vide.';
@@ -653,25 +650,25 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get tileInfoSamplesLabel => 'mesures';
+  String get tileInfoSamplesLabel => 'relevés';
 
   @override
-  String get tileInfoDevicesLabel => 'contributeurs';
+  String get tileInfoDevicesLabel => 'personnes';
 
   @override
-  String get tileInfoQualityLabel => 'Qualité des données';
+  String get tileInfoQualityLabel => 'Couverture';
 
   @override
   String get tileInfoAreaLabel => 'surface';
 
   @override
-  String get tileInfoPersonal => 'Personnel';
+  String get tileInfoPersonal => 'Le tien';
 
   @override
-  String get tileInfoCommunity => 'Communauté';
+  String get tileInfoCommunity => 'Pas encore le tien';
 
   @override
-  String get tileOnlyYouMapped => 'Seul(e) toi as cartographié cette zone';
+  String get tileOnlyYouMapped => 'Seul(e) toi es passé(e) ici';
 
   @override
   String get tickerMotionStill => 'immobile';
@@ -687,8 +684,8 @@ class AppLocalizationsFr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count mesures',
-      one: '1 mesure',
+      other: '$count relevés',
+      one: '1 relevé',
     );
     return '$_temp0';
   }
@@ -697,15 +694,15 @@ class AppLocalizationsFr extends AppLocalizations {
   String get tileInfoConfidence => 'Confiance';
 
   @override
-  String get tileInfoQuality => 'Qualité de l\'air';
+  String get tileInfoQuality => 'Qualité de couverture';
 
   @override
   String tileInfoDevices(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count contributeurs',
-      one: '1 contributeur',
+      other: '$count personnes',
+      one: '1 personne',
     );
     return '$_temp0';
   }
@@ -1027,17 +1024,16 @@ class AppLocalizationsFr extends AppLocalizations {
   String get sensorLiveSheetTitle => 'Ce que vous mesurez';
 
   @override
-  String get tileQualityExcellent => 'Excellente couverture — bien enregistrée';
+  String get tileQualityExcellent => 'Bien couvert';
 
   @override
-  String get tileQualityGood => 'Bonnes données — couverture utile';
+  String get tileQualityGood => 'Bonne couverture';
 
   @override
-  String get tileQualityFair =>
-      'Données partielles — plus de passages nécessaires';
+  String get tileQualityFair => 'Repasse ici';
 
   @override
-  String get tileMeasuredWith => 'Capteurs actifs';
+  String get tileMeasuredWith => 'Enregistré avec';
 
   @override
   String get legendHighLabel => 'Qualité élevée';
@@ -1058,7 +1054,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get legendLowSub => 'Moins de 50% — besoin de plus de données';
 
   @override
-  String get legendCommunitySub => 'Cartographié par d\'autres contributeurs';
+  String get legendCommunitySub => 'Enregistré par d\'autres personnes';
 
   @override
   String get permissionPrimingTitle => 'Une chose avant de commencer';
@@ -1200,11 +1196,33 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get tileCommunityClaimCta =>
-      'Cartographiez ici pour conquérir cette zone';
+  String get tileCommunityClaimCta => 'Passe par ici pour te l\'approprier';
 
   @override
-  String get tileLowQualityHint => 'Repassez ici pour renforcer cette zone.';
+  String get tileLowQualityHint =>
+      'Repasse ici — plus de passages = données plus solides.';
+
+  @override
+  String homeSinceLastSession(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '+$count zones depuis la dernière fois',
+      one: '+1 zone depuis la dernière fois',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String homeZonesOnYourMap(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count zones sur ta carte',
+      one: '1 zone sur ta carte',
+    );
+    return '$_temp0';
+  }
 
   @override
   String homeCommunityScopeHint(int count) {
@@ -1218,8 +1236,7 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get tileCivicNote =>
-      'Vos données enrichissent la carte environnementale.';
+  String get tileCivicNote => 'Mesuré par toi.';
 
   @override
   String sessionSummaryShareText(int gained, int total, String km2) {
@@ -1238,41 +1255,41 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String sensorMovementLabel(String val) {
-    return 'mouvement $val';
+    return '$val';
   }
 
   @override
-  String get sensorLuxDark => 'sombre';
+  String get sensorLuxDark => 'Sombre';
 
   @override
-  String get sensorLuxIndoor => 'lumière intérieure';
+  String get sensorLuxIndoor => 'Intérieur';
 
   @override
-  String get sensorLuxBright => 'lumineux';
+  String get sensorLuxBright => 'Lumineux';
 
   @override
-  String get sensorLuxDirect => 'plein soleil';
+  String get sensorLuxDirect => 'Plein soleil';
 
   @override
-  String get sensorMovementLow => 'immobile';
+  String get sensorMovementLow => 'Calme';
 
   @override
-  String get sensorMovementMid => 'actif';
+  String get sensorMovementMid => 'Animé';
 
   @override
-  String get sensorMovementHigh => 'fort trafic';
+  String get sensorMovementHigh => 'Fréquenté';
 
   @override
-  String get sensorHpaLow => 'basse altitude';
+  String get sensorHpaLow => 'Beau';
 
   @override
-  String get sensorHpaMid => 'altitude moyenne';
+  String get sensorHpaMid => 'Variable';
 
   @override
-  String get sensorHpaHigh => 'haute altitude';
+  String get sensorHpaHigh => 'Couvert';
 
   @override
-  String get tileSensorInsightsLabel => 'Ce que vos capteurs ont enregistré';
+  String get tileSensorInsightsLabel => 'Conditions relevées ici';
 
   @override
   String territoryHeroLabel(String neighborhood, int count) {

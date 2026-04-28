@@ -1499,8 +1499,8 @@ class _TileInfoSheetState extends State<TileInfoSheet> {
                         _SensorInsightRow(
                           icon: Icons.light_mode_outlined,
                           color: AppColors.light,
-                          value: l10n.sensorLuxLabel(tile.avgLux!),
                           context: _luxContext(tile.avgLux!, l10n),
+                          value: l10n.sensorLuxLabel(tile.avgLux!),
                           isDark: isDark,
                         ),
                       if (tile.avgHpa != null) ...[
@@ -1508,8 +1508,8 @@ class _TileInfoSheetState extends State<TileInfoSheet> {
                         _SensorInsightRow(
                           icon: Icons.compress_outlined,
                           color: AppColors.pressure,
-                          value: l10n.sensorHpaLabel(tile.avgHpa!.toStringAsFixed(1)),
                           context: _hpaContext(tile.avgHpa!, l10n),
+                          value: l10n.sensorHpaLabel(tile.avgHpa!.toStringAsFixed(1)),
                           isDark: isDark,
                         ),
                       ],
@@ -1519,8 +1519,8 @@ class _TileInfoSheetState extends State<TileInfoSheet> {
                         _SensorInsightRow(
                           icon: Icons.vibration_outlined,
                           color: AppColors.movement,
-                          value: l10n.sensorMovementLabel(tile.avgMovement!.toStringAsFixed(2)),
                           context: _movementContext(tile.avgMovement!, l10n),
+                          value: l10n.sensorMovementLabel(tile.avgMovement!.toStringAsFixed(2)),
                           isDark: isDark,
                         ),
                       ],
@@ -1773,7 +1773,7 @@ class _SensorPill extends StatelessWidget {
   }
 }
 
-/// One sensor insight row: icon · value — contextual label
+/// One sensor insight row: plain label PRIMARY · raw value small/secondary.
 class _SensorInsightRow extends StatelessWidget {
   const _SensorInsightRow({
     required this.icon,
@@ -1784,8 +1784,8 @@ class _SensorInsightRow extends StatelessWidget {
   });
   final IconData icon;
   final Color color;
-  final String value;
-  final String context;
+  final String value;   // raw nerd value e.g. "850 lux"
+  final String context; // human label e.g. "Bright"
   final bool isDark;
 
   @override
@@ -1794,20 +1794,23 @@ class _SensorInsightRow extends StatelessWidget {
       children: [
         Icon(icon, size: 13, color: color),
         const SizedBox(width: AppTheme.spaceXs),
+        Expanded(
+          child: Text(
+            context,
+            style: TextStyle(
+              fontSize: 12,
+              color: AppColors.textPrimary(isDark),
+              fontWeight: AppFontWeights.semibold,
+            ),
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+        const SizedBox(width: AppTheme.spaceXs),
         Text(
           value,
           style: TextStyle(
-            fontSize: 12,
-            color: AppColors.textPrimary(isDark),
-            fontWeight: AppFontWeights.semibold,
-          ),
-        ),
-        const SizedBox(width: 5),
-        Text(
-          '— $context',
-          style: TextStyle(
-            fontSize: 12,
-            color: AppColors.textSecondary(isDark),
+            fontSize: 11,
+            color: AppColors.textTertiary(isDark),
           ),
         ),
       ],

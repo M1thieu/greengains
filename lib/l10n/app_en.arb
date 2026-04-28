@@ -131,7 +131,7 @@
 
   "chipContributing": "Mapping",
   "chipPaused": "Paused",
-  "chipTapStart": "Not tracking · Tap ▶ to start",
+  "chipTapStart": "Tap ▶ to start mapping",
   "chipDataPts": "{count, plural, =1{1 pt} other{{count} pts}}",
   "@chipDataPts": {
     "placeholders": { "count": { "type": "int" } }
@@ -212,12 +212,12 @@
   "statsTodayLabel": "TODAY",
   "statsHistoryNote": "Weekly history will appear once you have multiple days of data",
   "statsContributionTimeline": "Contribution Timeline",
-  "statsAchievements": "Achievements",
-  "statsEarnings": "Earnings",
-  "statsVisualizationNote": "Visualization based on your current activity",
-  "statsAchievementsDescription": "Unlock badges and milestones as you contribute",
-  "statsEarningsTracking": "Earnings Tracking",
-  "statsEarningsDescription": "Track your earnings and payout history once monetization begins",
+  "statsAchievements": "",
+  "statsEarnings": "",
+  "statsVisualizationNote": "",
+  "statsAchievementsDescription": "",
+  "statsEarningsTracking": "",
+  "statsEarningsDescription": "",
   "statsStartContributing": "Your map is blank.",
   "statsEmptyDescription": "Tap ▶. Your first zone is waiting to be mapped.",
   "statsEmptyGoMap": "Go to map",
@@ -255,25 +255,25 @@
   "@homeZonesMapped": {
     "placeholders": { "count": { "type": "int" } }
   },
-  "tileInfoSamplesLabel": "samples",
-  "tileInfoDevicesLabel": "contributors",
-  "tileInfoQualityLabel": "Data quality",
+  "tileInfoSamplesLabel": "readings",
+  "tileInfoDevicesLabel": "people",
+  "tileInfoQualityLabel": "Coverage",
   "tileInfoAreaLabel": "area",
-  "tileInfoPersonal": "Personal",
-  "tileInfoCommunity": "Community",
-  "tileOnlyYouMapped": "Only you've recorded this area",
+  "tileInfoPersonal": "Yours",
+  "tileInfoCommunity": "Not yours yet",
+  "tileOnlyYouMapped": "Only you've been here",
   "tickerMotionStill": "still",
   "tickerMotionMoving": "moving",
   "tickerMotionActive": "active",
-  "tileInfoSamples": "{count, plural, =1{1 sample} other{{count} samples}}",
+  "tileInfoSamples": "{count, plural, =1{1 reading} other{{count} readings}}",
   "@tileInfoSamples": {
     "placeholders": {
       "count": {"type": "int"}
     }
   },
   "tileInfoConfidence": "Confidence",
-  "tileInfoQuality": "Air quality",
-  "tileInfoDevices": "{count, plural, =1{1 contributor} other{{count} contributors}}",
+  "tileInfoQuality": "Coverage quality",
+  "tileInfoDevices": "{count, plural, =1{1 person} other{{count} people}}",
   "@tileInfoDevices": {
     "placeholders": {
       "count": {"type": "int"}
@@ -417,11 +417,11 @@
 
   "sensorLiveSheetTitle": "What you're measuring",
 
-  "tileQualityExcellent": "Excellent coverage — well recorded",
-  "tileQualityGood": "Good data — useful but room to grow",
-  "tileQualityFair": "Sparse data — more passes needed",
+  "tileQualityExcellent": "Well covered",
+  "tileQualityGood": "Good coverage",
+  "tileQualityFair": "Pass here again",
 
-  "tileMeasuredWith": "Sensors active",
+  "tileMeasuredWith": "Recorded with",
 
   "legendHighLabel": "High quality",
   "legendHighSub": "≥75% valid sensor readings",
@@ -429,7 +429,7 @@
   "legendMidSub": "50–74% valid readings",
   "legendLowLabel": "Low quality",
   "legendLowSub": "Below 50% — needs more data",
-  "legendCommunitySub": "Mapped by other contributors",
+  "legendCommunitySub": "Recorded by other people",
 
   "permissionPrimingTitle": "One thing before we start",
   "permissionPrimingBattery": "Smart battery",
@@ -501,13 +501,21 @@
     "placeholders": { "count": { "type": "int" } }
   },
 
-  "tileCommunityClaimCta": "Map here to add this to your territory",
-  "tileLowQualityHint": "Pass here again to strengthen this zone.",
+  "tileCommunityClaimCta": "Walk through here to make it yours",
+  "tileLowQualityHint": "Walk here again — more passes = stronger data.",
+  "homeSinceLastSession": "{count, plural, =1{+1 zone since last time} other{+{count} zones since last time}}",
+  "@homeSinceLastSession": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "homeZonesOnYourMap": "{count, plural, =1{1 zone on your map} other{{count} zones on your map}}",
+  "@homeZonesOnYourMap": {
+    "placeholders": { "count": { "type": "int" } }
+  },
   "homeCommunityScopeHint": "{count, plural, =1{1 zone mapped in your area} other{{count} zones mapped in your area}}",
   "@homeCommunityScopeHint": {
     "placeholders": { "count": { "type": "int" } }
   },
-  "tileCivicNote": "Your data adds to the environmental record.",
+  "tileCivicNote": "You measured this.",
   "sessionSummaryShareText": "I mapped +{gained} zones today — {total} zones total · {km2} km²",
   "@sessionSummaryShareText": {
     "placeholders": {
@@ -521,23 +529,23 @@
   "@sensorLuxLabel": { "placeholders": { "lux": { "type": "int" } } },
   "sensorHpaLabel": "{hpa} hPa",
   "@sensorHpaLabel": { "placeholders": { "hpa": { "type": "String" } } },
-  "sensorMovementLabel": "movement {val}",
+  "sensorMovementLabel": "{val}",
   "@sensorMovementLabel": { "placeholders": { "val": { "type": "String" } } },
 
-  "sensorLuxDark": "dim",
-  "sensorLuxIndoor": "indoor light",
-  "sensorLuxBright": "bright",
-  "sensorLuxDirect": "direct sunlight",
+  "sensorLuxDark": "Dark",
+  "sensorLuxIndoor": "Indoors",
+  "sensorLuxBright": "Bright",
+  "sensorLuxDirect": "Full sun",
 
-  "sensorMovementLow": "still",
-  "sensorMovementMid": "active",
-  "sensorMovementHigh": "heavy traffic",
+  "sensorMovementLow": "Quiet",
+  "sensorMovementMid": "Active",
+  "sensorMovementHigh": "Busy",
 
-  "sensorHpaLow": "low elevation",
-  "sensorHpaMid": "mid elevation",
-  "sensorHpaHigh": "high elevation",
+  "sensorHpaLow": "Fair",
+  "sensorHpaMid": "Mixed",
+  "sensorHpaHigh": "Unsettled",
 
-  "tileSensorInsightsLabel": "What your sensors recorded",
+  "tileSensorInsightsLabel": "Conditions recorded here",
 
   "territoryHeroLabel": "{neighborhood} · {count} zones",
   "@territoryHeroLabel": {
@@ -563,7 +571,7 @@
 
   "firstUploadBadge": "FIRST ZONE UPLOADED",
   "firstUploadHeadline": "Your first zone is on the map.",
-  "firstUploadSubtext": "It joins an open record of light, pressure and motion — anonymously, aggregated.",
+  "firstUploadSubtext": "Light, pressure and motion — recorded, anonymised, and added to the map.",
   "firstUploadSensorsLabel": "SENSORS",
   "firstUploadSensorsValue": "light · motion · pressure",
   "firstUploadPrivacyLabel": "PRIVACY",

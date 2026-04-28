@@ -131,7 +131,7 @@
 
   "chipContributing": "Cartographie",
   "chipPaused": "En pause",
-  "chipTapStart": "Pas de suivi · Appuyer ▶",
+  "chipTapStart": "Appuie sur ▶ pour commencer",
   "chipDataPts": "{count, plural, =1{1 pt} other{{count} pts}}",
   "@chipDataPts": {
     "placeholders": { "count": { "type": "int" } }
@@ -213,11 +213,11 @@
   "statsHistoryNote": "L'historique hebdomadaire apparaîtra après plusieurs jours de données",
   "statsContributionTimeline": "Historique des contributions",
   "statsAchievements": "Réalisations",
-  "statsEarnings": "Gains",
-  "statsVisualizationNote": "Visualisation basée sur votre activité actuelle",
-  "statsAchievementsDescription": "Débloquez des badges et jalons en contribuant",
-  "statsEarningsTracking": "Suivi des gains",
-  "statsEarningsDescription": "Suivez vos gains et l'historique des paiements une fois la monétisation lancée",
+  "statsEarnings": "",
+  "statsVisualizationNote": "",
+  "statsAchievementsDescription": "",
+  "statsEarningsTracking": "",
+  "statsEarningsDescription": "",
   "statsStartContributing": "Votre carte est vide.",
   "statsEmptyDescription": "Appuyez sur ▶. Votre première zone attend d'être cartographiée.",
   "statsEmptyGoMap": "Aller sur la carte",
@@ -255,25 +255,25 @@
   "@homeZonesMapped": {
     "placeholders": { "count": { "type": "int" } }
   },
-  "tileInfoSamplesLabel": "mesures",
-  "tileInfoDevicesLabel": "contributeurs",
-  "tileInfoQualityLabel": "Qualité des données",
+  "tileInfoSamplesLabel": "relevés",
+  "tileInfoDevicesLabel": "personnes",
+  "tileInfoQualityLabel": "Couverture",
   "tileInfoAreaLabel": "surface",
-  "tileInfoPersonal": "Personnel",
-  "tileInfoCommunity": "Communauté",
-  "tileOnlyYouMapped": "Seul(e) toi as cartographié cette zone",
+  "tileInfoPersonal": "Le tien",
+  "tileInfoCommunity": "Pas encore le tien",
+  "tileOnlyYouMapped": "Seul(e) toi es passé(e) ici",
   "tickerMotionStill": "immobile",
   "tickerMotionMoving": "en mouvement",
   "tickerMotionActive": "actif",
-  "tileInfoSamples": "{count, plural, =1{1 mesure} other{{count} mesures}}",
+  "tileInfoSamples": "{count, plural, =1{1 relevé} other{{count} relevés}}",
   "@tileInfoSamples": {
     "placeholders": {
       "count": {"type": "int"}
     }
   },
   "tileInfoConfidence": "Confiance",
-  "tileInfoQuality": "Qualité de l'air",
-  "tileInfoDevices": "{count, plural, =1{1 contributeur} other{{count} contributeurs}}",
+  "tileInfoQuality": "Qualité de couverture",
+  "tileInfoDevices": "{count, plural, =1{1 personne} other{{count} personnes}}",
   "@tileInfoDevices": {
     "placeholders": {
       "count": {"type": "int"}
@@ -417,11 +417,11 @@
 
   "sensorLiveSheetTitle": "Ce que vous mesurez",
 
-  "tileQualityExcellent": "Excellente couverture — bien enregistrée",
-  "tileQualityGood": "Bonnes données — couverture utile",
-  "tileQualityFair": "Données partielles — plus de passages nécessaires",
+  "tileQualityExcellent": "Bien couvert",
+  "tileQualityGood": "Bonne couverture",
+  "tileQualityFair": "Repasse ici",
 
-  "tileMeasuredWith": "Capteurs actifs",
+  "tileMeasuredWith": "Enregistré avec",
 
   "legendHighLabel": "Qualité élevée",
   "legendHighSub": "≥75% de lectures valides",
@@ -429,7 +429,7 @@
   "legendMidSub": "50–74% de lectures valides",
   "legendLowLabel": "Qualité faible",
   "legendLowSub": "Moins de 50% — besoin de plus de données",
-  "legendCommunitySub": "Cartographié par d'autres contributeurs",
+  "legendCommunitySub": "Enregistré par d'autres personnes",
 
   "permissionPrimingTitle": "Une chose avant de commencer",
   "permissionPrimingBattery": "Batterie intelligente",
@@ -501,13 +501,21 @@
     "placeholders": { "count": { "type": "int" } }
   },
 
-  "tileCommunityClaimCta": "Cartographiez ici pour conquérir cette zone",
-  "tileLowQualityHint": "Repassez ici pour renforcer cette zone.",
+  "tileCommunityClaimCta": "Passe par ici pour te l'approprier",
+  "tileLowQualityHint": "Repasse ici — plus de passages = données plus solides.",
+  "homeSinceLastSession": "{count, plural, =1{+1 zone depuis la dernière fois} other{+{count} zones depuis la dernière fois}}",
+  "@homeSinceLastSession": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "homeZonesOnYourMap": "{count, plural, =1{1 zone sur ta carte} other{{count} zones sur ta carte}}",
+  "@homeZonesOnYourMap": {
+    "placeholders": { "count": { "type": "int" } }
+  },
   "homeCommunityScopeHint": "{count, plural, =1{1 zone cartographiée dans votre secteur} other{{count} zones cartographiées dans votre secteur}}",
   "@homeCommunityScopeHint": {
     "placeholders": { "count": { "type": "int" } }
   },
-  "tileCivicNote": "Vos données enrichissent la carte environnementale.",
+  "tileCivicNote": "Mesuré par toi.",
   "sessionSummaryShareText": "J'ai cartographié +{gained} zones aujourd'hui — {total} zones au total · {km2} km²",
   "@sessionSummaryShareText": {
     "placeholders": {
@@ -521,23 +529,23 @@
   "@sensorLuxLabel": { "placeholders": { "lux": { "type": "int" } } },
   "sensorHpaLabel": "{hpa} hPa",
   "@sensorHpaLabel": { "placeholders": { "hpa": { "type": "String" } } },
-  "sensorMovementLabel": "mouvement {val}",
+  "sensorMovementLabel": "{val}",
   "@sensorMovementLabel": { "placeholders": { "val": { "type": "String" } } },
 
-  "sensorLuxDark": "sombre",
-  "sensorLuxIndoor": "lumière intérieure",
-  "sensorLuxBright": "lumineux",
-  "sensorLuxDirect": "plein soleil",
+  "sensorLuxDark": "Sombre",
+  "sensorLuxIndoor": "Intérieur",
+  "sensorLuxBright": "Lumineux",
+  "sensorLuxDirect": "Plein soleil",
 
-  "sensorMovementLow": "immobile",
-  "sensorMovementMid": "actif",
-  "sensorMovementHigh": "fort trafic",
+  "sensorMovementLow": "Calme",
+  "sensorMovementMid": "Animé",
+  "sensorMovementHigh": "Fréquenté",
 
-  "sensorHpaLow": "basse altitude",
-  "sensorHpaMid": "altitude moyenne",
-  "sensorHpaHigh": "haute altitude",
+  "sensorHpaLow": "Beau",
+  "sensorHpaMid": "Variable",
+  "sensorHpaHigh": "Couvert",
 
-  "tileSensorInsightsLabel": "Ce que vos capteurs ont enregistré",
+  "tileSensorInsightsLabel": "Conditions relevées ici",
 
   "territoryHeroLabel": "{neighborhood} · {count} zones",
   "@territoryHeroLabel": {

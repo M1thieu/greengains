@@ -772,7 +772,22 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 return Positioned(
                   top: topPadding + AppTheme.spaceXs + 44,
                   left: 0, right: 0,
-                  child: Center(child: _IdleHintPill(hasTiles: _h3Tiles.isNotEmpty)),
+                  child: Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        _IdleHintPill(hasTiles: _h3Tiles.isNotEmpty),
+                        if (_claimedTileCount > 0) ...[
+                          const SizedBox(height: AppTheme.spaceXs),
+                          _PassiveSummaryLine(
+                            currentZones: _claimedTileCount,
+                            lastKnownZones: _prefs.lastKnownZoneCount,
+                            lastSessionAt: _prefs.lastSessionEndAt,
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
                 );
               },
             ),
@@ -969,6 +984,38 @@ class _IdleHintPillState extends State<_IdleHintPill>
   }
 }
 
+
+/// Passive summary — shown below idle pill when user has zones.
+/// "+X zones since last time" or just "X zones on your map" if no delta.
+class _PassiveSummaryLine extends StatelessWidget {
+  const _PassiveSummaryLine({
+    required this.currentZones,
+    required this.lastKnownZones,
+    required this.lastSessionAt,
+  });
+  final int currentZones;
+  final int lastKnownZones;
+  final DateTime? lastSessionAt;
+
+  @override
+  Widget build(BuildContext context) {
+    final gained = currentZones - lastKnownZones;
+    final l10n = context.l10n;
+    final text = gained > 0
+        ? l10n.homeSinceLastSession(gained)
+        : l10n.homeZonesOnYourMap(currentZones);
+
+    return Text(
+      text,
+      style: TextStyle(
+        fontSize: 11,
+        color: Colors.white.withValues(alpha: 0.5),
+        fontWeight: AppFontWeights.medium,
+        letterSpacing: -0.1,
+      ),
+    );
+  }
+}
 
 /// Flat-top hex brand mark — matches design's SVG exactly.
 class _BrandMark extends StatelessWidget {

@@ -659,7 +659,7 @@ abstract class AppLocalizations {
   /// No description provided for @chipTapStart.
   ///
   /// In en, this message translates to:
-  /// **'Not tracking · Tap ▶ to start'**
+  /// **'Tap ▶ to start mapping'**
   String get chipTapStart;
 
   /// No description provided for @chipDataPts.
@@ -1001,37 +1001,37 @@ abstract class AppLocalizations {
   /// No description provided for @statsAchievements.
   ///
   /// In en, this message translates to:
-  /// **'Achievements'**
+  /// **''**
   String get statsAchievements;
 
   /// No description provided for @statsEarnings.
   ///
   /// In en, this message translates to:
-  /// **'Earnings'**
+  /// **''**
   String get statsEarnings;
 
   /// No description provided for @statsVisualizationNote.
   ///
   /// In en, this message translates to:
-  /// **'Visualization based on your current activity'**
+  /// **''**
   String get statsVisualizationNote;
 
   /// No description provided for @statsAchievementsDescription.
   ///
   /// In en, this message translates to:
-  /// **'Unlock badges and milestones as you contribute'**
+  /// **''**
   String get statsAchievementsDescription;
 
   /// No description provided for @statsEarningsTracking.
   ///
   /// In en, this message translates to:
-  /// **'Earnings Tracking'**
+  /// **''**
   String get statsEarningsTracking;
 
   /// No description provided for @statsEarningsDescription.
   ///
   /// In en, this message translates to:
-  /// **'Track your earnings and payout history once monetization begins'**
+  /// **''**
   String get statsEarningsDescription;
 
   /// No description provided for @statsStartContributing.
@@ -1187,19 +1187,19 @@ abstract class AppLocalizations {
   /// No description provided for @tileInfoSamplesLabel.
   ///
   /// In en, this message translates to:
-  /// **'samples'**
+  /// **'readings'**
   String get tileInfoSamplesLabel;
 
   /// No description provided for @tileInfoDevicesLabel.
   ///
   /// In en, this message translates to:
-  /// **'contributors'**
+  /// **'people'**
   String get tileInfoDevicesLabel;
 
   /// No description provided for @tileInfoQualityLabel.
   ///
   /// In en, this message translates to:
-  /// **'Data quality'**
+  /// **'Coverage'**
   String get tileInfoQualityLabel;
 
   /// No description provided for @tileInfoAreaLabel.
@@ -1211,19 +1211,19 @@ abstract class AppLocalizations {
   /// No description provided for @tileInfoPersonal.
   ///
   /// In en, this message translates to:
-  /// **'Personal'**
+  /// **'Yours'**
   String get tileInfoPersonal;
 
   /// No description provided for @tileInfoCommunity.
   ///
   /// In en, this message translates to:
-  /// **'Community'**
+  /// **'Not yours yet'**
   String get tileInfoCommunity;
 
   /// No description provided for @tileOnlyYouMapped.
   ///
   /// In en, this message translates to:
-  /// **'Only you\'ve recorded this area'**
+  /// **'Only you\'ve been here'**
   String get tileOnlyYouMapped;
 
   /// No description provided for @tickerMotionStill.
@@ -1247,7 +1247,7 @@ abstract class AppLocalizations {
   /// No description provided for @tileInfoSamples.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, =1{1 sample} other{{count} samples}}'**
+  /// **'{count, plural, =1{1 reading} other{{count} readings}}'**
   String tileInfoSamples(int count);
 
   /// No description provided for @tileInfoConfidence.
@@ -1259,13 +1259,13 @@ abstract class AppLocalizations {
   /// No description provided for @tileInfoQuality.
   ///
   /// In en, this message translates to:
-  /// **'Air quality'**
+  /// **'Coverage quality'**
   String get tileInfoQuality;
 
   /// No description provided for @tileInfoDevices.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, =1{1 contributor} other{{count} contributors}}'**
+  /// **'{count, plural, =1{1 person} other{{count} people}}'**
   String tileInfoDevices(int count);
 
   /// No description provided for @tileScanningNow.
@@ -1805,25 +1805,25 @@ abstract class AppLocalizations {
   /// No description provided for @tileQualityExcellent.
   ///
   /// In en, this message translates to:
-  /// **'Excellent coverage — well recorded'**
+  /// **'Well covered'**
   String get tileQualityExcellent;
 
   /// No description provided for @tileQualityGood.
   ///
   /// In en, this message translates to:
-  /// **'Good data — useful but room to grow'**
+  /// **'Good coverage'**
   String get tileQualityGood;
 
   /// No description provided for @tileQualityFair.
   ///
   /// In en, this message translates to:
-  /// **'Sparse data — more passes needed'**
+  /// **'Pass here again'**
   String get tileQualityFair;
 
   /// No description provided for @tileMeasuredWith.
   ///
   /// In en, this message translates to:
-  /// **'Sensors active'**
+  /// **'Recorded with'**
   String get tileMeasuredWith;
 
   /// No description provided for @legendHighLabel.
@@ -1865,7 +1865,7 @@ abstract class AppLocalizations {
   /// No description provided for @legendCommunitySub.
   ///
   /// In en, this message translates to:
-  /// **'Mapped by other contributors'**
+  /// **'Recorded by other people'**
   String get legendCommunitySub;
 
   /// No description provided for @permissionPrimingTitle.
@@ -2063,14 +2063,26 @@ abstract class AppLocalizations {
   /// No description provided for @tileCommunityClaimCta.
   ///
   /// In en, this message translates to:
-  /// **'Map here to add this to your territory'**
+  /// **'Walk through here to make it yours'**
   String get tileCommunityClaimCta;
 
   /// No description provided for @tileLowQualityHint.
   ///
   /// In en, this message translates to:
-  /// **'Pass here again to strengthen this zone.'**
+  /// **'Walk here again — more passes = stronger data.'**
   String get tileLowQualityHint;
+
+  /// No description provided for @homeSinceLastSession.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{+1 zone since last time} other{+{count} zones since last time}}'**
+  String homeSinceLastSession(int count);
+
+  /// No description provided for @homeZonesOnYourMap.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 zone on your map} other{{count} zones on your map}}'**
+  String homeZonesOnYourMap(int count);
 
   /// No description provided for @homeCommunityScopeHint.
   ///
@@ -2081,7 +2093,7 @@ abstract class AppLocalizations {
   /// No description provided for @tileCivicNote.
   ///
   /// In en, this message translates to:
-  /// **'Your data adds to the environmental record.'**
+  /// **'You measured this.'**
   String get tileCivicNote;
 
   /// No description provided for @sessionSummaryShareText.
@@ -2105,73 +2117,73 @@ abstract class AppLocalizations {
   /// No description provided for @sensorMovementLabel.
   ///
   /// In en, this message translates to:
-  /// **'movement {val}'**
+  /// **'{val}'**
   String sensorMovementLabel(String val);
 
   /// No description provided for @sensorLuxDark.
   ///
   /// In en, this message translates to:
-  /// **'dim'**
+  /// **'Dark'**
   String get sensorLuxDark;
 
   /// No description provided for @sensorLuxIndoor.
   ///
   /// In en, this message translates to:
-  /// **'indoor light'**
+  /// **'Indoors'**
   String get sensorLuxIndoor;
 
   /// No description provided for @sensorLuxBright.
   ///
   /// In en, this message translates to:
-  /// **'bright'**
+  /// **'Bright'**
   String get sensorLuxBright;
 
   /// No description provided for @sensorLuxDirect.
   ///
   /// In en, this message translates to:
-  /// **'direct sunlight'**
+  /// **'Full sun'**
   String get sensorLuxDirect;
 
   /// No description provided for @sensorMovementLow.
   ///
   /// In en, this message translates to:
-  /// **'still'**
+  /// **'Quiet'**
   String get sensorMovementLow;
 
   /// No description provided for @sensorMovementMid.
   ///
   /// In en, this message translates to:
-  /// **'active'**
+  /// **'Active'**
   String get sensorMovementMid;
 
   /// No description provided for @sensorMovementHigh.
   ///
   /// In en, this message translates to:
-  /// **'heavy traffic'**
+  /// **'Busy'**
   String get sensorMovementHigh;
 
   /// No description provided for @sensorHpaLow.
   ///
   /// In en, this message translates to:
-  /// **'low elevation'**
+  /// **'Fair'**
   String get sensorHpaLow;
 
   /// No description provided for @sensorHpaMid.
   ///
   /// In en, this message translates to:
-  /// **'mid elevation'**
+  /// **'Mixed'**
   String get sensorHpaMid;
 
   /// No description provided for @sensorHpaHigh.
   ///
   /// In en, this message translates to:
-  /// **'high elevation'**
+  /// **'Unsettled'**
   String get sensorHpaHigh;
 
   /// No description provided for @tileSensorInsightsLabel.
   ///
   /// In en, this message translates to:
-  /// **'What your sensors recorded'**
+  /// **'Conditions recorded here'**
   String get tileSensorInsightsLabel;
 
   /// No description provided for @territoryHeroLabel.
@@ -2231,7 +2243,7 @@ abstract class AppLocalizations {
   /// No description provided for @firstUploadSubtext.
   ///
   /// In en, this message translates to:
-  /// **'It joins an open record of light, pressure and motion — anonymously, aggregated.'**
+  /// **'Light, pressure and motion — recorded, anonymised, and added to the map.'**
   String get firstUploadSubtext;
 
   /// No description provided for @firstUploadSensorsLabel.
