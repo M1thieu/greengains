@@ -1,16 +1,16 @@
 {
   "@@locale": "en",
 
-  "onboardingWelcomeTitle": "Fill in your ground.",
-  "onboardingWelcomeSubtitle": "Walk anywhere. Your phone quietly reads the world — light, pressure, motion — and maps it.",
-  "onboardingFeature1Title": "No tapping. Ever.",
-  "onboardingFeature1Description": "Start once, forget about it — your map fills in while you move.",
+  "onboardingWelcomeTitle": "Finally know your neighborhood.",
+  "onboardingWelcomeSubtitle": "Your phone reads light, pressure, and motion as you walk — and builds a map of everywhere you've been.",
+  "onboardingFeature1Title": "Nothing to do.",
+  "onboardingFeature1Description": "Start once, carry your phone. That's it — your map builds itself.",
   "onboardingFeature2Title": "Private by default",
   "onboardingFeature2Description": "Your route is never stored — readings are anonymized before they leave your phone.",
-  "onboardingFeature3Title": "Every street, yours.",
-  "onboardingFeature3Description": "Every place you visit fills in on your map — see how far your ground reaches.",
-  "onboardingSignInTitle": "Your territory starts here",
-  "onboardingSignInSubtitle": "Sign in to keep your territory synced across devices.",
+  "onboardingFeature3Title": "See how far you've been.",
+  "onboardingFeature3Description": "Every place you visit shows up on your map. Walk the same streets, watch them fill in.",
+  "onboardingSignInTitle": "Your map starts here.",
+  "onboardingSignInSubtitle": "Sign in to keep your map synced across devices.",
   "onboardingPrivacyNotice": "By continuing, you agree to our {privacyPolicy} and {termsOfService}.",
   "@onboardingPrivacyNotice": {
     "placeholders": {
@@ -96,7 +96,7 @@
   },
 
   "permissionLocationTitle": "Location Permission",
-  "permissionLocationMessage": "Allow location to start mapping your ground.",
+  "permissionLocationMessage": "Allow location so your phone can map as you walk.",
   "permissionLocationButton": "Grant Permission",
   "permissionBatteryTitle": "Battery Optimization",
   "permissionBatteryMessage": "Please disable battery optimization for reliable background tracking.",
@@ -122,11 +122,11 @@
   "error": "Error",
 
   "profileNotSignedIn": "Not Signed In",
-  "profileSignInPrompt": "Sign in with Google to keep your territory synced across devices.",
-  "profileAnonymousNote": "Using anonymously. Sign in to save your territory.",
+  "profileSignInPrompt": "Sign in with Google to keep your map synced across devices.",
+  "profileAnonymousNote": "Using anonymously. Sign in to save your map.",
   "profileUserFallback": "User",
   "profileViewStats": "View Statistics",
-  "profileContributionsHint": "See your territory",
+  "profileContributionsHint": "See your map",
   "profileSignedOut": "Signed out",
 
   "chipContributing": "Mapping",
@@ -203,9 +203,9 @@
   "infoTileQualityTitle": "Coverage quality",
   "infoTileQualityBody": "Green = well covered, yellow = partial, red = needs more passes.",
   "infoTilePersonalTitle": "Your area",
-  "infoTilePersonalBody": "Your phone recorded here — this is your ground.",
+  "infoTilePersonalBody": "Your phone recorded here.",
   "infoTileCommunityTitle": "Community area",
-  "infoTileCommunityBody": "Mapped by others — their ground, not yours. Yet.",
+  "infoTileCommunityBody": "Mapped by others — walk here to make it yours.",
   "statsTotalContributions": "Total Contributions",
   "statsActivityTrend": "Your week",
   "statsLast7Days": "Last 7 days",
@@ -352,7 +352,7 @@
   },
   "settingsDataRetention": "Data kept for 7 days (Free)",
   "referralInviteTitle": "Invite friends",
-  "referralInviteDescription": "Every friend covers ground you haven't reached yet.",
+  "referralInviteDescription": "Every friend maps places you haven't been yet.",
   "referralLinkCopied": "Referral link copied",
   "referralCopyLink": "Copy link",
   "referralShareLink": "Share invite link",
@@ -369,7 +369,7 @@
   "statsHighlightsLabel": "HIGHLIGHTS",
   "statsMappingSince": "Mapping since",
   "statsFailedToLoad": "Failed to load stats",
-  "statsReadyToContribute": "Your ground is waiting.",
+  "statsReadyToContribute": "Start walking to build your map.",
   "statsFirstContributionHint": "Start tracking to map your first area",
 
   "statsWeeklyLabel": "7 DAYS",
@@ -377,7 +377,7 @@
   "statsWeeklyTotal": "{count} this week",
 
   "statsMilestoneLabel": "Next level",
-  "statsMilestoneHint": "Map enough ground to reach this level and unlock the next one",
+  "statsMilestoneHint": "Map enough zones to reach this level and unlock the next one",
   "statsMilestoneElite": "Fully mapped · explorer status",
   "statsMilestoneRemaining": "{count, plural, =1{1 zone to go} other{{count} zones to go}}",
   "@statsMilestoneRemaining": {
@@ -440,7 +440,7 @@
   "settingsBatteryMode": "Smart battery",
   "settingsBatteryModeDesc": "Quiet when still, precise when moving — adapts automatically",
 
-  "firstStartTitle": "Mapping ground.",
+  "firstStartTitle": "Building your map.",
   "firstStartBody": "Move — zones appear as you go.",
 
   "alwaysOnBannerBody": "Set location to 'Always' to keep mapping in the background",
@@ -454,10 +454,10 @@
   "milestoneReachedCta": "Keep going",
 
   "firstUploadTitle": "First area mapped.",
-  "firstUploadBody": "Keep moving — your territory is growing.",
+  "firstUploadBody": "Keep moving — your map is growing.",
   "firstUploadCta": "See my map",
 
-  "onboardingSocialProof": "{count} people already mapping their ground",
+  "onboardingSocialProof": "{count} people already mapping their neighborhood",
   "@onboardingSocialProof": {
     "placeholders": { "count": { "type": "int" } }
   },
@@ -466,14 +466,14 @@
   "@sessionSummaryZonesClaimed": {
     "placeholders": { "count": { "type": "int" } }
   },
-  "sessionSummaryTotal": "Total territory: {zones} zones · {km2} km²",
+  "sessionSummaryTotal": "Total: {zones} zones · {km2} km²",
   "@sessionSummaryTotal": {
     "placeholders": {
       "zones": { "type": "int" },
       "km2": { "type": "String" }
     }
   },
-  "sessionSummaryCta": "See my territory",
+  "sessionSummaryCta": "See my map",
   "sessionSummaryDone": "Done",
   "statsMapGrowing": "map growing — keep walking",
   "statsWeeklyChartOffline": "Weekly chart loads once connected",
@@ -564,7 +564,7 @@
   "onboardingActivateSubtitle": "Allow location access — your phone maps as you move.",
   "onboardingActivateCta": "Start mapping",
 
-  "homeMaxClusterHint": "biggest territory: {count} zones",
+  "homeMaxClusterHint": "biggest area: {count} zones",
   "@homeMaxClusterHint": {
     "placeholders": { "count": { "type": "int" } }
   },

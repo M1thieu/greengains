@@ -1,16 +1,16 @@
 {
   "@@locale": "fr",
 
-  "onboardingWelcomeTitle": "Remplissez votre terrain.",
-  "onboardingWelcomeSubtitle": "Bougez où vous voulez. Votre téléphone lit discrètement le monde — lumière, pression, mouvement — et le cartographie.",
-  "onboardingFeature1Title": "Zéro interaction. Jamais.",
-  "onboardingFeature1Description": "Lancez une fois, oubliez-le — votre carte se remplit pendant que vous bougez.",
+  "onboardingWelcomeTitle": "Enfin connaître son quartier.",
+  "onboardingWelcomeSubtitle": "Votre téléphone lit la lumière, la pression et le mouvement pendant que vous marchez — et construit une carte de tous les endroits où vous êtes allé.",
+  "onboardingFeature1Title": "Rien à faire.",
+  "onboardingFeature1Description": "Lancez une fois, gardez votre téléphone. C'est tout — votre carte se construit toute seule.",
   "onboardingFeature2Title": "Privé par défaut",
   "onboardingFeature2Description": "Votre trajet n'est jamais conservé — les données sont anonymisées avant de quitter votre téléphone.",
-  "onboardingFeature3Title": "Chaque rue, à vous.",
-  "onboardingFeature3Description": "Chaque endroit visité se remplit sur votre carte — voyez jusqu'où s'étend votre terrain.",
-  "onboardingSignInTitle": "Votre territoire commence ici",
-  "onboardingSignInSubtitle": "Connectez-vous pour garder votre territoire synchronisé sur tous vos appareils.",
+  "onboardingFeature3Title": "Voyez jusqu'où vous êtes allé.",
+  "onboardingFeature3Description": "Chaque endroit visité apparaît sur votre carte. Repassez par les mêmes rues, regardez-les se remplir.",
+  "onboardingSignInTitle": "Votre carte commence ici.",
+  "onboardingSignInSubtitle": "Connectez-vous pour garder votre carte synchronisée sur tous vos appareils.",
   "onboardingPrivacyNotice": "En continuant, vous acceptez notre {privacyPolicy} et nos {termsOfService}.",
   "@onboardingPrivacyNotice": {
     "placeholders": {
@@ -96,7 +96,7 @@
   },
 
   "permissionLocationTitle": "Autorisation de localisation",
-  "permissionLocationMessage": "Autorisez la localisation pour commencer à cartographier votre terrain.",
+  "permissionLocationMessage": "Autorisez la localisation pour que votre téléphone cartographie pendant vos déplacements.",
   "permissionLocationButton": "Autoriser",
   "permissionBatteryTitle": "Optimisation de la batterie",
   "permissionBatteryMessage": "Veuillez désactiver l'optimisation de la batterie pour un suivi en arrière-plan fiable.",
@@ -122,11 +122,11 @@
   "error": "Erreur",
 
   "profileNotSignedIn": "Non connecté",
-  "profileSignInPrompt": "Connectez-vous avec Google pour garder votre territoire synchronisé.",
-  "profileAnonymousNote": "Utilisation anonyme. Connectez-vous pour sauvegarder votre territoire.",
+  "profileSignInPrompt": "Connectez-vous avec Google pour garder votre carte synchronisée.",
+  "profileAnonymousNote": "Utilisation anonyme. Connectez-vous pour sauvegarder votre carte.",
   "profileUserFallback": "Utilisateur",
   "profileViewStats": "Voir les statistiques",
-  "profileContributionsHint": "Voir votre territoire",
+  "profileContributionsHint": "Voir ma carte",
   "profileSignedOut": "Déconnecté",
 
   "chipContributing": "Cartographie",
@@ -203,9 +203,9 @@
   "infoTileQualityTitle": "Qualité de couverture",
   "infoTileQualityBody": "Vert = bien couvert, jaune = partiel, rouge = plus de passages nécessaires.",
   "infoTilePersonalTitle": "Votre zone",
-  "infoTilePersonalBody": "Votre téléphone a enregistré ici — c'est votre terrain.",
+  "infoTilePersonalBody": "Votre téléphone a enregistré ici.",
   "infoTileCommunityTitle": "Zone communautaire",
-  "infoTileCommunityBody": "Cartographié par d'autres — leur terrain, pas le vôtre. Pas encore.",
+  "infoTileCommunityBody": "Cartographié par d'autres — passez ici pour vous l'approprier.",
   "statsTotalContributions": "Total des contributions",
   "statsActivityTrend": "Cette semaine",
   "statsLast7Days": "7 derniers jours",
@@ -352,7 +352,7 @@
   },
   "settingsDataRetention": "Données conservées 7 jours (Gratuit)",
   "referralInviteTitle": "Inviter des amis",
-  "referralInviteDescription": "Chaque ami couvre un terrain que vous n'avez pas encore atteint.",
+  "referralInviteDescription": "Chaque ami cartographie des endroits où vous n'êtes pas encore allé.",
   "referralLinkCopied": "Lien de parrainage copié",
   "referralCopyLink": "Copier le lien",
   "referralShareLink": "Partager le lien d'invitation",
@@ -369,7 +369,7 @@
   "statsHighlightsLabel": "FAITS MARQUANTS",
   "statsMappingSince": "Cartographie depuis",
   "statsFailedToLoad": "Impossible de charger les statistiques",
-  "statsReadyToContribute": "Votre terrain vous attend.",
+  "statsReadyToContribute": "Commencez à marcher pour construire votre carte.",
   "statsFirstContributionHint": "Commencez le suivi pour cartographier votre première zone",
 
   "statsWeeklyLabel": "7 JOURS",
@@ -377,7 +377,7 @@
   "statsWeeklyTotal": "{count} cette semaine",
 
   "statsMilestoneLabel": "Niveau suivant",
-  "statsMilestoneHint": "Cartographiez suffisamment de terrain pour atteindre ce niveau et débloquer le suivant",
+  "statsMilestoneHint": "Cartographiez suffisamment de zones pour atteindre ce niveau et débloquer le suivant",
   "statsMilestoneElite": "Tout cartographié · statut explorateur",
   "statsMilestoneRemaining": "{count, plural, =1{1 zone restante} other{{count} zones restantes}}",
   "@statsMilestoneRemaining": {
@@ -454,10 +454,10 @@
   "milestoneReachedCta": "Continuer",
 
   "firstUploadTitle": "Première zone cartographiée.",
-  "firstUploadBody": "Continuez à bouger — votre territoire grandit.",
+  "firstUploadBody": "Continuez à bouger — votre carte grandit.",
   "firstUploadCta": "Voir ma carte",
 
-  "onboardingSocialProof": "{count} personnes cartographient déjà leur terrain",
+  "onboardingSocialProof": "{count} personnes cartographient déjà leur quartier",
   "@onboardingSocialProof": {
     "placeholders": { "count": { "type": "int" } }
   },
@@ -466,14 +466,14 @@
   "@sessionSummaryZonesClaimed": {
     "placeholders": { "count": { "type": "int" } }
   },
-  "sessionSummaryTotal": "Territoire total : {zones} zones · {km2} km²",
+  "sessionSummaryTotal": "Total : {zones} zones · {km2} km²",
   "@sessionSummaryTotal": {
     "placeholders": {
       "zones": { "type": "int" },
       "km2": { "type": "String" }
     }
   },
-  "sessionSummaryCta": "Voir mon territoire",
+  "sessionSummaryCta": "Voir ma carte",
   "sessionSummaryDone": "Terminé",
   "statsMapGrowing": "carte en cours — continuez à marcher",
   "statsWeeklyChartOffline": "Graphique hebdomadaire disponible une fois connecté",
@@ -564,7 +564,7 @@
   "onboardingActivateSubtitle": "Autorisez la localisation — votre téléphone cartographie pendant vos déplacements.",
   "onboardingActivateCta": "Commencer à cartographier",
 
-  "homeMaxClusterHint": "territoire de {count} zones",
+  "homeMaxClusterHint": "plus grande zone : {count} cases",
   "@homeMaxClusterHint": {
     "placeholders": { "count": { "type": "int" } }
   },

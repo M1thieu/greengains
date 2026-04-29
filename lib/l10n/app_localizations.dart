@@ -101,25 +101,25 @@ abstract class AppLocalizations {
   /// No description provided for @onboardingWelcomeTitle.
   ///
   /// In en, this message translates to:
-  /// **'Fill in your ground.'**
+  /// **'Finally know your neighborhood.'**
   String get onboardingWelcomeTitle;
 
   /// No description provided for @onboardingWelcomeSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Walk anywhere. Your phone quietly reads the world — light, pressure, motion — and maps it.'**
+  /// **'Your phone reads light, pressure, and motion as you walk — and builds a map of everywhere you\'ve been.'**
   String get onboardingWelcomeSubtitle;
 
   /// No description provided for @onboardingFeature1Title.
   ///
   /// In en, this message translates to:
-  /// **'No tapping. Ever.'**
+  /// **'Nothing to do.'**
   String get onboardingFeature1Title;
 
   /// No description provided for @onboardingFeature1Description.
   ///
   /// In en, this message translates to:
-  /// **'Start once, forget about it — your map fills in while you move.'**
+  /// **'Start once, carry your phone. That\'s it — your map builds itself.'**
   String get onboardingFeature1Description;
 
   /// No description provided for @onboardingFeature2Title.
@@ -137,25 +137,25 @@ abstract class AppLocalizations {
   /// No description provided for @onboardingFeature3Title.
   ///
   /// In en, this message translates to:
-  /// **'Every street, yours.'**
+  /// **'See how far you\'ve been.'**
   String get onboardingFeature3Title;
 
   /// No description provided for @onboardingFeature3Description.
   ///
   /// In en, this message translates to:
-  /// **'Every place you visit fills in on your map — see how far your ground reaches.'**
+  /// **'Every place you visit shows up on your map. Walk the same streets, watch them fill in.'**
   String get onboardingFeature3Description;
 
   /// No description provided for @onboardingSignInTitle.
   ///
   /// In en, this message translates to:
-  /// **'Your territory starts here'**
+  /// **'Your map starts here.'**
   String get onboardingSignInTitle;
 
   /// No description provided for @onboardingSignInSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Sign in to keep your territory synced across devices.'**
+  /// **'Sign in to keep your map synced across devices.'**
   String get onboardingSignInSubtitle;
 
   /// No description provided for @onboardingPrivacyNotice.
@@ -473,7 +473,7 @@ abstract class AppLocalizations {
   /// No description provided for @permissionLocationMessage.
   ///
   /// In en, this message translates to:
-  /// **'Allow location to start mapping your ground.'**
+  /// **'Allow location so your phone can map as you walk.'**
   String get permissionLocationMessage;
 
   /// No description provided for @permissionLocationButton.
@@ -611,13 +611,13 @@ abstract class AppLocalizations {
   /// No description provided for @profileSignInPrompt.
   ///
   /// In en, this message translates to:
-  /// **'Sign in with Google to keep your territory synced across devices.'**
+  /// **'Sign in with Google to keep your map synced across devices.'**
   String get profileSignInPrompt;
 
   /// No description provided for @profileAnonymousNote.
   ///
   /// In en, this message translates to:
-  /// **'Using anonymously. Sign in to save your territory.'**
+  /// **'Using anonymously. Sign in to save your map.'**
   String get profileAnonymousNote;
 
   /// No description provided for @profileUserFallback.
@@ -635,7 +635,7 @@ abstract class AppLocalizations {
   /// No description provided for @profileContributionsHint.
   ///
   /// In en, this message translates to:
-  /// **'See your territory'**
+  /// **'See your map'**
   String get profileContributionsHint;
 
   /// No description provided for @profileSignedOut.
@@ -947,7 +947,7 @@ abstract class AppLocalizations {
   /// No description provided for @infoTilePersonalBody.
   ///
   /// In en, this message translates to:
-  /// **'Your phone recorded here — this is your ground.'**
+  /// **'Your phone recorded here.'**
   String get infoTilePersonalBody;
 
   /// No description provided for @infoTileCommunityTitle.
@@ -959,7 +959,7 @@ abstract class AppLocalizations {
   /// No description provided for @infoTileCommunityBody.
   ///
   /// In en, this message translates to:
-  /// **'Mapped by others — their ground, not yours. Yet.'**
+  /// **'Mapped by others — walk here to make it yours.'**
   String get infoTileCommunityBody;
 
   /// No description provided for @statsTotalContributions.
@@ -1589,7 +1589,7 @@ abstract class AppLocalizations {
   /// No description provided for @referralInviteDescription.
   ///
   /// In en, this message translates to:
-  /// **'Every friend covers ground you haven\'t reached yet.'**
+  /// **'Every friend maps places you haven\'t been yet.'**
   String get referralInviteDescription;
 
   /// No description provided for @referralLinkCopied.
@@ -1649,7 +1649,7 @@ abstract class AppLocalizations {
   /// No description provided for @statsReadyToContribute.
   ///
   /// In en, this message translates to:
-  /// **'Your ground is waiting.'**
+  /// **'Start walking to build your map.'**
   String get statsReadyToContribute;
 
   /// No description provided for @statsFirstContributionHint.
@@ -1679,7 +1679,7 @@ abstract class AppLocalizations {
   /// No description provided for @statsMilestoneHint.
   ///
   /// In en, this message translates to:
-  /// **'Map enough ground to reach this level and unlock the next one'**
+  /// **'Map enough zones to reach this level and unlock the next one'**
   String get statsMilestoneHint;
 
   /// No description provided for @statsMilestoneElite.
@@ -1919,7 +1919,7 @@ abstract class AppLocalizations {
   /// No description provided for @firstStartTitle.
   ///
   /// In en, this message translates to:
-  /// **'Mapping ground.'**
+  /// **'Building your map.'**
   String get firstStartTitle;
 
   /// No description provided for @firstStartBody.
@@ -1967,7 +1967,7 @@ abstract class AppLocalizations {
   /// No description provided for @firstUploadBody.
   ///
   /// In en, this message translates to:
-  /// **'Keep moving — your territory is growing.'**
+  /// **'Keep moving — your map is growing.'**
   String get firstUploadBody;
 
   /// No description provided for @firstUploadCta.
@@ -1979,7 +1979,7 @@ abstract class AppLocalizations {
   /// No description provided for @onboardingSocialProof.
   ///
   /// In en, this message translates to:
-  /// **'{count} people already mapping their ground'**
+  /// **'{count} people already mapping their neighborhood'**
   String onboardingSocialProof(int count);
 
   /// No description provided for @sessionSummaryZonesClaimed.
@@ -1991,13 +1991,13 @@ abstract class AppLocalizations {
   /// No description provided for @sessionSummaryTotal.
   ///
   /// In en, this message translates to:
-  /// **'Total territory: {zones} zones · {km2} km²'**
+  /// **'Total: {zones} zones · {km2} km²'**
   String sessionSummaryTotal(int zones, String km2);
 
   /// No description provided for @sessionSummaryCta.
   ///
   /// In en, this message translates to:
-  /// **'See my territory'**
+  /// **'See my map'**
   String get sessionSummaryCta;
 
   /// No description provided for @sessionSummaryDone.
@@ -2225,7 +2225,7 @@ abstract class AppLocalizations {
   /// No description provided for @homeMaxClusterHint.
   ///
   /// In en, this message translates to:
-  /// **'biggest territory: {count} zones'**
+  /// **'biggest area: {count} zones'**
   String homeMaxClusterHint(int count);
 
   /// No description provided for @firstUploadBadge.

@@ -9,18 +9,18 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
-  String get onboardingWelcomeTitle => 'Fill in your ground.';
+  String get onboardingWelcomeTitle => 'Finally know your neighborhood.';
 
   @override
   String get onboardingWelcomeSubtitle =>
-      'Walk anywhere. Your phone quietly reads the world — light, pressure, motion — and maps it.';
+      'Your phone reads light, pressure, and motion as you walk — and builds a map of everywhere you\'ve been.';
 
   @override
-  String get onboardingFeature1Title => 'No tapping. Ever.';
+  String get onboardingFeature1Title => 'Nothing to do.';
 
   @override
   String get onboardingFeature1Description =>
-      'Start once, forget about it — your map fills in while you move.';
+      'Start once, carry your phone. That\'s it — your map builds itself.';
 
   @override
   String get onboardingFeature2Title => 'Private by default';
@@ -30,18 +30,18 @@ class AppLocalizationsEn extends AppLocalizations {
       'Your route is never stored — readings are anonymized before they leave your phone.';
 
   @override
-  String get onboardingFeature3Title => 'Every street, yours.';
+  String get onboardingFeature3Title => 'See how far you\'ve been.';
 
   @override
   String get onboardingFeature3Description =>
-      'Every place you visit fills in on your map — see how far your ground reaches.';
+      'Every place you visit shows up on your map. Walk the same streets, watch them fill in.';
 
   @override
-  String get onboardingSignInTitle => 'Your territory starts here';
+  String get onboardingSignInTitle => 'Your map starts here.';
 
   @override
   String get onboardingSignInSubtitle =>
-      'Sign in to keep your territory synced across devices.';
+      'Sign in to keep your map synced across devices.';
 
   @override
   String onboardingPrivacyNotice(String privacyPolicy, String termsOfService) {
@@ -211,7 +211,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get permissionLocationMessage =>
-      'Allow location to start mapping your ground.';
+      'Allow location so your phone can map as you walk.';
 
   @override
   String get permissionLocationButton => 'Grant Permission';
@@ -282,11 +282,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get profileSignInPrompt =>
-      'Sign in with Google to keep your territory synced across devices.';
+      'Sign in with Google to keep your map synced across devices.';
 
   @override
   String get profileAnonymousNote =>
-      'Using anonymously. Sign in to save your territory.';
+      'Using anonymously. Sign in to save your map.';
 
   @override
   String get profileUserFallback => 'User';
@@ -295,7 +295,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileViewStats => 'View Statistics';
 
   @override
-  String get profileContributionsHint => 'See your territory';
+  String get profileContributionsHint => 'See your map';
 
   @override
   String get profileSignedOut => 'Signed out';
@@ -512,15 +512,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get infoTilePersonalTitle => 'Your area';
 
   @override
-  String get infoTilePersonalBody =>
-      'Your phone recorded here — this is your ground.';
+  String get infoTilePersonalBody => 'Your phone recorded here.';
 
   @override
   String get infoTileCommunityTitle => 'Community area';
 
   @override
   String get infoTileCommunityBody =>
-      'Mapped by others — their ground, not yours. Yet.';
+      'Mapped by others — walk here to make it yours.';
 
   @override
   String get statsTotalContributions => 'Total Contributions';
@@ -879,7 +878,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get referralInviteDescription =>
-      'Every friend covers ground you haven\'t reached yet.';
+      'Every friend maps places you haven\'t been yet.';
 
   @override
   String get referralLinkCopied => 'Referral link copied';
@@ -918,7 +917,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get statsFailedToLoad => 'Failed to load stats';
 
   @override
-  String get statsReadyToContribute => 'Your ground is waiting.';
+  String get statsReadyToContribute => 'Start walking to build your map.';
 
   @override
   String get statsFirstContributionHint =>
@@ -937,7 +936,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get statsMilestoneHint =>
-      'Map enough ground to reach this level and unlock the next one';
+      'Map enough zones to reach this level and unlock the next one';
 
   @override
   String get statsMilestoneElite => 'Fully mapped · explorer status';
@@ -1074,7 +1073,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Quiet when still, precise when moving — adapts automatically';
 
   @override
-  String get firstStartTitle => 'Mapping ground.';
+  String get firstStartTitle => 'Building your map.';
 
   @override
   String get firstStartBody => 'Move — zones appear as you go.';
@@ -1101,14 +1100,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get firstUploadTitle => 'First area mapped.';
 
   @override
-  String get firstUploadBody => 'Keep moving — your territory is growing.';
+  String get firstUploadBody => 'Keep moving — your map is growing.';
 
   @override
   String get firstUploadCta => 'See my map';
 
   @override
   String onboardingSocialProof(int count) {
-    return '$count people already mapping their ground';
+    return '$count people already mapping their neighborhood';
   }
 
   @override
@@ -1124,11 +1123,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String sessionSummaryTotal(int zones, String km2) {
-    return 'Total territory: $zones zones · $km2 km²';
+    return 'Total: $zones zones · $km2 km²';
   }
 
   @override
-  String get sessionSummaryCta => 'See my territory';
+  String get sessionSummaryCta => 'See my map';
 
   @override
   String get sessionSummaryDone => 'Done';
@@ -1303,7 +1302,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String homeMaxClusterHint(int count) {
-    return 'biggest territory: $count zones';
+    return 'biggest area: $count zones';
   }
 
   @override
