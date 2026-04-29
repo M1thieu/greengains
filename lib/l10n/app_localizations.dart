@@ -2324,6 +2324,18 @@ abstract class AppLocalizations {
   /// **'Share'**
   String get sessionSummaryShareCta;
 
+  /// No description provided for @sessionSummaryNextHook.
+  ///
+  /// In en, this message translates to:
+  /// **'Come back tomorrow to keep your streak.'**
+  String get sessionSummaryNextHook;
+
+  /// No description provided for @sessionSummaryNextHookEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Walk more next time — zones fill in as you move.'**
+  String get sessionSummaryNextHookEmpty;
+
   /// No description provided for @sessionStatArea.
   ///
   /// In en, this message translates to:

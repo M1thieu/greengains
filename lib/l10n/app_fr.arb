@@ -587,6 +587,8 @@
   "sessionSummarySubline": "ajoutées à votre carte",
   "sessionSummaryWatermark": "Cartographié avec GreenGains",
   "sessionSummaryShareCta": "Partager",
+  "sessionSummaryNextHook": "Revenez demain pour garder votre série.",
+  "sessionSummaryNextHookEmpty": "Bougez plus la prochaine fois — les zones se remplissent en marchant.",
   "sessionStatArea": "SURFACE",
   "sessionStatDuration": "TEMPS",
   "sessionStatTotal": "TOTAL",

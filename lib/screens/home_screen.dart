@@ -25,6 +25,7 @@ import '../widgets/tracking_status_chip.dart';
 import '../widgets/tracking_fab.dart';
 import '../widgets/sensor_section.dart';
 import '../models/sensor_models.dart';
+import '../data/repositories/contribution_repository.dart';
 
 // My Location button: 48×48 standard touch target.
 const _kLocationBtnSize = AppTheme.minTouchTarget; // 48
@@ -130,6 +131,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   static const _kLiveCellStabilityThreshold = 2;
   /// Cached tile count — avoids recomputing on every build frame.
   int get _claimedTileCount => _h3Tiles.where((t) => t.boundary != null).length;
+  /// Current streak — loaded once from local DB on init, shown on idle home.
+  int _currentStreak = 0;
 
   @override
   void initState() {
@@ -149,6 +152,14 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     _loadGlobalTiles();
     _loadUserLocation();
     _subscribeToLocationUpdates();
+    unawaited(_loadStreak());
+  }
+
+  Future<void> _loadStreak() async {
+    try {
+      final stats = await ContributionRepository().getStats();
+      if (mounted) setState(() => _currentStreak = stats.currentStreak);
+    } catch (_) {}
   }
 
   void _handleServiceRunningChange() {
@@ -792,6 +803,18 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                             currentZones: _claimedTileCount,
                             lastKnownZones: _prefs.lastKnownZoneCount,
                             lastSessionAt: _prefs.lastSessionEndAt,
+                          ),
+                        ],
+                        if (_currentStreak >= 2) ...[
+                          const SizedBox(height: 3),
+                          Text(
+                            context.l10n.statsStreakDays(_currentStreak),
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: AppColors.warning.withValues(alpha: 0.75),
+                              fontWeight: AppFontWeights.medium,
+                              letterSpacing: -0.1,
+                            ),
                           ),
                         ],
                       ],
@@ -2387,6 +2410,20 @@ class _SessionSummarySheetState extends State<_SessionSummarySheet> {
                     ),
                   ),
                 ],
+              ),
+
+              const SizedBox(height: AppTheme.spaceSm),
+
+              // ── Next-session hook — one quiet line, contextual ────────────
+              Text(
+                widget.zonesGained > 0
+                    ? l10n.sessionSummaryNextHook
+                    : l10n.sessionSummaryNextHookEmpty,
+                style: TextStyle(
+                  fontSize: 11,
+                  color: Colors.white.withValues(alpha: 0.38),
+                  letterSpacing: -0.1,
+                ),
               ),
 
               const SizedBox(height: AppTheme.spaceMd),

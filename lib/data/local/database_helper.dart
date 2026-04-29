@@ -1,8 +1,6 @@
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
-import '../models/contribution_stats.dart';
 import 'package:flutter/foundation.dart';
-import '../../core/constants.dart';
 
 /// Enhanced SQLite database for comprehensive app state persistence
 ///

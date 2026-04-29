@@ -587,6 +587,8 @@
   "sessionSummarySubline": "added to your map",
   "sessionSummaryWatermark": "Mapped with GreenGains",
   "sessionSummaryShareCta": "Share",
+  "sessionSummaryNextHook": "Come back tomorrow to keep your streak.",
+  "sessionSummaryNextHookEmpty": "Walk more next time — zones fill in as you move.",
   "sessionStatArea": "AREA",
   "sessionStatDuration": "TIME",
   "sessionStatTotal": "TOTAL",

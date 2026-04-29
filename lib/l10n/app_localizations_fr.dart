@@ -1368,6 +1368,14 @@ class AppLocalizationsFr extends AppLocalizations {
   String get sessionSummaryShareCta => 'Partager';
 
   @override
+  String get sessionSummaryNextHook =>
+      'Revenez demain pour garder votre série.';
+
+  @override
+  String get sessionSummaryNextHookEmpty =>
+      'Bougez plus la prochaine fois — les zones se remplissent en marchant.';
+
+  @override
   String get sessionStatArea => 'SURFACE';
 
   @override
