@@ -46,7 +46,7 @@
   },
   "noUploadYet": "No upload yet",
 
-  "statsTitle": "Your Ground",
+  "statsTitle": "Your Map",
   "totalUploads": "Total Uploads",
   "todayUploads": "Today's Uploads",
   "coverageTiles": "Coverage Tiles",
@@ -482,7 +482,7 @@
     "placeholders": { "count": { "type": "int" } }
   },
   "statsViewOnMap": "View on map",
-  "statsCommunityMappers": "{count, plural, =1{1 mapper active this month} other{{count} mappers active this month}}",
+  "statsCommunityMappers": "{count, plural, =1{1 person mapping this month} other{{count} people mapping this month}}",
   "@statsCommunityMappers": {
     "placeholders": { "count": { "type": "int" } }
   },
@@ -582,13 +582,13 @@
   "liveSensorMotionLabel": "Motion",
   "liveSensorPressureLabel": "Pressure",
 
-  "sessionSummaryBadge": "SESSION COMPLETE",
-  "sessionSummaryZonesGainedLabel": "ZONES GAINED",
-  "sessionSummarySubline": "new ground, painted in",
+  "sessionSummaryBadge": "WALK DONE",
+  "sessionSummaryZonesGainedLabel": "NEW ZONES",
+  "sessionSummarySubline": "added to your map",
   "sessionSummaryWatermark": "Mapped with GreenGains",
-  "sessionSummaryShareCta": "Share card",
+  "sessionSummaryShareCta": "Share",
   "sessionStatArea": "AREA",
-  "sessionStatDuration": "DURATION",
+  "sessionStatDuration": "TIME",
   "sessionStatTotal": "TOTAL",
 
   "statsMilestoneTarget": "{target} zones",

@@ -510,7 +510,6 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                             fontWeight: AppFontWeights.medium,
                           ),
                         ),
-                        _InfoIcon(title: l10n.infoMilestoneTitle, body: l10n.infoMilestoneBody),
                       ],
                     ),
                     Text(
@@ -877,124 +876,6 @@ class _StatisticsScreenState extends State<StatisticsScreen>
 
   // ─── Insight card (Dawarich-style contextual facts) ─────────────────────────
 
-  /// Returns null when there's nothing meaningful to show yet.
-  Widget? _buildInsightCard(ThemeData theme, bool isDark, AppLocalizations l10n) {
-    final weekly = _weeklyData;
-    final first = _stats?.firstContributionAt;
-    final days = _daysActive;
-    if (weekly == null && first == null && days == null) return null;
-
-    // Best day this week — day name + count
-    String? bestDayLabel;
-    if (weekly != null) {
-      final maxVal = weekly.fold(0, max);
-      if (maxVal > 0) {
-        final bestIdx = weekly.indexOf(maxVal);
-        final chartLocale = Localizations.localeOf(context).toString();
-        final bestDate = DateTime.now().subtract(Duration(days: 6 - bestIdx));
-        final name = bestIdx == 6
-            ? l10n.statsDayToday
-            : DateFormat('EEE', chartLocale).format(bestDate);
-        bestDayLabel = '$name — $maxVal ${l10n.statsDataPtsLabel}';
-      }
-    }
-
-    final currentStreak = _stats?.currentStreak ?? 0;
-    final insights = <(IconData, Color, String, String)>[
-      if (first != null)
-        (
-          Icons.history_outlined,
-          AppColors.movement,
-          l10n.statsMappingSince,
-          DateFormat('MMMM yyyy', Localizations.localeOf(context).toString()).format(first),
-        ),
-      if (bestDayLabel != null)
-        (
-          Icons.bar_chart_outlined,
-          AppColors.light,
-          l10n.statsBestDay,
-          bestDayLabel,
-        ),
-      if (days != null && days > 1)
-        (
-          Icons.calendar_today_outlined,
-          AppColors.quality,
-          l10n.statsDaysActive,
-          l10n.daysActive(days),
-        ),
-      if (currentStreak >= 2)
-        (
-          Icons.local_fire_department_outlined,
-          AppColors.warning,
-          l10n.statsStreakLabel,
-          l10n.statsStreakDays(currentStreak),
-        ),
-    ];
-
-    if (insights.isEmpty) return null;
-
-    return Container(
-      padding: const EdgeInsets.all(AppTheme.spaceMd),
-      decoration: AppTheme.surfaceContainer(isDark: isDark),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            l10n.statsHighlightsLabel,
-            style: theme.textTheme.labelSmall?.copyWith(
-              color: AppColors.textSecondary(isDark),
-              letterSpacing: _kLetterSpacingCaps,
-              fontWeight: AppFontWeights.semibold,
-            ),
-          ),
-          const SizedBox(height: AppTheme.spaceSm),
-          ...insights.indexed.map((entry) {
-            final (i, insight) = entry;
-            final (icon, color, label, value) = insight;
-            return Padding(
-              padding: EdgeInsets.only(top: i > 0 ? AppTheme.spaceSm : 0),
-              child: Row(
-                children: [
-                  Icon(icon, size: AppIconSizes.xs, color: color),
-                  const SizedBox(width: AppTheme.spaceSm),
-                  Expanded(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Flexible(
-                          child: Text(
-                            label,
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: AppColors.textSecondary(isDark),
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        const SizedBox(width: AppTheme.spaceXs),
-                        Flexible(
-                          child: Text(
-                            value,
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: AppColors.textPrimary(isDark),
-                              fontWeight: AppFontWeights.semibold,
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                            textAlign: TextAlign.end,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            );
-          }),
-        ],
-      ),
-    );
-  }
-
   Widget _buildLoadingSkeleton(bool isDark) {
     final baseColor  = isDark ? const Color(0xFF1a2635) : const Color(0xFFE0E0E0);
     final hlColor    = isDark ? const Color(0xFF243447) : const Color(0xFFF5F5F5);
@@ -1054,70 +935,6 @@ class _StatisticsScreenState extends State<StatisticsScreen>
 
 // ─── Info sheet ───────────────────────────────────────────────────────────────
 
-/// Tappable ⓘ icon that opens a contextual bottom sheet explaining a metric.
-class _InfoIcon extends StatelessWidget {
-  const _InfoIcon({required this.title, required this.body});
-  final String title;
-  final String body;
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return GestureDetector(
-      onTap: () {
-        HapticFeedback.lightImpact();
-        _showInfoSheet(context, title, body, isDark);
-      },
-      behavior: HitTestBehavior.opaque,
-      child: Padding(
-        padding: const EdgeInsets.only(left: AppTheme.spaceXxs),
-        child: Icon(
-          Icons.info_outline,
-          size: 13,
-          color: AppColors.textTertiary(isDark),
-        ),
-      ),
-    );
-  }
-}
-
-void _showInfoSheet(BuildContext context, String title, String body, bool isDark) {
-  showModalBottomSheet(
-    context: context,
-    backgroundColor: Colors.transparent,
-    builder: (_) => Container(
-      margin: const EdgeInsets.fromLTRB(
-        AppTheme.spaceMd, 0, AppTheme.spaceMd, AppTheme.spaceMd,
-      ),
-      padding: const EdgeInsets.all(AppTheme.spaceMd),
-      decoration: BoxDecoration(
-        color: AppColors.surface(isDark),
-        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              fontWeight: AppFontWeights.semibold,
-            ),
-          ),
-          const SizedBox(height: AppTheme.spaceSm),
-          Text(
-            body,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: AppColors.textSecondary(isDark),
-              height: 1.5,
-            ),
-          ),
-          const SizedBox(height: AppTheme.spaceSm),
-        ],
-      ),
-    ),
-  );
-}
 
 // ── Streak banner ─────────────────────────────────────────────────────────────
 

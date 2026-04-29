@@ -111,7 +111,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noUploadYet => 'No upload yet';
 
   @override
-  String get statsTitle => 'Your Ground';
+  String get statsTitle => 'Your Map';
 
   @override
   String get totalUploads => 'Total Uploads';
@@ -1151,8 +1151,8 @@ class AppLocalizationsEn extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count mappers active this month',
-      one: '1 mapper active this month',
+      other: '$count people mapping this month',
+      one: '1 person mapping this month',
     );
     return '$_temp0';
   }
@@ -1340,25 +1340,25 @@ class AppLocalizationsEn extends AppLocalizations {
   String get liveSensorPressureLabel => 'Pressure';
 
   @override
-  String get sessionSummaryBadge => 'SESSION COMPLETE';
+  String get sessionSummaryBadge => 'WALK DONE';
 
   @override
-  String get sessionSummaryZonesGainedLabel => 'ZONES GAINED';
+  String get sessionSummaryZonesGainedLabel => 'NEW ZONES';
 
   @override
-  String get sessionSummarySubline => 'new ground, painted in';
+  String get sessionSummarySubline => 'added to your map';
 
   @override
   String get sessionSummaryWatermark => 'Mapped with GreenGains';
 
   @override
-  String get sessionSummaryShareCta => 'Share card';
+  String get sessionSummaryShareCta => 'Share';
 
   @override
   String get sessionStatArea => 'AREA';
 
   @override
-  String get sessionStatDuration => 'DURATION';
+  String get sessionStatDuration => 'TIME';
 
   @override
   String get sessionStatTotal => 'TOTAL';

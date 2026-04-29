@@ -46,7 +46,7 @@
   },
   "noUploadYet": "Aucun envoi pour le moment",
 
-  "statsTitle": "Votre terrain",
+  "statsTitle": "Votre carte",
   "totalUploads": "Total d'envois",
   "todayUploads": "Envois du jour",
   "coverageTiles": "Tuiles couvertes",
@@ -482,7 +482,7 @@
     "placeholders": { "count": { "type": "int" } }
   },
   "statsViewOnMap": "Voir sur la carte",
-  "statsCommunityMappers": "{count, plural, =1{1 contributeur actif ce mois} other{{count} contributeurs actifs ce mois}}",
+  "statsCommunityMappers": "{count, plural, =1{1 personne cartographie ce mois} other{{count} personnes cartographient ce mois}}",
   "@statsCommunityMappers": {
     "placeholders": { "count": { "type": "int" } }
   },
@@ -582,13 +582,13 @@
   "liveSensorMotionLabel": "Mouvement",
   "liveSensorPressureLabel": "Pression",
 
-  "sessionSummaryBadge": "SESSION TERMINÉE",
-  "sessionSummaryZonesGainedLabel": "ZONES GAGNÉES",
-  "sessionSummarySubline": "nouveau terrain, tracé en",
+  "sessionSummaryBadge": "TRAJET TERMINÉ",
+  "sessionSummaryZonesGainedLabel": "NOUVELLES ZONES",
+  "sessionSummarySubline": "ajoutées à votre carte",
   "sessionSummaryWatermark": "Cartographié avec GreenGains",
   "sessionSummaryShareCta": "Partager",
   "sessionStatArea": "SURFACE",
-  "sessionStatDuration": "DURÉE",
+  "sessionStatDuration": "TEMPS",
   "sessionStatTotal": "TOTAL",
 
   "statsMilestoneTarget": "{target} zones",

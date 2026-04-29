@@ -287,7 +287,7 @@ abstract class AppLocalizations {
   /// No description provided for @statsTitle.
   ///
   /// In en, this message translates to:
-  /// **'Your Ground'**
+  /// **'Your Map'**
   String get statsTitle;
 
   /// No description provided for @totalUploads.
@@ -2033,7 +2033,7 @@ abstract class AppLocalizations {
   /// No description provided for @statsCommunityMappers.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, =1{1 mapper active this month} other{{count} mappers active this month}}'**
+  /// **'{count, plural, =1{1 person mapping this month} other{{count} people mapping this month}}'**
   String statsCommunityMappers(int count);
 
   /// No description provided for @tileFirstMapped.
@@ -2297,19 +2297,19 @@ abstract class AppLocalizations {
   /// No description provided for @sessionSummaryBadge.
   ///
   /// In en, this message translates to:
-  /// **'SESSION COMPLETE'**
+  /// **'WALK DONE'**
   String get sessionSummaryBadge;
 
   /// No description provided for @sessionSummaryZonesGainedLabel.
   ///
   /// In en, this message translates to:
-  /// **'ZONES GAINED'**
+  /// **'NEW ZONES'**
   String get sessionSummaryZonesGainedLabel;
 
   /// No description provided for @sessionSummarySubline.
   ///
   /// In en, this message translates to:
-  /// **'new ground, painted in'**
+  /// **'added to your map'**
   String get sessionSummarySubline;
 
   /// No description provided for @sessionSummaryWatermark.
@@ -2321,7 +2321,7 @@ abstract class AppLocalizations {
   /// No description provided for @sessionSummaryShareCta.
   ///
   /// In en, this message translates to:
-  /// **'Share card'**
+  /// **'Share'**
   String get sessionSummaryShareCta;
 
   /// No description provided for @sessionStatArea.
@@ -2333,7 +2333,7 @@ abstract class AppLocalizations {
   /// No description provided for @sessionStatDuration.
   ///
   /// In en, this message translates to:
-  /// **'DURATION'**
+  /// **'TIME'**
   String get sessionStatDuration;
 
   /// No description provided for @sessionStatTotal.

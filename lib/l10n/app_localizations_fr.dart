@@ -111,7 +111,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get noUploadYet => 'Aucun envoi pour le moment';
 
   @override
-  String get statsTitle => 'Votre terrain';
+  String get statsTitle => 'Votre carte';
 
   @override
   String get totalUploads => 'Total d\'envois';
@@ -1164,8 +1164,8 @@ class AppLocalizationsFr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count contributeurs actifs ce mois',
-      one: '1 contributeur actif ce mois',
+      other: '$count personnes cartographient ce mois',
+      one: '1 personne cartographie ce mois',
     );
     return '$_temp0';
   }
@@ -1353,13 +1353,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get liveSensorPressureLabel => 'Pression';
 
   @override
-  String get sessionSummaryBadge => 'SESSION TERMINÉE';
+  String get sessionSummaryBadge => 'TRAJET TERMINÉ';
 
   @override
-  String get sessionSummaryZonesGainedLabel => 'ZONES GAGNÉES';
+  String get sessionSummaryZonesGainedLabel => 'NOUVELLES ZONES';
 
   @override
-  String get sessionSummarySubline => 'nouveau terrain, tracé en';
+  String get sessionSummarySubline => 'ajoutées à votre carte';
 
   @override
   String get sessionSummaryWatermark => 'Cartographié avec GreenGains';
@@ -1371,7 +1371,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get sessionStatArea => 'SURFACE';
 
   @override
-  String get sessionStatDuration => 'DURÉE';
+  String get sessionStatDuration => 'TEMPS';
 
   @override
   String get sessionStatTotal => 'TOTAL';
