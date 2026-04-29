@@ -1476,8 +1476,8 @@ class _TileInfoSheetState extends State<TileInfoSheet> {
                   ],
                 ),
               ),
-              // Sensor insights — personal tiles with data only
-              if (isPersonal && (tile.avgLux != null || tile.avgHpa != null || tile.avgMovement != null)) ...[
+              // Sensor insights — any tile with data
+              if (tile.avgLux != null || tile.avgHpa != null || tile.avgMovement != null) ...[
                 Divider(height: 1, thickness: 1, color: AppColors.border(isDark)),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(

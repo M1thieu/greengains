@@ -753,14 +753,23 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 final isActive  = isRunning && !isPaused;
 
                 if (isActive && _sessionStartTime != null) {
-                  // Top-center under status chip — zone delta + elapsed
+                  // Top-center under status chip — zone delta + elapsed + live conditions
                   return Positioned(
                     top: topPadding + AppTheme.spaceMd + 36,
                     left: 0, right: 0,
                     child: Center(
-                      child: _TrackingHintPill(
-                        newZones: (_claimedTileCount - _sessionStartZoneCount).clamp(0, 999),
-                        sessionStart: _sessionStartTime ?? DateTime.now(),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          _TrackingHintPill(
+                            newZones: (_claimedTileCount - _sessionStartZoneCount).clamp(0, 999),
+                            sessionStart: _sessionStartTime ?? DateTime.now(),
+                          ),
+                          const SizedBox(height: 6),
+                          _LiveConditionsLine(
+                            conditionsNotifier: _locationService.liveConditions,
+                          ),
+                        ],
                       ),
                     ),
                   );
@@ -1013,6 +1022,57 @@ class _PassiveSummaryLine extends StatelessWidget {
         fontWeight: AppFontWeights.medium,
         letterSpacing: -0.1,
       ),
+    );
+  }
+}
+
+/// Single line of live conditions shown below the tracking hint pill.
+/// Fades in once sensors report. Shows "Bright · Fair · Active" style readout.
+class _LiveConditionsLine extends StatelessWidget {
+  const _LiveConditionsLine({required this.conditionsNotifier});
+  final ValueNotifier<({int? lux, double? hpa, double? rms})> conditionsNotifier;
+
+  static String? _luxLabel(int lux, AppLocalizations l10n) {
+    if (lux < 50) return l10n.sensorLuxDark;
+    if (lux < 500) return l10n.sensorLuxIndoor;
+    if (lux < 10000) return l10n.sensorLuxBright;
+    return l10n.sensorLuxDirect;
+  }
+
+  static String? _hpaLabel(double hpa, AppLocalizations l10n) {
+    if (hpa > 1010) return l10n.sensorHpaLow;
+    if (hpa > 990) return l10n.sensorHpaMid;
+    return l10n.sensorHpaHigh;
+  }
+
+  static String? _rmsLabel(double rms, AppLocalizations l10n) {
+    if (rms < 10.5) return l10n.sensorMovementLow;
+    if (rms < 11.5) return l10n.sensorMovementMid;
+    return l10n.sensorMovementHigh;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    return ValueListenableBuilder(
+      valueListenable: conditionsNotifier,
+      builder: (_, snap, __) {
+        final parts = <String>[
+          if (snap.lux != null) _luxLabel(snap.lux!, l10n) ?? '',
+          if (snap.hpa != null) _hpaLabel(snap.hpa!, l10n) ?? '',
+          if (snap.rms != null) _rmsLabel(snap.rms!, l10n) ?? '',
+        ].where((s) => s.isNotEmpty).toList();
+        if (parts.isEmpty) return const SizedBox.shrink();
+        return Text(
+          parts.join(' · '),
+          style: TextStyle(
+            fontSize: 11,
+            color: Colors.white.withValues(alpha: 0.55),
+            fontWeight: AppFontWeights.medium,
+            letterSpacing: -0.1,
+          ),
+        );
+      },
     );
   }
 }

@@ -53,6 +53,12 @@ class ForegroundLocationService {
   final ValueNotifier<UploadStatusSnapshot> uploadStatus =
       ValueNotifier(const UploadStatusSnapshot());
 
+  /// Live sensor snapshot — fires on every light or pressure update.
+  /// Null fields = sensor hasn't reported yet this session.
+  final liveConditions = ValueNotifier<({int? lux, double? hpa, double? rms})>(
+    (lux: null, hpa: null, rms: null),
+  );
+
   final _sessionManager = TrackingSessionManager.instance;
 
   ForegroundLocationService._() {
@@ -108,13 +114,14 @@ class ForegroundLocationService {
           final light = LightData.fromMap(call.arguments as Map);
           _lastLight = light;
           _lightController.add(light);
-          // Persist for instant display on next app start
           unawaited(AppPreferences.instance.saveLastLight(light.lux, light.timestamp));
+          liveConditions.value = (lux: light.lux.round(), hpa: liveConditions.value.hpa, rms: liveConditions.value.rms);
           break;
         case 'onAccelerometerUpdate':
           final accel = AccelerometerData.fromMap(call.arguments as Map);
           _lastAccelerometer = accel;
           _accelerometerController.add(accel);
+          liveConditions.value = (lux: liveConditions.value.lux, hpa: liveConditions.value.hpa, rms: accel.magnitude);
           break;
         case 'onGyroscopeUpdate':
           final gyro = GyroscopeData.fromMap(call.arguments as Map);
@@ -125,8 +132,8 @@ class ForegroundLocationService {
           final pressure = PressureData.fromMap(call.arguments as Map);
           _lastPressure = pressure;
           _pressureController.add(pressure);
-          // Persist for instant display on next app start
           unawaited(AppPreferences.instance.saveLastPressure(pressure.hPa, pressure.timestamp));
+          liveConditions.value = (lux: liveConditions.value.lux, hpa: pressure.hPa, rms: liveConditions.value.rms);
           break;
         case 'onMagneticFieldUpdate':
           final magnetic = MagneticFieldData.fromMap(call.arguments as Map);
@@ -153,6 +160,7 @@ class ForegroundLocationService {
           _isPausedNotifier.value = false;
           pendingReadings.value = 0;
           uploadStatus.value = const UploadStatusSnapshot();
+          liveConditions.value = (lux: null, hpa: null, rms: null);
           // Stop tracking session (service was killed)
           await _sessionManager.stopSession(reason: 'service_stopped');
           debugPrint('Foreground service reported stopped');
