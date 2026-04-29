@@ -129,8 +129,6 @@ internal object NotificationsHelper {
         val bigText = "$body\n$infoLine"
 
         val isActive = !isPaused
-        // Sensors actively running = show indeterminate bar (visual proof of life).
-        // Stationary or paused = clear it (honest — nothing is happening).
         val sensorsRunning = isActive && motionState != "STATIONARY"
         return NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_ID)
             .setContentTitle(title)
@@ -142,9 +140,7 @@ internal object NotificationsHelper {
             .setOngoing(true)
             .setOnlyAlertOnce(true)
             .setProgress(0, 0, sensorsRunning)
-            .setUsesChronometer(isActive && sessionStartMillis != null)
-            .setWhen(sessionStartMillis ?: System.currentTimeMillis())
-            .setShowWhen(isActive && sessionStartMillis != null)
+            .setShowWhen(false)
             .addAction(0, primaryLabel, primaryPendingIntent)
             .addAction(0, context.getString(R.string.notification_action_stop), stopPendingIntent)
             .setForegroundServiceBehavior(NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE)

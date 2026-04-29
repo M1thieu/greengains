@@ -3,15 +3,15 @@
     <string name="app_name">GreenGains</string>
 
     <!-- Foreground service notification — title = statut, body = progression (zones en priorité) -->
-    <string name="notification_status_collecting">Remplissez votre carte</string>
-    <string name="notification_status_stationary">Surveillance de la zone</string>
+    <string name="notification_status_collecting">Cartographie de votre quartier</string>
+    <string name="notification_status_stationary">Actif en arrière-plan</string>
     <string name="notification_paused_title">En pause</string>
     <string name="notification_paused_body">Reprenez pour continuer à cartographier</string>
     <string name="notification_collecting_no_upload">Bougez pour commencer à cartographier</string>
     <!-- Textes de corps axés sur les zones — affichés quand zonesTotal > 0 -->
     <string name="notification_body_zones_uploading">%1$d zones · envoi en cours</string>
-    <string name="notification_body_zones_collecting">%1$d zones · collecte en cours</string>
-    <string name="notification_body_stationary">%1$d zones · capteurs en veille</string>
+    <string name="notification_body_zones_collecting">%1$d zones cartographiées</string>
+    <string name="notification_body_stationary">%1$d zones · en veille</string>
     <string name="notification_body_paused_zones">%1$d zones sur votre carte</string>
 
     <!-- Fallback quand pas encore de zones — nombre de mesures -->
@@ -23,7 +23,7 @@
     <string name="notification_sync_uploaded">Synchronisé %s</string>
     <string name="notification_sync_none">Pas encore synchronisé</string>
     <string name="notification_motion_moving">en mouvement</string>
-    <string name="notification_motion_stationary">stationnaire</string>
+    <string name="notification_motion_stationary">à l\'arrêt</string>
     <string name="notification_expanded_paused">Appuyez sur Reprendre pour continuer.</string>
 
     <!-- Notification actions -->
@@ -38,17 +38,17 @@
     <string name="notification_upload_yesterday">hier</string>
 
     <!-- Background worker notification -->
-    <string name="notification_worker_title">GreenGains — synchronisation</string>
-    <string name="notification_worker_body">Sauvegarde de vos données de territoire</string>
+    <string name="notification_worker_title">GreenGains · synchronisation</string>
+    <string name="notification_worker_body">Sauvegarde de vos données</string>
 
     <!-- Re-engagement notification -->
-    <string name="notification_streak_channel_name">Rappels de territoire</string>
-    <string name="notification_streak_title">Votre terrain vous attend</string>
+    <string name="notification_streak_channel_name">Rappels carte</string>
+    <string name="notification_streak_title">Votre carte vous attend</string>
     <string name="notification_streak_body">Ouvrez l\'appli et continuez à bouger — chaque nouvelle rue remplit votre carte.</string>
 
-    <!-- Digest hebdomadaire — résumé passif du territoire, sans appel à l\'action -->
+    <!-- Digest hebdomadaire — résumé passif de la carte, sans appel à l\'action -->
     <string name="notification_weekly_channel_name">Bilan hebdomadaire</string>
-    <string name="notification_weekly_title">Votre territoire cette semaine</string>
+    <string name="notification_weekly_title">Votre carte cette semaine</string>
     <!-- %1$d = nouvelles zones, %2$d = total -->
     <string name="notification_weekly_body_growth">+%1$d nouvelles zones — %2$d au total sur votre carte</string>
     <!-- %1$d = total (pas de changement) -->
