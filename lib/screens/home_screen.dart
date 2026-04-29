@@ -1027,25 +1027,25 @@ class _PassiveSummaryLine extends StatelessWidget {
 }
 
 /// Single line of live conditions shown below the tracking hint pill.
-/// Fades in once sensors report. Shows "Bright · Fair · Active" style readout.
+/// Icon + label per sensor — colored icons make each word legible without text labels.
 class _LiveConditionsLine extends StatelessWidget {
   const _LiveConditionsLine({required this.conditionsNotifier});
   final ValueNotifier<({int? lux, double? hpa, double? rms})> conditionsNotifier;
 
-  static String? _luxLabel(int lux, AppLocalizations l10n) {
+  static String _luxLabel(int lux, AppLocalizations l10n) {
     if (lux < 50) return l10n.sensorLuxDark;
     if (lux < 500) return l10n.sensorLuxIndoor;
     if (lux < 10000) return l10n.sensorLuxBright;
     return l10n.sensorLuxDirect;
   }
 
-  static String? _hpaLabel(double hpa, AppLocalizations l10n) {
+  static String _hpaLabel(double hpa, AppLocalizations l10n) {
     if (hpa > 1010) return l10n.sensorHpaLow;
     if (hpa > 990) return l10n.sensorHpaMid;
     return l10n.sensorHpaHigh;
   }
 
-  static String? _rmsLabel(double rms, AppLocalizations l10n) {
+  static String _rmsLabel(double rms, AppLocalizations l10n) {
     if (rms < 10.5) return l10n.sensorMovementLow;
     if (rms < 11.5) return l10n.sensorMovementMid;
     return l10n.sensorMovementHigh;
@@ -1057,20 +1057,37 @@ class _LiveConditionsLine extends StatelessWidget {
     return ValueListenableBuilder(
       valueListenable: conditionsNotifier,
       builder: (_, snap, __) {
-        final parts = <String>[
-          if (snap.lux != null) _luxLabel(snap.lux!, l10n) ?? '',
-          if (snap.hpa != null) _hpaLabel(snap.hpa!, l10n) ?? '',
-          if (snap.rms != null) _rmsLabel(snap.rms!, l10n) ?? '',
-        ].where((s) => s.isNotEmpty).toList();
-        if (parts.isEmpty) return const SizedBox.shrink();
-        return Text(
-          parts.join(' · '),
-          style: TextStyle(
-            fontSize: 11,
-            color: Colors.white.withValues(alpha: 0.55),
-            fontWeight: AppFontWeights.medium,
-            letterSpacing: -0.1,
-          ),
+        final chips = <({IconData icon, Color color, String label})>[
+          if (snap.lux != null)
+            (icon: Icons.light_mode_outlined, color: AppColors.light, label: _luxLabel(snap.lux!, l10n)),
+          if (snap.hpa != null)
+            (icon: Icons.compress_outlined, color: AppColors.pressure, label: _hpaLabel(snap.hpa!, l10n)),
+          if (snap.rms != null)
+            (icon: Icons.vibration_outlined, color: AppColors.movement, label: _rmsLabel(snap.rms!, l10n)),
+        ];
+        if (chips.isEmpty) return const SizedBox.shrink();
+        return Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            for (int i = 0; i < chips.length; i++) ...[
+              if (i > 0) ...[
+                const SizedBox(width: 6),
+                Text('·', style: TextStyle(fontSize: 10, color: Colors.white.withValues(alpha: 0.3))),
+                const SizedBox(width: 6),
+              ],
+              Icon(chips[i].icon, size: 11, color: chips[i].color.withValues(alpha: 0.85)),
+              const SizedBox(width: 3),
+              Text(
+                chips[i].label,
+                style: TextStyle(
+                  fontSize: 11,
+                  color: Colors.white.withValues(alpha: 0.55),
+                  fontWeight: AppFontWeights.medium,
+                  letterSpacing: -0.1,
+                ),
+              ),
+            ],
+          ],
         );
       },
     );
