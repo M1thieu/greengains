@@ -671,7 +671,7 @@ abstract class AppLocalizations {
   /// No description provided for @homeSessionZones.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, =0{Scanning your surroundings} =1{+1 zone filled in} other{+{count} zones filled in}}'**
+  /// **'{count, plural, =0{Mapping} =1{+1 zone} other{+{count} zones}}'**
   String homeSessionZones(int count);
 
   /// No description provided for @homeYourMap.

@@ -136,7 +136,7 @@
   "@chipDataPts": {
     "placeholders": { "count": { "type": "int" } }
   },
-  "homeSessionZones": "{count, plural, =0{Scanning your surroundings} =1{+1 zone filled in} other{+{count} zones filled in}}",
+  "homeSessionZones": "{count, plural, =0{Mapping} =1{+1 zone} other{+{count} zones}}",
   "@homeSessionZones": {
     "placeholders": { "count": { "type": "int" } }
   },

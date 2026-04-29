@@ -325,9 +325,9 @@ class AppLocalizationsEn extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '+$count zones filled in',
-      one: '+1 zone filled in',
-      zero: 'Scanning your surroundings',
+      other: '+$count zones',
+      one: '+1 zone',
+      zero: 'Mapping',
     );
     return '$_temp0';
   }

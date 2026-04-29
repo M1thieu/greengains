@@ -1861,31 +1861,6 @@ class _TrackingHintPill extends StatefulWidget {
 }
 
 class _TrackingHintPillState extends State<_TrackingHintPill> {
-  late Timer _timer;
-  Duration _elapsed = Duration.zero;
-
-  @override
-  void initState() {
-    super.initState();
-    _elapsed = DateTime.now().difference(widget.sessionStart);
-    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
-      if (mounted) setState(() => _elapsed = DateTime.now().difference(widget.sessionStart));
-    });
-  }
-
-  @override
-  void dispose() {
-    _timer.cancel();
-    super.dispose();
-  }
-
-  String _fmtElapsed(Duration d) {
-    final h = d.inHours;
-    final m = (d.inMinutes % 60).toString().padLeft(2, '0');
-    final s = (d.inSeconds % 60).toString().padLeft(2, '0');
-    return h > 0 ? '$h:$m:$s' : '$m:$s';
-  }
-
   @override
   Widget build(BuildContext context) {
     final label = context.l10n.homeSessionZones(widget.newZones);
@@ -1920,24 +1895,6 @@ class _TrackingHintPillState extends State<_TrackingHintPill> {
                   fontWeight: AppFontWeights.semibold,
                   color: hasZones ? AppColors.primary : Colors.white60,
                   letterSpacing: -0.05,
-                ),
-              ),
-              Container(
-                margin: const EdgeInsets.only(left: AppTheme.spaceXs),
-                padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceXxs + 1, vertical: 1),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.06),
-                  borderRadius: BorderRadius.circular(AppTheme.radiusMin),
-                ),
-                child: Text(
-                  _fmtElapsed(_elapsed),
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: AppFontWeights.medium,
-                    color: Colors.white.withValues(alpha: 0.45),
-                    fontFeatures: const [ui.FontFeature.tabularFigures()],
-                    letterSpacing: 0.3,
-                  ),
                 ),
               ),
             ],
