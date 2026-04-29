@@ -890,13 +890,13 @@ class AppLocalizationsFr extends AppLocalizations {
       'Chaque ami cartographie des endroits où vous n\'êtes pas encore allé.';
 
   @override
-  String get referralLinkCopied => 'Lien de parrainage copié';
+  String get referralLinkCopied => 'Lien copié';
 
   @override
   String get referralCopyLink => 'Copier le lien';
 
   @override
-  String get referralShareLink => 'Partager le lien d\'invitation';
+  String get referralShareLink => 'Partager';
 
   @override
   String referralConversions(int count) {

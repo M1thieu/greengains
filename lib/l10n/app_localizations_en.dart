@@ -881,13 +881,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'Every friend maps places you haven\'t been yet.';
 
   @override
-  String get referralLinkCopied => 'Referral link copied';
+  String get referralLinkCopied => 'Link copied';
 
   @override
   String get referralCopyLink => 'Copy link';
 
   @override
-  String get referralShareLink => 'Share invite link';
+  String get referralShareLink => 'Share';
 
   @override
   String referralConversions(int count) {

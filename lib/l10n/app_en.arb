@@ -353,9 +353,9 @@
   "settingsDataRetention": "Data kept for 7 days (Free)",
   "referralInviteTitle": "Invite friends",
   "referralInviteDescription": "Every friend maps places you haven't been yet.",
-  "referralLinkCopied": "Referral link copied",
+  "referralLinkCopied": "Link copied",
   "referralCopyLink": "Copy link",
-  "referralShareLink": "Share invite link",
+  "referralShareLink": "Share",
   "referralConversions": "{count, plural, =0{No friends joined yet} =1{1 friend joined} other{{count} friends joined}}",
   "@referralConversions": {
     "placeholders": {

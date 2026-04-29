@@ -353,9 +353,9 @@
   "settingsDataRetention": "Données conservées 7 jours (Gratuit)",
   "referralInviteTitle": "Inviter des amis",
   "referralInviteDescription": "Chaque ami cartographie des endroits où vous n'êtes pas encore allé.",
-  "referralLinkCopied": "Lien de parrainage copié",
+  "referralLinkCopied": "Lien copié",
   "referralCopyLink": "Copier le lien",
-  "referralShareLink": "Partager le lien d'invitation",
+  "referralShareLink": "Partager",
   "referralConversions": "{count, plural, =0{Aucun ami rejoint pour l'instant} =1{1 ami a rejoint} other{{count} amis ont rejoint}}",
   "@referralConversions": {
     "placeholders": {
