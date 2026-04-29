@@ -145,7 +145,7 @@
   "@homeCityPct": {
     "placeholders": { "pct": { "type": "String" } }
   },
-  "profileImpactSection": "YOUR IMPACT",
+  "profileImpactSection": "YOUR MAP",
   "profileAccountSection": "ACCOUNT",
   "homeFirstUseHint": "Tap ▶ — watch your first zone appear on the map",
   "homeFirstTrackingHint": "Scanning light, pressure and motion — first zone after first upload",

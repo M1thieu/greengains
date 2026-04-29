@@ -343,7 +343,7 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get profileImpactSection => 'VOTRE IMPACT';
+  String get profileImpactSection => 'VOTRE CARTE';
 
   @override
   String get profileAccountSection => 'COMPTE';

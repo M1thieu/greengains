@@ -689,7 +689,7 @@ abstract class AppLocalizations {
   /// No description provided for @profileImpactSection.
   ///
   /// In en, this message translates to:
-  /// **'YOUR IMPACT'**
+  /// **'YOUR MAP'**
   String get profileImpactSection;
 
   /// No description provided for @profileAccountSection.

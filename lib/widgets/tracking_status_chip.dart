@@ -138,20 +138,8 @@ class _TrackingStatusChipState extends State<TrackingStatusChip>
                 letterSpacing: 0.1,
               ),
             ),
-            // Active tracking: show live reading count. Paused: show zone count.
-            if (isActive && widget.pendingReadings > 0) ...[
-              const SizedBox(width: AppTheme.spaceXxs + 1),
-              Text('·', style: TextStyle(color: Colors.white.withValues(alpha: 0.3), fontSize: _kChipLabelSize)),
-              const SizedBox(width: AppTheme.spaceXxs + 1),
-              Text(
-                context.l10n.chipDataPts(widget.pendingReadings),
-                style: TextStyle(
-                  color: AppColors.primary.withValues(alpha: 0.85),
-                  fontSize: _kChipTimeSize,
-                  fontWeight: AppFontWeights.medium,
-                ),
-              ),
-            ] else if (widget.isPaused && widget.tileCount > 0) ...[
+            // Paused: show zone count so user knows where they left off.
+            if (widget.isPaused && widget.tileCount > 0) ...[
               const SizedBox(width: AppTheme.spaceXxs + 1),
               Text('·', style: TextStyle(color: Colors.white.withValues(alpha: 0.3), fontSize: _kChipLabelSize)),
               const SizedBox(width: AppTheme.spaceXxs + 1),

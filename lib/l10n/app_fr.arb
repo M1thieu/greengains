@@ -145,7 +145,7 @@
   "@homeCityPct": {
     "placeholders": { "pct": { "type": "String" } }
   },
-  "profileImpactSection": "VOTRE IMPACT",
+  "profileImpactSection": "VOTRE CARTE",
   "profileAccountSection": "COMPTE",
   "homeFirstUseHint": "Appuyez sur ▶ — regardez votre première zone apparaître",
   "homeFirstTrackingHint": "Capteur lumière, pression, mouvement — première zone après le premier envoi",

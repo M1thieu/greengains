@@ -341,7 +341,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get profileImpactSection => 'YOUR IMPACT';
+  String get profileImpactSection => 'YOUR MAP';
 
   @override
   String get profileAccountSection => 'ACCOUNT';
