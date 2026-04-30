@@ -44,39 +44,6 @@ String _hpaLabel(double hpa, AppLocalizations l10n) {
   return l10n.sensorHpaHigh;
 }
 
-/// Top-level BFS function — runs in a compute() isolate.
-/// Takes H3 hex index strings (e.g. "891f9abc0a3ffff"), returns largest cluster.
-int _computeMaxCluster(List<String> hexIndices) {
-  if (hexIndices.isEmpty) return 0;
-  final h3 = const h3f.H3Factory().load();
-  // Parse hex strings → BigInt (H3 internal format)
-  final cellSet = <BigInt>{};
-  for (final s in hexIndices) {
-    try { cellSet.add(BigInt.parse(s, radix: 16)); } catch (_) {}
-  }
-  if (cellSet.isEmpty) return 0;
-  final visited = <BigInt>{};
-  int maxCluster = 0;
-
-  for (final cell in cellSet) {
-    if (visited.contains(cell)) continue;
-    int size = 0;
-    final queue = <BigInt>[cell];
-    visited.add(cell);
-    while (queue.isNotEmpty) {
-      final current = queue.removeLast();
-      size++;
-      for (final neighbor in h3.gridDisk(current, 1)) {
-        if (!visited.contains(neighbor) && cellSet.contains(neighbor)) {
-          visited.add(neighbor);
-          queue.add(neighbor);
-        }
-      }
-    }
-    if (size > maxCluster) maxCluster = size;
-  }
-  return maxCluster;
-}
 // H3 resolution for live cell highlight (res 9 ≈ 174m edge length — city block scale)
 const _kLiveCellResolution = 9;
 
@@ -128,7 +95,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   bool _showSlowLoadHint = false;
   Timer? _slowLoadTimer;
   /// Largest contiguous H3 hex cluster — computed off-thread after tiles load.
-  int _maxCluster = 0;
 
   /// Boundary of the H3 cell the user is currently inside — shown as live amber
   /// highlight on the map while tracking is active.
@@ -491,8 +457,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         });
         // Persist for instant display on next open.
         unawaited(_prefs.setCachedPersonalTiles(jsonEncode(data)));
-        unawaited(_refreshTerritoryLabel(response.tiles));
-        unawaited(_updateMaxCluster(response.tiles));
       }
     } on ApiException catch (e) {
       debugPrint('Tiles: ApiException ${e.statusCode}');
@@ -521,61 +485,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     }
   }
 
-  /// Geocodes current GPS position (or most-sampled tile as fallback) and stores
-  /// the neighborhood name. Refreshes every session — not cached permanently.
-  Future<void> _refreshTerritoryLabel(List<H3Tile> tiles) async {
-    // Prefer current GPS position; fall back to most-sampled tile centroid
-    final currentPos = _userLocationNotifier.value;
-    double? lat, lon;
-    if (currentPos != null) {
-      lat = currentPos.latitude;
-      lon = currentPos.longitude;
-    } else {
-      final best = tiles
-          .where((t) => !t.isGlobal && t.centroid != null)
-          .fold<H3Tile?>(null, (prev, t) =>
-              prev == null || t.sampleCount > prev.sampleCount ? t : prev);
-      if (best == null) return;
-      lat = best.centroid!.latitude;
-      lon = best.centroid!.longitude;
-    }
-    try {
-      final res = await nominatimClient.get<Map<String, dynamic>>(
-        '/reverse',
-        queryParameters: {
-          'format': 'json',
-          'lat': lat,
-          'lon': lon,
-          'zoom': 14,
-          'addressdetails': 1,
-        },
-      );
-      final address = res.data?['address'] as Map<String, dynamic>?;
-      final name = (address?['suburb'] as String?)?.isNotEmpty == true
-          ? address!['suburb'] as String
-          : (address?['quarter'] as String?)?.isNotEmpty == true
-              ? address!['quarter'] as String
-              : (address?['neighbourhood'] as String?)?.isNotEmpty == true
-                  ? address!['neighbourhood'] as String
-                  : (address?['road'] as String?)?.isNotEmpty == true
-                      ? address!['road'] as String
-                      : null;
-      if (name != null) await _prefs.setTerritoryLabel(name);
-    } catch (_) {}
-  }
-
-  /// BFS cluster computation — off main thread, updates state when done.
-  Future<void> _updateMaxCluster(List<H3Tile> tiles) async {
-    final indices = tiles
-        .where((t) => !t.isGlobal && t.h3Index.isNotEmpty)
-        .map((t) => t.h3Index)
-        .toList();
-    if (indices.isEmpty) return;
-    final cluster = await compute(_computeMaxCluster, indices);
-    if (mounted && cluster != _maxCluster) {
-      setState(() => _maxCluster = cluster);
-    }
-  }
 
   /// Load community coverage tiles (all users, cached 5 min on server).
   /// Loads silently in background — never blocks the loading spinner.
