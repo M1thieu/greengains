@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'dart:convert';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
@@ -24,7 +24,6 @@ import '../widgets/coverage_map_widget.dart';
 import '../widgets/tracking_status_chip.dart';
 import '../widgets/tracking_fab.dart';
 import '../widgets/sensor_section.dart';
-import '../models/sensor_models.dart';
 import '../data/repositories/contribution_repository.dart';
 
 // My Location button: 48×48 standard touch target.
@@ -782,7 +781,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 final isActive  = isRunning && !isPaused;
 
                 if (isActive && _sessionStartTime != null) {
-                  // Top-center under status chip — zone delta + elapsed + live conditions
+                  // Top-center under status chip — zone delta + live conditions
                   return Positioned(
                     top: topPadding + AppTheme.spaceMd + 36,
                     left: 0, right: 0,
@@ -804,7 +803,18 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                   );
                 }
 
-                if (isActive || isPaused) return const SizedBox.shrink();
+                if (isRunning && isPaused) {
+                  // Paused state — show a quiet pill so user knows state
+                  return Positioned(
+                    top: topPadding + AppTheme.spaceMd + 36,
+                    left: 0, right: 0,
+                    child: Center(
+                      child: _PausedPill(l10n: context.l10n),
+                    ),
+                  );
+                }
+
+                if (isActive) return const SizedBox.shrink();
 
                 // Idle only — top-center below chip (mirrors design top: 74)
                 return Positioned(
@@ -1572,13 +1582,25 @@ class _FirstStartSheetState extends State<_FirstStartSheet> {
 
 /// Milestone celebration sheet — shown when user hits 5/10/25/50/100/250/500 zones.
 /// Validates their contribution with a trophy moment, then auto-dismisses on CTA.
-class _MilestoneSheet extends StatelessWidget {
+class _MilestoneSheet extends StatefulWidget {
   const _MilestoneSheet({required this.zoneCount});
   final int zoneCount;
+  @override
+  State<_MilestoneSheet> createState() => _MilestoneSheetState();
+}
 
+class _MilestoneSheetState extends State<_MilestoneSheet> {
   int? get _next {
-    for (final m in _kMilestones) { if (m > zoneCount) return m; }
+    for (final m in _kMilestones) { if (m > widget.zoneCount) return m; }
     return null;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    Future.delayed(const Duration(seconds: 5), () {
+      if (mounted) Navigator.of(context).pop();
+    });
   }
 
   @override
@@ -1588,77 +1610,72 @@ class _MilestoneSheet extends StatelessWidget {
     final theme = Theme.of(context);
     final next = _next;
 
-    return Container(
-      margin: const EdgeInsets.symmetric(
-        horizontal: AppTheme.spaceMd,
-        vertical: AppTheme.spaceSm,
-      ),
-      decoration: BoxDecoration(
-        color: AppColors.surface(isDark),
-        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
-        border: Border.all(color: AppColors.primary.withValues(alpha: 0.35)),
-      ),
-      child: SafeArea(
-        top: false,
-        child: Padding(
-          padding: const EdgeInsets.all(AppTheme.spaceLg),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Center(
-                child: Container(
-                  width: 32,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: AppColors.textSecondary(isDark).withValues(alpha: 0.3),
-                    borderRadius: BorderRadius.circular(2),
+    return GestureDetector(
+      onTap: () => Navigator.of(context).pop(),
+      child: Container(
+        margin: const EdgeInsets.symmetric(
+          horizontal: AppTheme.spaceMd,
+          vertical: AppTheme.spaceSm,
+        ),
+        decoration: BoxDecoration(
+          color: AppColors.surface(isDark),
+          borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+          border: Border.all(color: AppColors.primary.withValues(alpha: 0.35)),
+        ),
+        child: SafeArea(
+          top: false,
+          child: Padding(
+            padding: const EdgeInsets.all(AppTheme.spaceLg),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Center(
+                  child: Container(
+                    width: 32,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: AppColors.textSecondary(isDark).withValues(alpha: 0.3),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(height: AppTheme.spaceLg),
-              Container(
-                width: 56,
-                height: 56,
-                decoration: BoxDecoration(
-                  color: AppColors.primaryAlpha(0.15),
-                  shape: BoxShape.circle,
+                const SizedBox(height: AppTheme.spaceLg),
+                Container(
+                  width: 56,
+                  height: 56,
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryAlpha(0.15),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.map_outlined, color: AppColors.primary, size: AppIconSizes.lg),
                 ),
-                child: const Icon(Icons.map_outlined, color: AppColors.primary, size: AppIconSizes.lg),
-              ),
-              const SizedBox(height: AppTheme.spaceMd),
-              Text(
-                l10n.milestoneReachedTitle(zoneCount),
-                style: theme.textTheme.titleLarge?.copyWith(
-                  fontWeight: AppFontWeights.bold,
-                  color: AppColors.primary,
-                  letterSpacing: -0.3,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: AppTheme.spaceSm),
-              Text(
-                l10n.milestoneReachedBody,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: AppColors.textSecondary(isDark),
-                  height: 1.5,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              if (next != null) ...[
                 const SizedBox(height: AppTheme.spaceMd),
-                Divider(color: AppColors.divider(isDark), height: 1),
-                const SizedBox(height: AppTheme.spaceMd),
-                _NextMilestoneBar(current: zoneCount, target: next, isDark: isDark),
+                Text(
+                  l10n.milestoneReachedTitle(widget.zoneCount),
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: AppFontWeights.bold,
+                    color: AppColors.primary,
+                    letterSpacing: -0.3,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: AppTheme.spaceSm),
+                Text(
+                  l10n.milestoneReachedBody,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: AppColors.textSecondary(isDark),
+                    height: 1.5,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                if (next != null) ...[
+                  const SizedBox(height: AppTheme.spaceMd),
+                  Divider(color: AppColors.divider(isDark), height: 1),
+                  const SizedBox(height: AppTheme.spaceMd),
+                  _NextMilestoneBar(current: widget.zoneCount, target: next, isDark: isDark),
+                ],
               ],
-              const SizedBox(height: AppTheme.spaceXl),
-              SizedBox(
-                width: double.infinity,
-                child: FilledButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: Text(l10n.milestoneReachedCta),
-                ),
-              ),
-            ],
+            ),
           ),
         ),
       ),
@@ -1668,8 +1685,20 @@ class _MilestoneSheet extends StatelessWidget {
 
 /// First-upload celebration sheet — shown exactly once when the user's first
 /// zone appears on the map.
-class _FirstUploadSheet extends StatelessWidget {
+class _FirstUploadSheet extends StatefulWidget {
   const _FirstUploadSheet();
+  @override
+  State<_FirstUploadSheet> createState() => _FirstUploadSheetState();
+}
+
+class _FirstUploadSheetState extends State<_FirstUploadSheet> {
+  @override
+  void initState() {
+    super.initState();
+    Future.delayed(const Duration(seconds: 6), () {
+      if (mounted) Navigator.of(context).pop();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1685,109 +1714,108 @@ class _FirstUploadSheet extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppTheme.radiusLg),
         border: Border.all(color: AppColors.primary.withValues(alpha: 0.30)),
       ),
-      child: SafeArea(
-        top: false,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(
-              AppTheme.spaceLg, AppTheme.spaceMd, AppTheme.spaceLg, AppTheme.spaceLg),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Center(
-                child: Container(
-                  width: 32, height: 4,
+      child: GestureDetector(
+        onTap: () => Navigator.of(context).pop(),
+        child: SafeArea(
+          top: false,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(
+                AppTheme.spaceLg, AppTheme.spaceMd, AppTheme.spaceLg, AppTheme.spaceLg),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Center(
+                  child: Container(
+                    width: 32, height: 4,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: AppTheme.spaceLg),
+                const _CelebrationHex(),
+                const SizedBox(height: AppTheme.spaceMd),
+                Text(
+                  context.l10n.firstUploadBadge,
+                  style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: AppFontWeights.semibold,
+                    color: AppColors.primary,
+                    letterSpacing: 1.4,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: AppTheme.spaceXs),
+                Text(
+                  context.l10n.firstUploadHeadline,
+                  style: const TextStyle(
+                    fontSize: 24,
+                    fontWeight: AppFontWeights.semibold,
+                    color: Color(0xF5FFFFFF),
+                    letterSpacing: -0.6,
+                    height: 1.2,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: AppTheme.spaceSm),
+                Text(
+                  context.l10n.firstUploadSubtext,
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: Colors.white.withValues(alpha: 0.55),
+                    height: 1.5,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: AppTheme.spaceMd),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: AppTheme.spaceMd, vertical: AppTheme.spaceSm),
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(2),
+                    color: Colors.white.withValues(alpha: 0.03),
+                    border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+                    borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(context.l10n.firstUploadSensorsLabel, style: TextStyle(
+                            fontSize: 10, fontWeight: AppFontWeights.semibold,
+                            color: Colors.white.withValues(alpha: 0.4), letterSpacing: 0.5)),
+                          const SizedBox(height: 2),
+                          Text(context.l10n.firstUploadSensorsValue, style: const TextStyle(
+                            fontSize: 12, color: Color(0xD9FFFFFF))),
+                        ],
+                      ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text(context.l10n.firstUploadPrivacyLabel, style: TextStyle(
+                            fontSize: 10, fontWeight: AppFontWeights.semibold,
+                            color: Colors.white.withValues(alpha: 0.4), letterSpacing: 0.5)),
+                          const SizedBox(height: 2),
+                          Text(context.l10n.firstUploadPrivacyValue, style: const TextStyle(
+                            fontSize: 12, color: AppColors.primary, fontWeight: AppFontWeights.semibold)),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
-              ),
-              const SizedBox(height: AppTheme.spaceLg),
-              const _CelebrationHex(),
-              const SizedBox(height: AppTheme.spaceMd),
-              Text(
-                context.l10n.firstUploadBadge,
-                style: const TextStyle(
-                  fontSize: 11,
-                  fontWeight: AppFontWeights.semibold,
-                  color: AppColors.primary,
-                  letterSpacing: 1.4,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: AppTheme.spaceXs),
-              Text(
-                context.l10n.firstUploadHeadline,
-                style: const TextStyle(
-                  fontSize: 24,
-                  fontWeight: AppFontWeights.semibold,
-                  color: Color(0xF5FFFFFF),
-                  letterSpacing: -0.6,
-                  height: 1.2,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: AppTheme.spaceSm),
-              Text(
-                context.l10n.firstUploadSubtext,
-                style: TextStyle(
-                  fontSize: 13,
-                  color: Colors.white.withValues(alpha: 0.55),
-                  height: 1.5,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: AppTheme.spaceMd),
-              // Proof row
-              Container(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: AppTheme.spaceMd, vertical: AppTheme.spaceSm),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.03),
-                  border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
-                  borderRadius: BorderRadius.circular(AppTheme.radiusSm),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(context.l10n.firstUploadSensorsLabel, style: TextStyle(
-                          fontSize: 10, fontWeight: AppFontWeights.semibold,
-                          color: Colors.white.withValues(alpha: 0.4), letterSpacing: 0.5)),
-                        const SizedBox(height: 2),
-                        Text(context.l10n.firstUploadSensorsValue, style: const TextStyle(
-                          fontSize: 12, color: Color(0xD9FFFFFF))),
-                      ],
-                    ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Text(context.l10n.firstUploadPrivacyLabel, style: TextStyle(
-                          fontSize: 10, fontWeight: AppFontWeights.semibold,
-                          color: Colors.white.withValues(alpha: 0.4), letterSpacing: 0.5)),
-                        const SizedBox(height: 2),
-                        Text(context.l10n.firstUploadPrivacyValue, style: const TextStyle(
-                          fontSize: 12, color: AppColors.primary, fontWeight: AppFontWeights.semibold)),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: AppTheme.spaceMd),
-              Row(
-                children: [
-                  Expanded(
-                    child: FilledButton(
-                      onPressed: () => Navigator.of(context).pop(),
-                      style: FilledButton.styleFrom(minimumSize: const Size(0, 50)),
-                      child: Text(context.l10n.firstUploadKeepMappingCta),
-                    ),
+                const SizedBox(height: AppTheme.spaceMd),
+                Text(
+                  context.l10n.firstUploadKeepMappingCta,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.white.withValues(alpha: 0.35),
                   ),
-                ],
-              ),
-            ],
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -2039,238 +2067,48 @@ class _TrackingHintPillState extends State<_TrackingHintPill> {
     );
   }
 }
-
-// ─── Live sensor ticker — 3-column bar chart panel ──────────────────────────
-class _LiveDataTicker extends StatefulWidget {
-  const _LiveDataTicker();
-  @override
-  State<_LiveDataTicker> createState() => _LiveDataTickerState();
-}
-
-class _LiveDataTickerState extends State<_LiveDataTicker> {
-  final _svc = ForegroundLocationService.instance;
-  final List<StreamSubscription<dynamic>> _subs = [];
-
-  static const _kMaxBars = 12;
-
-  final _lightRaw    = <double>[];
-  final _motionRaw   = <double>[];
-  final _pressureRaw = <double>[];
-
-  LightData?         _light;
-  PressureData?      _pressure;
-  AccelerometerData? _accel;
-
-  void _push(List<double> buf, double val) {
-    buf.add(val);
-    if (buf.length > _kMaxBars) buf.removeAt(0);
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _light    = _svc.lastLight;
-    _pressure = _svc.lastPressure;
-    _accel    = _svc.lastAccelerometer;
-    if (_light    != null) _push(_lightRaw,    _light!.lux);
-    if (_pressure != null) _push(_pressureRaw, _pressure!.hPa);
-    if (_accel    != null) _push(_motionRaw,   _accel!.magnitude);
-
-    _subs.add(_svc.lightStream.listen((d) {
-      if (!mounted) return;
-      setState(() { _light = d; _push(_lightRaw, d.lux); });
-    }));
-    _subs.add(_svc.pressureStream.listen((d) {
-      if (!mounted) return;
-      setState(() { _pressure = d; _push(_pressureRaw, d.hPa); });
-    }));
-    _subs.add(_svc.accelerometerStream.listen((d) {
-      if (!mounted) return;
-      setState(() { _accel = d; _push(_motionRaw, d.magnitude); });
-    }));
-  }
-
-  @override
-  void dispose() {
-    for (final s in _subs) { s.cancel(); }
-    super.dispose();
-  }
-
-  String _luxLabel(double lux) {
-    if (lux >= 10000) return '${(lux / 1000).toStringAsFixed(0)}k lx';
-    if (lux >= 1000)  return '${(lux / 1000).toStringAsFixed(1)}k lx';
-    return '${lux.toStringAsFixed(0)} lx';
-  }
+/// Quiet paused-state indicator — shown top-center when tracking is paused.
+class _PausedPill extends StatelessWidget {
+  const _PausedPill({required this.l10n});
+  final AppLocalizations l10n;
 
   @override
   Widget build(BuildContext context) {
-    if (_light == null && _pressure == null && _accel == null) {
-      return const SizedBox.shrink();
-    }
-    return Container(
-      padding: const EdgeInsets.fromLTRB(
-        AppTheme.spaceMd, AppTheme.spaceSm, AppTheme.spaceMd, AppTheme.spaceSm,
-      ),
-      decoration: BoxDecoration(
-        color: const Color(0xCC111927),
-        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            context.l10n.liveSensorsHeader,
-            style: TextStyle(
-              fontSize: 10,
-              fontWeight: AppFontWeights.semibold,
-              color: Colors.white.withValues(alpha: 0.45),
-              letterSpacing: 0.6,
-            ),
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(AppTheme.radiusPill),
+      child: BackdropFilter(
+        filter: ui.ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+        child: Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppTheme.spaceMd,
+            vertical: AppTheme.spaceXs - 1,
           ),
-          const SizedBox(height: AppTheme.spaceXs + 2),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          decoration: BoxDecoration(
+            color: AppColors.warning.withValues(alpha: 0.12),
+            borderRadius: BorderRadius.circular(AppTheme.radiusPill),
+            border: Border.all(color: AppColors.warning.withValues(alpha: 0.25)),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Expanded(
-                child: _SensorBarColumn(
-                  label: context.l10n.sensorLight,
-                  value: _light != null ? _luxLabel(_light!.lux) : '--',
-                  color: AppColors.light,
-                  rawHistory: _lightRaw,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _SensorBarColumn(
-                  label: context.l10n.liveSensorMotionLabel,
-                  value: _accel != null
-                      ? '${_accel!.magnitude.toStringAsFixed(2)} m/s\u00B2'
-                      : '--',
-                  color: AppColors.movement,
-                  rawHistory: _motionRaw,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _SensorBarColumn(
-                  label: context.l10n.liveSensorPressureLabel,
-                  value: _pressure != null
-                      ? '${_pressure!.hPa.toStringAsFixed(0)} hPa'
-                      : '--',
-                  color: AppColors.pressure,
-                  rawHistory: _pressureRaw,
+              Icon(Icons.pause_rounded, size: 11, color: AppColors.warning.withValues(alpha: 0.8)),
+              const SizedBox(width: 5),
+              Text(
+                l10n.trackingPaused,
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: AppFontWeights.semibold,
+                  color: AppColors.warning.withValues(alpha: 0.9),
+                  letterSpacing: -0.05,
                 ),
               ),
             ],
           ),
-        ],
+        ),
       ),
     );
   }
 }
-
-class _SensorBarColumn extends StatelessWidget {
-  const _SensorBarColumn({
-    required this.label,
-    required this.value,
-    required this.color,
-    required this.rawHistory,
-  });
-
-  final String       label;
-  final String       value;
-  final Color        color;
-  final List<double> rawHistory;
-
-  static const _kBarCount = 12;
-  static const _kBarGap   = 1.5;
-  static const _kBarMaxH  = 18.0;
-  static const _kBarMinH  = 2.0;
-
-  @override
-  Widget build(BuildContext context) {
-    final minVal = rawHistory.isEmpty ? 0.0 : rawHistory.reduce((a, b) => a < b ? a : b);
-    final maxVal = rawHistory.isEmpty ? 1.0 : rawHistory.reduce((a, b) => a > b ? a : b);
-    final range  = (maxVal - minVal).clamp(0.001, double.infinity);
-
-    final padded = List<double>.filled(_kBarCount, minVal)
-      ..setRange(
-        _kBarCount - rawHistory.length.clamp(0, _kBarCount),
-        _kBarCount,
-        rawHistory.length > _kBarCount
-            ? rawHistory.sublist(rawHistory.length - _kBarCount)
-            : rawHistory,
-      );
-
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Container(
-              width: 6, height: 6,
-              decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-            ),
-            const SizedBox(width: 5),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 10,
-                fontWeight: AppFontWeights.medium,
-                color: Colors.white.withValues(alpha: 0.65),
-                letterSpacing: 0.2,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 5),
-        LayoutBuilder(builder: (_, constraints) {
-          final barW = (constraints.maxWidth - (_kBarCount - 1) * _kBarGap) / _kBarCount;
-          return SizedBox(
-            height: _kBarMaxH,
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                for (int i = 0; i < _kBarCount; i++) ...[
-                  if (i > 0) SizedBox(width: _kBarGap),
-                  Container(
-                    width: barW,
-                    height: _kBarMinH + ((padded[i] - minVal) / range) * (_kBarMaxH - _kBarMinH),
-                    decoration: BoxDecoration(
-                      color: color.withValues(
-                        alpha: 0.35 + (i / (_kBarCount - 1)) * 0.55,
-                      ),
-                      borderRadius: BorderRadius.circular(0.5),
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          );
-        }),
-        const SizedBox(height: AppTheme.spaceXxs),
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: 11,
-            fontWeight: AppFontWeights.semibold,
-            color: Colors.white.withValues(alpha: 0.92),
-            letterSpacing: -0.1,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-/// One sensor column: spark bars + label + current value.
-
-// ─── Next milestone progress bar ─────────────────────────────────────────────
-
-/// Thin progress bar + label showing how close the user is to their next zone milestone.
-/// Used in session summary and milestone sheets — the forward pull that brings them back.
 class _NextMilestoneBar extends StatelessWidget {
   const _NextMilestoneBar({
     required this.current,
