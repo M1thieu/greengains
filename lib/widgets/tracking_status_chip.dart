@@ -26,7 +26,6 @@ class TrackingStatusChip extends StatefulWidget {
     this.lastUpload,
     this.tileCount = 0,
     this.isUploading = false,
-    this.activeSensorCount = 0,
     this.pendingReadings = 0,
     this.onTap,
   });
@@ -36,7 +35,6 @@ class TrackingStatusChip extends StatefulWidget {
   final DateTime? lastUpload;
   final int tileCount;
   final bool isUploading;
-  final int activeSensorCount;
   /// Pending readings in buffer — shown inline when actively tracking.
   final int pendingReadings;
   final VoidCallback? onTap;

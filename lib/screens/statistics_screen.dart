@@ -35,7 +35,7 @@ const _kLineHeightTight       = 1.0;   // tight line-height for numeric displays
 
 // Zone milestones — territory achievements visible on the map.
 // Achievable cadence: 5 → 10 → 25 → 50 → 100 → 250 → 500 areas.
-const _kMilestones = [5, 10, 25, 50, 100, 250, 500];
+const _kMilestones = [5, 10, 25, 50, 100, 250, 500, 1000];
 
 
 /// Statistics screen — local stats (fast/offline) + server 7-day chart.
@@ -174,6 +174,11 @@ class _StatisticsScreenState extends State<StatisticsScreen>
           _coverageCells = profile.coverageCells;
           _daysActive = profile.daysActive;
           if (global.activeMappers > 0) _activeMappers = global.activeMappers;
+          // Auto-highlight best day on first load
+          if (_selectedBarIndex == null && profile.weekly.isNotEmpty) {
+            final maxV = profile.weekly.fold(0, max);
+            if (maxV > 0) _selectedBarIndex = profile.weekly.lastIndexOf(maxV);
+          }
         });
         AppEventBus.instance.emit(ProfileUpdatedEvent(
           totalUploads: profile.totalUploads,
@@ -228,7 +233,11 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                       _withEntrance(_buildHeroCard(theme, isDark, l10n), 0),
                       const SizedBox(height: AppTheme.spaceSm),
                       if ((_stats?.currentStreak ?? 0) >= 3) ...[
-                        _withEntrance(_StreakBanner(streak: _stats!.currentStreak, isDark: isDark), 1),
+                        _withEntrance(_StreakBanner(
+                          streak: _stats!.currentStreak,
+                          uploadsToday: _stats!.uploadsToday,
+                          isDark: isDark,
+                        ), 1),
                         const SizedBox(height: AppTheme.spaceSm),
                       ],
                       _withEntrance(_buildSupportingTrio(theme, isDark), 2),
@@ -362,19 +371,23 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                         HapticFeedback.selectionClick();
                         widget.onGoToHome!();
                       },
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            l10n.statsViewOnMap,
-                            style: theme.textTheme.labelSmall?.copyWith(
-                              color: AppColors.primary,
-                              fontWeight: AppFontWeights.semibold,
+                      behavior: HitTestBehavior.opaque,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 2),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              l10n.statsViewOnMap,
+                              style: theme.textTheme.labelSmall?.copyWith(
+                                color: AppColors.primary,
+                                fontWeight: AppFontWeights.semibold,
+                              ),
                             ),
-                          ),
-                          const SizedBox(width: 2),
-                          Icon(Icons.arrow_forward, size: 11, color: AppColors.primary),
-                        ],
+                            const SizedBox(width: 2),
+                            Icon(Icons.arrow_forward, size: 11, color: AppColors.primary),
+                          ],
+                        ),
                       ),
                     ),
                 ],
@@ -809,7 +822,11 @@ class _StatisticsScreenState extends State<StatisticsScreen>
           const Spacer(),
           GestureDetector(
             onTap: () => setState(() => _selectedBarIndex = null),
-            child: Icon(Icons.close, size: 14, color: AppColors.textTertiary(isDark)),
+            behavior: HitTestBehavior.opaque,
+            child: Padding(
+              padding: const EdgeInsets.all(10),
+              child: Icon(Icons.close, size: 14, color: AppColors.textTertiary(isDark)),
+            ),
           ),
         ],
       ),
@@ -942,23 +959,28 @@ class _StatisticsScreenState extends State<StatisticsScreen>
 /// Intentionally calm — no guilt messaging, just acknowledgement.
 /// The animated counter rolls in from 0 on first render for a subtle delight moment.
 class _StreakBanner extends StatelessWidget {
-  const _StreakBanner({required this.streak, required this.isDark});
+  const _StreakBanner({required this.streak, required this.uploadsToday, required this.isDark});
   final int streak;
+  final int uploadsToday;
   final bool isDark;
 
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    final atRisk = uploadsToday == 0;
+    final accent = atRisk ? AppColors.warning : AppColors.primary;
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: AppTheme.spaceMd,
         vertical: AppTheme.spaceSm + 2,
       ),
-      decoration: AppTheme.kpiCard(isDark: isDark, accentColor: AppColors.warning),
+      decoration: AppTheme.kpiCard(isDark: isDark, accentColor: accent),
       child: Row(
         children: [
-          Icon(Icons.local_fire_department,
-              color: AppColors.warning, size: 20),
+          Icon(
+            atRisk ? Icons.local_fire_department : Icons.local_fire_department_rounded,
+            color: accent, size: 20,
+          ),
           const SizedBox(width: AppTheme.spaceXs),
           TweenAnimationBuilder<int>(
             tween: IntTween(begin: 0, end: streak),
@@ -966,10 +988,10 @@ class _StreakBanner extends StatelessWidget {
             curve: Curves.easeOut,
             builder: (_, value, __) => Text(
               '$value',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 22,
                 fontWeight: AppFontWeights.bold,
-                color: AppColors.warning,
+                color: accent,
                 letterSpacing: -0.5,
                 height: 1.0,
               ),
@@ -987,10 +1009,11 @@ class _StreakBanner extends StatelessWidget {
           const Spacer(),
           Flexible(
             child: Text(
-              l10n.statsStreakDays(streak),
+              atRisk ? l10n.statsStreakAtRisk : l10n.statsStreakDays(streak),
               style: TextStyle(
                 fontSize: 12,
-                color: AppColors.textTertiary(isDark),
+                color: atRisk ? AppColors.warning : AppColors.textTertiary(isDark),
+                fontWeight: atRisk ? AppFontWeights.semibold : AppFontWeights.regular,
               ),
               overflow: TextOverflow.ellipsis,
               textAlign: TextAlign.end,

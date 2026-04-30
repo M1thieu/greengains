@@ -74,6 +74,12 @@
       "date": {"type": "String"}
     }
   },
+  "profileLastMapped": "Last mapped {ago}",
+  "@profileLastMapped": {
+    "placeholders": {
+      "ago": {"type": "String"}
+    }
+  },
   "profileDeleteAccount": "Delete Account",
   "profileDeleteConfirm": "Are you sure? This cannot be undone.",
 
@@ -132,6 +138,7 @@
   "chipContributing": "Mapping",
   "chipPaused": "Paused",
   "chipTapStart": "Tap ▶ to start mapping",
+  "chipTapStartFirst": "Start mapping your neighborhood",
   "chipDataPts": "{count, plural, =1{1 pt} other{{count} pts}}",
   "@chipDataPts": {
     "placeholders": { "count": { "type": "int" } }
@@ -353,6 +360,8 @@
   "settingsDataRetention": "Data kept for 7 days (Free)",
   "referralInviteTitle": "Invite friends",
   "referralInviteDescription": "Every friend maps places you haven't been yet.",
+  "layerMine": "Mine",
+  "layerAll": "All",
   "referralLinkCopied": "Link copied",
   "referralCopyLink": "Copy link",
   "referralShareLink": "Share",
@@ -496,6 +505,7 @@
     "placeholders": { "date": { "type": "String" } }
   },
   "statsStreakLabel": "Streak",
+  "statsStreakAtRisk": "Map today to keep it",
   "statsStreakDays": "{count, plural, =1{1 day in a row} other{{count} days in a row}}",
   "@statsStreakDays": {
     "placeholders": { "count": { "type": "int" } }
@@ -520,6 +530,14 @@
   "@sessionSummaryShareText": {
     "placeholders": {
       "gained": { "type": "int" },
+      "total": { "type": "int" },
+      "km2": { "type": "String" }
+    }
+  },
+  "sessionSummaryShareTextEmpty": "Mapped for {duration} — {total} zones on my map · {km2} km²",
+  "@sessionSummaryShareTextEmpty": {
+    "placeholders": {
+      "duration": { "type": "String" },
       "total": { "type": "int" },
       "km2": { "type": "String" }
     }
@@ -585,8 +603,16 @@
   "sessionSummaryBadge": "WALK DONE",
   "sessionSummaryZonesGainedLabel": "NEW ZONES",
   "sessionSummarySubline": "added to your map",
+  "sessionSummaryNoZonesLabel": "TIME MAPPED",
+  "sessionSummaryNoZonesSubline": "Keep going — zones fill in as you move.",
   "sessionSummaryWatermark": "Mapped with GreenGains",
   "sessionSummaryShareCta": "Share",
+  "sessionMilestoneHit": "{milestone} zones — milestone reached.",
+  "@sessionMilestoneHit": {
+    "placeholders": {
+      "milestone": { "type": "int" }
+    }
+  },
   "sessionSummaryNextHook": "Come back tomorrow to keep your streak.",
   "sessionSummaryNextHookEmpty": "Walk more next time — zones fill in as you move.",
   "sessionStatArea": "AREA",

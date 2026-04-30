@@ -163,6 +163,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String profileLastMapped(String ago) {
+    return 'Last mapped $ago';
+  }
+
+  @override
   String get profileDeleteAccount => 'Delete Account';
 
   @override
@@ -308,6 +313,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get chipTapStart => 'Tap ▶ to start mapping';
+
+  @override
+  String get chipTapStartFirst => 'Start mapping your neighborhood';
 
   @override
   String chipDataPts(int count) {
@@ -881,6 +889,12 @@ class AppLocalizationsEn extends AppLocalizations {
       'Every friend maps places you haven\'t been yet.';
 
   @override
+  String get layerMine => 'Mine';
+
+  @override
+  String get layerAll => 'All';
+
+  @override
   String get referralLinkCopied => 'Link copied';
 
   @override
@@ -1171,6 +1185,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get statsStreakLabel => 'Streak';
 
   @override
+  String get statsStreakAtRisk => 'Map today to keep it';
+
+  @override
   String statsStreakDays(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -1227,6 +1244,11 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String sessionSummaryShareText(int gained, int total, String km2) {
     return 'I mapped +$gained zones today — $total zones total · $km2 km²';
+  }
+
+  @override
+  String sessionSummaryShareTextEmpty(String duration, int total, String km2) {
+    return 'Mapped for $duration — $total zones on my map · $km2 km²';
   }
 
   @override
@@ -1349,10 +1371,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sessionSummarySubline => 'added to your map';
 
   @override
+  String get sessionSummaryNoZonesLabel => 'TIME MAPPED';
+
+  @override
+  String get sessionSummaryNoZonesSubline =>
+      'Keep going — zones fill in as you move.';
+
+  @override
   String get sessionSummaryWatermark => 'Mapped with GreenGains';
 
   @override
   String get sessionSummaryShareCta => 'Share';
+
+  @override
+  String sessionMilestoneHit(int milestone) {
+    return '$milestone zones — milestone reached.';
+  }
 
   @override
   String get sessionSummaryNextHook =>

@@ -74,6 +74,12 @@
       "date": {"type": "String"}
     }
   },
+  "profileLastMapped": "Dernière cartographie {ago}",
+  "@profileLastMapped": {
+    "placeholders": {
+      "ago": {"type": "String"}
+    }
+  },
   "profileDeleteAccount": "Supprimer le compte",
   "profileDeleteConfirm": "Êtes-vous sûr ? Cette action est irréversible.",
 
@@ -132,6 +138,7 @@
   "chipContributing": "Cartographie",
   "chipPaused": "En pause",
   "chipTapStart": "Appuie sur ▶ pour commencer",
+  "chipTapStartFirst": "Commence à cartographier ton quartier",
   "chipDataPts": "{count, plural, =1{1 pt} other{{count} pts}}",
   "@chipDataPts": {
     "placeholders": { "count": { "type": "int" } }
@@ -353,6 +360,8 @@
   "settingsDataRetention": "Données conservées 7 jours (Gratuit)",
   "referralInviteTitle": "Inviter des amis",
   "referralInviteDescription": "Chaque ami cartographie des endroits où vous n'êtes pas encore allé.",
+  "layerMine": "Les miennes",
+  "layerAll": "Tout",
   "referralLinkCopied": "Lien copié",
   "referralCopyLink": "Copier le lien",
   "referralShareLink": "Partager",
@@ -496,6 +505,7 @@
     "placeholders": { "date": { "type": "String" } }
   },
   "statsStreakLabel": "Série",
+  "statsStreakAtRisk": "Cartographie aujourd'hui pour la garder",
   "statsStreakDays": "{count, plural, =1{1 jour de suite} other{{count} jours de suite}}",
   "@statsStreakDays": {
     "placeholders": { "count": { "type": "int" } }
@@ -520,6 +530,14 @@
   "@sessionSummaryShareText": {
     "placeholders": {
       "gained": { "type": "int" },
+      "total": { "type": "int" },
+      "km2": { "type": "String" }
+    }
+  },
+  "sessionSummaryShareTextEmpty": "Cartographié pendant {duration} — {total} zones sur ma carte · {km2} km²",
+  "@sessionSummaryShareTextEmpty": {
+    "placeholders": {
+      "duration": { "type": "String" },
       "total": { "type": "int" },
       "km2": { "type": "String" }
     }
@@ -585,8 +603,16 @@
   "sessionSummaryBadge": "TRAJET TERMINÉ",
   "sessionSummaryZonesGainedLabel": "NOUVELLES ZONES",
   "sessionSummarySubline": "ajoutées à votre carte",
+  "sessionSummaryNoZonesLabel": "TEMPS CARTOGRAPHIÉ",
+  "sessionSummaryNoZonesSubline": "Continuez — les zones se remplissent en marchant.",
   "sessionSummaryWatermark": "Cartographié avec GreenGains",
   "sessionSummaryShareCta": "Partager",
+  "sessionMilestoneHit": "{milestone} zones — palier atteint.",
+  "@sessionMilestoneHit": {
+    "placeholders": {
+      "milestone": { "type": "int" }
+    }
+  },
   "sessionSummaryNextHook": "Revenez demain pour garder votre série.",
   "sessionSummaryNextHookEmpty": "Bougez plus la prochaine fois — les zones se remplissent en marchant.",
   "sessionStatArea": "SURFACE",

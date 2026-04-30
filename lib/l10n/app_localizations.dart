@@ -380,6 +380,12 @@ abstract class AppLocalizations {
   /// **'Member since {date}'**
   String profileMemberSince(String date);
 
+  /// No description provided for @profileLastMapped.
+  ///
+  /// In en, this message translates to:
+  /// **'Last mapped {ago}'**
+  String profileLastMapped(String ago);
+
   /// No description provided for @profileDeleteAccount.
   ///
   /// In en, this message translates to:
@@ -661,6 +667,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Tap ▶ to start mapping'**
   String get chipTapStart;
+
+  /// No description provided for @chipTapStartFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Start mapping your neighborhood'**
+  String get chipTapStartFirst;
 
   /// No description provided for @chipDataPts.
   ///
@@ -1592,6 +1604,18 @@ abstract class AppLocalizations {
   /// **'Every friend maps places you haven\'t been yet.'**
   String get referralInviteDescription;
 
+  /// No description provided for @layerMine.
+  ///
+  /// In en, this message translates to:
+  /// **'Mine'**
+  String get layerMine;
+
+  /// No description provided for @layerAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get layerAll;
+
   /// No description provided for @referralLinkCopied.
   ///
   /// In en, this message translates to:
@@ -2054,6 +2078,12 @@ abstract class AppLocalizations {
   /// **'Streak'**
   String get statsStreakLabel;
 
+  /// No description provided for @statsStreakAtRisk.
+  ///
+  /// In en, this message translates to:
+  /// **'Map today to keep it'**
+  String get statsStreakAtRisk;
+
   /// No description provided for @statsStreakDays.
   ///
   /// In en, this message translates to:
@@ -2101,6 +2131,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'I mapped +{gained} zones today — {total} zones total · {km2} km²'**
   String sessionSummaryShareText(int gained, int total, String km2);
+
+  /// No description provided for @sessionSummaryShareTextEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Mapped for {duration} — {total} zones on my map · {km2} km²'**
+  String sessionSummaryShareTextEmpty(String duration, int total, String km2);
 
   /// No description provided for @sensorLuxLabel.
   ///
@@ -2312,6 +2348,18 @@ abstract class AppLocalizations {
   /// **'added to your map'**
   String get sessionSummarySubline;
 
+  /// No description provided for @sessionSummaryNoZonesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'TIME MAPPED'**
+  String get sessionSummaryNoZonesLabel;
+
+  /// No description provided for @sessionSummaryNoZonesSubline.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep going — zones fill in as you move.'**
+  String get sessionSummaryNoZonesSubline;
+
   /// No description provided for @sessionSummaryWatermark.
   ///
   /// In en, this message translates to:
@@ -2323,6 +2371,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Share'**
   String get sessionSummaryShareCta;
+
+  /// No description provided for @sessionMilestoneHit.
+  ///
+  /// In en, this message translates to:
+  /// **'{milestone} zones — milestone reached.'**
+  String sessionMilestoneHit(int milestone);
 
   /// No description provided for @sessionSummaryNextHook.
   ///

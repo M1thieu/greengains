@@ -14,6 +14,7 @@ import '../l10n/app_localizations.dart';
 import '../core/app_preferences.dart';
 import '../services/auth/auth_service.dart';
 import '../utils/app_snackbars.dart';
+import '../core/services/time_ago_service.dart';
 import '../widgets/referral_invite_card.dart';
 import 'settings_screen.dart';
 
@@ -383,9 +384,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   Text(
                     tile.label,
                     style: theme.textTheme.labelSmall?.copyWith(
-                      fontSize: 9.0,
-                      color: AppColors.textTertiary(isDark),
-                      letterSpacing: 1.0,
+                      fontSize: 10.0,
+                      color: AppColors.textSecondary(isDark),
+                      letterSpacing: 0.6,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -463,6 +464,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
             ),
           ],
+          Builder(builder: (context) {
+            final lastUpload = AppPreferences.instance.lastUploadAt;
+            if (lastUpload == null) return const SizedBox.shrink();
+            final ago = _timeAgoShort(lastUpload);
+            return Padding(
+              padding: const EdgeInsets.only(top: AppTheme.spaceXxs + 2),
+              child: Text(
+                l10n.profileLastMapped(ago),
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: AppColors.textSecondary(isDark),
+                ),
+              ),
+            );
+          }),
         ],
       ),
     );
@@ -471,6 +486,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
   String _formatDate(DateTime date) {
     final locale = Localizations.localeOf(context).toString();
     return DateFormat('MMM y', locale).format(date);
+  }
+
+  String _timeAgoShort(DateTime t) {
+    final locale = Localizations.localeOf(context).languageCode;
+    return TimeAgoService.format(t, locale: locale);
   }
 
   Future<void> _handleSignOut() async {
@@ -502,10 +522,10 @@ class _ProfileSectionLabel extends StatelessWidget {
     return Text(
       text,
       style: TextStyle(
-        fontSize: 10,
+        fontSize: 11,
         fontWeight: AppFontWeights.semibold,
-        color: AppColors.textTertiary(isDark),
-        letterSpacing: 1.2,
+        color: AppColors.textSecondary(isDark),
+        letterSpacing: 0.8,
       ),
     );
   }

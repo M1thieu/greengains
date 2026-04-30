@@ -163,6 +163,11 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String profileLastMapped(String ago) {
+    return 'Dernière cartographie $ago';
+  }
+
+  @override
   String get profileDeleteAccount => 'Supprimer le compte';
 
   @override
@@ -310,6 +315,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get chipTapStart => 'Appuie sur ▶ pour commencer';
+
+  @override
+  String get chipTapStartFirst => 'Commence à cartographier ton quartier';
 
   @override
   String chipDataPts(int count) {
@@ -890,6 +898,12 @@ class AppLocalizationsFr extends AppLocalizations {
       'Chaque ami cartographie des endroits où vous n\'êtes pas encore allé.';
 
   @override
+  String get layerMine => 'Les miennes';
+
+  @override
+  String get layerAll => 'Tout';
+
+  @override
   String get referralLinkCopied => 'Lien copié';
 
   @override
@@ -1184,6 +1198,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get statsStreakLabel => 'Série';
 
   @override
+  String get statsStreakAtRisk => 'Cartographie aujourd\'hui pour la garder';
+
+  @override
   String statsStreakDays(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -1240,6 +1257,11 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String sessionSummaryShareText(int gained, int total, String km2) {
     return 'J\'ai cartographié +$gained zones aujourd\'hui — $total zones au total · $km2 km²';
+  }
+
+  @override
+  String sessionSummaryShareTextEmpty(String duration, int total, String km2) {
+    return 'Cartographié pendant $duration — $total zones sur ma carte · $km2 km²';
   }
 
   @override
@@ -1362,10 +1384,22 @@ class AppLocalizationsFr extends AppLocalizations {
   String get sessionSummarySubline => 'ajoutées à votre carte';
 
   @override
+  String get sessionSummaryNoZonesLabel => 'TEMPS CARTOGRAPHIÉ';
+
+  @override
+  String get sessionSummaryNoZonesSubline =>
+      'Continuez — les zones se remplissent en marchant.';
+
+  @override
   String get sessionSummaryWatermark => 'Cartographié avec GreenGains';
 
   @override
   String get sessionSummaryShareCta => 'Partager';
+
+  @override
+  String sessionMilestoneHit(int milestone) {
+    return '$milestone zones — palier atteint.';
+  }
 
   @override
   String get sessionSummaryNextHook =>

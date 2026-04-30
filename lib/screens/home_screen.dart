@@ -30,6 +30,21 @@ import '../data/repositories/contribution_repository.dart';
 // My Location button: 48×48 standard touch target.
 const _kLocationBtnSize = AppTheme.minTouchTarget; // 48
 
+const _kMilestones = [5, 10, 25, 50, 100, 250, 500, 1000];
+
+String _luxLabel(int lux, AppLocalizations l10n) {
+  if (lux < 50)    return l10n.sensorLuxDark;
+  if (lux < 500)   return l10n.sensorLuxIndoor;
+  if (lux < 10000) return l10n.sensorLuxBright;
+  return l10n.sensorLuxDirect;
+}
+
+String _hpaLabel(double hpa, AppLocalizations l10n) {
+  if (hpa > 1010) return l10n.sensorHpaLow;
+  if (hpa > 990)  return l10n.sensorHpaMid;
+  return l10n.sensorHpaHigh;
+}
+
 /// Top-level BFS function — runs in a compute() isolate.
 /// Takes H3 hex index strings (e.g. "891f9abc0a3ffff"), returns largest cluster.
 int _computeMaxCluster(List<String> hexIndices) {
@@ -133,6 +148,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   int get _claimedTileCount => _h3Tiles.where((t) => t.boundary != null).length;
   /// Current streak — loaded once from local DB on init, shown on idle home.
   int _currentStreak = 0;
+  /// Whether community tiles are visible on the map.
+  bool _showCommunity = true;
 
   @override
   void initState() {
@@ -176,7 +193,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           ? DateTime.now().difference(_sessionStartTime!)
           : Duration.zero;
       unawaited(_prefs.saveLastSession(zonesGained: gained.clamp(0, 9999)));
-      if (gained > 0 && _sessionStartZoneCount > 0 && mounted) {
+      // Show summary for any meaningful session (≥2 min) or when zones were gained.
+      final worthSummary = gained > 0 || sessionDuration >= const Duration(minutes: 2);
+      if (worthSummary && _sessionStartZoneCount >= 0 && mounted) {
         final total = _claimedTileCount;
         Future.delayed(AppDurations.fast, () {
           if (!mounted || !context.mounted) return;
@@ -184,7 +203,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             context: context,
             backgroundColor: Colors.transparent,
             builder: (_) => _SessionSummarySheet(
-              zonesGained: gained,
+              zonesGained: gained.clamp(0, 9999),
               totalZones: total,
               sessionDuration: sessionDuration,
               onViewStats: widget.onGoToStats,
@@ -286,7 +305,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     unawaited(_maybeCelebrateUploadMilestone());
   }
 
-  static const _kMilestones = [5, 10, 25, 50, 100, 250, 500];
   static const _kUploadMilestones = [10, 50, 100, 500, 1000];
 
   Future<void> _maybeCelebrateMilestone(int zoneCount) async {
@@ -705,7 +723,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 final isTracking = _locationService.isRunning.value &&
                     !_locationService.isPaused.value;
                 return CoverageMapWidget(
-                  tiles: [..._globalTiles, ..._h3Tiles],
+                  tiles: [...(_showCommunity ? _globalTiles : <H3Tile>[]), ..._h3Tiles],
                   userLocation: _userLocationNotifier.value,
                   currentH3Boundary: _currentH3Boundary,
                   isTracking: isTracking,
@@ -797,24 +815,13 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         _IdleHintPill(hasTiles: _h3Tiles.isNotEmpty),
-                        if (_claimedTileCount > 0) ...[
+                        if (_claimedTileCount > 0 || _currentStreak >= 2) ...[
                           const SizedBox(height: AppTheme.spaceXs),
-                          _PassiveSummaryLine(
+                          _IdleStatusPill(
                             currentZones: _claimedTileCount,
                             lastKnownZones: _prefs.lastKnownZoneCount,
-                            lastSessionAt: _prefs.lastSessionEndAt,
-                          ),
-                        ],
-                        if (_currentStreak >= 2) ...[
-                          const SizedBox(height: 3),
-                          Text(
-                            context.l10n.statsStreakDays(_currentStreak),
-                            style: TextStyle(
-                              fontSize: 10,
-                              color: AppColors.warning.withValues(alpha: 0.75),
-                              fontWeight: AppFontWeights.medium,
-                              letterSpacing: -0.1,
-                            ),
+                            streak: _currentStreak,
+                            l10n: context.l10n,
                           ),
                         ],
                       ],
@@ -883,7 +890,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     lastUpload: status.lastUpload,
                     tileCount: _claimedTileCount,
                     isUploading: status.isUploading,
-                    activeSensorCount: 0,
                     pendingReadings: svc.pendingReadings.value,
                     onTap: _openSensorSheet,
                   );
@@ -908,23 +914,33 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                         ? (_claimedTileCount - _sessionStartZoneCount).clamp(0, 999)
                         : _zonesGainedSinceLastOpen,
                     onTap: widget.onGoToStats,
-                    neighborhood: _prefs.territoryLabel,
-                    communityCount: _globalTiles.length,
                   ),
               );
                 },
               ),
 
-            // ── 2. FAB (center-bottom, above floating nav bar) ───────────
+            // ── 2. Layer toggle + FAB (center-bottom, above floating nav bar) ─
             Positioned(
               left: 0,
               right: 0,
               bottom: bottomPadding + AppTheme.floatingNavHeight + AppTheme.spaceLg,
               child: Center(
-                child: Semantics(
-                  button: true,
-                  label: context.l10n.semanticsToggleTracking,
-                  child: const TrackingFab(),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Layer toggle — only when community tiles exist
+                    if (_globalTiles.isNotEmpty)
+                      _LayerToggle(
+                        showCommunity: _showCommunity,
+                        onChanged: (val) => setState(() => _showCommunity = val),
+                      ),
+                    if (_globalTiles.isNotEmpty) const SizedBox(height: AppTheme.spaceSm),
+                    Semantics(
+                      button: true,
+                      label: context.l10n.semanticsToggleTracking,
+                      child: const TrackingFab(),
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -998,16 +1014,25 @@ class _IdleHintPillState extends State<_IdleHintPill>
             decoration: BoxDecoration(
               color: const Color(0xD9111927),
               borderRadius: BorderRadius.circular(AppTheme.radiusPill),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.10)),
             ),
-            child: Text(
-              context.l10n.chipTapStart,
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: AppFontWeights.medium,
-                color: Colors.white.withValues(alpha: 0.9),
-                letterSpacing: -0.05,
-              ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.my_location_outlined, size: 12, color: AppColors.primary.withValues(alpha: 0.8)),
+                const SizedBox(width: AppTheme.spaceXxs + 2),
+                Text(
+                  widget.hasTiles
+                      ? context.l10n.chipTapStart
+                      : context.l10n.chipTapStartFirst,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: AppFontWeights.semibold,
+                    color: Colors.white,
+                    letterSpacing: -0.1,
+                  ),
+                ),
+              ],
             ),
           ),
         ),
@@ -1019,31 +1044,147 @@ class _IdleHintPillState extends State<_IdleHintPill>
 
 /// Passive summary — shown below idle pill when user has zones.
 /// "+X zones since last time" or just "X zones on your map" if no delta.
-class _PassiveSummaryLine extends StatelessWidget {
-  const _PassiveSummaryLine({
+/// Compact two-option toggle: "Mine" / "All" — shown above FAB when community tiles exist.
+class _LayerToggle extends StatelessWidget {
+  const _LayerToggle({required this.showCommunity, required this.onChanged});
+  final bool showCommunity;
+  final ValueChanged<bool> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xCC111927),
+        borderRadius: BorderRadius.circular(AppTheme.radiusPill),
+      ),
+      padding: const EdgeInsets.all(3),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _Pill(label: context.l10n.layerMine,  active: !showCommunity, onTap: () => onChanged(false)),
+          _Pill(label: context.l10n.layerAll,   active: showCommunity,  onTap: () => onChanged(true)),
+        ],
+      ),
+    );
+  }
+}
+
+class _Pill extends StatelessWidget {
+  const _Pill({required this.label, required this.active, required this.onTap});
+  final String label;
+  final bool active;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        HapticFeedback.selectionClick();
+        onTap();
+      },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        curve: Curves.easeOut,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+        decoration: BoxDecoration(
+          color: active ? AppColors.primary.withValues(alpha: 0.18) : Colors.transparent,
+          borderRadius: BorderRadius.circular(AppTheme.radiusPill),
+          border: active ? Border.all(color: AppColors.primary.withValues(alpha: 0.5), width: 1) : null,
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: active ? AppFontWeights.semibold : AppFontWeights.medium,
+            color: active ? AppColors.primary : Colors.white.withValues(alpha: 0.55),
+            letterSpacing: 0.1,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Ambient sensor line — shown on idle home when not tracking.
+/// Reads last known lux + hPa from SharedPreferences (instant, no network).
+/// Shows nothing if no data yet (new install, never tracked).
+/// Single pill combining zone count + streak — shown on idle home below the hint pill.
+class _IdleStatusPill extends StatelessWidget {
+  const _IdleStatusPill({
     required this.currentZones,
     required this.lastKnownZones,
-    required this.lastSessionAt,
+    required this.streak,
+    required this.l10n,
   });
   final int currentZones;
   final int lastKnownZones;
-  final DateTime? lastSessionAt;
+  final int streak;
+  final AppLocalizations l10n;
 
   @override
   Widget build(BuildContext context) {
     final gained = currentZones - lastKnownZones;
-    final l10n = context.l10n;
-    final text = gained > 0
-        ? l10n.homeSinceLastSession(gained)
-        : l10n.homeZonesOnYourMap(currentZones);
+    final hasGain = gained > 0 && currentZones > 0;
+    final hasStreak = streak >= 2;
 
-    return Text(
-      text,
-      style: TextStyle(
-        fontSize: 11,
-        color: Colors.white.withValues(alpha: 0.5),
-        fontWeight: AppFontWeights.medium,
-        letterSpacing: -0.1,
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+      decoration: BoxDecoration(
+        color: hasGain
+            ? AppColors.primary.withValues(alpha: 0.12)
+            : const Color(0xCC111927),
+        borderRadius: BorderRadius.circular(AppTheme.radiusPill),
+        border: Border.all(
+          color: hasGain
+              ? AppColors.primary.withValues(alpha: 0.3)
+              : Colors.white.withValues(alpha: 0.08),
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (hasGain) ...[
+            Icon(Icons.trending_up_rounded, size: 12, color: AppColors.primary),
+            const SizedBox(width: 4),
+            Text(
+              l10n.homeSinceLastSession(gained),
+              style: const TextStyle(
+                fontSize: 12,
+                color: AppColors.primary,
+                fontWeight: AppFontWeights.semibold,
+                letterSpacing: -0.1,
+              ),
+            ),
+          ] else if (currentZones > 0) ...[
+            Text(
+              l10n.homeZonesOnYourMap(currentZones),
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.white.withValues(alpha: 0.65),
+                fontWeight: AppFontWeights.medium,
+                letterSpacing: -0.1,
+              ),
+            ),
+          ],
+          if (hasStreak && (hasGain || currentZones > 0)) ...[
+            const SizedBox(width: 7),
+            Container(width: 1, height: 11, color: Colors.white.withValues(alpha: 0.12)),
+            const SizedBox(width: 7),
+          ],
+          if (hasStreak) ...[
+            Icon(Icons.local_fire_department_rounded, size: 12, color: AppColors.warning),
+            const SizedBox(width: 3),
+            Text(
+              l10n.statsStreakDays(streak),
+              style: const TextStyle(
+                fontSize: 12,
+                color: AppColors.warning,
+                fontWeight: AppFontWeights.semibold,
+                letterSpacing: -0.1,
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }
@@ -1054,19 +1195,6 @@ class _PassiveSummaryLine extends StatelessWidget {
 class _LiveConditionsLine extends StatelessWidget {
   const _LiveConditionsLine({required this.conditionsNotifier});
   final ValueNotifier<({int? lux, double? hpa, double? rms})> conditionsNotifier;
-
-  static String _luxLabel(int lux, AppLocalizations l10n) {
-    if (lux < 50) return l10n.sensorLuxDark;
-    if (lux < 500) return l10n.sensorLuxIndoor;
-    if (lux < 10000) return l10n.sensorLuxBright;
-    return l10n.sensorLuxDirect;
-  }
-
-  static String _hpaLabel(double hpa, AppLocalizations l10n) {
-    if (hpa > 1010) return l10n.sensorHpaLow;
-    if (hpa > 990) return l10n.sensorHpaMid;
-    return l10n.sensorHpaHigh;
-  }
 
   static String _rmsLabel(double rms, AppLocalizations l10n) {
     if (rms < 10.5) return l10n.sensorMovementLow;
@@ -1089,28 +1217,36 @@ class _LiveConditionsLine extends StatelessWidget {
             (icon: Icons.vibration_outlined, color: AppColors.movement, label: _rmsLabel(snap.rms!, l10n)),
         ];
         if (chips.isEmpty) return const SizedBox.shrink();
-        return Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            for (int i = 0; i < chips.length; i++) ...[
-              if (i > 0) ...[
-                const SizedBox(width: 6),
-                Text('·', style: TextStyle(fontSize: 10, color: Colors.white.withValues(alpha: 0.3))),
-                const SizedBox(width: 6),
-              ],
-              Icon(chips[i].icon, size: 11, color: chips[i].color.withValues(alpha: 0.85)),
-              const SizedBox(width: 3),
-              Text(
-                chips[i].label,
-                style: TextStyle(
-                  fontSize: 11,
-                  color: Colors.white.withValues(alpha: 0.55),
-                  fontWeight: AppFontWeights.medium,
-                  letterSpacing: -0.1,
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+          decoration: BoxDecoration(
+            color: const Color(0xCC0B1E15),
+            borderRadius: BorderRadius.circular(AppTheme.radiusPill),
+            border: Border.all(color: AppColors.primary.withValues(alpha: 0.25)),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              for (int i = 0; i < chips.length; i++) ...[
+                if (i > 0) ...[
+                  const SizedBox(width: 6),
+                  Container(width: 1, height: 10, color: Colors.white.withValues(alpha: 0.12)),
+                  const SizedBox(width: 6),
+                ],
+                Icon(chips[i].icon, size: 11, color: chips[i].color),
+                const SizedBox(width: 3),
+                Text(
+                  chips[i].label,
+                  style: const TextStyle(
+                    fontSize: 11,
+                    color: Colors.white,
+                    fontWeight: AppFontWeights.medium,
+                    letterSpacing: -0.1,
+                  ),
                 ),
-              ),
+              ],
             ],
-          ],
+          ),
         );
       },
     );
@@ -1172,14 +1308,10 @@ class _ZoneCountPill extends StatefulWidget {
     required this.count,
     this.sessionNew = 0,
     this.onTap,
-    this.neighborhood,
-    this.communityCount = 0,
   });
   final int count;
   final int sessionNew;
   final VoidCallback? onTap;
-  final String? neighborhood;
-  final int communityCount;
 
   @override
   State<_ZoneCountPill> createState() => _ZoneCountPillState();
@@ -1203,12 +1335,6 @@ class _ZoneCountPillState extends State<_ZoneCountPill> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final pct = widget.communityCount > 0
-        ? (widget.count / widget.communityCount * 100).clamp(0.0, 100.0)
-        : 0.0;
-    final pctStr = pct > 0
-        ? l10n.homeCityPct(pct.toStringAsFixed(pct < 1 ? 1 : 0))
-        : null;
 
     final card = ClipRRect(
       borderRadius: BorderRadius.circular(AppTheme.radiusMd),
@@ -1232,9 +1358,7 @@ class _ZoneCountPillState extends State<_ZoneCountPill> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                widget.neighborhood != null
-                    ? widget.neighborhood!.toUpperCase()
-                    : l10n.homeYourMap,
+                l10n.homeYourMap,
                 style: TextStyle(
                   fontSize: 10,
                   fontWeight: AppFontWeights.semibold,
@@ -1304,17 +1428,6 @@ class _ZoneCountPillState extends State<_ZoneCountPill> {
               ],
             ],
           ),
-          if (pctStr != null) ...[
-            const SizedBox(height: AppTheme.spaceXxs),
-            Text(
-              pctStr,
-              style: const TextStyle(
-                fontSize: 12,
-                color: AppColors.primary,
-                fontWeight: AppFontWeights.semibold,
-              ),
-            ),
-          ],
         ],
       ),
     ),
@@ -1463,7 +1576,6 @@ class _MilestoneSheet extends StatelessWidget {
   const _MilestoneSheet({required this.zoneCount});
   final int zoneCount;
 
-  static const _kMilestones = [5, 10, 25, 50, 100, 250, 500, 1000];
   int? get _next {
     for (final m in _kMilestones) { if (m > zoneCount) return m; }
     return null;
@@ -2255,8 +2367,6 @@ class _SessionSummarySheet extends StatefulWidget {
 }
 
 class _SessionSummarySheetState extends State<_SessionSummarySheet> {
-  static const _kMilestones = [5, 10, 25, 50, 100, 250, 500, 1000];
-
   int? _nextMilestone() {
     for (final m in _kMilestones) {
       if (m > widget.totalZones) return m;
@@ -2264,10 +2374,19 @@ class _SessionSummarySheetState extends State<_SessionSummarySheet> {
     return null;
   }
 
+  /// Returns the milestone hit this session, if any.
+  int? _hitMilestone() {
+    final prev = widget.totalZones - widget.zonesGained;
+    for (final m in _kMilestones) {
+      if (prev < m && m <= widget.totalZones) return m;
+    }
+    return null;
+  }
+
   Future<void> _share(AppLocalizations l10n, String km2Display) async {
-    final text = l10n.sessionSummaryShareText(
-      widget.zonesGained, widget.totalZones, km2Display,
-    );
+    final text = widget.zonesGained > 0
+        ? l10n.sessionSummaryShareText(widget.zonesGained, widget.totalZones, km2Display)
+        : l10n.sessionSummaryShareTextEmpty(_fmtDuration(widget.sessionDuration), widget.totalZones, km2Display);
     HapticFeedback.lightImpact();
     await SharePlus.instance.share(ShareParams(text: text));
   }
@@ -2290,6 +2409,7 @@ class _SessionSummarySheetState extends State<_SessionSummarySheet> {
     final km2 = widget.totalZones * 0.1053;
     final km2Display = km2 < 1.0 ? km2.toStringAsFixed(2) : km2.toStringAsFixed(1);
     final next = _nextMilestone();
+    final hit = _hitMilestone();
 
     return Container(
       margin: const EdgeInsets.symmetric(
@@ -2325,44 +2445,87 @@ class _SessionSummarySheetState extends State<_SessionSummarySheet> {
                   ),
                   GestureDetector(
                     onTap: () => Navigator.of(context).pop(),
-                    child: Icon(Icons.close, size: 18,
-                        color: AppColors.textSecondary(isDark)),
+                    behavior: HitTestBehavior.opaque,
+                    child: Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: Icon(Icons.close, size: 18,
+                          color: AppColors.textSecondary(isDark)),
+                    ),
                   ),
                 ],
               ),
               const SizedBox(height: AppTheme.spaceLg),
 
               // ── Hero ─────────────────────────────────────────────────────
-              Text(
-                l10n.sessionSummaryZonesGainedLabel,
-                style: const TextStyle(
-                  fontSize: 11,
-                  fontWeight: AppFontWeights.semibold,
-                  color: AppColors.primary,
-                  letterSpacing: 1.4,
+              if (widget.zonesGained > 0) ...[
+                Text(
+                  l10n.sessionSummaryZonesGainedLabel,
+                  style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: AppFontWeights.semibold,
+                    color: AppColors.primary,
+                    letterSpacing: 1.4,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                '+${widget.zonesGained}',
-                style: const TextStyle(
-                  fontSize: 108,
-                  fontWeight: AppFontWeights.bold,
-                  color: Colors.white,
-                  letterSpacing: -5,
-                  height: 0.92,
-                  fontFeatures: [ui.FontFeature.tabularFigures()],
+                const SizedBox(height: 4),
+                Text(
+                  '+${widget.zonesGained}',
+                  style: const TextStyle(
+                    fontSize: 108,
+                    fontWeight: AppFontWeights.bold,
+                    color: Colors.white,
+                    letterSpacing: -5,
+                    height: 0.92,
+                    fontFeatures: [ui.FontFeature.tabularFigures()],
+                  ),
                 ),
-              ),
-              const SizedBox(height: AppTheme.spaceSm),
-              Text(
-                l10n.sessionSummarySubline,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.white.withValues(alpha: 0.55),
-                  letterSpacing: -0.1,
+                const SizedBox(height: AppTheme.spaceSm),
+                Text(
+                  l10n.sessionSummarySubline,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.white.withValues(alpha: 0.55),
+                    letterSpacing: -0.1,
+                  ),
                 ),
-              ),
+              ] else ...[
+                Text(
+                  l10n.sessionSummaryNoZonesLabel,
+                  style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: AppFontWeights.semibold,
+                    color: Colors.white54,
+                    letterSpacing: 1.4,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  _fmtDuration(widget.sessionDuration),
+                  style: const TextStyle(
+                    fontSize: 72,
+                    fontWeight: AppFontWeights.bold,
+                    color: Colors.white,
+                    letterSpacing: -3,
+                    height: 0.95,
+                    fontFeatures: [ui.FontFeature.tabularFigures()],
+                  ),
+                ),
+                const SizedBox(height: AppTheme.spaceSm),
+                Text(
+                  l10n.sessionSummaryNoZonesSubline,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.white.withValues(alpha: 0.55),
+                    letterSpacing: -0.1,
+                  ),
+                ),
+              ],
+
+              // ── Milestone hit banner ──────────────────────────────────────
+              if (hit != null) ...[
+                const SizedBox(height: AppTheme.spaceMd),
+                _MilestoneBanner(milestone: hit, l10n: l10n),
+              ],
 
               // ── 3-stat row ───────────────────────────────────────────────
               const SizedBox(height: AppTheme.spaceMd),
@@ -2462,6 +2625,82 @@ class _SessionSummarySheetState extends State<_SessionSummarySheet> {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Glowing banner shown on session summary when user crosses a zone milestone.
+class _MilestoneBanner extends StatefulWidget {
+  const _MilestoneBanner({required this.milestone, required this.l10n});
+  final int milestone;
+  final AppLocalizations l10n;
+
+  @override
+  State<_MilestoneBanner> createState() => _MilestoneBannerState();
+}
+
+class _MilestoneBannerState extends State<_MilestoneBanner>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _ctrl;
+  late final Animation<double> _glow;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1800),
+    )..repeat(reverse: true);
+    _glow = Tween<double>(begin: 0.3, end: 1.0).animate(
+      CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut),
+    );
+    HapticFeedback.mediumImpact();
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _glow,
+      builder: (_, __) => Container(
+        padding: const EdgeInsets.symmetric(
+            horizontal: AppTheme.spaceMd, vertical: AppTheme.spaceSm),
+        decoration: BoxDecoration(
+          color: AppColors.primary.withValues(alpha: 0.10),
+          borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+          border: Border.all(
+              color: AppColors.primary.withValues(alpha: _glow.value * 0.6)),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.primary.withValues(alpha: _glow.value * 0.15),
+              blurRadius: 12,
+              spreadRadius: 2,
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.star_rounded, color: AppColors.primary, size: 16),
+            const SizedBox(width: AppTheme.spaceXs),
+            Expanded(
+              child: Text(
+                widget.l10n.sessionMilestoneHit(widget.milestone),
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: AppFontWeights.semibold,
+                  color: AppColors.primary,
+                  letterSpacing: -0.1,
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
