@@ -26,7 +26,7 @@ const _kSkeletonTitleW    = 160.0; // width of section-title skeleton rect
 const _kSkeletonHeroH     = 96.0;  // height of hero card skeleton placeholder
 const _kHeroIconSize      = 80.0;  // empty-state centre icon size
 const _kProgressH         = 6.0;   // milestone progress bar height
-const _kTrioLabelSize     = 10.0;  // small label inside supporting trio tiles
+const _kTrioLabelSize     = 11.0;  // small label inside supporting trio tiles
 // ── Typography constants ──────────────────────────────────────────────────────
 const _kLetterSpacingDisplay  = -2.0;  // tight tracking for displayLarge hero number
 const _kLetterSpacingHero     = -0.5;  // tight tracking for titleLarge in tiles
@@ -263,11 +263,9 @@ class _StatisticsScreenState extends State<StatisticsScreen>
     // as the hero metric so the card always shows a meaningful number.
     final showKm2 = zones > 0;
 
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(AppTheme.radiusLg),
-      child: Container(
-        color: AppColors.surface(isDark),
-        child: Padding(
+    return Container(
+      decoration: AppTheme.surfaceContainer(isDark: isDark, radius: AppTheme.radiusLg),
+      child: Padding(
           padding: const EdgeInsets.all(AppTheme.spaceMd),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -395,7 +393,6 @@ class _StatisticsScreenState extends State<StatisticsScreen>
             ],
           ),
         ),
-      ),
     );
   }
 
@@ -554,7 +551,6 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                   l10n.statsMilestoneRemaining(remaining),
                   style: theme.textTheme.labelSmall?.copyWith(
                     color: AppColors.textTertiary(isDark),
-                    fontSize: 10,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -894,8 +890,8 @@ class _StatisticsScreenState extends State<StatisticsScreen>
   // ─── Insight card (Dawarich-style contextual facts) ─────────────────────────
 
   Widget _buildLoadingSkeleton(bool isDark) {
-    final baseColor  = isDark ? const Color(0xFF1a2635) : const Color(0xFFE0E0E0);
-    final hlColor    = isDark ? const Color(0xFF243447) : const Color(0xFFF5F5F5);
+    final baseColor  = isDark ? AppColors.darkSurface : const Color(0xFFE0E0E0);
+    final hlColor    = isDark ? AppColors.darkSurfaceElevated : const Color(0xFFF5F5F5);
     final decoration = BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(AppTheme.radiusMd));
     return Shimmer.fromColors(
       baseColor: baseColor,

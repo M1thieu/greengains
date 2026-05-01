@@ -722,18 +722,18 @@ class _OnboardingHexPainter extends CustomPainter {
       if (claimed) {
         if (isNew) {
           canvas.drawPath(path, Paint()
-            ..color = const Color(0xFF10b981).withValues(alpha: 0.55 * opacity)
+            ..color = AppColors.primary.withValues(alpha: 0.55 * opacity)
             ..style = PaintingStyle.fill);
           canvas.drawPath(path, Paint()
-            ..color = const Color(0xFF10b981).withValues(alpha: opacity)
+            ..color = AppColors.primary.withValues(alpha: opacity)
             ..style = PaintingStyle.stroke
             ..strokeWidth = 1.0);
         } else {
           canvas.drawPath(path, Paint()
-            ..color = const Color(0xFF10b981).withValues(alpha: 0.20 * opacity)
+            ..color = AppColors.primary.withValues(alpha: 0.20 * opacity)
             ..style = PaintingStyle.fill);
           canvas.drawPath(path, Paint()
-            ..color = const Color(0xFF10b981).withValues(alpha: 0.45 * opacity)
+            ..color = AppColors.primary.withValues(alpha: 0.45 * opacity)
             ..style = PaintingStyle.stroke
             ..strokeWidth = 0.6);
         }
@@ -752,7 +752,7 @@ class _OnboardingHexPainter extends CustomPainter {
         ..shader = ui.Gradient.linear(
           Offset(0, size.height * 0.55),
           Offset(0, size.height),
-          [Colors.transparent, const Color(0xFF0F1A1E)],
+          [Colors.transparent, AppColors.darkBackground],
         ),
     );
   }

@@ -661,7 +661,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     padding: const EdgeInsets.symmetric(
                         horizontal: AppTheme.spaceMd, vertical: AppTheme.spaceXs),
                     decoration: BoxDecoration(
-                      color: const Color(0xCC111927),
+                      color: AppColors.mapOverlayMid,
                       borderRadius: BorderRadius.circular(AppTheme.radiusPill),
                     ),
                     child: Text(
@@ -931,7 +931,7 @@ class _IdleHintPillState extends State<_IdleHintPill>
               vertical: AppTheme.spaceXs,
             ),
             decoration: BoxDecoration(
-              color: const Color(0xD9111927),
+              color: AppColors.mapOverlayDark,
               borderRadius: BorderRadius.circular(AppTheme.radiusPill),
               border: Border.all(color: Colors.white.withValues(alpha: 0.10)),
             ),
@@ -973,10 +973,10 @@ class _LayerToggle extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xCC111927),
+        color: AppColors.mapOverlayMid,
         borderRadius: BorderRadius.circular(AppTheme.radiusPill),
       ),
-      padding: const EdgeInsets.all(3),
+      padding: const EdgeInsets.all(AppTheme.spaceTiny),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -1046,12 +1046,16 @@ class _IdleStatusPill extends StatelessWidget {
     final hasGain = gained > 0 && currentZones > 0;
     final hasStreak = streak >= 2;
 
-    return Container(
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(AppTheme.radiusPill),
+      child: BackdropFilter(
+        filter: ui.ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+        child: Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
       decoration: BoxDecoration(
         color: hasGain
             ? AppColors.primary.withValues(alpha: 0.12)
-            : const Color(0xCC111927),
+            : AppColors.mapOverlayMid,
         borderRadius: BorderRadius.circular(AppTheme.radiusPill),
         border: Border.all(
           color: hasGain
@@ -1105,6 +1109,8 @@ class _IdleStatusPill extends StatelessWidget {
           ],
         ],
       ),
+        ),
+      ),
     );
   }
 }
@@ -1136,10 +1142,14 @@ class _LiveConditionsLine extends StatelessWidget {
             (icon: Icons.vibration_outlined, color: AppColors.movement, label: _rmsLabel(snap.rms!, l10n)),
         ];
         if (chips.isEmpty) return const SizedBox.shrink();
-        return Container(
+        return ClipRRect(
+          borderRadius: BorderRadius.circular(AppTheme.radiusPill),
+          child: BackdropFilter(
+            filter: ui.ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+            child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
           decoration: BoxDecoration(
-            color: const Color(0xCC0B1E15),
+            color: AppColors.mapOverlayGreen,
             borderRadius: BorderRadius.circular(AppTheme.radiusPill),
             border: Border.all(color: AppColors.primary.withValues(alpha: 0.25)),
           ),
@@ -1152,12 +1162,12 @@ class _LiveConditionsLine extends StatelessWidget {
                   Container(width: 1, height: 10, color: Colors.white.withValues(alpha: 0.12)),
                   const SizedBox(width: 6),
                 ],
-                Icon(chips[i].icon, size: 11, color: chips[i].color),
+                Icon(chips[i].icon, size: 12, color: chips[i].color),
                 const SizedBox(width: 3),
                 Text(
                   chips[i].label,
                   style: const TextStyle(
-                    fontSize: 11,
+                    fontSize: 12,
                     color: Colors.white,
                     fontWeight: AppFontWeights.medium,
                     letterSpacing: -0.1,
@@ -1165,6 +1175,8 @@ class _LiveConditionsLine extends StatelessWidget {
                 ),
               ],
             ],
+          ),
+            ),
           ),
         );
       },
@@ -1211,7 +1223,7 @@ class _BrandMarkPainter extends CustomPainter {
         ..lineTo(w * 7 / 20, h * 13 / 18)
         ..lineTo(w * 4 / 20, h * 9 / 18)
         ..close(),
-      Paint()..color = const Color(0xFF0F1A1E),
+      Paint()..color = AppColors.darkBackground,
     );
   }
 
@@ -1265,7 +1277,7 @@ class _ZoneCountPillState extends State<_ZoneCountPill> {
         vertical: AppTheme.spaceSm,
       ),
       decoration: BoxDecoration(
-        color: const Color(0xD9111927),
+        color: AppColors.mapOverlayDark,
         borderRadius: BorderRadius.circular(AppTheme.radiusMd),
         border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
       ),
@@ -1279,10 +1291,10 @@ class _ZoneCountPillState extends State<_ZoneCountPill> {
               Text(
                 l10n.homeYourMap,
                 style: TextStyle(
-                  fontSize: 10,
+                  fontSize: 11,
                   fontWeight: AppFontWeights.semibold,
-                  color: Colors.white.withValues(alpha: 0.45),
-                  letterSpacing: 0.6,
+                  color: Colors.white.withValues(alpha: 0.55),
+                  letterSpacing: 0.4,
                 ),
               ),
               if (widget.onTap != null) ...[
@@ -1949,7 +1961,7 @@ class _TrackingHintPillState extends State<_TrackingHintPill> {
           decoration: BoxDecoration(
             color: hasZones
                 ? AppColors.primary.withValues(alpha: 0.18)
-                : const Color(0xB2111927),
+                : AppColors.mapOverlayLight,
             borderRadius: BorderRadius.circular(AppTheme.radiusPill),
             border: Border.all(
               color: hasZones
@@ -1963,7 +1975,7 @@ class _TrackingHintPillState extends State<_TrackingHintPill> {
               Text(
                 label,
                 style: TextStyle(
-                  fontSize: 11,
+                  fontSize: 12,
                   fontWeight: AppFontWeights.semibold,
                   color: hasZones ? AppColors.primary : Colors.white60,
                   letterSpacing: -0.05,
@@ -2000,12 +2012,12 @@ class _PausedPill extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.pause_rounded, size: 11, color: AppColors.warning.withValues(alpha: 0.8)),
+              Icon(Icons.pause_rounded, size: 12, color: AppColors.warning.withValues(alpha: 0.8)),
               const SizedBox(width: 5),
               Text(
                 l10n.trackingPaused,
                 style: TextStyle(
-                  fontSize: 11,
+                  fontSize: 12,
                   fontWeight: AppFontWeights.semibold,
                   color: AppColors.warning.withValues(alpha: 0.9),
                   letterSpacing: -0.05,
@@ -2166,7 +2178,7 @@ class _SessionSummarySheetState extends State<_SessionSummarySheet> {
       decoration: BoxDecoration(
         color: AppColors.surface(isDark),
         borderRadius: BorderRadius.circular(AppTheme.radiusLg),
-        border: Border.all(color: AppColors.border(isDark)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.10)),
       ),
       child: SafeArea(
         top: false,
@@ -2184,10 +2196,10 @@ class _SessionSummarySheetState extends State<_SessionSummarySheet> {
                   Text(
                     l10n.sessionSummaryBadge,
                     style: TextStyle(
-                      fontSize: 10,
+                      fontSize: 11,
                       fontWeight: AppFontWeights.semibold,
-                      color: Colors.white.withValues(alpha: 0.45),
-                      letterSpacing: 1.2,
+                      color: Colors.white.withValues(alpha: 0.5),
+                      letterSpacing: 0.8,
                     ),
                   ),
                   GestureDetector(
@@ -2211,7 +2223,7 @@ class _SessionSummarySheetState extends State<_SessionSummarySheet> {
                     fontSize: 11,
                     fontWeight: AppFontWeights.semibold,
                     color: AppColors.primary,
-                    letterSpacing: 1.4,
+                    letterSpacing: 0.8,
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -2242,7 +2254,7 @@ class _SessionSummarySheetState extends State<_SessionSummarySheet> {
                     fontSize: 11,
                     fontWeight: AppFontWeights.semibold,
                     color: Colors.white54,
-                    letterSpacing: 1.4,
+                    letterSpacing: 0.8,
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -2331,7 +2343,7 @@ class _SessionSummarySheetState extends State<_SessionSummarySheet> {
                     : l10n.sessionSummaryNextHookEmpty,
                 style: TextStyle(
                   fontSize: 11,
-                  color: Colors.white.withValues(alpha: 0.38),
+                  color: Colors.white.withValues(alpha: 0.45),
                   letterSpacing: -0.1,
                 ),
               ),
@@ -2471,10 +2483,10 @@ class _SummaryStatCell extends StatelessWidget {
             Text(
               label,
               style: const TextStyle(
-                fontSize: 10,
+                fontSize: 11,
                 fontWeight: AppFontWeights.medium,
                 color: Color(0x73FFFFFF),
-                letterSpacing: 0.8,
+                letterSpacing: 0.6,
               ),
             ),
             const SizedBox(height: 4),

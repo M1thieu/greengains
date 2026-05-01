@@ -1085,7 +1085,7 @@ class MapHeatmapLegend extends StatelessWidget {
                 const SizedBox(width: 5),
                 _LegendDot(color: AppColors.light),
                 const SizedBox(width: 5),
-                _LegendDot(color: const Color(0xFFef4444)),
+                _LegendDot(color: AppColors.heatmapHot),
                 if (hasCommunityTiles) ...[
                   Container(
                       width: 1,
@@ -1179,7 +1179,7 @@ class _LegendInfoSheet extends StatelessWidget {
                 sub: l10n.legendMidSub,
                 isDark: isDark),
             _LegendRow(
-                color: const Color(0xFFef4444),
+                color: AppColors.heatmapHot,
                 label: l10n.legendLowLabel,
                 sub: l10n.legendLowSub,
                 isDark: isDark),

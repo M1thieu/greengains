@@ -194,6 +194,14 @@ class AppColors {
   static Color surfaceTint(bool isDark) => isDark
       ? primary.withValues(alpha: 0.05)
       : primary.withValues(alpha: 0.02);
+
+  // Map overlay tints — frosted glass pills that float above the dark map.
+  // Always rendered on a dark background, so these use darkBackground as the tint color.
+  // Use these instead of hardcoded hex Color(0x??111927) values.
+  static const Color mapOverlayDark  = Color(0xD9111927); // 85% — primary pill bg
+  static const Color mapOverlayMid   = Color(0xCC111927); // 80% — secondary (layer toggle, hints)
+  static const Color mapOverlayLight = Color(0xB2111927); // 70% — subtle (no-zone tracking hint)
+  static const Color mapOverlayGreen = Color(0xCC0B1E15); // 80% green-tinted (live conditions)
 }
 
 /// Animation duration constants for consistent timing across the app

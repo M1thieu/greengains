@@ -115,8 +115,8 @@ class _TrackingStatusChipState extends State<TrackingStatusChip>
         ),
         decoration: BoxDecoration(
           color: isActive
-              ? const Color(0xCC0B1E15)
-              : const Color(0xCC111927),
+              ? AppColors.mapOverlayGreen
+              : AppColors.mapOverlayMid,
           borderRadius: BorderRadius.circular(AppTheme.radiusPill),
           border: isActive
               ? Border.all(color: AppColors.primary.withValues(alpha: 0.40))

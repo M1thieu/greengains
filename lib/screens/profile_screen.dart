@@ -384,9 +384,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   Text(
                     tile.label,
                     style: theme.textTheme.labelSmall?.copyWith(
-                      fontSize: 10.0,
+                      fontSize: 11.0,
                       color: AppColors.textSecondary(isDark),
-                      letterSpacing: 0.6,
+                      letterSpacing: 0.4,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -411,7 +411,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             padding: const EdgeInsets.all(_kAvatarRingWidth),
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: AppColors.primary.withValues(alpha: 0.25),
+              color: AppColors.primary.withValues(alpha: 0.40),
             ),
             child: user.photoURL != null
                 ? CircleAvatar(
