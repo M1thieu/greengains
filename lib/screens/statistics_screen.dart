@@ -890,8 +890,8 @@ class _StatisticsScreenState extends State<StatisticsScreen>
   // ─── Insight card (Dawarich-style contextual facts) ─────────────────────────
 
   Widget _buildLoadingSkeleton(bool isDark) {
-    final baseColor  = isDark ? AppColors.darkSurface : const Color(0xFFE0E0E0);
-    final hlColor    = isDark ? AppColors.darkSurfaceElevated : const Color(0xFFF5F5F5);
+    final baseColor  = AppColors.shimmerBase(isDark);
+    final hlColor    = AppColors.shimmerHighlight(isDark);
     final decoration = BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(AppTheme.radiusMd));
     return Shimmer.fromColors(
       baseColor: baseColor,

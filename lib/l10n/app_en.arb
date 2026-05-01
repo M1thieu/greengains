@@ -173,6 +173,12 @@
   "semanticsRefreshMap": "Refresh map data",
   "semanticsToggleTracking": "Toggle tracking",
   "semanticsCenterOnMe": "Center map on my location",
+  "semanticsZoneCount": "{count, plural, =1{1 zone — view stats} other{{count} zones — view stats}}",
+  "@semanticsZoneCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
   "tipViewLiveDataTitle": "View live data",
   "tipViewLiveDataMessage": "Tap below to see what data you're contributing right now",
 

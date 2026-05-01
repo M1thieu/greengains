@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+import '../core/extensions/context_extensions.dart';
 import '../core/themes.dart';
 
 /// WebView screen for displaying web content in-app (privacy policy, terms, etc.)
@@ -62,9 +63,9 @@ class _WebViewScreenState extends State<WebViewScreen> {
                   IconButton(
                     icon: const Icon(Icons.close),
                     onPressed: () => Navigator.of(context).pop(),
-                    tooltip: 'Close',
+                    tooltip: context.l10n.buttonClose,
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: AppTheme.spaceXs),
 
                   // URL display
                   Expanded(

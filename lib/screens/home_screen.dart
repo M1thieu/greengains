@@ -769,7 +769,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                         const _BrandMark(size: 18),
                         const SizedBox(width: AppTheme.spaceXs),
                         Text(
-                          'GreenGains',
+                          context.l10n.homeTitle,
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: AppFontWeights.medium,
@@ -1368,7 +1368,7 @@ class _ZoneCountPillState extends State<_ZoneCountPill> {
     if (widget.onTap == null) return card;
     return Semantics(
       button: true,
-      label: '${widget.count} zones — view stats',
+      label: context.l10n.semanticsZoneCount(widget.count),
       child: GestureDetector(
         onTap: () {
           HapticFeedback.selectionClick();

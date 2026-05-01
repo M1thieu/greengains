@@ -764,6 +764,12 @@ abstract class AppLocalizations {
   /// **'Center map on my location'**
   String get semanticsCenterOnMe;
 
+  /// No description provided for @semanticsZoneCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 zone — view stats} other{{count} zones — view stats}}'**
+  String semanticsZoneCount(int count);
+
   /// No description provided for @tipViewLiveDataTitle.
   ///
   /// In en, this message translates to:

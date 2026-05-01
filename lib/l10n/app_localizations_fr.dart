@@ -409,6 +409,17 @@ class AppLocalizationsFr extends AppLocalizations {
   String get semanticsCenterOnMe => 'Centrer la carte sur ma position';
 
   @override
+  String semanticsZoneCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count zones — voir les stats',
+      one: '1 zone — voir les stats',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get tipViewLiveDataTitle => 'Voir les données en direct';
 
   @override

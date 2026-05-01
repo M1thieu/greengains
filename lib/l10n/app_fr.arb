@@ -173,6 +173,12 @@
   "semanticsRefreshMap": "Actualiser les données de la carte",
   "semanticsToggleTracking": "Activer/désactiver le suivi",
   "semanticsCenterOnMe": "Centrer la carte sur ma position",
+  "semanticsZoneCount": "{count, plural, =1{1 zone — voir les stats} other{{count} zones — voir les stats}}",
+  "@semanticsZoneCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
   "tipViewLiveDataTitle": "Voir les données en direct",
   "tipViewLiveDataMessage": "Appuyez ci-dessous pour voir les données que vous contribuez actuellement",
 
