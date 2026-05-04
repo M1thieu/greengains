@@ -556,20 +556,36 @@
   "sensorMovementLabel": "{val}",
   "@sensorMovementLabel": { "placeholders": { "val": { "type": "String" } } },
 
-  "sensorLuxDark": "Dark",
-  "sensorLuxIndoor": "Indoors",
-  "sensorLuxBright": "Bright",
-  "sensorLuxDirect": "Full sun",
+  "sensorLuxDark": "Pitch dark",
+  "sensorLuxIndoor": "Dim · indoors",
+  "sensorLuxBright": "Bright outdoors",
+  "sensorLuxDirect": "Full sunlight",
 
-  "sensorMovementLow": "Quiet",
-  "sensorMovementMid": "Active",
-  "sensorMovementHigh": "Busy",
+  "sensorMovementLow": "Still & quiet",
+  "sensorMovementMid": "Some activity",
+  "sensorMovementHigh": "Busy · lots of motion",
 
-  "sensorHpaLow": "Fair",
-  "sensorHpaMid": "Mixed",
-  "sensorHpaHigh": "Unsettled",
+  "sensorHpaLow": "Clear skies",
+  "sensorHpaMid": "Stable pressure",
+  "sensorHpaHigh": "Unsettled weather",
 
-  "tileSensorInsightsLabel": "Conditions recorded here",
+  "tileSensorInsightsLabel": "What's usually here",
+
+  "tileConditionSummary": "Usually {light}, {movement}, under {pressure}.",
+  "@tileConditionSummary": {
+    "placeholders": {
+      "light": { "type": "String" },
+      "movement": { "type": "String" },
+      "pressure": { "type": "String" }
+    }
+  },
+  "tileConditionSummaryNoHpa": "Usually {light} and {movement}.",
+  "@tileConditionSummaryNoHpa": {
+    "placeholders": {
+      "light": { "type": "String" },
+      "movement": { "type": "String" }
+    }
+  },
 
   "territoryHeroLabel": "{neighborhood} · {count} zones",
   "@territoryHeroLabel": {
@@ -579,6 +595,12 @@
     }
   },
   "serverWakingUp": "Starting up — hang tight…",
+  "ambientHereLabel": "Here",
+  "ambientNearbyLabel": "Nearby",
+  "ambientUnmappedLabel": "Walk here to reveal data",
+  "permissionLostTitle": "Location access off",
+  "permissionLostBody": "Your map stopped updating. Tap to fix.",
+  "permissionLostCta": "Fix in Settings",
   "referralNeighborhoodHook": "Help map {neighborhood} — every neighbor fills in what you haven't reached.",
   "@referralNeighborhoodHook": {
     "placeholders": { "neighborhood": { "type": "String" } }
@@ -587,6 +609,10 @@
   "onboardingActivateTitle": "Almost there",
   "onboardingActivateSubtitle": "Allow location access — your phone maps as you move.",
   "onboardingActivateCta": "Start mapping",
+  "onboardingPermissionDenied": "Location permission is required to map your city.",
+  "onboardingPermissionDeniedForeverTitle": "Permission required",
+  "onboardingPermissionDeniedForeverBody": "Location access was permanently denied. Open Settings and enable it under Permissions → Location.",
+  "onboardingOpenSettings": "Open Settings",
 
   "homeMaxClusterHint": "biggest area: {count} zones",
   "@homeMaxClusterHint": {
@@ -628,5 +654,7 @@
   "statsMilestoneTarget": "{target} zones",
   "@statsMilestoneTarget": {
     "placeholders": { "target": { "type": "int" } }
-  }
+  },
+  "statsActivitySection": "ACTIVITY",
+  "statsTerritorySection": "TERRITORY"
 }

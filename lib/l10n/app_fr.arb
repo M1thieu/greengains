@@ -556,20 +556,36 @@
   "sensorMovementLabel": "{val}",
   "@sensorMovementLabel": { "placeholders": { "val": { "type": "String" } } },
 
-  "sensorLuxDark": "Sombre",
-  "sensorLuxIndoor": "Intérieur",
-  "sensorLuxBright": "Lumineux",
+  "sensorLuxDark": "Très sombre",
+  "sensorLuxIndoor": "Dim · intérieur",
+  "sensorLuxBright": "Lumineux dehors",
   "sensorLuxDirect": "Plein soleil",
 
-  "sensorMovementLow": "Calme",
-  "sensorMovementMid": "Animé",
-  "sensorMovementHigh": "Fréquenté",
+  "sensorMovementLow": "Calme et tranquille",
+  "sensorMovementMid": "Quelque activité",
+  "sensorMovementHigh": "Animé · beaucoup de mouvement",
 
-  "sensorHpaLow": "Beau",
-  "sensorHpaMid": "Variable",
-  "sensorHpaHigh": "Couvert",
+  "sensorHpaLow": "Ciel dégagé",
+  "sensorHpaMid": "Pression stable",
+  "sensorHpaHigh": "Temps variable",
 
-  "tileSensorInsightsLabel": "Conditions relevées ici",
+  "tileSensorInsightsLabel": "Ce qu'on y trouve",
+
+  "tileConditionSummary": "Généralement {light}, {movement}, sous {pressure}.",
+  "@tileConditionSummary": {
+    "placeholders": {
+      "light": { "type": "String" },
+      "movement": { "type": "String" },
+      "pressure": { "type": "String" }
+    }
+  },
+  "tileConditionSummaryNoHpa": "Généralement {light} et {movement}.",
+  "@tileConditionSummaryNoHpa": {
+    "placeholders": {
+      "light": { "type": "String" },
+      "movement": { "type": "String" }
+    }
+  },
 
   "territoryHeroLabel": "{neighborhood} · {count} zones",
   "@territoryHeroLabel": {
@@ -579,6 +595,12 @@
     }
   },
   "serverWakingUp": "Démarrage en cours — encore un instant…",
+  "ambientHereLabel": "Ici",
+  "ambientNearbyLabel": "À proximité",
+  "ambientUnmappedLabel": "Passe par ici pour révéler les données",
+  "permissionLostTitle": "Accès à la localisation désactivé",
+  "permissionLostBody": "Votre carte ne se met plus à jour. Appuyez pour corriger.",
+  "permissionLostCta": "Corriger dans les réglages",
   "referralNeighborhoodHook": "Aidez à cartographier {neighborhood} — chaque voisin couvre ce que vous n'avez pas encore atteint.",
   "@referralNeighborhoodHook": {
     "placeholders": { "neighborhood": { "type": "String" } }
@@ -587,6 +609,10 @@
   "onboardingActivateTitle": "Presque là",
   "onboardingActivateSubtitle": "Autorisez la localisation — votre téléphone cartographie pendant vos déplacements.",
   "onboardingActivateCta": "Commencer à cartographier",
+  "onboardingPermissionDenied": "L'accès à la localisation est nécessaire pour cartographier votre ville.",
+  "onboardingPermissionDeniedForeverTitle": "Permission requise",
+  "onboardingPermissionDeniedForeverBody": "L'accès à la localisation a été refusé définitivement. Ouvrez les Réglages et activez-le sous Autorisations → Localisation.",
+  "onboardingOpenSettings": "Ouvrir les réglages",
 
   "homeMaxClusterHint": "plus grande zone : {count} cases",
   "@homeMaxClusterHint": {
@@ -628,5 +654,7 @@
   "statsMilestoneTarget": "{target} zones",
   "@statsMilestoneTarget": {
     "placeholders": { "target": { "type": "int" } }
-  }
+  },
+  "statsActivitySection": "ACTIVITÉ",
+  "statsTerritorySection": "TERRITOIRE"
 }

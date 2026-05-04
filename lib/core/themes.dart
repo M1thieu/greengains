@@ -38,7 +38,7 @@ class AppColors {
 
   static const Color darkTextPrimary = Color(0xFFF0F0F0);      // near-white
   static const Color darkTextSecondary = Color(0xFFA0A0A0);    // readable mid-gray
-  static const Color darkTextTertiary = Color(0xFF707070);     // hints/placeholders
+  static const Color darkTextTertiary = Color(0xFF8E8E8E);     // hints/placeholders — 4.5:1 on darkSurface
   static const Color darkBorder = Color(0xFF525252);           // clearly visible (82, +44 from surface)
   static const Color darkDivider = Color(0xFF3A3A3A);          // separator (58)
 

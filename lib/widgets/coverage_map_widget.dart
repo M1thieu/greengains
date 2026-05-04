@@ -109,6 +109,7 @@ const _kLayerTilesFill  = 'gg-tiles-fill';
 const _kLayerTilesLine  = 'gg-tiles-line';
 const _kLayerTilesLabel = 'gg-tiles-label';
 const _kLayerLiveFill   = 'gg-live-fill';
+const _kLayerLiveGlow   = 'gg-live-glow';   // wide translucent ring — hex halo effect
 const _kLayerLiveLine   = 'gg-live-line';
 const _kLayerUserHalo   = 'gg-user-halo';
 const _kLayerUserDot    = 'gg-user-dot';
@@ -208,6 +209,8 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> {
   bool _hasFitTiles = false;       // true after first fit-to-tiles (no GPS case)
   final Map<String, H3Tile> _tileById = {};
   Timer? _gridTimer;
+  Timer? _haloTimer;
+  double _haloPhase = 0.0; // 0..2π, drives sine-wave pulse
   int _gridGeneration = 0;   // incremented on each refresh; stale results are discarded
   String? _lastGridCenterCell; // H3 cell hex string of last computed grid center
   int _lastGridZoom = -1;      // floor(zoom) at last grid compute
@@ -600,31 +603,47 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> {
       _kLayerTilesLabel,
       const SymbolLayerProperties(
         textField: ['get', 'label'],
-        textColor: ['get', 'color'],
-        textSize: 10.0,
-        textFont: ['Noto Sans Regular'],
+        textColor: '#ffffff',
+        textSize: 11.0,
+        textFont: ['Noto Sans Bold'],
+        textHaloColor: '#000000',
+        textHaloWidth: 1.2,
         textAllowOverlap: false,
         textIgnorePlacement: false,
       ),
       minzoom: 12.0,
     );
 
-    // ── Live cell (amber — same as AppColors.light) ──
+    // ── Live cell — primary green fill + glow halo + sharp inner outline ──
+    // Color matches the user dot (primaryHex) so the current cell reads as "yours"
+    // not as a quality signal. Two outline layers: wide+faint = halo, thin+solid = edge.
     await ctrl.addFillLayer(
       _kSourceLiveCell,
       _kLayerLiveFill,
       const FillLayerProperties(
-        fillColor: AppColors.lightHex,
-        fillOpacity: 0.28,
+        fillColor: AppColors.primaryHex,
+        fillOpacity: 0.12,
       ),
     );
+    // Outer glow — wide, translucent, blurs into the hex shape
+    await ctrl.addLineLayer(
+      _kSourceLiveCell,
+      _kLayerLiveGlow,
+      const LineLayerProperties(
+        lineColor: AppColors.primaryHex,
+        lineOpacity: 0.30,
+        lineWidth: 6.0,
+        lineBlur: 4.0,
+      ),
+    );
+    // Inner edge — crisp 1.5px border to anchor the glow
     await ctrl.addLineLayer(
       _kSourceLiveCell,
       _kLayerLiveLine,
       const LineLayerProperties(
-        lineColor: AppColors.lightHex,
-        lineOpacity: 0.95,
-        lineWidth: 2.0,
+        lineColor: AppColors.primaryHex,
+        lineOpacity: 0.90,
+        lineWidth: 1.5,
       ),
     );
 
@@ -650,6 +669,7 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> {
         circleStrokeColor: '#ffffff',
       ),
     );
+    _startHaloPulse();
 
     // ── Carto labels on top — street names / city names float above hexagons ──
     // Only needed for the CartoDB raster fallback (no Protomaps key).
@@ -684,8 +704,9 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> {
     if (!_styleLoaded || ctrl == null) return;
 
     // Live cell dims when paused but stays visible so user sees their position.
-    final liveFillOpacity = widget.isTracking ? 0.28 : 0.10;
-    final liveLineOpacity = widget.isTracking ? 0.95 : 0.35;
+    final liveFillOpacity = widget.isTracking ? 0.12 : 0.05;
+    final liveGlowOpacity = widget.isTracking ? 0.30 : 0.10;
+    final liveLineOpacity = widget.isTracking ? 0.90 : 0.30;
 
     await Future.wait([
       ctrl.setGeoJsonSource(_kSourceTiles, _tilesToGeoJson()),
@@ -693,6 +714,7 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> {
       ctrl.setGeoJsonSource(_kSourceLiveCell, _liveCellGeoJson()),
       ctrl.setGeoJsonSource(_kSourceUserDot, _userDotGeoJson()),
       ctrl.setLayerProperties(_kLayerLiveFill, FillLayerProperties(fillOpacity: liveFillOpacity)),
+      ctrl.setLayerProperties(_kLayerLiveGlow, LineLayerProperties(lineOpacity: liveGlowOpacity)),
       ctrl.setLayerProperties(_kLayerLiveLine, LineLayerProperties(lineOpacity: liveLineOpacity)),
     ]);
 
@@ -799,6 +821,22 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> {
     _gridTimer = Timer(_kGridDebounce, _refreshGrid);
   }
 
+  void _startHaloPulse() {
+    _haloTimer?.cancel();
+    // 60ms tick ≈ 16fps — sufficient for a slow breathing halo, avoids GL spam
+    _haloTimer = Timer.periodic(const Duration(milliseconds: 60), (_) {
+      if (!_styleLoaded || _ctrl == null || !mounted) return;
+      _haloPhase = (_haloPhase + 0.07) % (2 * pi);
+      final t = (sin(_haloPhase) + 1) / 2; // 0..1
+      final radius = 13.0 + t * 11.0;      // 13→24
+      final opacity = 0.08 + t * 0.16;     // 0.08→0.24
+      _ctrl!.setLayerProperties(
+        _kLayerUserHalo,
+        CircleLayerProperties(circleRadius: radius, circleOpacity: opacity),
+      );
+    });
+  }
+
   void _onMapTap(Point<double> point, LatLng coords) async {
     // Suppress tap if it follows a long press — MapLibre fires onMapClick when
     // the finger lifts after a long press, which would open a duplicate sheet.
@@ -899,6 +937,7 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> {
   @override
   void dispose() {
     _gridTimer?.cancel();
+    _haloTimer?.cancel();
     widget.recenterTrigger?.removeListener(_onRecenter);
     super.dispose();
   }
@@ -1494,7 +1533,30 @@ class _TileInfoSheetState extends State<TileInfoSheet> {
                           letterSpacing: 0.4,
                         ),
                       ),
-                      const SizedBox(height: AppTheme.spaceXs),
+                      // Natural language summary — only when light+movement both present
+                      if (tile.avgLux != null && tile.avgMovement != null) ...[
+                        const SizedBox(height: AppTheme.spaceXxxs + 2),
+                        Text(
+                          tile.avgHpa != null
+                              ? l10n.tileConditionSummary(
+                                  _luxContext(tile.avgLux!, l10n).toLowerCase(),
+                                  _movementContext(tile.avgMovement!, l10n).toLowerCase(),
+                                  _hpaContext(tile.avgHpa!, l10n).toLowerCase(),
+                                )
+                              : l10n.tileConditionSummaryNoHpa(
+                                  _luxContext(tile.avgLux!, l10n).toLowerCase(),
+                                  _movementContext(tile.avgMovement!, l10n).toLowerCase(),
+                                ),
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: AppColors.textPrimary(isDark),
+                            fontWeight: AppFontWeights.medium,
+                            height: 1.4,
+                          ),
+                        ),
+                        const SizedBox(height: AppTheme.spaceSm),
+                      ] else
+                        const SizedBox(height: AppTheme.spaceXs),
                       if (tile.avgLux != null)
                         _SensorInsightRow(
                           icon: Icons.light_mode_outlined,

@@ -6,6 +6,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:geolocator/geolocator.dart';
 import '../core/app_preferences.dart';
@@ -139,22 +140,66 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         permission = await Geolocator.requestPermission();
       }
       if (!mounted) return;
-      if (permission == LocationPermission.always ||
-          permission == LocationPermission.whileInUse) {
-        await ForegroundLocationService.instance.start();
-        if (mounted) widget.onComplete();
-      } else {
-        if (mounted) {
-          setState(() => _startingTracking = false);
-          AppSnackbars.showError(context, context.l10n.errorGeneric);
-        }
+
+      if (permission == LocationPermission.deniedForever) {
+        setState(() => _startingTracking = false);
+        final l10n = context.l10n;
+        await showDialog<void>(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: Text(l10n.onboardingPermissionDeniedForeverTitle),
+            content: Text(l10n.onboardingPermissionDeniedForeverBody),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(),
+                child: Text(l10n.buttonPrevious),
+              ),
+              FilledButton(
+                onPressed: () {
+                  Navigator.of(ctx).pop();
+                  Geolocator.openAppSettings();
+                },
+                child: Text(l10n.onboardingOpenSettings),
+              ),
+            ],
+          ),
+        );
+        return;
       }
+
+      if (permission == LocationPermission.denied) {
+        setState(() => _startingTracking = false);
+        if (mounted) AppSnackbars.showError(context, context.l10n.onboardingPermissionDenied);
+        return;
+      }
+
+      // Permission granted — prompt battery optimization before completing.
+      await _requestBatteryExemption();
+      if (!mounted) return;
+
+      await ForegroundLocationService.instance.start();
+      if (mounted) widget.onComplete();
     } catch (e) {
       debugPrint('Start mapping error: $e');
       if (mounted) {
         setState(() => _startingTracking = false);
         AppSnackbars.showError(context, context.l10n.errorGeneric);
       }
+    }
+  }
+
+  /// Request battery optimization exemption inline — fires once during onboarding
+  /// right after location permission is granted, while the user is still engaged.
+  Future<void> _requestBatteryExemption() async {
+    try {
+      const platform = MethodChannel('greengains/foreground');
+      final bool isIgnoring =
+          await platform.invokeMethod('isIgnoringBatteryOptimizations');
+      if (!isIgnoring) {
+        await platform.invokeMethod('requestIgnoreBatteryOptimizations');
+      }
+    } catch (_) {
+      // Non-critical — tracking works without it, just may be killed by Doze.
     }
   }
 

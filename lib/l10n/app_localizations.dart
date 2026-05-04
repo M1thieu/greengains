@@ -2165,68 +2165,80 @@ abstract class AppLocalizations {
   /// No description provided for @sensorLuxDark.
   ///
   /// In en, this message translates to:
-  /// **'Dark'**
+  /// **'Pitch dark'**
   String get sensorLuxDark;
 
   /// No description provided for @sensorLuxIndoor.
   ///
   /// In en, this message translates to:
-  /// **'Indoors'**
+  /// **'Dim · indoors'**
   String get sensorLuxIndoor;
 
   /// No description provided for @sensorLuxBright.
   ///
   /// In en, this message translates to:
-  /// **'Bright'**
+  /// **'Bright outdoors'**
   String get sensorLuxBright;
 
   /// No description provided for @sensorLuxDirect.
   ///
   /// In en, this message translates to:
-  /// **'Full sun'**
+  /// **'Full sunlight'**
   String get sensorLuxDirect;
 
   /// No description provided for @sensorMovementLow.
   ///
   /// In en, this message translates to:
-  /// **'Quiet'**
+  /// **'Still & quiet'**
   String get sensorMovementLow;
 
   /// No description provided for @sensorMovementMid.
   ///
   /// In en, this message translates to:
-  /// **'Active'**
+  /// **'Some activity'**
   String get sensorMovementMid;
 
   /// No description provided for @sensorMovementHigh.
   ///
   /// In en, this message translates to:
-  /// **'Busy'**
+  /// **'Busy · lots of motion'**
   String get sensorMovementHigh;
 
   /// No description provided for @sensorHpaLow.
   ///
   /// In en, this message translates to:
-  /// **'Fair'**
+  /// **'Clear skies'**
   String get sensorHpaLow;
 
   /// No description provided for @sensorHpaMid.
   ///
   /// In en, this message translates to:
-  /// **'Mixed'**
+  /// **'Stable pressure'**
   String get sensorHpaMid;
 
   /// No description provided for @sensorHpaHigh.
   ///
   /// In en, this message translates to:
-  /// **'Unsettled'**
+  /// **'Unsettled weather'**
   String get sensorHpaHigh;
 
   /// No description provided for @tileSensorInsightsLabel.
   ///
   /// In en, this message translates to:
-  /// **'Conditions recorded here'**
+  /// **'What\'s usually here'**
   String get tileSensorInsightsLabel;
+
+  /// No description provided for @tileConditionSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Usually {light}, {movement}, under {pressure}.'**
+  String tileConditionSummary(String light, String movement, String pressure);
+
+  /// No description provided for @tileConditionSummaryNoHpa.
+  ///
+  /// In en, this message translates to:
+  /// **'Usually {light} and {movement}.'**
+  String tileConditionSummaryNoHpa(String light, String movement);
 
   /// No description provided for @territoryHeroLabel.
   ///
@@ -2239,6 +2251,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Starting up — hang tight…'**
   String get serverWakingUp;
+
+  /// No description provided for @ambientHereLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Here'**
+  String get ambientHereLabel;
+
+  /// No description provided for @ambientNearbyLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Nearby'**
+  String get ambientNearbyLabel;
+
+  /// No description provided for @ambientUnmappedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Walk here to reveal data'**
+  String get ambientUnmappedLabel;
+
+  /// No description provided for @permissionLostTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Location access off'**
+  String get permissionLostTitle;
+
+  /// No description provided for @permissionLostBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your map stopped updating. Tap to fix.'**
+  String get permissionLostBody;
+
+  /// No description provided for @permissionLostCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Fix in Settings'**
+  String get permissionLostCta;
 
   /// No description provided for @referralNeighborhoodHook.
   ///
@@ -2263,6 +2311,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Start mapping'**
   String get onboardingActivateCta;
+
+  /// No description provided for @onboardingPermissionDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Location permission is required to map your city.'**
+  String get onboardingPermissionDenied;
+
+  /// No description provided for @onboardingPermissionDeniedForeverTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Permission required'**
+  String get onboardingPermissionDeniedForeverTitle;
+
+  /// No description provided for @onboardingPermissionDeniedForeverBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Location access was permanently denied. Open Settings and enable it under Permissions → Location.'**
+  String get onboardingPermissionDeniedForeverBody;
+
+  /// No description provided for @onboardingOpenSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Settings'**
+  String get onboardingOpenSettings;
 
   /// No description provided for @homeMaxClusterHint.
   ///
@@ -2419,6 +2491,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{target} zones'**
   String statsMilestoneTarget(int target);
+
+  /// No description provided for @statsActivitySection.
+  ///
+  /// In en, this message translates to:
+  /// **'ACTIVITY'**
+  String get statsActivitySection;
+
+  /// No description provided for @statsTerritorySection.
+  ///
+  /// In en, this message translates to:
+  /// **'TERRITORY'**
+  String get statsTerritorySection;
 }
 
 class _AppLocalizationsDelegate

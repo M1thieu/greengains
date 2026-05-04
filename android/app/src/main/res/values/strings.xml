@@ -41,6 +41,18 @@
     <string name="notification_upload_hours_ago">%dh ago</string>
     <string name="notification_upload_yesterday">yesterday</string>
 
+    <!-- Variant B notification — title, subtext chip, body, expanded -->
+    <string name="notif_title_contributing">Contributing</string>
+    <string name="notif_subtext_active">ACTIVE</string>
+    <string name="notif_subtext_stationary">STATIONARY</string>
+    <string name="notif_body_starting">Starting up…</string>
+    <string name="notif_motion_moving">Moving</string>
+    <string name="notif_motion_still">Still</string>
+    <!-- %1$d = hours, %2$d = minutes (zero-padded) -->
+    <string name="notif_duration_hours_min">%1$dh %2$02dmin</string>
+    <!-- %1$d = minutes -->
+    <string name="notif_duration_minutes">%1$dmin</string>
+
     <!-- Background worker notification -->
     <string name="notification_worker_title">GreenGains · syncing</string>
     <string name="notification_worker_body">Saving your map data</string>

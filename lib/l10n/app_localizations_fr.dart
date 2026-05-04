@@ -1291,37 +1291,47 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get sensorLuxDark => 'Sombre';
+  String get sensorLuxDark => 'Très sombre';
 
   @override
-  String get sensorLuxIndoor => 'Intérieur';
+  String get sensorLuxIndoor => 'Dim · intérieur';
 
   @override
-  String get sensorLuxBright => 'Lumineux';
+  String get sensorLuxBright => 'Lumineux dehors';
 
   @override
   String get sensorLuxDirect => 'Plein soleil';
 
   @override
-  String get sensorMovementLow => 'Calme';
+  String get sensorMovementLow => 'Calme et tranquille';
 
   @override
-  String get sensorMovementMid => 'Animé';
+  String get sensorMovementMid => 'Quelque activité';
 
   @override
-  String get sensorMovementHigh => 'Fréquenté';
+  String get sensorMovementHigh => 'Animé · beaucoup de mouvement';
 
   @override
-  String get sensorHpaLow => 'Beau';
+  String get sensorHpaLow => 'Ciel dégagé';
 
   @override
-  String get sensorHpaMid => 'Variable';
+  String get sensorHpaMid => 'Pression stable';
 
   @override
-  String get sensorHpaHigh => 'Couvert';
+  String get sensorHpaHigh => 'Temps variable';
 
   @override
-  String get tileSensorInsightsLabel => 'Conditions relevées ici';
+  String get tileSensorInsightsLabel => 'Ce qu\'on y trouve';
+
+  @override
+  String tileConditionSummary(String light, String movement, String pressure) {
+    return 'Généralement $light, $movement, sous $pressure.';
+  }
+
+  @override
+  String tileConditionSummaryNoHpa(String light, String movement) {
+    return 'Généralement $light et $movement.';
+  }
 
   @override
   String territoryHeroLabel(String neighborhood, int count) {
@@ -1330,6 +1340,25 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get serverWakingUp => 'Démarrage en cours — encore un instant…';
+
+  @override
+  String get ambientHereLabel => 'Ici';
+
+  @override
+  String get ambientNearbyLabel => 'À proximité';
+
+  @override
+  String get ambientUnmappedLabel => 'Passe par ici pour révéler les données';
+
+  @override
+  String get permissionLostTitle => 'Accès à la localisation désactivé';
+
+  @override
+  String get permissionLostBody =>
+      'Votre carte ne se met plus à jour. Appuyez pour corriger.';
+
+  @override
+  String get permissionLostCta => 'Corriger dans les réglages';
 
   @override
   String referralNeighborhoodHook(String neighborhood) {
@@ -1345,6 +1374,20 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get onboardingActivateCta => 'Commencer à cartographier';
+
+  @override
+  String get onboardingPermissionDenied =>
+      'L\'accès à la localisation est nécessaire pour cartographier votre ville.';
+
+  @override
+  String get onboardingPermissionDeniedForeverTitle => 'Permission requise';
+
+  @override
+  String get onboardingPermissionDeniedForeverBody =>
+      'L\'accès à la localisation a été refusé définitivement. Ouvrez les Réglages et activez-le sous Autorisations → Localisation.';
+
+  @override
+  String get onboardingOpenSettings => 'Ouvrir les réglages';
 
   @override
   String homeMaxClusterHint(int count) {
@@ -1433,4 +1476,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String statsMilestoneTarget(int target) {
     return '$target zones';
   }
+
+  @override
+  String get statsActivitySection => 'ACTIVITÉ';
+
+  @override
+  String get statsTerritorySection => 'TERRITOIRE';
 }

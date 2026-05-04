@@ -37,6 +37,16 @@
     <string name="notification_upload_hours_ago">il y a %dh</string>
     <string name="notification_upload_yesterday">hier</string>
 
+    <!-- Variante B notification -->
+    <string name="notif_title_contributing">Contribue à la carte</string>
+    <string name="notif_subtext_active">ACTIF</string>
+    <string name="notif_subtext_stationary">IMMOBILE</string>
+    <string name="notif_body_starting">Démarrage…</string>
+    <string name="notif_motion_moving">En déplacement</string>
+    <string name="notif_motion_still">À l\'arrêt</string>
+    <string name="notif_duration_hours_min">%1$dh %2$02dmin</string>
+    <string name="notif_duration_minutes">%1$dmin</string>
+
     <!-- Background worker notification -->
     <string name="notification_worker_title">GreenGains · synchronisation</string>
     <string name="notification_worker_body">Sauvegarde de vos données</string>

@@ -21,7 +21,7 @@ const _kBarMaxH           = 72.0;  // tallest bar at 100 % of the data range
 const _kBarMinH           = 4.0;   // floor so 0-count bars remain visible
 const _kBarLabelH         = AppTheme.spaceLg + AppTheme.spaceSm; // 36 px = label area below bars
 const _kBarAnimStagger    = 40;    // ms added per bar for cascade entrance
-const _kBarLabelSize      = 10.0;  // day-of-week label below each bar (below bodySmall)
+const _kBarLabelSize      = 11.0;  // day-of-week label below each bar
 const _kSkeletonTitleW    = 160.0; // width of section-title skeleton rect
 const _kSkeletonHeroH     = 96.0;  // height of hero card skeleton placeholder
 const _kHeroIconSize      = 80.0;  // empty-state centre icon size
@@ -231,19 +231,23 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                     ),
                     children: [
                       _withEntrance(_buildHeroCard(theme, isDark, l10n), 0),
-                      const SizedBox(height: AppTheme.spaceSm),
+                      const SizedBox(height: AppTheme.spaceMd),
                       if ((_stats?.currentStreak ?? 0) >= 3) ...[
                         _withEntrance(_StreakBanner(
                           streak: _stats!.currentStreak,
                           uploadsToday: _stats!.uploadsToday,
                           isDark: isDark,
                         ), 1),
-                        const SizedBox(height: AppTheme.spaceSm),
+                        const SizedBox(height: AppTheme.spaceMd),
                       ],
+                      _StatsSectionLabel(l10n.statsActivitySection, isDark: isDark),
+                      const SizedBox(height: AppTheme.spaceXs),
                       _withEntrance(_buildSupportingTrio(theme, isDark), 2),
-                      const SizedBox(height: AppTheme.spaceSm),
+                      const SizedBox(height: AppTheme.spaceMd),
+                      _StatsSectionLabel(l10n.statsTerritorySection, isDark: isDark),
+                      const SizedBox(height: AppTheme.spaceXs),
                       _withEntrance(_buildMilestoneRow(theme, isDark, l10n), 3),
-                      const SizedBox(height: AppTheme.spaceSm),
+                      const SizedBox(height: AppTheme.spaceMd),
                       _withEntrance(_buildActivityChart(theme, isDark, l10n), 4),
                     ],
                   ),
@@ -264,9 +268,9 @@ class _StatisticsScreenState extends State<StatisticsScreen>
     final showKm2 = zones > 0;
 
     return Container(
-      decoration: AppTheme.surfaceContainer(isDark: isDark, radius: AppTheme.radiusLg),
+      decoration: AppTheme.kpiCard(isDark: isDark, accentColor: AppColors.primary, radius: AppTheme.radiusLg),
       child: Padding(
-          padding: const EdgeInsets.all(AppTheme.spaceMd),
+          padding: const EdgeInsets.fromLTRB(AppTheme.spaceMd, AppTheme.spaceMd, AppTheme.spaceMd, AppTheme.spaceMd),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -314,7 +318,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                       child: Text(
                         '$totalUploads ${l10n.statsDataPtsLabel}',
                         style: theme.textTheme.labelSmall?.copyWith(
-                          color: AppColors.textTertiary(isDark),
+                          color: AppColors.textSecondary(isDark),
                           fontWeight: AppFontWeights.medium,
                         ),
                         overflow: TextOverflow.ellipsis,
@@ -327,7 +331,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                       child: Text(
                         l10n.statsMapGrowing,
                         style: theme.textTheme.labelSmall?.copyWith(
-                          color: AppColors.textTertiary(isDark),
+                          color: AppColors.textSecondary(isDark),
                           fontWeight: AppFontWeights.medium,
                         ),
                         overflow: TextOverflow.ellipsis,
@@ -342,7 +346,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                 Text(
                   l10n.statsSinceDate(DateFormat('MMM yyyy', Localizations.localeOf(context).toString()).format(_stats!.firstContributionAt!)),
                   style: theme.textTheme.labelSmall?.copyWith(
-                    color: AppColors.textTertiary(isDark),
+                    color: AppColors.textSecondary(isDark),
                     fontWeight: AppFontWeights.medium,
                   ),
                 ),
@@ -357,7 +361,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                       child: Text(
                         l10n.statsCommunityMappers(_activeMappers!),
                         style: theme.textTheme.labelSmall?.copyWith(
-                          color: AppColors.textTertiary(isDark),
+                          color: AppColors.textSecondary(isDark),
                           fontWeight: AppFontWeights.medium,
                         ),
                         overflow: TextOverflow.ellipsis,
@@ -550,7 +554,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                 Text(
                   l10n.statsMilestoneRemaining(remaining),
                   style: theme.textTheme.labelSmall?.copyWith(
-                    color: AppColors.textTertiary(isDark),
+                    color: AppColors.textSecondary(isDark),
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -656,7 +660,8 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                 ? _buildBarCallout(data, maxVal.toInt(), chartLocale, isDark, theme, l10n)
                 : const SizedBox(height: AppTheme.spaceMd),
           ),
-          SizedBox(
+          ClipRect(
+           child: SizedBox(
             height: _kBarMaxH + _kBarLabelH,
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.end,
@@ -731,7 +736,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                               fontSize: _kBarLabelSize,
                               color: (isToday || isSelected)
                                   ? AppColors.primary
-                                  : AppColors.textTertiary(isDark),
+                                  : AppColors.textSecondary(isDark),
                               fontWeight: (isToday || isSelected)
                                   ? AppFontWeights.semibold
                                   : AppFontWeights.regular,
@@ -744,7 +749,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                 );
               }),
             ),
-          ),
+           )),
         ],
       ),
     );
@@ -878,7 +883,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
           Text(
             l10n.statsWeeklyChartOffline,
             style: theme.textTheme.bodySmall?.copyWith(
-              color: AppColors.textTertiary(isDark),
+              color: AppColors.textSecondary(isDark),
             ),
           ),
         ],
@@ -1021,3 +1026,21 @@ class _StreakBanner extends StatelessWidget {
   }
 }
 
+class _StatsSectionLabel extends StatelessWidget {
+  const _StatsSectionLabel(this.text, {required this.isDark});
+  final String text;
+  final bool isDark;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      text,
+      style: TextStyle(
+        fontSize: 11,
+        fontWeight: AppFontWeights.semibold,
+        color: AppColors.textSecondary(isDark),
+        letterSpacing: 0.8,
+      ),
+    );
+  }
+}

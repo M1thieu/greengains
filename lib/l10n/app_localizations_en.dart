@@ -1278,37 +1278,47 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get sensorLuxDark => 'Dark';
+  String get sensorLuxDark => 'Pitch dark';
 
   @override
-  String get sensorLuxIndoor => 'Indoors';
+  String get sensorLuxIndoor => 'Dim · indoors';
 
   @override
-  String get sensorLuxBright => 'Bright';
+  String get sensorLuxBright => 'Bright outdoors';
 
   @override
-  String get sensorLuxDirect => 'Full sun';
+  String get sensorLuxDirect => 'Full sunlight';
 
   @override
-  String get sensorMovementLow => 'Quiet';
+  String get sensorMovementLow => 'Still & quiet';
 
   @override
-  String get sensorMovementMid => 'Active';
+  String get sensorMovementMid => 'Some activity';
 
   @override
-  String get sensorMovementHigh => 'Busy';
+  String get sensorMovementHigh => 'Busy · lots of motion';
 
   @override
-  String get sensorHpaLow => 'Fair';
+  String get sensorHpaLow => 'Clear skies';
 
   @override
-  String get sensorHpaMid => 'Mixed';
+  String get sensorHpaMid => 'Stable pressure';
 
   @override
-  String get sensorHpaHigh => 'Unsettled';
+  String get sensorHpaHigh => 'Unsettled weather';
 
   @override
-  String get tileSensorInsightsLabel => 'Conditions recorded here';
+  String get tileSensorInsightsLabel => 'What\'s usually here';
+
+  @override
+  String tileConditionSummary(String light, String movement, String pressure) {
+    return 'Usually $light, $movement, under $pressure.';
+  }
+
+  @override
+  String tileConditionSummaryNoHpa(String light, String movement) {
+    return 'Usually $light and $movement.';
+  }
 
   @override
   String territoryHeroLabel(String neighborhood, int count) {
@@ -1317,6 +1327,24 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get serverWakingUp => 'Starting up — hang tight…';
+
+  @override
+  String get ambientHereLabel => 'Here';
+
+  @override
+  String get ambientNearbyLabel => 'Nearby';
+
+  @override
+  String get ambientUnmappedLabel => 'Walk here to reveal data';
+
+  @override
+  String get permissionLostTitle => 'Location access off';
+
+  @override
+  String get permissionLostBody => 'Your map stopped updating. Tap to fix.';
+
+  @override
+  String get permissionLostCta => 'Fix in Settings';
 
   @override
   String referralNeighborhoodHook(String neighborhood) {
@@ -1332,6 +1360,20 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get onboardingActivateCta => 'Start mapping';
+
+  @override
+  String get onboardingPermissionDenied =>
+      'Location permission is required to map your city.';
+
+  @override
+  String get onboardingPermissionDeniedForeverTitle => 'Permission required';
+
+  @override
+  String get onboardingPermissionDeniedForeverBody =>
+      'Location access was permanently denied. Open Settings and enable it under Permissions → Location.';
+
+  @override
+  String get onboardingOpenSettings => 'Open Settings';
 
   @override
   String homeMaxClusterHint(int count) {
@@ -1420,4 +1462,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String statsMilestoneTarget(int target) {
     return '$target zones';
   }
+
+  @override
+  String get statsActivitySection => 'ACTIVITY';
+
+  @override
+  String get statsTerritorySection => 'TERRITORY';
 }
