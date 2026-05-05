@@ -14,6 +14,7 @@ import '../core/extensions/context_extensions.dart';
 import '../core/themes.dart';
 import '../data/local/database_helper.dart';
 import '../data/models/h3_tile.dart';
+import '../core/app_preferences.dart';
 import '../l10n/app_localizations.dart';
 import 'time_ago_text.dart';
 
@@ -217,6 +218,7 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> {
   // MapLibre fires onMapClick when the finger lifts after a long press — suppress
   // taps that arrive within 600 ms of a long press to avoid double-open sheets.
   int _lastLongPressMs = 0;
+  bool _showMapHint = false;
 
   // ── Follow mode ─────────────────────────────────────────────────────────────
   // While tracking is active, the camera continuously follows the user's GPS.
@@ -842,13 +844,23 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> {
     // the finger lifts after a long press, which would open a duplicate sheet.
     if (DateTime.now().millisecondsSinceEpoch - _lastLongPressMs < 600) return;
     final tile = await _hitTestTile(point);
-    if (tile != null) widget.onTileTap?.call(tile);
+    if (tile != null) {
+      _dismissMapHint();
+      widget.onTileTap?.call(tile);
+    }
+  }
+
+  void _dismissMapHint() {
+    if (!_showMapHint) return;
+    setState(() => _showMapHint = false);
+    AppPreferences.instance.dismissTip('map_tap_hint');
   }
 
   void _onMapLongPress(Point<double> point, LatLng coords) async {
     _lastLongPressMs = DateTime.now().millisecondsSinceEpoch;
     final tile = await _hitTestTile(point);
     if (tile != null) {
+      _dismissMapHint();
       HapticFeedback.mediumImpact();
       (widget.onTileLongPress ?? widget.onTileTap)?.call(tile);
     }
@@ -868,6 +880,13 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> {
   }
 
   // ── Widget lifecycle ────────────────────────────────────────────────────────
+
+  @override
+  @override
+  void initState() {
+    super.initState();
+    _showMapHint = !AppPreferences.instance.isTipDismissed('map_tap_hint');
+  }
 
   @override
   void didUpdateWidget(CoverageMapWidget oldWidget) {
@@ -1036,6 +1055,10 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> {
             ),
           ),
 
+        // ── First-time tap hint (fill-screen + has tiles) ────────────────
+        if (widget.fillScreen && _showMapHint && widget.tiles.isNotEmpty)
+          _MapTapHint(onDismiss: _dismissMapHint),
+
         // ── Tile count badge (card mode) ──────────────────────────────────
         if (!widget.fillScreen && widget.tiles.isNotEmpty)
           Positioned(
@@ -1087,6 +1110,74 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> {
   }
 }
 
+// ── First-time map hint ───────────────────────────────────────────────────────
+
+class _MapTapHint extends StatefulWidget {
+  const _MapTapHint({required this.onDismiss});
+  final VoidCallback onDismiss;
+
+  @override
+  State<_MapTapHint> createState() => _MapTapHintState();
+}
+
+class _MapTapHintState extends State<_MapTapHint> {
+  bool _visible = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Delay so it appears after the map finishes loading
+    Future.delayed(const Duration(milliseconds: 1200), () {
+      if (mounted) setState(() => _visible = true);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Positioned(
+      top: 72,
+      left: 0,
+      right: 0,
+      child: AnimatedOpacity(
+        opacity: _visible ? 1.0 : 0.0,
+        duration: const Duration(milliseconds: 400),
+        child: Center(
+          child: GestureDetector(
+            onTap: widget.onDismiss,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(AppTheme.radiusPill),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  decoration: AppColors.glassDecoration(
+                      isDark: true, backgroundAlpha: 0.60, borderAlpha: 0.18),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.touch_app_rounded,
+                          size: 16, color: AppColors.primary),
+                      const SizedBox(width: 8),
+                      Text(
+                        AppLocalizations.of(context)!.mapTapHint,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          color: Colors.white,
+                          fontWeight: AppFontWeights.medium,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 // ── Map legend ────────────────────────────────────────────────────────────────
 
 /// Compact inline legend — three quality dots + optional community dot.
@@ -1099,7 +1190,6 @@ class MapHeatmapLegend extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        HapticFeedback.lightImpact();
         showModalBottomSheet(
           context: context,
           backgroundColor: Colors.transparent,
@@ -1500,96 +1590,46 @@ class _TileInfoSheetState extends State<TileInfoSheet> {
                         ),
                       ),
                     ),
-                    // Low-quality hint — personal tile only, below 50%
-                    if (isPersonal && qualityPct < 50) ...[
-                      const SizedBox(height: AppTheme.spaceXxs),
-                      Text(
-                        l10n.tileLowQualityHint,
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: AppColors.error.withValues(alpha: 0.75),
-                          fontWeight: AppFontWeights.medium,
-                        ),
-                      ),
-                    ],
                   ],
                 ),
               ),
-              // Sensor insights — any tile with data
-              if (tile.avgLux != null || tile.avgHpa != null || tile.avgMovement != null) ...[
-                Divider(height: 1, thickness: 1, color: AppColors.border(isDark)),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(
-                      AppTheme.spaceMd, AppTheme.spaceSm, AppTheme.spaceMd, AppTheme.spaceSm),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        l10n.tileSensorInsightsLabel,
-                        style: TextStyle(
-                          fontSize: 10,
-                          color: AppColors.textSecondary(isDark),
-                          fontWeight: AppFontWeights.medium,
-                          letterSpacing: 0.4,
-                        ),
+              // Sensor cards — data-driven, handles 1–N sensors gracefully
+              Builder(builder: (context) {
+                final cards = <({IconData icon, Color color, String title, String label})>[
+                  if (tile.avgLux != null)
+                    (icon: Icons.light_mode_rounded, color: AppColors.light, title: l10n.sensorLight, label: _luxContext(tile.avgLux!, l10n)),
+                  if (tile.avgHpa != null)
+                    (icon: Icons.compress_rounded, color: AppColors.pressure, title: l10n.sensorAirPressure, label: _hpaContext(tile.avgHpa!, l10n)),
+                  if (tile.avgMovement != null)
+                    (icon: Icons.vibration_rounded, color: AppColors.movement, title: l10n.sensorAcceleration, label: _movementContext(tile.avgMovement!, l10n)),
+                ];
+                if (cards.isEmpty) return const SizedBox.shrink();
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Divider(height: 1, thickness: 1, color: AppColors.border(isDark)),
+                    Padding(
+                      padding: const EdgeInsets.all(AppTheme.spaceMd),
+                      child: Row(
+                        children: [
+                          for (int i = 0; i < cards.length; i++) ...[
+                            if (i > 0) const SizedBox(width: AppTheme.spaceXs),
+                            Expanded(
+                              child: _SensorCard(
+                                icon: cards[i].icon,
+                                color: cards[i].color,
+                                title: cards[i].title,
+                                label: cards[i].label,
+                                isDark: isDark,
+                              ),
+                            ),
+                          ],
+                        ],
                       ),
-                      // Natural language summary — only when light+movement both present
-                      if (tile.avgLux != null && tile.avgMovement != null) ...[
-                        const SizedBox(height: AppTheme.spaceXxxs + 2),
-                        Text(
-                          tile.avgHpa != null
-                              ? l10n.tileConditionSummary(
-                                  _luxContext(tile.avgLux!, l10n).toLowerCase(),
-                                  _movementContext(tile.avgMovement!, l10n).toLowerCase(),
-                                  _hpaContext(tile.avgHpa!, l10n).toLowerCase(),
-                                )
-                              : l10n.tileConditionSummaryNoHpa(
-                                  _luxContext(tile.avgLux!, l10n).toLowerCase(),
-                                  _movementContext(tile.avgMovement!, l10n).toLowerCase(),
-                                ),
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: AppColors.textPrimary(isDark),
-                            fontWeight: AppFontWeights.medium,
-                            height: 1.4,
-                          ),
-                        ),
-                        const SizedBox(height: AppTheme.spaceSm),
-                      ] else
-                        const SizedBox(height: AppTheme.spaceXs),
-                      if (tile.avgLux != null)
-                        _SensorInsightRow(
-                          icon: Icons.light_mode_outlined,
-                          color: AppColors.light,
-                          context: _luxContext(tile.avgLux!, l10n),
-                          value: l10n.sensorLuxLabel(tile.avgLux!),
-                          isDark: isDark,
-                        ),
-                      if (tile.avgHpa != null) ...[
-                        if (tile.avgLux != null) const SizedBox(height: AppTheme.spaceXxxs + 2),
-                        _SensorInsightRow(
-                          icon: Icons.compress_outlined,
-                          color: AppColors.pressure,
-                          context: _hpaContext(tile.avgHpa!, l10n),
-                          value: l10n.sensorHpaLabel(tile.avgHpa!.toStringAsFixed(1)),
-                          isDark: isDark,
-                        ),
-                      ],
-                      if (tile.avgMovement != null) ...[
-                        if (tile.avgLux != null || tile.avgHpa != null)
-                          const SizedBox(height: AppTheme.spaceXxxs + 2),
-                        _SensorInsightRow(
-                          icon: Icons.vibration_outlined,
-                          color: AppColors.movement,
-                          context: _movementContext(tile.avgMovement!, l10n),
-                          value: l10n.sensorMovementLabel(tile.avgMovement!.toStringAsFixed(2)),
-                          isDark: isDark,
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-              ],
+                    ),
+                  ],
+                );
+              }),
               // Divider
               Divider(height: 1, thickness: 1, color: AppColors.border(isDark)),
               // Stats row
@@ -1623,57 +1663,12 @@ class _TileInfoSheetState extends State<TileInfoSheet> {
                   ],
                 ),
               ),
-              // Sensor pills
-              Padding(
-                padding: EdgeInsets.fromLTRB(
-                    AppTheme.spaceMd, 0, AppTheme.spaceMd,
-                    isPersonal ? AppTheme.spaceLg : AppTheme.spaceSm),
-                child: Row(
-                  children: [
-                    Flexible(
-                      child: Text(
-                        l10n.tileMeasuredWith,
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: AppColors.textSecondary(isDark),
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    const SizedBox(width: AppTheme.spaceSm),
-                    _SensorPill(icon: Icons.light_mode, color: AppColors.light),
-                    const SizedBox(width: 5),
-                    _SensorPill(icon: Icons.compress, color: AppColors.pressure),
-                    const SizedBox(width: 5),
-                    _SensorPill(icon: Icons.vibration, color: AppColors.movement),
-                    const SizedBox(width: 5),
-                    _SensorPill(icon: Icons.explore, color: AppColors.accentPurple),
-                  ],
-                ),
-              ),
-              // Personal tile: civic note — one quiet line grounding the data in purpose
-              if (isPersonal) ...[
-                Divider(height: 1, thickness: 1, color: AppColors.border(isDark)),
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: AppTheme.spaceMd, vertical: AppTheme.spaceSm),
-                  child: Text(
-                    l10n.tileCivicNote,
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: AppColors.textTertiary(isDark),
-                      fontStyle: FontStyle.italic,
-                    ),
-                  ),
-                ),
-              ],
 
               // Community tile: subtle claim CTA
               if (!isPersonal) ...[
                 Divider(height: 1, thickness: 1, color: AppColors.border(isDark)),
                 InkWell(
                   onTap: () {
-                    HapticFeedback.selectionClick();
                     Navigator.of(context).pop();
                   },
                   child: Padding(
@@ -1731,7 +1726,8 @@ class _TileInfoSheetState extends State<TileInfoSheet> {
   static String _movementContext(double rms, AppLocalizations l10n) {
     if (rms < 0.5) return l10n.sensorMovementLow;
     if (rms < 2.0) return l10n.sensorMovementMid;
-    return l10n.sensorMovementHigh;
+    if (rms < 5.0) return l10n.sensorMovementHigh;
+    return l10n.sensorMovementIntense;
   }
 }
 
@@ -1817,65 +1813,62 @@ class _TimeAgoLine extends StatelessWidget {
 }
 
 /// Tiny sensor icon pill used in TileInfoSheet to show which sensors contributed.
-class _SensorPill extends StatelessWidget {
-  const _SensorPill({required this.icon, required this.color});
+/// One sensor insight row: plain label PRIMARY · raw value small/secondary.
+class _SensorCard extends StatelessWidget {
+  const _SensorCard({
+    required this.icon,
+    required this.color,
+    required this.label,
+    required this.isDark,
+    this.title,
+  });
   final IconData icon;
   final Color color;
+  final String label;
+  final bool isDark;
+  final String? title;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(5),
+      padding: const EdgeInsets.symmetric(vertical: AppTheme.spaceSm, horizontal: AppTheme.spaceXs),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+        color: color.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
       ),
-      child: Icon(icon, size: 14, color: color),
-    );
-  }
-}
-
-/// One sensor insight row: plain label PRIMARY · raw value small/secondary.
-class _SensorInsightRow extends StatelessWidget {
-  const _SensorInsightRow({
-    required this.icon,
-    required this.color,
-    required this.value,
-    required this.context,
-    required this.isDark,
-  });
-  final IconData icon;
-  final Color color;
-  final String value;   // raw nerd value e.g. "850 lux"
-  final String context; // human label e.g. "Bright"
-  final bool isDark;
-
-  @override
-  Widget build(BuildContext buildContext) {
-    return Row(
-      children: [
-        Icon(icon, size: 13, color: color),
-        const SizedBox(width: AppTheme.spaceXs),
-        Expanded(
-          child: Text(
-            context,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 18, color: color),
+          if (title != null) ...[
+            const SizedBox(height: 3),
+            Text(
+              title!.toUpperCase(),
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 9,
+                color: color.withValues(alpha: 0.75),
+                fontWeight: AppFontWeights.semibold,
+                letterSpacing: 0.6,
+              ),
+            ),
+          ],
+          const SizedBox(height: 3),
+          Text(
+            label,
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
             style: TextStyle(
-              fontSize: 12,
+              fontSize: 11,
               color: AppColors.textPrimary(isDark),
               fontWeight: AppFontWeights.semibold,
+              height: 1.3,
             ),
-            overflow: TextOverflow.ellipsis,
           ),
-        ),
-        const SizedBox(width: AppTheme.spaceXs),
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: 11,
-            color: AppColors.textTertiary(isDark),
-          ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
+

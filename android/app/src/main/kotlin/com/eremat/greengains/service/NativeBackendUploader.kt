@@ -69,7 +69,12 @@ class NativeBackendUploader(
     private val uploadIntervalMs: Long = 300_000L, // 5 min — reduces backend costs by 60%
     private val batteryMonitor: BatteryStateMonitor? = null,
     private val networkMonitor: NetworkStateMonitor? = null,
-    private val statusListener: NativeUploadStatusListener? = null
+    private val statusListener: NativeUploadStatusListener? = null,
+    // Held for the duration of each upload attempt so aggressive OEMs (Xiaomi, Samsung, Huawei)
+    // don't suspend the CPU mid-batch. Null-safe: if not provided the upload still works, just
+    // with a small risk of silent drop on very aggressive battery management profiles.
+    // TODO(lucky-pot): also pass this lock when the daily reward eligibility check fires.
+    private val uploadWakeLock: android.os.PowerManager.WakeLock? = null,
 ) {
 
     // ── PendingBatch ──────────────────────────────────────────────────────────
@@ -196,6 +201,8 @@ class NativeBackendUploader(
     fun getBufferSize(): Int = synchronized(sensorBuffer) { sensorBuffer.size }
 
     private suspend fun uploadBatch() = withContext(Dispatchers.IO) {
+        uploadWakeLock?.acquire(60_000L) // 60s ceiling — upload never takes longer; auto-releases if we crash
+        try {
         val apiKey = resolveApiKey()
         if (apiKey.isEmpty()) {
             Log.w(TAG, "Upload skipped: API key missing")
@@ -251,6 +258,9 @@ class NativeBackendUploader(
         }
 
         uploadPendingBatch(batch, apiKey)
+        } finally {
+            if (uploadWakeLock?.isHeld == true) uploadWakeLock.release()
+        }
     }
 
     private suspend fun uploadPendingBatch(batch: PendingBatch, apiKey: String) = withContext(Dispatchers.IO) {

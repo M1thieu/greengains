@@ -52,6 +52,7 @@ class PreferenceKeys {
   static const currentStreak = 'current_streak';
   static const lastSessionZonesGained = 'last_session_zones_gained';
   static const lastSessionEndAt = 'last_session_end_at';
+  static const bestSessionZonesGained = 'best_session_zones_gained';
 
   /// Primary neighborhood name computed from the user's most-mapped tile centroid.
   static const territoryLabel = 'territory_label';
@@ -329,10 +330,10 @@ class AppPreferences {
     switch (raw) {
       case 'dark':
         return ThemeMode.dark;
-      case 'system':
-        return ThemeMode.system;
-      default:
+      case 'light':
         return ThemeMode.light;
+      default:
+        return ThemeMode.system;
     }
   }
 
@@ -479,10 +480,16 @@ class AppPreferences {
     return ms != null ? DateTime.fromMillisecondsSinceEpoch(ms) : null;
   }
 
+  int get bestSessionZonesGained =>
+      _sp.getInt(PreferenceKeys.bestSessionZonesGained) ?? 0;
+
   Future<void> saveLastSession({required int zonesGained}) async {
     await _sp.setInt(PreferenceKeys.lastSessionZonesGained, zonesGained);
     await _sp.setInt(PreferenceKeys.lastSessionEndAt,
         DateTime.now().millisecondsSinceEpoch);
+    if (zonesGained > bestSessionZonesGained) {
+      await _sp.setInt(PreferenceKeys.bestSessionZonesGained, zonesGained);
+    }
   }
 
   bool get firstUploadCelebrated =>

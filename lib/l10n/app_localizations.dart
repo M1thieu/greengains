@@ -1430,6 +1430,18 @@ abstract class AppLocalizations {
   /// **'Live'**
   String get sensorStatusLive;
 
+  /// No description provided for @sensorStatusLastReading.
+  ///
+  /// In en, this message translates to:
+  /// **'Last reading'**
+  String get sensorStatusLastReading;
+
+  /// No description provided for @sensorStatusNoData.
+  ///
+  /// In en, this message translates to:
+  /// **'No data'**
+  String get sensorStatusNoData;
+
   /// No description provided for @lightDark.
   ///
   /// In en, this message translates to:
@@ -1724,6 +1736,12 @@ abstract class AppLocalizations {
   /// **'{count, plural, =1{1 zone to go} other{{count} zones to go}}'**
   String statsMilestoneRemaining(int count);
 
+  /// No description provided for @milestoneNudge.
+  ///
+  /// In en, this message translates to:
+  /// **'{remaining} to {target}'**
+  String milestoneNudge(int remaining, int target);
+
   /// No description provided for @statsCommunityAreas.
   ///
   /// In en, this message translates to:
@@ -1979,7 +1997,7 @@ abstract class AppLocalizations {
   /// No description provided for @milestoneReachedBody.
   ///
   /// In en, this message translates to:
-  /// **'How far can you go?'**
+  /// **'Keep pushing — your next goal is waiting.'**
   String get milestoneReachedBody;
 
   /// No description provided for @milestoneReachedCta.
@@ -2033,7 +2051,7 @@ abstract class AppLocalizations {
   /// No description provided for @sessionSummaryDone.
   ///
   /// In en, this message translates to:
-  /// **'Done'**
+  /// **'Nice'**
   String get sessionSummaryDone;
 
   /// No description provided for @statsMapGrowing.
@@ -2087,7 +2105,7 @@ abstract class AppLocalizations {
   /// No description provided for @statsStreakAtRisk.
   ///
   /// In en, this message translates to:
-  /// **'Map today to keep it'**
+  /// **'Don\'t break the chain'**
   String get statsStreakAtRisk;
 
   /// No description provided for @statsStreakDays.
@@ -2131,6 +2149,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'You measured this.'**
   String get tileCivicNote;
+
+  /// No description provided for @tileShareButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Share this spot'**
+  String get tileShareButton;
+
+  /// No description provided for @tileShareText.
+  ///
+  /// In en, this message translates to:
+  /// **'I measured this spot — {condition}. Check it out on the map.'**
+  String tileShareText(String condition);
 
   /// No description provided for @sessionSummaryShareText.
   ///
@@ -2189,20 +2219,26 @@ abstract class AppLocalizations {
   /// No description provided for @sensorMovementLow.
   ///
   /// In en, this message translates to:
-  /// **'Still & quiet'**
+  /// **'Quiet zone'**
   String get sensorMovementLow;
 
   /// No description provided for @sensorMovementMid.
   ///
   /// In en, this message translates to:
-  /// **'Some activity'**
+  /// **'Active area'**
   String get sensorMovementMid;
 
   /// No description provided for @sensorMovementHigh.
   ///
   /// In en, this message translates to:
-  /// **'Busy · lots of motion'**
+  /// **'Busy corridor'**
   String get sensorMovementHigh;
+
+  /// No description provided for @sensorMovementIntense.
+  ///
+  /// In en, this message translates to:
+  /// **'Transit / heavy traffic'**
+  String get sensorMovementIntense;
 
   /// No description provided for @sensorHpaLow.
   ///
@@ -2357,7 +2393,7 @@ abstract class AppLocalizations {
   /// No description provided for @firstUploadSubtext.
   ///
   /// In en, this message translates to:
-  /// **'Light, pressure and motion — recorded, anonymised, and added to the map.'**
+  /// **'Your first zone is live. Keep walking — every place you visit fills in.'**
   String get firstUploadSubtext;
 
   /// No description provided for @firstUploadSensorsLabel.
@@ -2453,13 +2489,13 @@ abstract class AppLocalizations {
   /// No description provided for @sessionMilestoneHit.
   ///
   /// In en, this message translates to:
-  /// **'{milestone} zones — milestone reached.'**
+  /// **'{milestone} zones reached. You earned it.'**
   String sessionMilestoneHit(int milestone);
 
   /// No description provided for @sessionSummaryNextHook.
   ///
   /// In en, this message translates to:
-  /// **'Come back tomorrow to keep your streak.'**
+  /// **'Come back tomorrow — don\'t break the chain.'**
   String get sessionSummaryNextHook;
 
   /// No description provided for @sessionSummaryNextHookEmpty.
@@ -2503,6 +2539,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'TERRITORY'**
   String get statsTerritorySection;
+
+  /// No description provided for @mapTapHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap a hex to explore'**
+  String get mapTapHint;
+
+  /// No description provided for @sessionPersonalBest.
+  ///
+  /// In en, this message translates to:
+  /// **'Personal best'**
+  String get sessionPersonalBest;
+
+  /// No description provided for @idleStreakAtRisk.
+  ///
+  /// In en, this message translates to:
+  /// **'Map today — don\'t break the chain'**
+  String get idleStreakAtRisk;
+
+  /// No description provided for @returnDeltaTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{zones} new zones while you were away.'**
+  String returnDeltaTitle(int zones);
+
+  /// No description provided for @returnDeltaDismiss.
+  ///
+  /// In en, this message translates to:
+  /// **'Got it'**
+  String get returnDeltaDismiss;
 }
 
 class _AppLocalizationsDelegate

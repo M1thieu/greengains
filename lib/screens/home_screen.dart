@@ -1,6 +1,5 @@
 ﻿import 'dart:async';
 import 'dart:convert';
-import 'dart:math' as math;
 import 'dart:ui' as ui;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:h3_flutter/h3_flutter.dart' as h3f;
@@ -113,8 +112,14 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   int get _claimedTileCount => _h3Tiles.where((t) => t.boundary != null).length;
   /// Current streak — loaded once from local DB on init, shown on idle home.
   int _currentStreak = 0;
+  int _uploadsToday = 0;
   /// Whether community tiles are visible on the map.
   bool _showCommunity = true;
+
+  // Return-delta card: shown once per app-open when zones were gained since last session.
+  // Dismissed by user tap or auto-dismissed after tracking starts.
+  int _returnDeltaZones = 0;
+  bool _returnDeltaDismissed = false;
 
   @override
   void initState() {
@@ -136,12 +141,29 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     _loadUserLocation();
     _subscribeToLocationUpdates();
     unawaited(_loadStreak());
+    _loadReturnDelta();
+  }
+
+  void _loadReturnDelta() {
+    final zones = _prefs.lastSessionZonesGained;
+    final endAt = _prefs.lastSessionEndAt;
+    if (zones <= 0 || endAt == null) return;
+    // Only show if last session ended more than 10 min ago (not an immediate re-open
+    // after the session summary was already shown) but less than 24h ago.
+    final age = DateTime.now().difference(endAt);
+    if (age < const Duration(minutes: 10) || age > const Duration(hours: 24)) return;
+    setState(() => _returnDeltaZones = zones);
   }
 
   Future<void> _loadStreak() async {
     try {
       final stats = await ContributionRepository().getStats();
-      if (mounted) setState(() => _currentStreak = stats.currentStreak);
+      if (mounted) {
+        setState(() {
+          _currentStreak = stats.currentStreak;
+          _uploadsToday = stats.uploadsToday;
+        });
+      }
     } catch (_) {}
   }
 
@@ -152,13 +174,19 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       _sessionStartTime = DateTime.now();
       _checkBatteryOptimization();
       _maybeShowFirstStart();
+      // Auto-dismiss return-delta card when user starts mapping.
+      if (_returnDeltaZones > 0 && !_returnDeltaDismissed) {
+        setState(() => _returnDeltaDismissed = true);
+      }
     } else {
       // Tracking stopped — persist session data for return hint.
       final gained = _claimedTileCount - _sessionStartZoneCount;
       final sessionDuration = _sessionStartTime != null
           ? DateTime.now().difference(_sessionStartTime!)
           : Duration.zero;
-      unawaited(_prefs.saveLastSession(zonesGained: gained.clamp(0, 9999)));
+      final clampedGained = gained.clamp(0, 9999);
+      final isPersonalBest = clampedGained > 0 && clampedGained > _prefs.bestSessionZonesGained;
+      unawaited(_prefs.saveLastSession(zonesGained: clampedGained));
       // Show summary for any meaningful session (≥2 min) or when zones were gained.
       final worthSummary = gained > 0 || sessionDuration >= const Duration(minutes: 2);
       if (worthSummary && _sessionStartZoneCount >= 0 && mounted) {
@@ -169,9 +197,11 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             context: context,
             backgroundColor: Colors.transparent,
             builder: (_) => _SessionSummarySheet(
-              zonesGained: gained.clamp(0, 9999),
+              zonesGained: clampedGained,
               totalZones: total,
               sessionDuration: sessionDuration,
+              streak: _currentStreak,
+              isPersonalBest: isPersonalBest,
               onViewStats: widget.onGoToStats,
             ),
           );
@@ -257,8 +287,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         if (!mounted) return;
         final newCount = _claimedTileCount;
         final gained = newCount - prevCount;
-        // Haptic reward on every zone gain — light, non-intrusive.
-        if (gained > 0) HapticFeedback.lightImpact();
+        if (gained > 0) HapticFeedback.mediumImpact();
         if (!_prefs.firstUploadCelebrated && newCount > 0) {
           unawaited(_prefs.setFirstUploadCelebrated());
           HapticFeedback.mediumImpact();
@@ -272,7 +301,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         final msg = gained > 0
             ? context.l10n.uploadSuccessNewZone(newCount)
             : context.l10n.uploadSuccessMessage;
-        HapticFeedback.lightImpact();
         AppSnackbars.showSuccess(context, msg);
         if (gained > 0) {
           _maybeCelebrateMilestone(newCount);
@@ -294,6 +322,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     final milestone = earned.last;
     await _prefs.setLastMilestoneCelebrated(milestone);
     if (!mounted) return;
+    HapticFeedback.heavyImpact();
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -700,8 +729,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 final isPaused  = _locationService.isPaused.value;
                 final isActive  = isRunning && !isPaused;
 
-                if (isActive && _sessionStartTime != null) {
-                  // Top-center under status chip — zone delta + live conditions
+                // Running (active or paused) — show zone delta + live conditions
+                if (isRunning && _sessionStartTime != null) {
                   return Positioned(
                     top: topPadding + AppTheme.spaceMd + 36,
                     left: 0, right: 0,
@@ -712,6 +741,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                           _TrackingHintPill(
                             newZones: (_claimedTileCount - _sessionStartZoneCount).clamp(0, 999),
                             sessionStart: _sessionStartTime ?? DateTime.now(),
+                            totalZones: _claimedTileCount,
+                            isPaused: isPaused,
                           ),
                           const SizedBox(height: 6),
                           _LiveConditionsLine(
@@ -722,8 +753,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     ),
                   );
                 }
-
-                if (isRunning && isPaused) return const SizedBox.shrink();
 
                 if (isActive) return const SizedBox.shrink();
 
@@ -740,7 +769,15 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                           currentZones: _claimedTileCount,
                           lastKnownZones: _prefs.lastKnownZoneCount,
                           streak: _currentStreak,
+                          uploadsToday: _uploadsToday,
                         ),
+                        if (_returnDeltaZones > 0 && !_returnDeltaDismissed) ...[
+                          const SizedBox(height: 6),
+                          _ReturnDeltaCard(
+                            zones: _returnDeltaZones,
+                            onDismiss: () => setState(() => _returnDeltaDismissed = true),
+                          ),
+                        ],
                         _AmbientDataPill(
                           currentH3Index: _currentH3Index,
                           personalTiles: _h3Tiles,
@@ -890,6 +927,125 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 /// Single idle pill — merges hint + status into one surface.
 /// States (priority order):
 ///   gain  → "+N new zones · 🔥 streak" (green tint, pulsing)
+// ─── Return-delta card ───────────────────────────────────────────────────────
+// Shown once per app-open when the user comes back after a session ended >10min
+// ago. Reveals how many zones the background service captured while they were
+// gone. Slides in from above, dismissed by tap.
+// TODO(lucky-pot): replace this with the daily reward card on days where the
+// lucky-pot mechanic is active — same position, same dismiss pattern.
+class _ReturnDeltaCard extends StatefulWidget {
+  const _ReturnDeltaCard({required this.zones, required this.onDismiss});
+  final int zones;
+  final VoidCallback onDismiss;
+
+  @override
+  State<_ReturnDeltaCard> createState() => _ReturnDeltaCardState();
+}
+
+class _ReturnDeltaCardState extends State<_ReturnDeltaCard>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _ctrl;
+  late Animation<double> _slideAnim;
+  late Animation<double> _fadeAnim;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 380));
+    _slideAnim = Tween<double>(begin: -12, end: 0).animate(
+      CurvedAnimation(parent: _ctrl, curve: Curves.easeOut),
+    );
+    _fadeAnim = CurvedAnimation(parent: _ctrl, curve: Curves.easeOut);
+    _ctrl.forward();
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  void _dismiss() {
+    _ctrl.reverse().then((_) => widget.onDismiss());
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    return AnimatedBuilder(
+      animation: _ctrl,
+      builder: (_, __) => Transform.translate(
+        offset: Offset(0, _slideAnim.value),
+        child: Opacity(
+          opacity: _fadeAnim.value,
+          child: GestureDetector(
+            onTap: _dismiss,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(AppTheme.radiusPill),
+              child: BackdropFilter(
+                filter: ui.ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppTheme.spaceMd,
+                    vertical: AppTheme.spaceXs,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(AppTheme.radiusPill),
+                    border: Border.all(
+                      color: AppColors.primary.withValues(alpha: 0.30),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      TweenAnimationBuilder<int>(
+                        tween: IntTween(begin: 0, end: widget.zones),
+                        duration: const Duration(milliseconds: 700),
+                        curve: Curves.easeOut,
+                        builder: (_, v, __) => Text(
+                          '+$v',
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: AppFontWeights.bold,
+                            color: AppColors.primary,
+                            letterSpacing: -0.3,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Flexible(
+                        child: Text(
+                          l10n.returnDeltaTitle(widget.zones),
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: AppFontWeights.medium,
+                            color: Colors.white.withValues(alpha: 0.80),
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        l10n.returnDeltaDismiss,
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: AppFontWeights.semibold,
+                          color: AppColors.primary.withValues(alpha: 0.75),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 ///   zones → "N zones · 🔥 streak" or "N zones on your map"
 ///   fresh → "Tap to start mapping" (pulsing, no data yet)
 class _IdlePill extends StatefulWidget {
@@ -898,11 +1054,13 @@ class _IdlePill extends StatefulWidget {
     required this.currentZones,
     required this.lastKnownZones,
     required this.streak,
+    this.uploadsToday = 0,
   });
   final bool hasTiles;
   final int currentZones;
   final int lastKnownZones;
   final int streak;
+  final int uploadsToday;
 
   @override
   State<_IdlePill> createState() => _IdlePillState();
@@ -930,13 +1088,19 @@ class _IdlePillState extends State<_IdlePill>
     final hasGain = gained > 0 && widget.currentZones > 0;
     final hasZones = widget.currentZones > 0;
     final hasStreak = widget.streak >= 2;
+    final streakAtRisk = hasStreak && widget.uploadsToday == 0;
 
     final isGreen = hasGain;
+    final isAmber = streakAtRisk && !hasGain;
     final bgColor = hasGain
         ? AppColors.primary.withValues(alpha: 0.12)
-        : AppColors.mapOverlayDark;
+        : isAmber
+            ? AppColors.warning.withValues(alpha: 0.10)
+            : AppColors.mapOverlayDark;
     final borderColor = hasGain
         ? AppColors.primary.withValues(alpha: 0.30)
+        : isAmber
+            ? AppColors.warning.withValues(alpha: 0.28)
         : Colors.white.withValues(alpha: 0.10);
 
     return FadeTransition(
@@ -960,26 +1124,38 @@ class _IdlePillState extends State<_IdlePill>
               children: [
                 // Leading icon
                 Icon(
-                  hasGain ? Icons.trending_up_rounded : Icons.my_location_outlined,
+                  hasGain
+                      ? Icons.trending_up_rounded
+                      : isAmber
+                          ? Icons.local_fire_department_rounded
+                          : Icons.my_location_outlined,
                   size: 12,
                   color: isGreen
                       ? AppColors.primary
-                      : AppColors.primary.withValues(alpha: 0.8),
+                      : isAmber
+                          ? AppColors.warning
+                          : AppColors.primary.withValues(alpha: 0.8),
                 ),
                 const SizedBox(width: 5),
                 // Main label
                 Text(
                   hasGain
                       ? l10n.homeSinceLastSession(gained)
-                      : hasZones
-                          ? l10n.homeZonesOnYourMap(widget.currentZones)
-                          : widget.hasTiles
-                              ? l10n.chipTapStart
-                              : l10n.chipTapStartFirst,
+                      : isAmber
+                          ? l10n.idleStreakAtRisk
+                          : hasZones
+                              ? l10n.homeZonesOnYourMap(widget.currentZones)
+                              : widget.hasTiles
+                                  ? l10n.chipTapStart
+                                  : l10n.chipTapStartFirst,
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: AppFontWeights.semibold,
-                    color: isGreen ? AppColors.primary : Colors.white,
+                    color: isGreen
+                        ? AppColors.primary
+                        : isAmber
+                            ? AppColors.warning
+                            : Colors.white,
                     letterSpacing: -0.1,
                   ),
                 ),
@@ -1045,7 +1221,6 @@ class _Pill extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        HapticFeedback.selectionClick();
         onTap();
       },
       child: AnimatedContainer(
@@ -1121,13 +1296,17 @@ class _LiveConditionsLine extends StatelessWidget {
                 ],
                 Icon(chips[i].icon, size: 12, color: chips[i].color),
                 const SizedBox(width: 3),
-                Text(
-                  chips[i].label,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Colors.white,
-                    fontWeight: AppFontWeights.medium,
-                    letterSpacing: -0.1,
+                Flexible(
+                  child: Text(
+                    chips[i].label,
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: Colors.white,
+                      fontWeight: AppFontWeights.medium,
+                      letterSpacing: -0.1,
+                    ),
                   ),
                 ),
               ],
@@ -1210,7 +1389,6 @@ class _MyLocationButton extends StatelessWidget {
           shape: const CircleBorder(),
           child: InkWell(
             onTap: () {
-              HapticFeedback.lightImpact();
               onPressed();
             },
             customBorder: const CircleBorder(),
@@ -1554,118 +1732,30 @@ class _FirstUploadSheetState extends State<_FirstUploadSheet> {
   }
 }
 
-/// Animated concentric hex rings — shown in the first-upload celebration sheet.
-class _CelebrationHex extends StatefulWidget {
+/// Animated hex icon — shown in the first-upload celebration sheet.
+class _CelebrationHex extends StatelessWidget {
   const _CelebrationHex();
-  @override
-  State<_CelebrationHex> createState() => _CelebrationHexState();
-}
-
-class _CelebrationHexState extends State<_CelebrationHex>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _ctrl;
-  late final Animation<double> _progress;
-
-  @override
-  void initState() {
-    super.initState();
-    _ctrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 1400));
-    _progress = CurvedAnimation(parent: _ctrl, curve: Curves.easeOut);
-    _ctrl.forward();
-  }
-
-  @override
-  void dispose() {
-    _ctrl.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _progress,
-      builder: (_, __) => CustomPaint(
-        size: const Size(140, 128),
-        painter: _CelebrationHexPainter(_progress.value),
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0.4, end: 1.0),
+      duration: const Duration(milliseconds: 600),
+      curve: Curves.elasticOut,
+      builder: (_, scale, __) => Transform.scale(
+        scale: scale,
+        child: Container(
+          width: 72,
+          height: 72,
+          decoration: BoxDecoration(
+            color: AppColors.primaryAlpha(0.15),
+            shape: BoxShape.circle,
+          ),
+          child: const Icon(Icons.hexagon_outlined, color: AppColors.primary, size: 36),
+        ),
       ),
     );
   }
-}
-
-class _CelebrationHexPainter extends CustomPainter {
-  const _CelebrationHexPainter(this.t);
-  final double t;
-
-  static const _maxRings = 3;
-
-  // Flat-top hex path centered at (cx, cy) with given radius
-  ui.Path _hexPath(double cx, double cy, double r) {
-    final path = ui.Path();
-    for (int i = 0; i < 6; i++) {
-      final angle = (i * 60 - 30) * 3.14159 / 180;
-      final x = cx + r * math.cos(angle);
-      final y = cy + r * math.sin(angle);
-      if (i == 0) { path.moveTo(x, y); } else { path.lineTo(x, y); }
-    }
-    path.close();
-    return path;
-  }
-
-  // Axial to pixel (flat-top)
-  (double, double) _hexToPixel(int q, int r, double size, double cx, double cy) {
-    final x = size * (3 / 2 * q);
-    final y = size * (math.sqrt(3) / 2 * q + math.sqrt(3) * r);
-    return (cx + x, cy + y);
-  }
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final cx = size.width / 2;
-    final cy = size.height / 2;
-    const hexR = 16.0;
-
-    // Generate hex ring cells
-    final cells = <(int, int, int)>[]; // q, r, dist
-    cells.add((0, 0, 0));
-    for (int ring = 1; ring <= _maxRings; ring++) {
-      int q = ring, r = -ring;
-      for (int dir = 0; dir < 6; dir++) {
-        for (int step = 0; step < ring; step++) {
-          cells.add((q, r, ring));
-          const dq = [0, -1, -1, 0, 1, 1];
-          const dr = [1, 1, 0, -1, -1, 0];
-          q += dq[dir]; r += dr[dir];
-        }
-      }
-    }
-
-    for (final (q, r, dist) in cells) {
-      final revealAt = dist / (_maxRings + 1);
-      final opacity = ((t - revealAt) / 0.3).clamp(0.0, 1.0);
-      if (opacity <= 0) continue;
-
-      final (px, py) = _hexToPixel(q, r, hexR * 1.15, cx, cy);
-      final path = _hexPath(px, py, hexR * 0.92);
-
-      if (dist == 0) {
-        canvas.drawPath(path, Paint()
-          ..color = AppColors.primary.withValues(alpha: opacity)
-          ..style = PaintingStyle.fill);
-        canvas.drawPath(path, Paint()
-          ..color = AppColors.primary.withValues(alpha: opacity)
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 1.5);
-      } else {
-        canvas.drawPath(path, Paint()
-          ..color = AppColors.primary.withValues(alpha: 0.35 * opacity)
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 0.8);
-      }
-    }
-  }
-
-  @override
-  bool shouldRepaint(_CelebrationHexPainter old) => old.t != t;
 }
 
 /// Bottom sheet showing live sensor readings.
@@ -1746,58 +1836,194 @@ class _SensorLiveSheet extends StatelessWidget {
 /// Live sensor panel — bar charts for light, motion, and pressure.
 // ─── Tracking hint pill — top-center during active session ──────────────────
 class _TrackingHintPill extends StatefulWidget {
-  const _TrackingHintPill({required this.newZones, required this.sessionStart});
+  const _TrackingHintPill({
+    required this.newZones,
+    required this.sessionStart,
+    required this.totalZones,
+    this.isPaused = false,
+  });
   final int newZones;
   final DateTime sessionStart;
+  final int totalZones;
+  final bool isPaused;
 
   @override
   State<_TrackingHintPill> createState() => _TrackingHintPillState();
 }
 
-class _TrackingHintPillState extends State<_TrackingHintPill> {
+class _TrackingHintPillState extends State<_TrackingHintPill>
+    with SingleTickerProviderStateMixin {
+  late int _elapsedSeconds;
+  Timer? _timer;
+  late AnimationController _bounceCtrl;
+  late Animation<double> _bounceAnim;
+  bool _showPlusOne = false;
+  int _lastGainDelta = 1;
+
+  @override
+  void initState() {
+    super.initState();
+    _elapsedSeconds = DateTime.now().difference(widget.sessionStart).inSeconds;
+    if (!widget.isPaused) {
+      _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+        if (mounted) {
+          setState(() {
+            _elapsedSeconds = DateTime.now().difference(widget.sessionStart).inSeconds;
+          });
+        }
+      });
+    }
+    _bounceCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 420),
+    );
+    _bounceAnim = Tween<double>(begin: 1.0, end: 1.0).animate(_bounceCtrl);
+  }
+
+  @override
+  void didUpdateWidget(_TrackingHintPill old) {
+    super.didUpdateWidget(old);
+    if (widget.newZones > old.newZones && widget.newZones > 0) {
+      _lastGainDelta = widget.newZones - old.newZones;
+      _bounceAnim = TweenSequence<double>([
+        TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.18), weight: 30),
+        TweenSequenceItem(
+            tween: Tween(begin: 1.18, end: 1.0)
+                .chain(CurveTween(curve: Curves.elasticOut)),
+            weight: 70),
+      ]).animate(_bounceCtrl);
+      _bounceCtrl.forward(from: 0);
+      setState(() => _showPlusOne = true);
+      Future.delayed(const Duration(milliseconds: 700), () {
+        if (mounted) setState(() => _showPlusOne = false);
+      });
+      HapticFeedback.lightImpact();
+    }
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    _bounceCtrl.dispose();
+    super.dispose();
+  }
+
+  String _formatElapsed(int s) {
+    final m = s ~/ 60;
+    final sec = s % 60;
+    return '${m.toString().padLeft(2, '0')}:${sec.toString().padLeft(2, '0')}';
+  }
+
   @override
   Widget build(BuildContext context) {
-    final label = context.l10n.homeSessionZones(widget.newZones);
+    final l10n = context.l10n;
     final hasZones = widget.newZones > 0;
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(AppTheme.radiusPill),
-      child: BackdropFilter(
-        filter: ui.ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-        child: Container(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppTheme.spaceMd,
-            vertical: AppTheme.spaceXs - 1,
-          ),
-          decoration: BoxDecoration(
-            color: hasZones
-                ? AppColors.primary.withValues(alpha: 0.18)
-                : AppColors.mapOverlayLight,
+    final color = widget.isPaused ? AppColors.warning
+        : (hasZones ? AppColors.primary : null);
+    final bgAlpha = widget.isPaused ? 0.12 : (hasZones ? 0.18 : 0.0);
+    final borderAlpha = widget.isPaused ? 0.30 : (hasZones ? 0.35 : 0.06);
+
+    final zonesLabel = widget.isPaused
+        ? (hasZones ? l10n.homeSessionZones(widget.newZones) : l10n.chipPaused)
+        : l10n.homeSessionZones(widget.newZones);
+    final timeLabel = widget.isPaused ? null : _formatElapsed(_elapsedSeconds);
+
+    return Stack(
+      alignment: Alignment.topCenter,
+      clipBehavior: Clip.none,
+      children: [
+        AnimatedBuilder(
+          animation: _bounceAnim,
+          builder: (_, child) => Transform.scale(scale: _bounceAnim.value, child: child),
+          child: ClipRRect(
             borderRadius: BorderRadius.circular(AppTheme.radiusPill),
-            border: Border.all(
-              color: hasZones
-                  ? AppColors.primary.withValues(alpha: 0.35)
-                  : Colors.white.withValues(alpha: 0.06),
-            ),
-          ),
-          child: Row(
+            child: BackdropFilter(
+              filter: ui.ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: color != null
+                      ? color.withValues(alpha: bgAlpha)
+                      : AppColors.mapOverlayLight,
+                  borderRadius: BorderRadius.circular(AppTheme.radiusPill),
+                  border: Border.all(
+                    color: color != null
+                        ? color.withValues(alpha: borderAlpha)
+                        : Colors.white.withValues(alpha: 0.06),
+                  ),
+                ),
+                child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: AppFontWeights.semibold,
-                  color: hasZones ? AppColors.primary : Colors.white60,
-                  letterSpacing: -0.05,
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppTheme.spaceMd,
+                  vertical: AppTheme.spaceXs - 1,
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      zonesLabel,
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: AppFontWeights.semibold,
+                        color: color ?? Colors.white60,
+                        letterSpacing: -0.05,
+                      ),
+                    ),
+                    if (timeLabel != null) ...[
+                      Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 6),
+                        width: 1, height: 10,
+                        color: Colors.white.withValues(alpha: 0.18),
+                      ),
+                      Text(
+                        timeLabel,
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: AppFontWeights.medium,
+                          color: Colors.white.withValues(alpha: 0.55),
+                          letterSpacing: 0.3,
+                          fontFeatures: const [ui.FontFeature.tabularFigures()],
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
               ),
             ],
           ),
         ),
       ),
+    ),
+        ),  // AnimatedBuilder
+        if (_showPlusOne)
+          Positioned(
+            top: -20,
+            child: TweenAnimationBuilder<double>(
+              tween: Tween(begin: 0.0, end: 1.0),
+              duration: const Duration(milliseconds: 700),
+              builder: (_, t, __) => Transform.translate(
+                offset: Offset(0, -18 * t),
+                child: Opacity(
+                  opacity: t < 0.6 ? 1.0 : (1.0 - (t - 0.6) / 0.4),
+                  child: Text(
+                    '+$_lastGainDelta',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: AppFontWeights.bold,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+      ],
     );
   }
 }
+
 
 class _NextMilestoneBar extends StatelessWidget {
   const _NextMilestoneBar({
@@ -1882,12 +2108,16 @@ class _SessionSummarySheet extends StatefulWidget {
     required this.zonesGained,
     required this.totalZones,
     this.sessionDuration = Duration.zero,
+    this.streak = 0,
+    this.isPersonalBest = false,
     this.onViewStats,
   });
 
   final int zonesGained;
   final int totalZones;
   final Duration sessionDuration;
+  final int streak;
+  final bool isPersonalBest;
   final VoidCallback? onViewStats;
 
   @override
@@ -1915,7 +2145,6 @@ class _SessionSummarySheetState extends State<_SessionSummarySheet> {
     final text = widget.zonesGained > 0
         ? l10n.sessionSummaryShareText(widget.zonesGained, widget.totalZones, km2Display)
         : l10n.sessionSummaryShareTextEmpty(_fmtDuration(widget.sessionDuration), widget.totalZones, km2Display);
-    HapticFeedback.lightImpact();
     await SharePlus.instance.share(ShareParams(text: text));
   }
 
@@ -1996,15 +2225,20 @@ class _SessionSummarySheetState extends State<_SessionSummarySheet> {
                   ),
                 ),
                 const SizedBox(height: 4),
-                Text(
-                  '+${widget.zonesGained}',
-                  style: const TextStyle(
-                    fontSize: 108,
-                    fontWeight: AppFontWeights.bold,
-                    color: Colors.white,
-                    letterSpacing: -5,
-                    height: 0.92,
-                    fontFeatures: [ui.FontFeature.tabularFigures()],
+                TweenAnimationBuilder<int>(
+                  tween: IntTween(begin: 0, end: widget.zonesGained),
+                  duration: Duration(milliseconds: 600 + widget.zonesGained.clamp(0, 60) * 8),
+                  curve: Curves.easeOut,
+                  builder: (_, value, __) => Text(
+                    '+$value',
+                    style: const TextStyle(
+                      fontSize: 108,
+                      fontWeight: AppFontWeights.bold,
+                      color: Colors.white,
+                      letterSpacing: -5,
+                      height: 0.92,
+                      fontFeatures: [ui.FontFeature.tabularFigures()],
+                    ),
                   ),
                 ),
                 const SizedBox(height: AppTheme.spaceSm),
@@ -2046,6 +2280,45 @@ class _SessionSummarySheetState extends State<_SessionSummarySheet> {
                     color: Colors.white.withValues(alpha: 0.55),
                     letterSpacing: -0.1,
                   ),
+                ),
+              ],
+
+              // ── Streak + personal best row ────────────────────────────────
+              if (widget.streak >= 2 || widget.isPersonalBest) ...[
+                const SizedBox(height: AppTheme.spaceMd),
+                Row(
+                  children: [
+                    if (widget.streak >= 2) ...[
+                      Icon(Icons.local_fire_department_rounded,
+                          size: 18, color: AppColors.warning),
+                      const SizedBox(width: 6),
+                      Text(
+                        l10n.statsStreakDays(widget.streak),
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: AppFontWeights.semibold,
+                          color: AppColors.warning,
+                          letterSpacing: -0.2,
+                        ),
+                      ),
+                    ],
+                    if (widget.streak >= 2 && widget.isPersonalBest)
+                      const SizedBox(width: 14),
+                    if (widget.isPersonalBest) ...[
+                      Icon(Icons.arrow_upward_rounded,
+                          size: 15, color: AppColors.primary),
+                      const SizedBox(width: 5),
+                      Text(
+                        l10n.sessionPersonalBest,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: AppFontWeights.semibold,
+                          color: AppColors.primary,
+                          letterSpacing: -0.1,
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
               ],
 

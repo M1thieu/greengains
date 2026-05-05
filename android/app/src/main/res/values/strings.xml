@@ -42,7 +42,7 @@
     <string name="notification_upload_yesterday">yesterday</string>
 
     <!-- Variant B notification — title, subtext chip, body, expanded -->
-    <string name="notif_title_contributing">Contributing</string>
+    <string name="notif_title_contributing">Mapping</string>
     <string name="notif_subtext_active">ACTIVE</string>
     <string name="notif_subtext_stationary">STATIONARY</string>
     <string name="notif_body_starting">Starting up…</string>
@@ -52,6 +52,17 @@
     <string name="notif_duration_hours_min">%1$dh %2$02dmin</string>
     <!-- %1$d = minutes -->
     <string name="notif_duration_minutes">%1$dmin</string>
+
+    <!-- Notification dashboard rows -->
+    <!-- %1$d = zones, %2$s = duration -->
+    <string name="notif_dash_zones_duration">%1$d zones  ·  %2$s</string>
+    <!-- %1$d = zones only -->
+    <string name="notif_dash_zones">%1$d zones</string>
+    <!-- %1$s = lux label, %2$s = hPa label -->
+    <string name="notif_dash_sensors">%1$s  ·  %2$s</string>
+    <!-- single sensor -->
+    <string name="notif_dash_sensor_lux">%1$s</string>
+    <string name="notif_dash_sensor_hpa">%1$s</string>
 
     <!-- Background worker notification -->
     <string name="notification_worker_title">GreenGains · syncing</string>
@@ -69,5 +80,12 @@
     <string name="notification_weekly_body_growth">+%1$d new zones — %2$d total on your map</string>
     <!-- %1$d = total (no change week-over-week) -->
     <string name="notification_weekly_body_stable">%1$d zones mapped so far</string>
+    <string name="sensor_lux_dark">Pitch dark</string>
+    <string name="sensor_lux_indoor">Dim</string>
+    <string name="sensor_lux_bright">Bright outdoors</string>
+    <string name="sensor_lux_direct">Full sunlight</string>
+    <string name="sensor_hpa_low">Clear skies</string>
+    <string name="sensor_hpa_mid">Stable pressure</string>
+    <string name="sensor_hpa_high">Unsettled weather</string>
 
 </resources>

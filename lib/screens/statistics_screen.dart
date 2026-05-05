@@ -25,7 +25,6 @@ const _kBarLabelSize      = 11.0;  // day-of-week label below each bar
 const _kSkeletonTitleW    = 160.0; // width of section-title skeleton rect
 const _kSkeletonHeroH     = 96.0;  // height of hero card skeleton placeholder
 const _kHeroIconSize      = 80.0;  // empty-state centre icon size
-const _kProgressH         = 6.0;   // milestone progress bar height
 const _kTrioLabelSize     = 11.0;  // small label inside supporting trio tiles
 // ── Typography constants ──────────────────────────────────────────────────────
 const _kLetterSpacingDisplay  = -2.0;  // tight tracking for displayLarge hero number
@@ -81,6 +80,8 @@ class _StatisticsScreenState extends State<StatisticsScreen>
   late final List<Animation<double>> _cardAnims;
   // ── Bar chart selection ───────────────────────────────────────────────────────
   int? _selectedBarIndex;
+  // ── Backend call throttle — avoid repeated fetches on quick tab switches ──────
+  DateTime? _lastWeeklyFetch;
 
   @override
   void initState() {
@@ -93,7 +94,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
         AppEventBus.instance.on<UploadSuccessEvent>().listen((_) {
       if (mounted) {
         _loadStats();
-        _loadWeeklyStats();
+        _loadWeeklyStats(force: true); // fresh upload = stale cache, force refresh
       }
     });
     _statsUpdatedSub =
@@ -156,7 +157,12 @@ class _StatisticsScreenState extends State<StatisticsScreen>
     }
   }
 
-  Future<void> _loadWeeklyStats() async {
+  Future<void> _loadWeeklyStats({bool force = false}) async {
+    // Throttle: skip if fresh data was fetched less than 5 minutes ago.
+    final now = DateTime.now();
+    if (!force && _lastWeeklyFetch != null &&
+        now.difference(_lastWeeklyFetch!) < const Duration(minutes: 5)) { return; }
+    _lastWeeklyFetch = now;
     // Only show chart skeleton on first load.
     if (_weeklyData == null) setState(() => _isLoadingWeekly = true);
     try {
@@ -232,14 +238,6 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                     children: [
                       _withEntrance(_buildHeroCard(theme, isDark, l10n), 0),
                       const SizedBox(height: AppTheme.spaceMd),
-                      if ((_stats?.currentStreak ?? 0) >= 3) ...[
-                        _withEntrance(_StreakBanner(
-                          streak: _stats!.currentStreak,
-                          uploadsToday: _stats!.uploadsToday,
-                          isDark: isDark,
-                        ), 1),
-                        const SizedBox(height: AppTheme.spaceMd),
-                      ],
                       _StatsSectionLabel(l10n.statsActivitySection, isDark: isDark),
                       const SizedBox(height: AppTheme.spaceXs),
                       _withEntrance(_buildSupportingTrio(theme, isDark), 2),
@@ -370,7 +368,6 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                   if (widget.onGoToHome != null)
                     GestureDetector(
                       onTap: () {
-                        HapticFeedback.selectionClick();
                         widget.onGoToHome!();
                       },
                       behavior: HitTestBehavior.opaque,
@@ -406,14 +403,11 @@ class _StatisticsScreenState extends State<StatisticsScreen>
     final l10n = context.l10n;
     final daysActive = _daysActive ?? 0;
     final daysLoaded = _daysActive != null;
-    final streak = _stats?.currentStreak ?? 0;
     final uploadsToday = _stats?.uploadsToday ?? 0;
-    // Streak at risk: has a multi-day streak but hasn't mapped today yet.
-    final streakAtRisk = streak >= 3 && uploadsToday == 0;
     final tiles = [
-      (value: '$uploadsToday', label: l10n.statsToday, color: streakAtRisk ? AppColors.warning : AppColors.pressure),
-      (value: '${_stats?.uploadsThisWeek ?? 0}', label: l10n.statsThisWeek, color: AppColors.light),
-      (value: daysLoaded ? '$daysActive' : '—', label: l10n.statsDaysActive, color: AppColors.quality),
+      (value: uploadsToday, label: l10n.statsToday, color: AppColors.pressure),
+      (value: _stats?.uploadsThisWeek ?? 0, label: l10n.statsThisWeek, color: AppColors.light),
+      (value: daysLoaded ? daysActive : null, label: l10n.statsDaysActive, color: AppColors.quality),
     ];
 
     return Row(
@@ -433,14 +427,29 @@ class _StatisticsScreenState extends State<StatisticsScreen>
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    tile.value,
-                    style: theme.textTheme.titleLarge?.copyWith(
-                      fontWeight: AppFontWeights.bold,
-                      letterSpacing: _kLetterSpacingHero,
-                      height: _kLineHeightTight,
-                    ),
-                  ),
+                  tile.value != null
+                      ? TweenAnimationBuilder<int>(
+                          key: ValueKey(tile.value),
+                          tween: IntTween(begin: 0, end: tile.value!),
+                          duration: const Duration(milliseconds: 600),
+                          curve: Curves.easeOut,
+                          builder: (_, v, __) => Text(
+                            '$v',
+                            style: theme.textTheme.titleLarge?.copyWith(
+                              fontWeight: AppFontWeights.bold,
+                              letterSpacing: _kLetterSpacingHero,
+                              height: _kLineHeightTight,
+                            ),
+                          ),
+                        )
+                      : Text(
+                          '—',
+                          style: theme.textTheme.titleLarge?.copyWith(
+                            fontWeight: AppFontWeights.bold,
+                            letterSpacing: _kLetterSpacingHero,
+                            height: _kLineHeightTight,
+                          ),
+                        ),
                   Text(
                     tile.label,
                     style: theme.textTheme.labelSmall?.copyWith(
@@ -497,73 +506,47 @@ class _StatisticsScreenState extends State<StatisticsScreen>
     final remaining = next - total;
 
     return Container(
-      padding: const EdgeInsets.fromLTRB(
-        AppTheme.spaceSm + AppTheme.spaceXxs,
-        AppTheme.spaceSm,
-        AppTheme.spaceMd,
-        AppTheme.spaceSm,
-      ),
-      decoration: AppTheme.kpiCard(isDark: isDark, accentColor: AppColors.warning),
-      child: Row(
-        children: [
-          Icon(Icons.flag_outlined, color: AppColors.warning, size: AppIconSizes.sm),
-          const SizedBox(width: AppTheme.spaceSm),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: [
-                        Text(
-                          l10n.statsMilestoneLabel,
-                          style: theme.textTheme.labelSmall?.copyWith(
-                            color: AppColors.textSecondary(isDark),
-                            fontWeight: AppFontWeights.medium,
-                          ),
-                        ),
-                      ],
-                    ),
-                    Text(
-                      '$total / $next ${l10n.statsAreasLabel}',
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: AppColors.warning,
-                        fontWeight: AppFontWeights.semibold,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: AppTheme.spaceXxxs),
-                TweenAnimationBuilder<double>(
-                  tween: Tween(begin: 0, end: progress),
-                  duration: AppDurations.medium,
-                  curve: AppMotion.decelerated,
-                  builder: (_, value, __) => ClipRRect(
-                    borderRadius: BorderRadius.circular(AppTheme.radiusPill),
-                    child: LinearProgressIndicator(
-                      value: value,
-                      minHeight: _kProgressH,
-                      backgroundColor: AppColors.warning.withValues(alpha: 0.12),
-                      valueColor: AlwaysStoppedAnimation(AppColors.warning),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: AppTheme.spaceXxxs),
-                Text(
-                  l10n.statsMilestoneRemaining(remaining),
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: AppColors.textSecondary(isDark),
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
+        padding: const EdgeInsets.all(AppTheme.spaceMd),
+        decoration: AppTheme.kpiCard(isDark: isDark, accentColor: AppColors.warning, radius: AppTheme.radiusLg),
+        child: Row(
+          children: [
+            TweenAnimationBuilder<double>(
+              tween: Tween(begin: 0, end: progress),
+              duration: AppDurations.medium,
+              curve: AppMotion.decelerated,
+              builder: (_, value, __) => _MilestoneRing(
+                progress: value,
+                total: total,
+                next: next,
+              ),
             ),
-          ),
-        ],
-      ),
+            const SizedBox(width: AppTheme.spaceMd),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    l10n.statsMilestoneRemaining(remaining),
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: AppColors.textPrimary(isDark),
+                      fontWeight: AppFontWeights.semibold,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: AppTheme.spaceXxxs),
+                  Text(
+                    '$total / $next ${l10n.statsAreasLabel}',
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: AppColors.warning,
+                      fontWeight: AppFontWeights.semibold,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
     );
   }
 
@@ -662,7 +645,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
           ),
           ClipRect(
            child: SizedBox(
-            height: _kBarMaxH + _kBarLabelH,
+            height: _kBarMaxH + _kBarLabelH + 4,
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: List.generate(7, (i) {
@@ -682,7 +665,6 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                 return Expanded(
                   child: GestureDetector(
                     onTap: () {
-                      HapticFeedback.selectionClick();
                       setState(() => _selectedBarIndex = isSelected ? null : i);
                     },
                     behavior: HitTestBehavior.opaque,
@@ -956,75 +938,6 @@ class _StatisticsScreenState extends State<StatisticsScreen>
 
 // ── Streak banner ─────────────────────────────────────────────────────────────
 
-/// Compact horizontal card shown when current streak ≥ 3.
-/// Intentionally calm — no guilt messaging, just acknowledgement.
-/// The animated counter rolls in from 0 on first render for a subtle delight moment.
-class _StreakBanner extends StatelessWidget {
-  const _StreakBanner({required this.streak, required this.uploadsToday, required this.isDark});
-  final int streak;
-  final int uploadsToday;
-  final bool isDark;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = context.l10n;
-    final atRisk = uploadsToday == 0;
-    final accent = atRisk ? AppColors.warning : AppColors.primary;
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppTheme.spaceMd,
-        vertical: AppTheme.spaceSm + 2,
-      ),
-      decoration: AppTheme.kpiCard(isDark: isDark, accentColor: accent),
-      child: Row(
-        children: [
-          Icon(
-            atRisk ? Icons.local_fire_department : Icons.local_fire_department_rounded,
-            color: accent, size: 20,
-          ),
-          const SizedBox(width: AppTheme.spaceXs),
-          TweenAnimationBuilder<int>(
-            tween: IntTween(begin: 0, end: streak),
-            duration: const Duration(milliseconds: 500),
-            curve: Curves.easeOut,
-            builder: (_, value, __) => Text(
-              '$value',
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: AppFontWeights.bold,
-                color: accent,
-                letterSpacing: -0.5,
-                height: 1.0,
-              ),
-            ),
-          ),
-          const SizedBox(width: AppTheme.spaceXxs),
-          Text(
-            l10n.statsStreakLabel.toLowerCase(),
-            style: TextStyle(
-              fontSize: 13,
-              color: AppColors.textSecondary(isDark),
-              fontWeight: AppFontWeights.medium,
-            ),
-          ),
-          const Spacer(),
-          Flexible(
-            child: Text(
-              atRisk ? l10n.statsStreakAtRisk : l10n.statsStreakDays(streak),
-              style: TextStyle(
-                fontSize: 12,
-                color: atRisk ? AppColors.warning : AppColors.textTertiary(isDark),
-                fontWeight: atRisk ? AppFontWeights.semibold : AppFontWeights.regular,
-              ),
-              overflow: TextOverflow.ellipsis,
-              textAlign: TextAlign.end,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
 
 class _StatsSectionLabel extends StatelessWidget {
   const _StatsSectionLabel(this.text, {required this.isDark});
@@ -1043,4 +956,95 @@ class _StatsSectionLabel extends StatelessWidget {
       ),
     );
   }
+}
+
+// ── Milestone progress ring ───────────────────────────────────────────────────
+
+class _MilestoneRing extends StatelessWidget {
+  const _MilestoneRing({
+    required this.progress,
+    required this.total,
+    required this.next,
+  });
+  final double progress;
+  final int total;
+  final int next;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 56,
+      height: 56,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          CustomPaint(
+            size: const Size(56, 56),
+            painter: _RingPainter(progress: progress),
+          ),
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                '$total',
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: AppFontWeights.bold,
+                  color: AppColors.warning,
+                  height: 1.0,
+                ),
+              ),
+              Text(
+                '/$next',
+                style: TextStyle(
+                  fontSize: 9,
+                  color: AppColors.warning.withValues(alpha: 0.65),
+                  height: 1.1,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _RingPainter extends CustomPainter {
+  const _RingPainter({required this.progress});
+  final double progress;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = (size.width - 7) / 2;
+    const sw = 4.5;
+
+    canvas.drawArc(
+      Rect.fromCircle(center: center, radius: radius),
+      0, 2 * pi, false,
+      Paint()
+        ..color = AppColors.warning.withValues(alpha: 0.13)
+        ..strokeWidth = sw
+        ..style = PaintingStyle.stroke
+        ..strokeCap = StrokeCap.round,
+    );
+
+    if (progress > 0.01) {
+      canvas.drawArc(
+        Rect.fromCircle(center: center, radius: radius),
+        -pi / 2,
+        2 * pi * progress,
+        false,
+        Paint()
+          ..color = AppColors.warning
+          ..strokeWidth = sw
+          ..style = PaintingStyle.stroke
+          ..strokeCap = StrokeCap.round,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(_RingPainter old) => old.progress != progress;
 }

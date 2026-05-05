@@ -323,6 +323,8 @@
   "sensorStatusPaused": "Paused",
   "sensorStatusConnecting": "Connecting…",
   "sensorStatusLive": "Live",
+  "sensorStatusLastReading": "Last reading",
+  "sensorStatusNoData": "No data",
   "lightDark": "Dark",
   "lightDim": "Dim",
   "lightNormal": "Normal",
@@ -398,6 +400,13 @@
   "@statsMilestoneRemaining": {
     "placeholders": { "count": { "type": "int" } }
   },
+  "milestoneNudge": "{remaining} to {target}",
+  "@milestoneNudge": {
+    "placeholders": {
+      "remaining": { "type": "int" },
+      "target": { "type": "int" }
+    }
+  },
   "statsCommunityAreas": "{count} areas mapped by community",
   "@statsCommunityAreas": {
     "placeholders": {
@@ -465,7 +474,7 @@
   "@milestoneReachedTitle": {
     "placeholders": { "count": { "type": "int" } }
   },
-  "milestoneReachedBody": "How far can you go?",
+  "milestoneReachedBody": "Keep pushing — your next goal is waiting.",
   "milestoneReachedCta": "Keep going",
 
   "firstUploadTitle": "First area mapped.",
@@ -489,7 +498,7 @@
     }
   },
   "sessionSummaryCta": "See my map",
-  "sessionSummaryDone": "Done",
+  "sessionSummaryDone": "Nice",
   "statsMapGrowing": "map growing — keep walking",
   "statsWeeklyChartOffline": "Weekly chart loads once connected",
   "uploadMilestone": "{count} uploads — keep going!",
@@ -511,7 +520,7 @@
     "placeholders": { "date": { "type": "String" } }
   },
   "statsStreakLabel": "Streak",
-  "statsStreakAtRisk": "Map today to keep it",
+  "statsStreakAtRisk": "Don't break the chain",
   "statsStreakDays": "{count, plural, =1{1 day in a row} other{{count} days in a row}}",
   "@statsStreakDays": {
     "placeholders": { "count": { "type": "int" } }
@@ -532,6 +541,9 @@
     "placeholders": { "count": { "type": "int" } }
   },
   "tileCivicNote": "You measured this.",
+  "tileShareButton": "Share this spot",
+  "tileShareText": "I measured this spot — {condition}. Check it out on the map.",
+  "@tileShareText": { "placeholders": { "condition": { "type": "String" } } },
   "sessionSummaryShareText": "I mapped +{gained} zones today — {total} zones total · {km2} km²",
   "@sessionSummaryShareText": {
     "placeholders": {
@@ -561,9 +573,10 @@
   "sensorLuxBright": "Bright outdoors",
   "sensorLuxDirect": "Full sunlight",
 
-  "sensorMovementLow": "Still & quiet",
-  "sensorMovementMid": "Some activity",
-  "sensorMovementHigh": "Busy · lots of motion",
+  "sensorMovementLow": "Quiet zone",
+  "sensorMovementMid": "Active area",
+  "sensorMovementHigh": "Busy corridor",
+  "sensorMovementIntense": "Transit / heavy traffic",
 
   "sensorHpaLow": "Clear skies",
   "sensorHpaMid": "Stable pressure",
@@ -621,7 +634,7 @@
 
   "firstUploadBadge": "FIRST ZONE UPLOADED",
   "firstUploadHeadline": "Your first zone is on the map.",
-  "firstUploadSubtext": "Light, pressure and motion — recorded, anonymised, and added to the map.",
+  "firstUploadSubtext": "Your first zone is live. Keep walking — every place you visit fills in.",
   "firstUploadSensorsLabel": "SENSORS",
   "firstUploadSensorsValue": "light · motion · pressure",
   "firstUploadPrivacyLabel": "PRIVACY",
@@ -639,13 +652,13 @@
   "sessionSummaryNoZonesSubline": "Keep going — zones fill in as you move.",
   "sessionSummaryWatermark": "Mapped with GreenGains",
   "sessionSummaryShareCta": "Share",
-  "sessionMilestoneHit": "{milestone} zones — milestone reached.",
+  "sessionMilestoneHit": "{milestone} zones reached. You earned it.",
   "@sessionMilestoneHit": {
     "placeholders": {
       "milestone": { "type": "int" }
     }
   },
-  "sessionSummaryNextHook": "Come back tomorrow to keep your streak.",
+  "sessionSummaryNextHook": "Come back tomorrow — don't break the chain.",
   "sessionSummaryNextHookEmpty": "Walk more next time — zones fill in as you move.",
   "sessionStatArea": "AREA",
   "sessionStatDuration": "TIME",
@@ -656,5 +669,14 @@
     "placeholders": { "target": { "type": "int" } }
   },
   "statsActivitySection": "ACTIVITY",
-  "statsTerritorySection": "TERRITORY"
+  "statsTerritorySection": "TERRITORY",
+  "mapTapHint": "Tap a hex to explore",
+  "sessionPersonalBest": "Personal best",
+  "idleStreakAtRisk": "Map today — don't break the chain",
+
+  "returnDeltaTitle": "{zones} new zones while you were away.",
+  "@returnDeltaTitle": {
+    "placeholders": { "zones": { "type": "int" } }
+  },
+  "returnDeltaDismiss": "Got it"
 }

@@ -14,6 +14,7 @@ import android.os.Binder
 import android.os.Build
 import android.os.IBinder
 import android.os.Looper
+import android.os.PowerManager
 import android.util.Log
 import androidx.core.app.ServiceCompat
 import androidx.core.content.PermissionChecker
@@ -97,6 +98,14 @@ class ForegroundService : Service() {
     // Set when sensors start, cleared on pause or stop.
     private var sessionStartMillis: Long? = null
 
+    // PARTIAL_WAKE_LOCK: keeps CPU alive during upload batches on aggressive OEMs (Xiaomi, Samsung,
+    // Huawei) that suspend the CPU between sensor intervals. Without this, mid-batch upload drops
+    // are silent — data is lost with no error. Held only during the NativeBackendUploader flush
+    // window (~2-5s), not permanently, so battery impact is negligible.
+    // Pattern from Honeygain ProxyService (foregroundServiceType=specialUse + WAKE_LOCK).
+    // TODO(lucky-pot): when daily reward logic lands, acquire this lock during the reward check too.
+    private lateinit var uploadWakeLock: PowerManager.WakeLock
+
     // Data Flows
     private val _lightFlow = MutableStateFlow<Float?>(null)
     private val _pressureFlow = MutableStateFlow<Float?>(null)
@@ -145,6 +154,8 @@ class ForegroundService : Service() {
         notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
         sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
+        val powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
+        uploadWakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "greengains:upload")
 
         // Initialize Monitors
         batteryMonitor = BatteryStateMonitor(this) {
@@ -403,10 +414,12 @@ class ForegroundService : Service() {
         trackingPausedState = true
         trackingPaused = true
         setTrackingPausedPref(true)
-        stopTracking()
+        // Keep sensors running for live readings — only stop GPS upload pipeline
+        stopLocationUpdates()
+        stopNativeUploader()
         notifyTrackingState()
         sendTrackingPausedToFlutter(true)
-        Log.i(TAG, "Tracking paused via notification")
+        Log.i(TAG, "Tracking paused — sensors remain active")
     }
 
     private fun resumeTracking() {
@@ -414,10 +427,13 @@ class ForegroundService : Service() {
         trackingPausedState = false
         trackingPaused = false
         setTrackingPausedPref(false)
-        startTracking()
+        // Sensors already running — just restart GPS + uploader
+        startLocationUpdates()
+        sessionStartMillis = System.currentTimeMillis()
+        startNativeUploader()
         notifyTrackingState()
         sendTrackingPausedToFlutter(false)
-        Log.i(TAG, "Tracking resumed via notification")
+        Log.i(TAG, "Tracking resumed")
     }
 
     /**
@@ -550,7 +566,8 @@ class ForegroundService : Service() {
                 context = applicationContext,
                 batteryMonitor = batteryMonitor,
                 networkMonitor = networkMonitor,
-                statusListener = ::handleNativeUploadStatus
+                statusListener = ::handleNativeUploadStatus,
+                uploadWakeLock = uploadWakeLock,
             )
         }
         nativeUploader?.start()
@@ -733,6 +750,8 @@ class ForegroundService : Service() {
                 uploadsToday, uploadsTotal, readZonesTotalFromPrefs(),
                 currentMotionState.name, nativeUploader?.getBufferSize() ?: 0,
                 sessionStartMillis = sessionStartMillis,
+                lux = _lightFlow.value,
+                hPa = _pressureFlow.value,
             )
         }
     }
@@ -892,6 +911,8 @@ class ForegroundService : Service() {
             uploadsToday, uploadsTotal, readZonesTotalFromPrefs(),
             currentMotionState.name, nativeUploader?.getBufferSize() ?: 0,
             sessionStartMillis = sessionStartMillis,
+            lux = _lightFlow.value,
+            hPa = _pressureFlow.value,
         )
     }
 

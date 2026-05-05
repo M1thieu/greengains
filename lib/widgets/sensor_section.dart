@@ -1,6 +1,4 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import '../core/extensions/context_extensions.dart';
 import '../core/themes.dart';
 import '../l10n/app_localizations.dart';
@@ -33,44 +31,9 @@ class SensorSection extends StatefulWidget {
 }
 
 class _SensorSectionState extends State<SensorSection> {
-  late bool _hasLight;
-  late bool _hasAccel;
-  late bool _hasGyro;
-  late bool _hasPressure;
-  // Magnetic is optional — not every device has a magnetometer.
-  // We never gate _allReady on it; the card shows "Connecting…" if unavailable.
-  final List<StreamSubscription> _subs = [];
-
-  bool get _allReady => _hasLight && _hasAccel && _hasGyro && _hasPressure;
-
   @override
   void initState() {
     super.initState();
-    _hasLight = widget.locationService.lastLight != null;
-    _hasAccel = widget.locationService.lastAccelerometer != null;
-    _hasGyro = widget.locationService.lastGyroscope != null;
-    _hasPressure = widget.locationService.lastPressure != null;
-
-    _subs.add(widget.locationService.lightStream.listen((_) {
-      if (!_hasLight && mounted) setState(() => _hasLight = true);
-    }));
-    _subs.add(widget.locationService.accelerometerStream.listen((_) {
-      if (!_hasAccel && mounted) setState(() => _hasAccel = true);
-    }));
-    _subs.add(widget.locationService.gyroscopeStream.listen((_) {
-      if (!_hasGyro && mounted) setState(() => _hasGyro = true);
-    }));
-    _subs.add(widget.locationService.pressureStream.listen((_) {
-      if (!_hasPressure && mounted) setState(() => _hasPressure = true);
-    }));
-  }
-
-  @override
-  void dispose() {
-    for (final sub in _subs) {
-      sub.cancel();
-    }
-    super.dispose();
   }
 
   String _getLightDescription(double lux, AppLocalizations l10n) {
@@ -89,13 +52,17 @@ class _SensorSectionState extends State<SensorSection> {
   }
 
   String _sensorStatus({
-    required bool isRunning,
+    required bool isLive,
+    required bool isPaused,
     required bool hasData,
     required AppLocalizations l10n,
   }) {
-    if (!isRunning) return l10n.sensorStatusPaused;
-    if (!hasData) return l10n.sensorStatusConnecting;
-    return l10n.sensorStatusLive;
+    if (!isLive && hasData) return l10n.sensorStatusLastReading;
+    if (!isLive) return l10n.sensorStatusNoData;
+    if (isPaused && hasData) return l10n.chipPaused; // "Paused" — consistent with chip
+    if (isPaused) return l10n.chipPaused;
+    if (hasData) return l10n.sensorStatusLive;
+    return l10n.sensorStatusConnecting;
   }
 
   @override
@@ -104,147 +71,39 @@ class _SensorSectionState extends State<SensorSection> {
     final isDark = theme.brightness == Brightness.dark;
     final l10n = context.l10n;
 
-    return ListenableBuilder(
-      listenable: Listenable.merge([
-        widget.locationService.isRunning,
-        widget.locationService.isPaused,
-      ]),
-      builder: (context, _) {
-        final isRunning = widget.locationService.isRunning.value;
-        final isPaused = widget.locationService.isPaused.value;
-
-        return Card(
-          child: ExpansionTile(
-            onExpansionChanged: (expanded) {
-              if (expanded) {
-                HapticFeedback.lightImpact();
-                widget.onExpansionChanged?.call();
-              }
-            },
-            title: Text(
-              l10n.sensorLiveReadings,
-              style: AppTheme.cardTitle(theme),
-            ),
-            subtitle: Text(
-              l10n.sensorLiveSubtitle,
-              style: theme.textTheme.bodySmall,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-            children: [
-              if (!isRunning)
-                _buildInactiveState(
-                  context,
-                  isDark,
-                  title: l10n.sensorInactiveTitle,
-                  subtitle: l10n.sensorInactiveSubtitle,
-                )
-              else if (isPaused)
-                _buildInactiveState(
-                  context,
-                  isDark,
-                  title: l10n.sensorPausedTitle,
-                  subtitle: l10n.sensorPausedSubtitle,
-                )
-              else if (!_allReady)
-                _buildReadyGate(context, isDark, l10n)
-              else
-                _buildSensorList(context, isDark, l10n),
-            ],
+    return Card(
+      child: ExpansionTile(
+        onExpansionChanged: (expanded) {
+          if (expanded) widget.onExpansionChanged?.call();
+        },
+        title: Text(
+          l10n.sensorLiveReadings,
+          style: AppTheme.cardTitle(theme),
+        ),
+        subtitle: Text(
+          l10n.sensorLiveSubtitle,
+          style: theme.textTheme.bodySmall,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+        ),
+        children: [
+          ListenableBuilder(
+            listenable: Listenable.merge([
+              widget.locationService.isRunning,
+              widget.locationService.isPaused,
+            ]),
+            builder: (context, _) => _buildSensorList(context, isDark, l10n),
           ),
-        );
-      },
-    );
-  }
-
-  Widget _buildReadyGate(BuildContext context, bool isDark, AppLocalizations l10n) {
-    final theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.all(AppTheme.spaceMd),
-      child: Container(
-        padding: const EdgeInsets.all(AppTheme.spaceMd),
-        decoration: AppTheme.surfaceContainer(isDark: isDark),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(AppTheme.spaceXs),
-              decoration: BoxDecoration(
-                color: AppColors.primaryAlpha(0.12),
-                borderRadius: BorderRadius.circular(AppTheme.radiusSm),
-              ),
-              child: Icon(
-                Icons.sensors,
-                size: AppIconSizes.sm,
-                color: AppColors.primary,
-              ),
-            ),
-            const SizedBox(width: AppTheme.spaceSm),
-            Expanded(
-              child: Text(
-                l10n.sensorCollectingFirst,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: AppColors.textPrimary(isDark),
-                  fontWeight: AppFontWeights.semibold,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildInactiveState(
-    BuildContext context,
-    bool isDark, {
-    required String title,
-    required String subtitle,
-  }) {
-    final theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.all(AppTheme.spaceMd),
-      child: Container(
-        padding: const EdgeInsets.all(AppTheme.spaceMd),
-        decoration: AppTheme.surfaceContainer(isDark: isDark),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(AppTheme.spaceXs),
-              decoration: BoxDecoration(
-                color: AppColors.textSecondary(isDark).withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(AppTheme.radiusSm),
-              ),
-              child: Icon(Icons.sensors_off, size: AppIconSizes.sm, color: AppColors.textSecondary(isDark)),
-            ),
-            const SizedBox(width: AppTheme.spaceSm),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(title, style: theme.textTheme.bodyMedium?.copyWith(
-                    fontWeight: AppFontWeights.semibold,
-                    color: AppColors.textPrimary(isDark),
-                  )),
-                  const SizedBox(height: 2),
-                  Text(subtitle, style: theme.textTheme.bodySmall?.copyWith(
-                    color: AppColors.textSecondary(isDark),
-                  )),
-                ],
-              ),
-            ),
-          ],
-        ),
+        ],
       ),
     );
   }
 
   Widget _buildSensorList(BuildContext context, bool isDark, AppLocalizations l10n) {
     final theme = Theme.of(context);
-    // Safe to hoist: _buildSensorList is only called from a ListenableBuilder
-    // that already listens to isRunning + isPaused, so this value is fresh.
-    final isTracking = widget.locationService.isRunning.value &&
-        !widget.locationService.isPaused.value;
+    // Sensors keep streaming even when paused — only stop when service is fully stopped.
+    final isLive = widget.locationService.isRunning.value;
+    final isPaused = widget.locationService.isPaused.value;
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(
@@ -276,9 +135,10 @@ class _SensorSectionState extends State<SensorSection> {
                     ? '${light.lux.toStringAsFixed(0)} lux'
                     : null,
                 unit: light != null ? _getLightDescription(light.lux, l10n) : 'lux',
-                enabled: isTracking,
+                enabled: isLive,
                 statusLabel: _sensorStatus(
-                  isRunning: isTracking,
+                  isLive: isLive,
+                  isPaused: isPaused,
                   hasData: light != null,
                   l10n: l10n,
                 ),
@@ -303,9 +163,10 @@ class _SensorSectionState extends State<SensorSection> {
                 unit: mag != null
                     ? _getMagneticDescription(mag.magnitude, l10n)
                     : 'microtesla',
-                enabled: isTracking,
+                enabled: isLive,
                 statusLabel: _sensorStatus(
-                  isRunning: isTracking,
+                  isLive: isLive,
+                  isPaused: isPaused,
                   hasData: mag != null,
                   l10n: l10n,
                 ),
@@ -337,9 +198,10 @@ class _SensorSectionState extends State<SensorSection> {
                     ? '${accel.magnitude.toStringAsFixed(1)} m/s²'
                     : null,
                 unit: l10n.sensorAccelerationIntensity,
-                enabled: isTracking,
+                enabled: isLive,
                 statusLabel: _sensorStatus(
-                  isRunning: isTracking,
+                  isLive: isLive,
+                  isPaused: isPaused,
                   hasData: accel != null,
                   l10n: l10n,
                 ),
@@ -362,9 +224,10 @@ class _SensorSectionState extends State<SensorSection> {
                     ? '${gyro.magnitude.toStringAsFixed(2)} °/s'
                     : null,
                 unit: l10n.sensorRotationSpeed,
-                enabled: isTracking,
+                enabled: isLive,
                 statusLabel: _sensorStatus(
-                  isRunning: isTracking,
+                  isLive: isLive,
+                  isPaused: isPaused,
                   hasData: gyro != null,
                   l10n: l10n,
                 ),
@@ -387,9 +250,10 @@ class _SensorSectionState extends State<SensorSection> {
                     ? '${data.hPa.toStringAsFixed(1)} hPa'
                     : null,
                 unit: l10n.sensorAtmosphericPressure,
-                enabled: isTracking,
+                enabled: isLive,
                 statusLabel: _sensorStatus(
-                  isRunning: isTracking,
+                  isLive: isLive,
+                  isPaused: isPaused,
                   hasData: data != null,
                   l10n: l10n,
                 ),

@@ -323,6 +323,8 @@
   "sensorStatusPaused": "En pause",
   "sensorStatusConnecting": "Connexion…",
   "sensorStatusLive": "En direct",
+  "sensorStatusLastReading": "Dernière lecture",
+  "sensorStatusNoData": "Aucune donnée",
   "lightDark": "Sombre",
   "lightDim": "Faible",
   "lightNormal": "Normal",
@@ -398,6 +400,13 @@
   "@statsMilestoneRemaining": {
     "placeholders": { "count": { "type": "int" } }
   },
+  "milestoneNudge": "{remaining} pour {target}",
+  "@milestoneNudge": {
+    "placeholders": {
+      "remaining": { "type": "int" },
+      "target": { "type": "int" }
+    }
+  },
   "statsCommunityAreas": "{count} zones cartographiées par la communauté",
   "@statsCommunityAreas": {
     "placeholders": {
@@ -465,7 +474,7 @@
   "@milestoneReachedTitle": {
     "placeholders": { "count": { "type": "int" } }
   },
-  "milestoneReachedBody": "Jusqu'où pouvez-vous aller ?",
+  "milestoneReachedBody": "Continuez — le prochain objectif vous attend.",
   "milestoneReachedCta": "Continuer",
 
   "firstUploadTitle": "Première zone cartographiée.",
@@ -489,7 +498,7 @@
     }
   },
   "sessionSummaryCta": "Voir ma carte",
-  "sessionSummaryDone": "Terminé",
+  "sessionSummaryDone": "Top",
   "statsMapGrowing": "carte en cours — continuez à marcher",
   "statsWeeklyChartOffline": "Graphique hebdomadaire disponible une fois connecté",
   "uploadMilestone": "{count} envois — continuez !",
@@ -511,7 +520,7 @@
     "placeholders": { "date": { "type": "String" } }
   },
   "statsStreakLabel": "Série",
-  "statsStreakAtRisk": "Cartographie aujourd'hui pour la garder",
+  "statsStreakAtRisk": "Ne brise pas la chaîne",
   "statsStreakDays": "{count, plural, =1{1 jour de suite} other{{count} jours de suite}}",
   "@statsStreakDays": {
     "placeholders": { "count": { "type": "int" } }
@@ -532,6 +541,9 @@
     "placeholders": { "count": { "type": "int" } }
   },
   "tileCivicNote": "Mesuré par toi.",
+  "tileShareButton": "Partager ce lieu",
+  "tileShareText": "J'ai mesuré cet endroit — {condition}. Viens voir sur la carte.",
+  "@tileShareText": { "placeholders": { "condition": { "type": "String" } } },
   "sessionSummaryShareText": "J'ai cartographié +{gained} zones aujourd'hui — {total} zones au total · {km2} km²",
   "@sessionSummaryShareText": {
     "placeholders": {
@@ -561,9 +573,10 @@
   "sensorLuxBright": "Lumineux dehors",
   "sensorLuxDirect": "Plein soleil",
 
-  "sensorMovementLow": "Calme et tranquille",
-  "sensorMovementMid": "Quelque activité",
-  "sensorMovementHigh": "Animé · beaucoup de mouvement",
+  "sensorMovementLow": "Zone calme",
+  "sensorMovementMid": "Zone active",
+  "sensorMovementHigh": "Couloir animé",
+  "sensorMovementIntense": "Transit / forte circulation",
 
   "sensorHpaLow": "Ciel dégagé",
   "sensorHpaMid": "Pression stable",
@@ -621,7 +634,7 @@
 
   "firstUploadBadge": "PREMIÈRE ZONE TÉLÉCHARGÉE",
   "firstUploadHeadline": "Votre première zone est sur la carte.",
-  "firstUploadSubtext": "Elle rejoint un registre de lumière, pression et mouvement — anonymisé, agrégé.",
+  "firstUploadSubtext": "Ta première zone est en ligne. Continue — chaque endroit visité s'ajoute à la carte.",
   "firstUploadSensorsLabel": "CAPTEURS",
   "firstUploadSensorsValue": "lumière · mouvement · pression",
   "firstUploadPrivacyLabel": "CONFIDENTIALITÉ",
@@ -639,13 +652,13 @@
   "sessionSummaryNoZonesSubline": "Continuez — les zones se remplissent en marchant.",
   "sessionSummaryWatermark": "Cartographié avec GreenGains",
   "sessionSummaryShareCta": "Partager",
-  "sessionMilestoneHit": "{milestone} zones — palier atteint.",
+  "sessionMilestoneHit": "{milestone} zones atteintes. Tu l'as mérité.",
   "@sessionMilestoneHit": {
     "placeholders": {
       "milestone": { "type": "int" }
     }
   },
-  "sessionSummaryNextHook": "Revenez demain pour garder votre série.",
+  "sessionSummaryNextHook": "Reviens demain — ne brise pas la chaîne.",
   "sessionSummaryNextHookEmpty": "Bougez plus la prochaine fois — les zones se remplissent en marchant.",
   "sessionStatArea": "SURFACE",
   "sessionStatDuration": "TEMPS",
@@ -656,5 +669,14 @@
     "placeholders": { "target": { "type": "int" } }
   },
   "statsActivitySection": "ACTIVITÉ",
-  "statsTerritorySection": "TERRITOIRE"
+  "statsTerritorySection": "TERRITOIRE",
+  "mapTapHint": "Touchez un hex pour explorer",
+  "sessionPersonalBest": "Record personnel",
+  "idleStreakAtRisk": "Cartographie aujourd'hui — ne brise pas la chaîne",
+
+  "returnDeltaTitle": "{zones} nouvelles zones pendant ton absence.",
+  "@returnDeltaTitle": {
+    "placeholders": { "zones": { "type": "int" } }
+  },
+  "returnDeltaDismiss": "OK"
 }

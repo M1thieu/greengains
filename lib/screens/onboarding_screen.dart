@@ -626,17 +626,6 @@ class _FeatureRow extends StatelessWidget {
                     letterSpacing: -0.1,
                   ),
                 ),
-                if (description.isNotEmpty) ...[
-                  const SizedBox(height: 2),
-                  Text(
-                    description,
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: Colors.white.withValues(alpha: 0.5),
-                      height: 1.4,
-                    ),
-                  ),
-                ],
               ],
             ),
           ),

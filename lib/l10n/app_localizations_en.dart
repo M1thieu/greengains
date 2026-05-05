@@ -797,6 +797,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sensorStatusLive => 'Live';
 
   @override
+  String get sensorStatusLastReading => 'Last reading';
+
+  @override
+  String get sensorStatusNoData => 'No data';
+
+  @override
   String get lightDark => 'Dark';
 
   @override
@@ -978,6 +984,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String milestoneNudge(int remaining, int target) {
+    return '$remaining to $target';
+  }
+
+  @override
   String statsCommunityAreas(int count) {
     return '$count areas mapped by community';
   }
@@ -1116,7 +1127,8 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get milestoneReachedBody => 'How far can you go?';
+  String get milestoneReachedBody =>
+      'Keep pushing — your next goal is waiting.';
 
   @override
   String get milestoneReachedCta => 'Keep going';
@@ -1155,7 +1167,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sessionSummaryCta => 'See my map';
 
   @override
-  String get sessionSummaryDone => 'Done';
+  String get sessionSummaryDone => 'Nice';
 
   @override
   String get statsMapGrowing => 'map growing — keep walking';
@@ -1196,7 +1208,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get statsStreakLabel => 'Streak';
 
   @override
-  String get statsStreakAtRisk => 'Map today to keep it';
+  String get statsStreakAtRisk => 'Don\'t break the chain';
 
   @override
   String statsStreakDays(int count) {
@@ -1253,6 +1265,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tileCivicNote => 'You measured this.';
 
   @override
+  String get tileShareButton => 'Share this spot';
+
+  @override
+  String tileShareText(String condition) {
+    return 'I measured this spot — $condition. Check it out on the map.';
+  }
+
+  @override
   String sessionSummaryShareText(int gained, int total, String km2) {
     return 'I mapped +$gained zones today — $total zones total · $km2 km²';
   }
@@ -1290,13 +1310,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sensorLuxDirect => 'Full sunlight';
 
   @override
-  String get sensorMovementLow => 'Still & quiet';
+  String get sensorMovementLow => 'Quiet zone';
 
   @override
-  String get sensorMovementMid => 'Some activity';
+  String get sensorMovementMid => 'Active area';
 
   @override
-  String get sensorMovementHigh => 'Busy · lots of motion';
+  String get sensorMovementHigh => 'Busy corridor';
+
+  @override
+  String get sensorMovementIntense => 'Transit / heavy traffic';
 
   @override
   String get sensorHpaLow => 'Clear skies';
@@ -1388,7 +1411,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get firstUploadSubtext =>
-      'Light, pressure and motion — recorded, anonymised, and added to the map.';
+      'Your first zone is live. Keep walking — every place you visit fills in.';
 
   @override
   String get firstUploadSensorsLabel => 'SENSORS';
@@ -1438,12 +1461,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String sessionMilestoneHit(int milestone) {
-    return '$milestone zones — milestone reached.';
+    return '$milestone zones reached. You earned it.';
   }
 
   @override
   String get sessionSummaryNextHook =>
-      'Come back tomorrow to keep your streak.';
+      'Come back tomorrow — don\'t break the chain.';
 
   @override
   String get sessionSummaryNextHookEmpty =>
@@ -1468,4 +1491,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get statsTerritorySection => 'TERRITORY';
+
+  @override
+  String get mapTapHint => 'Tap a hex to explore';
+
+  @override
+  String get sessionPersonalBest => 'Personal best';
+
+  @override
+  String get idleStreakAtRisk => 'Map today — don\'t break the chain';
+
+  @override
+  String returnDeltaTitle(int zones) {
+    return '$zones new zones while you were away.';
+  }
+
+  @override
+  String get returnDeltaDismiss => 'Got it';
 }

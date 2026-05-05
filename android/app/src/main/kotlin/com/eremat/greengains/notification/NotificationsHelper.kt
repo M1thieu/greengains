@@ -46,6 +46,8 @@ internal object NotificationsHelper {
         motionState: String = "UNKNOWN",
         readingsCount: Int = 0,
         sessionStartMillis: Long? = null,
+        lux: Float? = null,
+        hPa: Float? = null,
     ): Notification {
         val isMoving = motionState != "STATIONARY"
         val isUploadingNow = lastUploadMillis != null &&
@@ -94,17 +96,36 @@ internal object NotificationsHelper {
                 context.getString(R.string.notif_body_starting)
         }
 
-        // Expanded BigText — two structured lines (Variant B style)
-        val bigText = if (!isPaused) {
-            val motionLabel = if (isMoving) context.getString(R.string.notif_motion_moving)
-                              else          context.getString(R.string.notif_motion_still)
-            val line1Parts = listOfNotNull(durationStr, motionLabel)
-            val line2 = uploadStr
+        // Sensor readings line (paused state only)
+        val sensorParts = listOfNotNull(
+            lux?.let { luxLabel(context, it) },
+            hPa?.let { hpaLabel(context, it) },
+        )
+        val sensorLine = if (sensorParts.isNotEmpty()) sensorParts.joinToString("  ·  ") else null
 
-            val line1 = line1Parts.joinToString("   ·   ")
-            listOfNotNull(line1.ifBlank { null }, line2).joinToString("\n")
+        // ── Expanded dashboard — 3 structured rows ────────────────────────────────
+        // Row 1: zones + duration  (score)
+        // Row 2: sensor readings   (place data)
+        // Row 3: sync status       (health)
+        val bigText = if (!isPaused) {
+            val row1 = when {
+                zonesTotal > 0 && durationStr != null ->
+                    context.getString(R.string.notif_dash_zones_duration, zonesTotal, durationStr)
+                zonesTotal > 0 ->
+                    context.getString(R.string.notif_dash_zones, zonesTotal)
+                durationStr != null -> durationStr
+                else -> context.getString(R.string.notif_body_starting)
+            }
+            val row2 = when {
+                lux != null && hPa != null ->
+                    context.getString(R.string.notif_dash_sensors, luxLabel(context, lux), hpaLabel(context, hPa))
+                lux != null -> luxLabel(context, lux)
+                hPa != null -> hpaLabel(context, hPa)
+                else -> null
+            }
+            listOfNotNull(row1, row2, uploadStr).joinToString("\n")
         } else {
-            body
+            listOfNotNull(body, sensorLine).joinToString("\n")
         }
 
         // Actions
@@ -171,10 +192,12 @@ internal object NotificationsHelper {
         motionState: String = "UNKNOWN",
         readingsCount: Int = 0,
         sessionStartMillis: Long? = null,
+        lux: Float? = null,
+        hPa: Float? = null,
     ) {
         manager.notify(NOTIFICATION_ID_SERVICE, buildNotification(
             context, lastUpload, isPaused, uploadsToday, totalUploads, zonesTotal,
-            motionState, readingsCount, sessionStartMillis,
+            motionState, readingsCount, sessionStartMillis, lux, hPa,
         ))
     }
 
@@ -204,6 +227,19 @@ internal object NotificationsHelper {
             elapsedMs < 86_400_000L  -> context.getString(R.string.notification_upload_hours_ago, elapsedMs / 3_600_000)
             else                     -> context.getString(R.string.notification_upload_yesterday)
         }
+    }
+
+    private fun luxLabel(context: Context, lux: Float): String = when {
+        lux < 50    -> context.getString(R.string.sensor_lux_dark)
+        lux < 500   -> context.getString(R.string.sensor_lux_indoor)
+        lux < 10000 -> context.getString(R.string.sensor_lux_bright)
+        else        -> context.getString(R.string.sensor_lux_direct)
+    }
+
+    private fun hpaLabel(context: Context, hPa: Float): String = when {
+        hPa > 1010 -> context.getString(R.string.sensor_hpa_low)
+        hPa > 990  -> context.getString(R.string.sensor_hpa_mid)
+        else       -> context.getString(R.string.sensor_hpa_high)
     }
 
     private fun formatDuration(context: Context, elapsedMs: Long): String {

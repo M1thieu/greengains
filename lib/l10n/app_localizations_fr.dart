@@ -803,6 +803,12 @@ class AppLocalizationsFr extends AppLocalizations {
   String get sensorStatusLive => 'En direct';
 
   @override
+  String get sensorStatusLastReading => 'Dernière lecture';
+
+  @override
+  String get sensorStatusNoData => 'Aucune donnée';
+
+  @override
   String get lightDark => 'Sombre';
 
   @override
@@ -988,6 +994,11 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String milestoneNudge(int remaining, int target) {
+    return '$remaining pour $target';
+  }
+
+  @override
   String statsCommunityAreas(int count) {
     return '$count zones cartographiées par la communauté';
   }
@@ -1128,7 +1139,8 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get milestoneReachedBody => 'Jusqu\'où pouvez-vous aller ?';
+  String get milestoneReachedBody =>
+      'Continuez — le prochain objectif vous attend.';
 
   @override
   String get milestoneReachedCta => 'Continuer';
@@ -1167,7 +1179,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get sessionSummaryCta => 'Voir ma carte';
 
   @override
-  String get sessionSummaryDone => 'Terminé';
+  String get sessionSummaryDone => 'Top';
 
   @override
   String get statsMapGrowing => 'carte en cours — continuez à marcher';
@@ -1209,7 +1221,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get statsStreakLabel => 'Série';
 
   @override
-  String get statsStreakAtRisk => 'Cartographie aujourd\'hui pour la garder';
+  String get statsStreakAtRisk => 'Ne brise pas la chaîne';
 
   @override
   String statsStreakDays(int count) {
@@ -1266,6 +1278,14 @@ class AppLocalizationsFr extends AppLocalizations {
   String get tileCivicNote => 'Mesuré par toi.';
 
   @override
+  String get tileShareButton => 'Partager ce lieu';
+
+  @override
+  String tileShareText(String condition) {
+    return 'J\'ai mesuré cet endroit — $condition. Viens voir sur la carte.';
+  }
+
+  @override
   String sessionSummaryShareText(int gained, int total, String km2) {
     return 'J\'ai cartographié +$gained zones aujourd\'hui — $total zones au total · $km2 km²';
   }
@@ -1303,13 +1323,16 @@ class AppLocalizationsFr extends AppLocalizations {
   String get sensorLuxDirect => 'Plein soleil';
 
   @override
-  String get sensorMovementLow => 'Calme et tranquille';
+  String get sensorMovementLow => 'Zone calme';
 
   @override
-  String get sensorMovementMid => 'Quelque activité';
+  String get sensorMovementMid => 'Zone active';
 
   @override
-  String get sensorMovementHigh => 'Animé · beaucoup de mouvement';
+  String get sensorMovementHigh => 'Couloir animé';
+
+  @override
+  String get sensorMovementIntense => 'Transit / forte circulation';
 
   @override
   String get sensorHpaLow => 'Ciel dégagé';
@@ -1402,7 +1425,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get firstUploadSubtext =>
-      'Elle rejoint un registre de lumière, pression et mouvement — anonymisé, agrégé.';
+      'Ta première zone est en ligne. Continue — chaque endroit visité s\'ajoute à la carte.';
 
   @override
   String get firstUploadSensorsLabel => 'CAPTEURS';
@@ -1452,12 +1475,12 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String sessionMilestoneHit(int milestone) {
-    return '$milestone zones — palier atteint.';
+    return '$milestone zones atteintes. Tu l\'as mérité.';
   }
 
   @override
   String get sessionSummaryNextHook =>
-      'Revenez demain pour garder votre série.';
+      'Reviens demain — ne brise pas la chaîne.';
 
   @override
   String get sessionSummaryNextHookEmpty =>
@@ -1482,4 +1505,22 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get statsTerritorySection => 'TERRITOIRE';
+
+  @override
+  String get mapTapHint => 'Touchez un hex pour explorer';
+
+  @override
+  String get sessionPersonalBest => 'Record personnel';
+
+  @override
+  String get idleStreakAtRisk =>
+      'Cartographie aujourd\'hui — ne brise pas la chaîne';
+
+  @override
+  String returnDeltaTitle(int zones) {
+    return '$zones nouvelles zones pendant ton absence.';
+  }
+
+  @override
+  String get returnDeltaDismiss => 'OK';
 }
