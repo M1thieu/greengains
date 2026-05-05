@@ -1242,17 +1242,6 @@ class AppLocalizationsFr extends AppLocalizations {
       'Repasse ici — plus de passages = données plus solides.';
 
   @override
-  String homeSinceLastSession(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '+$count zones depuis la dernière fois',
-      one: '+1 zone depuis la dernière fois',
-    );
-    return '$_temp0';
-  }
-
-  @override
   String homeZonesOnYourMap(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -1511,10 +1500,6 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get sessionPersonalBest => 'Record personnel';
-
-  @override
-  String get idleStreakAtRisk =>
-      'Cartographie aujourd\'hui — ne brise pas la chaîne';
 
   @override
   String returnDeltaTitle(int zones) {

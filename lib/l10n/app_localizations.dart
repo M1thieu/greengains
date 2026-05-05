@@ -2126,12 +2126,6 @@ abstract class AppLocalizations {
   /// **'Walk here again — more passes = stronger data.'**
   String get tileLowQualityHint;
 
-  /// No description provided for @homeSinceLastSession.
-  ///
-  /// In en, this message translates to:
-  /// **'{count, plural, =1{+1 zone since last time} other{+{count} zones since last time}}'**
-  String homeSinceLastSession(int count);
-
   /// No description provided for @homeZonesOnYourMap.
   ///
   /// In en, this message translates to:
@@ -2551,12 +2545,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Personal best'**
   String get sessionPersonalBest;
-
-  /// No description provided for @idleStreakAtRisk.
-  ///
-  /// In en, this message translates to:
-  /// **'Map today — don\'t break the chain'**
-  String get idleStreakAtRisk;
 
   /// No description provided for @returnDeltaTitle.
   ///

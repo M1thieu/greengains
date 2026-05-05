@@ -64,6 +64,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
   List<int>? _weeklyData;
   // Backend lifetime stats — fallback when local SQLite is empty (fresh reinstall)
   int? _backendTotalUploads;
+  int? _backendUploadsToday; // backend-authoritative today count, survives reinstall
   int? _coverageCells; // distinct H3 res-9 cells ever contributed
   int? _daysActive;
   bool _isLoadingWeekly = true;
@@ -177,6 +178,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
         setState(() {
           _weeklyData = profile.weekly;
           _backendTotalUploads = profile.totalUploads;
+          _backendUploadsToday = profile.uploadsToday;
           _coverageCells = profile.coverageCells;
           _daysActive = profile.daysActive;
           if (global.activeMappers > 0) _activeMappers = global.activeMappers;
@@ -403,10 +405,18 @@ class _StatisticsScreenState extends State<StatisticsScreen>
     final l10n = context.l10n;
     final daysActive = _daysActive ?? 0;
     final daysLoaded = _daysActive != null;
-    final uploadsToday = _stats?.uploadsToday ?? 0;
+    // Prefer local SQLite (fast, offline-capable); fall back to backend after reinstall.
+    final localToday = _stats?.uploadsToday ?? 0;
+    final uploadsToday = localToday > 0
+        ? localToday
+        : (_backendUploadsToday ?? _weeklyData?.lastOrNull ?? 0);
+    final localWeek = _stats?.uploadsThisWeek ?? 0;
+    final uploadsThisWeek = localWeek > 0
+        ? localWeek
+        : (_weeklyData?.fold(0, (a, b) => a + b) ?? 0);
     final tiles = [
       (value: uploadsToday, label: l10n.statsToday, color: AppColors.pressure),
-      (value: _stats?.uploadsThisWeek ?? 0, label: l10n.statsThisWeek, color: AppColors.light),
+      (value: uploadsThisWeek, label: l10n.statsThisWeek, color: AppColors.light),
       (value: daysLoaded ? daysActive : null, label: l10n.statsDaysActive, color: AppColors.quality),
     ];
 

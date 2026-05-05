@@ -528,10 +528,6 @@
 
   "tileCommunityClaimCta": "Walk through here to make it yours",
   "tileLowQualityHint": "Walk here again — more passes = stronger data.",
-  "homeSinceLastSession": "{count, plural, =1{+1 zone since last time} other{+{count} zones since last time}}",
-  "@homeSinceLastSession": {
-    "placeholders": { "count": { "type": "int" } }
-  },
   "homeZonesOnYourMap": "{count, plural, =1{1 zone on your map} other{{count} zones on your map}}",
   "@homeZonesOnYourMap": {
     "placeholders": { "count": { "type": "int" } }
@@ -672,8 +668,6 @@
   "statsTerritorySection": "TERRITORY",
   "mapTapHint": "Tap a hex to explore",
   "sessionPersonalBest": "Personal best",
-  "idleStreakAtRisk": "Map today — don't break the chain",
-
   "returnDeltaTitle": "{zones} new zones while you were away.",
   "@returnDeltaTitle": {
     "placeholders": { "zones": { "type": "int" } }
