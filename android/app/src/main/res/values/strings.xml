@@ -41,28 +41,18 @@
     <string name="notification_upload_hours_ago">%dh ago</string>
     <string name="notification_upload_yesterday">yesterday</string>
 
-    <!-- Variant B notification — title, subtext chip, body, expanded -->
+    <!-- Notification titles — one word, state-aware -->
     <string name="notif_title_contributing">Mapping</string>
-    <string name="notif_subtext_active">ACTIVE</string>
-    <string name="notif_subtext_stationary">STATIONARY</string>
+    <string name="notif_title_standby">Standby</string>
+    <!-- Duration format strings -->
     <string name="notif_body_starting">Starting up…</string>
-    <string name="notif_motion_moving">Moving</string>
-    <string name="notif_motion_still">Still</string>
     <!-- %1$d = hours, %2$d = minutes (zero-padded) -->
     <string name="notif_duration_hours_min">%1$dh %2$02dmin</string>
     <!-- %1$d = minutes -->
     <string name="notif_duration_minutes">%1$dmin</string>
-
-    <!-- Notification dashboard rows -->
-    <!-- %1$d = zones, %2$s = duration -->
-    <string name="notif_dash_zones_duration">%1$d zones  ·  %2$s</string>
-    <!-- %1$d = zones only -->
-    <string name="notif_dash_zones">%1$d zones</string>
-    <!-- %1$s = lux label, %2$s = hPa label -->
-    <string name="notif_dash_sensors">%1$s  ·  %2$s</string>
-    <!-- single sensor -->
-    <string name="notif_dash_sensor_lux">%1$s</string>
-    <string name="notif_dash_sensor_hpa">%1$s</string>
+    <!-- Compact body — zones · duration (sync appended in code with ↑) -->
+    <!-- %1$d = zones -->
+    <string name="notif_body_paused_compact">%1$d zones saved</string>
 
     <!-- Background worker notification -->
     <string name="notification_worker_title">GreenGains · syncing</string>

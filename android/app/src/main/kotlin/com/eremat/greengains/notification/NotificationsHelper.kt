@@ -53,88 +53,64 @@ internal object NotificationsHelper {
         val isUploadingNow = lastUploadMillis != null &&
             (System.currentTimeMillis() - lastUploadMillis) < 15_000L
 
-        // Duration — only shown when session has been running long enough
         val durationStr = sessionStartMillis?.let {
             val elapsed = System.currentTimeMillis() - it
             if (elapsed >= 60_000L) formatDuration(context, elapsed) else null
         }
 
-        // Upload status — reuse existing localized strings
-        val uploadStr = when {
+        // ── Title: one word, warm, state-aware ────────────────────────────────
+        val title = when {
+            isPaused -> context.getString(R.string.notification_paused_title)
+            isMoving -> context.getString(R.string.notif_title_contributing)
+            else     -> context.getString(R.string.notif_title_standby)
+        }
+
+        // ── Sync indicator — prefixed with ↑ arrow, appended inline ──────────
+        val syncStr = when {
             isPaused       -> null
-            isUploadingNow -> context.getString(R.string.notification_sync_uploading)
+            isUploadingNow -> "↑ ${context.getString(R.string.notification_sync_uploading)}"
             lastUploadMillis != null ->
-                context.getString(R.string.notification_sync_uploaded,
-                    formatElapsedUpload(context, lastUploadMillis))
-            else           -> context.getString(R.string.notification_sync_none)
+                "↑ ${context.getString(R.string.notification_sync_uploaded,
+                    formatElapsedUpload(context, lastUploadMillis))}"
+            else -> null
         }
 
-        // Title
-        val title = if (isPaused) context.getString(R.string.notification_paused_title)
-                    else          context.getString(R.string.notif_title_contributing)
-
-        // Subtext — the "chip" shown in the notification header row
-        val subtext = when {
-            isPaused -> null
-            isMoving -> context.getString(R.string.notif_subtext_active)
-            else     -> context.getString(R.string.notif_subtext_stationary)
-        }
-
-        // Collapsed body — duration · upload (both persist through uploads, no confusing resets)
+        // ── Collapsed body: zones · ↑ sync — no duration, users don't care ─────
         val body = when {
             isPaused && zonesTotal > 0 ->
-                context.getString(R.string.notification_body_paused_zones, zonesTotal)
+                context.getString(R.string.notif_body_paused_compact, zonesTotal)
             isPaused ->
                 context.getString(R.string.notification_paused_body)
-            durationStr != null && uploadStr != null ->
-                "$durationStr   ·   $uploadStr"
-            durationStr != null ->
-                durationStr
-            uploadStr != null ->
-                uploadStr
-            else ->
-                context.getString(R.string.notif_body_starting)
+            else -> {
+                val parts = listOfNotNull(
+                    if (zonesTotal > 0) "$zonesTotal zones" else null,
+                    syncStr,
+                )
+                parts.joinToString("  ·  ").ifEmpty {
+                    context.getString(R.string.notif_body_starting)
+                }
+            }
         }
 
-        // Sensor readings line (paused state only)
-        val sensorParts = listOfNotNull(
-            lux?.let { luxLabel(context, it) },
-            hPa?.let { hpaLabel(context, it) },
-        )
-        val sensorLine = if (sensorParts.isNotEmpty()) sensorParts.joinToString("  ·  ") else null
-
-        // ── Expanded dashboard — 3 structured rows ────────────────────────────────
-        // Row 1: zones + duration  (score)
-        // Row 2: sensor readings   (place data)
-        // Row 3: sync status       (health)
-        val bigText = if (!isPaused) {
-            val row1 = when {
-                zonesTotal > 0 && durationStr != null ->
-                    context.getString(R.string.notif_dash_zones_duration, zonesTotal, durationStr)
-                zonesTotal > 0 ->
-                    context.getString(R.string.notif_dash_zones, zonesTotal)
-                durationStr != null -> durationStr
-                else -> context.getString(R.string.notif_body_starting)
-            }
-            val row2 = when {
-                lux != null && hPa != null ->
-                    context.getString(R.string.notif_dash_sensors, luxLabel(context, lux), hpaLabel(context, hPa))
-                lux != null -> luxLabel(context, lux)
-                hPa != null -> hpaLabel(context, hPa)
-                else -> null
-            }
-            listOfNotNull(row1, row2, uploadStr).joinToString("\n")
+        // ── Expanded: same body + sync on its own line if long ────────────────
+        val bigText = if (isPaused) {
+            body
         } else {
-            listOfNotNull(body, sensorLine).joinToString("\n")
+            val summaryLine = listOfNotNull(
+                if (zonesTotal > 0) "$zonesTotal zones" else null,
+                durationStr,
+            ).joinToString("  ·  ").ifEmpty { context.getString(R.string.notif_body_starting) }
+            listOfNotNull(summaryLine, syncStr).joinToString("\n")
         }
 
-        // Actions
+        // ── Actions with icons ─────────────────────────────────────────────────
         val pauseResumeIntent = Intent(context, ForegroundService::class.java).apply {
             action = if (isPaused) ForegroundService.ACTION_RESUME_TRACKING
                      else          ForegroundService.ACTION_PAUSE_TRACKING
         }
         val pauseResumePending = PendingIntent.getService(
             context, 0, pauseResumeIntent, PendingIntent.FLAG_IMMUTABLE)
+        val pauseResumeIcon = if (isPaused) R.drawable.ic_notif_play else R.drawable.ic_notif_pause
         val pauseResumeLabel = if (isPaused) context.getString(R.string.notification_action_resume)
                                else          context.getString(R.string.notification_action_pause)
 
@@ -148,12 +124,15 @@ internal object NotificationsHelper {
             .setContentTitle(title)
             .setContentText(body)
             .setStyle(NotificationCompat.BigTextStyle().bigText(bigText))
-            .setSmallIcon(R.mipmap.ic_launcher)
+            .setSmallIcon(R.drawable.ic_notification_leaf)
+            .setColor(android.graphics.Color.parseColor("#10B981"))
+            .setColorized(false)
             .setOngoing(true)
             .setOnlyAlertOnce(true)
             .setShowWhen(false)
-            .addAction(0, pauseResumeLabel, pauseResumePending)
-            .addAction(0, context.getString(R.string.notification_action_stop), stopPending)
+            .addAction(pauseResumeIcon, pauseResumeLabel, pauseResumePending)
+            .addAction(R.drawable.ic_notif_stop,
+                context.getString(R.string.notification_action_stop), stopPending)
             .setForegroundServiceBehavior(NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE)
             .setContentIntent(
                 PendingIntent.getActivity(
@@ -163,7 +142,6 @@ internal object NotificationsHelper {
                 )
             )
 
-        if (subtext != null) builder.setSubText(subtext)
         // Indeterminate progress bar only when actively moving — signals "alive, collecting"
         if (!isPaused && isMoving) builder.setProgress(0, 0, true)
 
@@ -229,20 +207,7 @@ internal object NotificationsHelper {
         }
     }
 
-    private fun luxLabel(context: Context, lux: Float): String = when {
-        lux < 50    -> context.getString(R.string.sensor_lux_dark)
-        lux < 500   -> context.getString(R.string.sensor_lux_indoor)
-        lux < 10000 -> context.getString(R.string.sensor_lux_bright)
-        else        -> context.getString(R.string.sensor_lux_direct)
-    }
-
-    private fun hpaLabel(context: Context, hPa: Float): String = when {
-        hPa > 1010 -> context.getString(R.string.sensor_hpa_low)
-        hPa > 990  -> context.getString(R.string.sensor_hpa_mid)
-        else       -> context.getString(R.string.sensor_hpa_high)
-    }
-
-    private fun formatDuration(context: Context, elapsedMs: Long): String {
+private fun formatDuration(context: Context, elapsedMs: Long): String {
         val totalMin = elapsedMs / 60_000
         val hours = totalMin / 60
         val minutes = totalMin % 60

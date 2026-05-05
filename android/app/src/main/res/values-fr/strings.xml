@@ -37,22 +37,15 @@
     <string name="notification_upload_hours_ago">il y a %dh</string>
     <string name="notification_upload_yesterday">hier</string>
 
-    <!-- Variante B notification -->
+    <!-- Titres de notification — un mot, selon l\'état -->
     <string name="notif_title_contributing">Cartographie</string>
-    <string name="notif_subtext_active">ACTIF</string>
-    <string name="notif_subtext_stationary">IMMOBILE</string>
+    <string name="notif_title_standby">En veille</string>
+    <!-- Formats de durée -->
     <string name="notif_body_starting">Démarrage…</string>
-    <string name="notif_motion_moving">En déplacement</string>
-    <string name="notif_motion_still">À l\'arrêt</string>
     <string name="notif_duration_hours_min">%1$dh %2$02dmin</string>
     <string name="notif_duration_minutes">%1$dmin</string>
-
-    <!-- Notification dashboard rows -->
-    <string name="notif_dash_zones_duration">%1$d zones  ·  %2$s</string>
-    <string name="notif_dash_zones">%1$d zones</string>
-    <string name="notif_dash_sensors">%1$s  ·  %2$s</string>
-    <string name="notif_dash_sensor_lux">%1$s</string>
-    <string name="notif_dash_sensor_hpa">%1$s</string>
+    <!-- Corps compact — zones · durée (sync ajouté en code avec ↑) -->
+    <string name="notif_body_paused_compact">%1$d zones sauvegardées</string>
 
     <!-- Background worker notification -->
     <string name="notification_worker_title">GreenGains · synchronisation</string>

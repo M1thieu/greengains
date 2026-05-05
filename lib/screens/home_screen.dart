@@ -110,9 +110,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   static const _kLiveCellStabilityThreshold = 2;
   /// Cached tile count — avoids recomputing on every build frame.
   int get _claimedTileCount => _h3Tiles.where((t) => t.boundary != null).length;
-  /// Current streak — loaded once from local DB on init, shown on idle home.
+  /// Current streak — loaded after session ends, shown in session summary sheet.
   int _currentStreak = 0;
-  int _uploadsToday = 0;
   /// Whether community tiles are visible on the map.
   bool _showCommunity = true;
 
@@ -161,7 +160,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       if (mounted) {
         setState(() {
           _currentStreak = stats.currentStreak;
-          _uploadsToday = stats.uploadsToday;
         });
       }
     } catch (_) {}
@@ -740,7 +738,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                         children: [
                           _TrackingHintPill(
                             newZones: (_claimedTileCount - _sessionStartZoneCount).clamp(0, 999),
-                            sessionStart: _sessionStartTime ?? DateTime.now(),
                             totalZones: _claimedTileCount,
                             isPaused: isPaused,
                           ),
@@ -767,9 +764,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                         _IdlePill(
                           hasTiles: _h3Tiles.isNotEmpty,
                           currentZones: _claimedTileCount,
-                          lastKnownZones: _prefs.lastKnownZoneCount,
-                          streak: _currentStreak,
-                          uploadsToday: _uploadsToday,
                         ),
                         if (_returnDeltaZones > 0 && !_returnDeltaDismissed) ...[
                           const SizedBox(height: 6),
@@ -1052,15 +1046,9 @@ class _IdlePill extends StatefulWidget {
   const _IdlePill({
     required this.hasTiles,
     required this.currentZones,
-    required this.lastKnownZones,
-    required this.streak,
-    this.uploadsToday = 0,
   });
   final bool hasTiles;
   final int currentZones;
-  final int lastKnownZones;
-  final int streak;
-  final int uploadsToday;
 
   @override
   State<_IdlePill> createState() => _IdlePillState();
@@ -1084,24 +1072,7 @@ class _IdlePillState extends State<_IdlePill>
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final gained = (widget.currentZones - widget.lastKnownZones).clamp(0, 9999);
-    final hasGain = gained > 0 && widget.currentZones > 0;
     final hasZones = widget.currentZones > 0;
-    final hasStreak = widget.streak >= 2;
-    final streakAtRisk = hasStreak && widget.uploadsToday == 0;
-
-    final isGreen = hasGain;
-    final isAmber = streakAtRisk && !hasGain;
-    final bgColor = hasGain
-        ? AppColors.primary.withValues(alpha: 0.12)
-        : isAmber
-            ? AppColors.warning.withValues(alpha: 0.10)
-            : AppColors.mapOverlayDark;
-    final borderColor = hasGain
-        ? AppColors.primary.withValues(alpha: 0.30)
-        : isAmber
-            ? AppColors.warning.withValues(alpha: 0.28)
-        : Colors.white.withValues(alpha: 0.10);
 
     return FadeTransition(
       opacity: _opacity,
@@ -1115,68 +1086,32 @@ class _IdlePillState extends State<_IdlePill>
               vertical: AppTheme.spaceXs,
             ),
             decoration: BoxDecoration(
-              color: bgColor,
+              color: AppColors.mapOverlayDark,
               borderRadius: BorderRadius.circular(AppTheme.radiusPill),
-              border: Border.all(color: borderColor),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.10)),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Leading icon
                 Icon(
-                  hasGain
-                      ? Icons.trending_up_rounded
-                      : isAmber
-                          ? Icons.local_fire_department_rounded
-                          : Icons.my_location_outlined,
+                  Icons.my_location_outlined,
                   size: 12,
-                  color: isGreen
-                      ? AppColors.primary
-                      : isAmber
-                          ? AppColors.warning
-                          : AppColors.primary.withValues(alpha: 0.8),
+                  color: AppColors.primary.withValues(alpha: 0.8),
                 ),
                 const SizedBox(width: 5),
-                // Main label
                 Text(
-                  hasGain
-                      ? l10n.homeSinceLastSession(gained)
-                      : isAmber
-                          ? l10n.idleStreakAtRisk
-                          : hasZones
-                              ? l10n.homeZonesOnYourMap(widget.currentZones)
-                              : widget.hasTiles
-                                  ? l10n.chipTapStart
-                                  : l10n.chipTapStartFirst,
-                  style: TextStyle(
+                  hasZones
+                      ? l10n.homeZonesOnYourMap(widget.currentZones)
+                      : widget.hasTiles
+                          ? l10n.chipTapStart
+                          : l10n.chipTapStartFirst,
+                  style: const TextStyle(
                     fontSize: 12,
                     fontWeight: AppFontWeights.semibold,
-                    color: isGreen
-                        ? AppColors.primary
-                        : isAmber
-                            ? AppColors.warning
-                            : Colors.white,
+                    color: Colors.white,
                     letterSpacing: -0.1,
                   ),
                 ),
-                // Streak suffix — only when present
-                if (hasStreak) ...[
-                  const SizedBox(width: 7),
-                  Container(width: 1, height: 11, color: Colors.white.withValues(alpha: 0.12)),
-                  const SizedBox(width: 7),
-                  Icon(Icons.local_fire_department_rounded,
-                      size: 12, color: AppColors.warning),
-                  const SizedBox(width: 3),
-                  Text(
-                    l10n.statsStreakDays(widget.streak),
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: AppColors.warning,
-                      fontWeight: AppFontWeights.semibold,
-                      letterSpacing: -0.1,
-                    ),
-                  ),
-                ],
               ],
             ),
           ),
@@ -1838,12 +1773,10 @@ class _SensorLiveSheet extends StatelessWidget {
 class _TrackingHintPill extends StatefulWidget {
   const _TrackingHintPill({
     required this.newZones,
-    required this.sessionStart,
     required this.totalZones,
     this.isPaused = false,
   });
   final int newZones;
-  final DateTime sessionStart;
   final int totalZones;
   final bool isPaused;
 
@@ -1853,8 +1786,6 @@ class _TrackingHintPill extends StatefulWidget {
 
 class _TrackingHintPillState extends State<_TrackingHintPill>
     with SingleTickerProviderStateMixin {
-  late int _elapsedSeconds;
-  Timer? _timer;
   late AnimationController _bounceCtrl;
   late Animation<double> _bounceAnim;
   bool _showPlusOne = false;
@@ -1863,16 +1794,6 @@ class _TrackingHintPillState extends State<_TrackingHintPill>
   @override
   void initState() {
     super.initState();
-    _elapsedSeconds = DateTime.now().difference(widget.sessionStart).inSeconds;
-    if (!widget.isPaused) {
-      _timer = Timer.periodic(const Duration(seconds: 1), (_) {
-        if (mounted) {
-          setState(() {
-            _elapsedSeconds = DateTime.now().difference(widget.sessionStart).inSeconds;
-          });
-        }
-      });
-    }
     _bounceCtrl = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 420),
@@ -1903,15 +1824,8 @@ class _TrackingHintPillState extends State<_TrackingHintPill>
 
   @override
   void dispose() {
-    _timer?.cancel();
     _bounceCtrl.dispose();
     super.dispose();
-  }
-
-  String _formatElapsed(int s) {
-    final m = s ~/ 60;
-    final sec = s % 60;
-    return '${m.toString().padLeft(2, '0')}:${sec.toString().padLeft(2, '0')}';
   }
 
   @override
@@ -1923,10 +1837,9 @@ class _TrackingHintPillState extends State<_TrackingHintPill>
     final bgAlpha = widget.isPaused ? 0.12 : (hasZones ? 0.18 : 0.0);
     final borderAlpha = widget.isPaused ? 0.30 : (hasZones ? 0.35 : 0.06);
 
-    final zonesLabel = widget.isPaused
+    final label = widget.isPaused
         ? (hasZones ? l10n.homeSessionZones(widget.newZones) : l10n.chipPaused)
         : l10n.homeSessionZones(widget.newZones);
-    final timeLabel = widget.isPaused ? null : _formatElapsed(_elapsedSeconds);
 
     return Stack(
       alignment: Alignment.topCenter,
@@ -1940,6 +1853,10 @@ class _TrackingHintPillState extends State<_TrackingHintPill>
             child: BackdropFilter(
               filter: ui.ImageFilter.blur(sigmaX: 12, sigmaY: 12),
               child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppTheme.spaceMd,
+                  vertical: AppTheme.spaceXs - 1,
+                ),
                 decoration: BoxDecoration(
                   color: color != null
                       ? color.withValues(alpha: bgAlpha)
@@ -1951,52 +1868,19 @@ class _TrackingHintPillState extends State<_TrackingHintPill>
                         : Colors.white.withValues(alpha: 0.06),
                   ),
                 ),
-                child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppTheme.spaceMd,
-                  vertical: AppTheme.spaceXs - 1,
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      zonesLabel,
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: AppFontWeights.semibold,
-                        color: color ?? Colors.white60,
-                        letterSpacing: -0.05,
-                      ),
-                    ),
-                    if (timeLabel != null) ...[
-                      Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 6),
-                        width: 1, height: 10,
-                        color: Colors.white.withValues(alpha: 0.18),
-                      ),
-                      Text(
-                        timeLabel,
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: AppFontWeights.medium,
-                          color: Colors.white.withValues(alpha: 0.55),
-                          letterSpacing: 0.3,
-                          fontFeatures: const [ui.FontFeature.tabularFigures()],
-                        ),
-                      ),
-                    ],
-                  ],
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: AppFontWeights.semibold,
+                    color: color ?? Colors.white60,
+                    letterSpacing: -0.05,
+                  ),
                 ),
               ),
-            ],
+            ),
           ),
         ),
-      ),
-    ),
-        ),  // AnimatedBuilder
         if (_showPlusOne)
           Positioned(
             top: -20,
