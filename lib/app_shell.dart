@@ -1,6 +1,5 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'screens/home_screen.dart';
 import 'screens/profile_screen.dart';
 import 'screens/statistics_screen.dart';
@@ -66,7 +65,6 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
   }
 
   void _onTabSelected(int index) {
-    HapticFeedback.selectionClick();
     setState(() => _currentIndex = index);
     _pageController.animateToPage(
       index,

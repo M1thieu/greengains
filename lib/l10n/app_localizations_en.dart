@@ -1436,11 +1436,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sessionSummarySubline => 'added to your map';
 
   @override
-  String get sessionSummaryNoZonesLabel => 'TIME MAPPED';
+  String get sessionSummaryNoZonesLabel => 'YOUR MAP';
 
   @override
   String get sessionSummaryNoZonesSubline =>
-      'Keep going — zones fill in as you move.';
+      'Familiar ground. Head somewhere new to grow it.';
 
   @override
   String get sessionSummaryWatermark => 'Mapped with GreenGains';

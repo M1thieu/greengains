@@ -2140,20 +2140,25 @@ class _SessionSummarySheetState extends State<_SessionSummarySheet> {
                   style: const TextStyle(
                     fontSize: 11,
                     fontWeight: AppFontWeights.semibold,
-                    color: Colors.white54,
+                    color: AppColors.primary,
                     letterSpacing: 0.8,
                   ),
                 ),
                 const SizedBox(height: 4),
-                Text(
-                  _fmtDuration(widget.sessionDuration),
-                  style: const TextStyle(
-                    fontSize: 72,
-                    fontWeight: AppFontWeights.bold,
-                    color: Colors.white,
-                    letterSpacing: -3,
-                    height: 0.95,
-                    fontFeatures: [ui.FontFeature.tabularFigures()],
+                TweenAnimationBuilder<int>(
+                  tween: IntTween(begin: 0, end: widget.totalZones),
+                  duration: const Duration(milliseconds: 700),
+                  curve: Curves.easeOut,
+                  builder: (_, value, __) => Text(
+                    '$value',
+                    style: const TextStyle(
+                      fontSize: 108,
+                      fontWeight: AppFontWeights.bold,
+                      color: Colors.white,
+                      letterSpacing: -5,
+                      height: 0.92,
+                      fontFeatures: [ui.FontFeature.tabularFigures()],
+                    ),
                   ),
                 ),
                 const SizedBox(height: AppTheme.spaceSm),

@@ -248,6 +248,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
               _ProfileSectionLabel(l10n.profileImpactSection, isDark: isDark),
               const SizedBox(height: AppTheme.spaceXs),
               _buildImpactRow(theme, isDark, l10n),
+              if (_coverageCells != null && _coverageCells! > 0) ...[
+                const SizedBox(height: AppTheme.spaceMd),
+                _MilestoneBadgesRow(earned: _coverageCells!, isDark: isDark),
+              ],
               const SizedBox(height: AppTheme.spaceXl),
               if (!user.isAnonymous) ...[
                 ReferralInviteCard(
@@ -509,6 +513,65 @@ class _ProfileScreenState extends State<ProfileScreen> {
         AppSnackbars.showError(context, l10n.errorGeneric);
       }
     }
+  }
+}
+
+/// Horizontal row of milestone badge pills — earned ones filled, upcoming greyed.
+class _MilestoneBadgesRow extends StatelessWidget {
+  const _MilestoneBadgesRow({required this.earned, required this.isDark});
+  final int earned;
+  final bool isDark;
+
+  static const _milestones = [5, 10, 25, 50, 100, 250, 500, 1000];
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 28,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: _milestones.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 6),
+        itemBuilder: (_, i) {
+          final m = _milestones[i];
+          final isEarned = earned >= m;
+          return AnimatedContainer(
+            duration: Duration(milliseconds: 200 + i * 40),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            decoration: BoxDecoration(
+              color: isEarned
+                  ? AppColors.primary.withValues(alpha: 0.15)
+                  : AppColors.border(isDark).withValues(alpha: 0.5),
+              borderRadius: BorderRadius.circular(AppTheme.radiusPill),
+              border: Border.all(
+                color: isEarned
+                    ? AppColors.primary.withValues(alpha: 0.40)
+                    : AppColors.border(isDark),
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (isEarned) ...[
+                  Icon(Icons.check_rounded, size: 11, color: AppColors.primary),
+                  const SizedBox(width: 3),
+                ],
+                Text(
+                  m >= 1000 ? '${m ~/ 1000}k' : '$m',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: isEarned ? AppFontWeights.semibold : AppFontWeights.regular,
+                    color: isEarned
+                        ? AppColors.primary
+                        : AppColors.textTertiary(isDark),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
   }
 }
 

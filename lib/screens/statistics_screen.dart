@@ -943,12 +943,6 @@ class _StatisticsScreenState extends State<StatisticsScreen>
   }
 }
 
-// ─── Info sheet ───────────────────────────────────────────────────────────────
-
-
-// ── Streak banner ─────────────────────────────────────────────────────────────
-
-
 class _StatsSectionLabel extends StatelessWidget {
   const _StatsSectionLabel(this.text, {required this.isDark});
   final String text;

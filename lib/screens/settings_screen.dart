@@ -1,5 +1,6 @@
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import '../core/extensions/context_extensions.dart';
@@ -55,6 +56,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
       body: ListView(
         padding: AppTheme.pagePadding,
         children: [
+          // ── User identity ────────────────────────────────────────────────
+          _SettingsUserHeader(),
+          const SizedBox(height: AppTheme.spaceMd),
+
           // ── Appearance ──────────────────────────────────────────────────
           _SettingsSectionContainer(
             child: Column(
@@ -73,7 +78,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ],
                       selected: {_themeController.mode},
                       onSelectionChanged: (s) {
-                        HapticFeedback.selectionClick();
                         _themeController.setMode(s.first);
                       },
                     );
@@ -92,7 +96,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ],
                       selected: {_languageController.locale?.languageCode},
                       onSelectionChanged: (s) {
-                        HapticFeedback.selectionClick();
                         final code = s.first;
                         _languageController.setLocale(code != null ? Locale(code) : null);
                       },
@@ -115,9 +118,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   title: l10n.settingsLocationSharing,
                   subtitle: l10n.settingsLocationDescription,
                   value: _prefs.shareLocation,
-                  onChanged: (value) {
-                    HapticFeedback.selectionClick();
-                    setState(() => _prefs.setShareLocation(value));
+                  onChanged: (value) async {
+                    await _prefs.setShareLocation(value);
+                    if (mounted) setState(() {});
                   },
                 ),
                 const Divider(height: AppTheme.spaceLg, thickness: 0.5),
@@ -127,9 +130,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   title: l10n.settingsMobileData,
                   subtitle: l10n.settingsMobileDataDescription,
                   value: _prefs.useMobileUploads,
-                  onChanged: (value) {
-                    HapticFeedback.selectionClick();
-                    setState(() => _prefs.setUseMobileUploads(value));
+                  onChanged: (value) async {
+                    await _prefs.setUseMobileUploads(value);
+                    if (mounted) setState(() {});
                   },
                 ),
               ],
@@ -399,6 +402,57 @@ class _DataInfoRow extends StatelessWidget {
             style: theme.textTheme.bodyMedium?.copyWith(
               color: AppColors.textSecondary(isDark),
             ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Signed-in user identity header — shown at the top of settings.
+class _SettingsUserHeader extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return const SizedBox.shrink();
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    return Row(
+      children: [
+        CircleAvatar(
+          radius: 20,
+          backgroundColor: AppColors.primary.withValues(alpha: 0.15),
+          backgroundImage: user.photoURL != null
+              ? CachedNetworkImageProvider(user.photoURL!)
+              : null,
+          child: user.photoURL == null
+              ? Icon(Icons.person_rounded, size: 20, color: AppColors.primary)
+              : null,
+        ),
+        const SizedBox(width: AppTheme.spaceSm),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (user.displayName != null && user.displayName!.isNotEmpty)
+                Text(
+                  user.displayName!,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    fontWeight: AppFontWeights.semibold,
+                    color: AppColors.textPrimary(isDark),
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              if (user.email != null)
+                Text(
+                  user.email!,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: AppColors.textSecondary(isDark),
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+            ],
           ),
         ),
       ],

@@ -1450,11 +1450,11 @@ class AppLocalizationsFr extends AppLocalizations {
   String get sessionSummarySubline => 'ajoutées à votre carte';
 
   @override
-  String get sessionSummaryNoZonesLabel => 'TEMPS CARTOGRAPHIÉ';
+  String get sessionSummaryNoZonesLabel => 'TA CARTE';
 
   @override
   String get sessionSummaryNoZonesSubline =>
-      'Continuez — les zones se remplissent en marchant.';
+      'Terrain connu. Explore ailleurs pour agrandir ta carte.';
 
   @override
   String get sessionSummaryWatermark => 'Cartographié avec GreenGains';

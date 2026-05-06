@@ -2459,13 +2459,13 @@ abstract class AppLocalizations {
   /// No description provided for @sessionSummaryNoZonesLabel.
   ///
   /// In en, this message translates to:
-  /// **'TIME MAPPED'**
+  /// **'YOUR MAP'**
   String get sessionSummaryNoZonesLabel;
 
   /// No description provided for @sessionSummaryNoZonesSubline.
   ///
   /// In en, this message translates to:
-  /// **'Keep going — zones fill in as you move.'**
+  /// **'Familiar ground. Head somewhere new to grow it.'**
   String get sessionSummaryNoZonesSubline;
 
   /// No description provided for @sessionSummaryWatermark.
