@@ -452,9 +452,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get statsKmMapped => 'km² mapped';
 
   @override
-  String get statsBestDay => 'Best day';
-
-  @override
   String statsBarCalloutUploads(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -470,6 +467,76 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get statsBarCalloutBest => 'Best day';
+
+  @override
+  String get statsBestDayLabel => 'Best day';
+
+  @override
+  String get statsDetailTitle => 'Your data';
+
+  @override
+  String statsCityBlocks(int count) {
+    return '~$count city blocks covered';
+  }
+
+  @override
+  String get statsPersonalRecords => 'Personal records';
+
+  @override
+  String get statsRecordBestDay => 'Best day';
+
+  @override
+  String get statsRecordLongestStreak => 'Longest streak';
+
+  @override
+  String get statsRecordTotalUploads => 'Total uploads';
+
+  @override
+  String get statsRecordFirstDay => 'First mapping day';
+
+  @override
+  String get statsZoneExplainer =>
+      'Each zone is ~0.1 km² — a city block of sensor data';
+
+  @override
+  String get statsUploadExplainer =>
+      'Each upload = light + motion + pressure readings from one spot';
+
+  @override
+  String get statsTabCore => 'Overview';
+
+  @override
+  String get statsTabInDepth => 'In depth';
+
+  @override
+  String get statsInDepth30Days => 'Last 30 days';
+
+  @override
+  String get statsInDepthActiveDays => 'Active days';
+
+  @override
+  String get statsInDepthAvgPerDay => 'Avg / active day';
+
+  @override
+  String get statsInDepthBestWeekday => 'Best weekday';
+
+  @override
+  String get statsDaysUnit => 'days';
+
+  @override
+  String get statsCurrentStreakLabel => 'Current streak';
+
+  @override
+  String get statsLongestLabel => 'Longest';
+
+  @override
+  String get statsAllTimeSection => 'ALL-TIME';
+
+  @override
+  String get statsUploadsUnit => 'uploads';
+
+  @override
+  String get statsBestWeekLabel => 'Best week';
 
   @override
   String get infoKmTitle => 'Territory mapped';
@@ -903,7 +970,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get referralInviteDescription =>
-      'Every friend maps places you haven\'t been yet.';
+      'Every neighbor fills in what you haven\'t reached.';
 
   @override
   String get layerMine => 'Mine';
@@ -1222,6 +1289,79 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get statsStreakNewRecord => 'New record';
+
+  @override
+  String statsStreakPersonalBest(int count) {
+    return 'Best: $count days';
+  }
+
+  @override
+  String get statsChartWeekTab => 'Week';
+
+  @override
+  String get statsChartMonthTab => 'Month';
+
+  @override
+  String get statsChartMonthEmpty => 'Walk more days to unlock monthly view';
+
+  @override
+  String statsBarCalloutDetail(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count zones mapped',
+      one: '1 zone mapped',
+    );
+    return '~$_temp0 · light · motion · pressure';
+  }
+
+  @override
+  String get statsTerritoryDetails => 'See territory details';
+
+  @override
+  String get statsTerritorySheetTitle => 'Your territory';
+
+  @override
+  String statsTerritoryZones(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count zones',
+      one: '1 zone',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get statsTerritoryWhatRecorded => 'What\'s recorded in each zone';
+
+  @override
+  String get statsTerritoryLightLabel => 'Light';
+
+  @override
+  String get statsTerritoryLightDesc =>
+      'Ambient brightness — indoor, outdoor, shade, direct sun';
+
+  @override
+  String get statsTerritoryMotionLabel => 'Motion';
+
+  @override
+  String get statsTerritoryMotionDesc =>
+      'Movement intensity — foot traffic, vehicles, vibration';
+
+  @override
+  String get statsTerritoryPressureLabel => 'Pressure';
+
+  @override
+  String get statsTerritoryPressureDesc =>
+      'Air pressure — indicates altitude and weather conditions';
+
+  @override
+  String get statsTerritoryMapCta =>
+      'Tap any zone on the map to see its readings';
+
+  @override
   String get tileCommunityClaimCta => 'Walk through here to make it yours';
 
   @override
@@ -1494,4 +1634,23 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get returnDeltaDismiss => 'Got it';
+
+  @override
+  String get settingsAccount => 'Account';
+
+  @override
+  String get settingsSignOut => 'Sign out';
+
+  @override
+  String get settingsSignOutConfirmTitle => 'Sign out?';
+
+  @override
+  String get settingsSignOutConfirmBody =>
+      'You\'ll need to sign back in to see your map.';
+
+  @override
+  String get settingsSignOutConfirm => 'Sign out';
+
+  @override
+  String get settingsSignOutCancel => 'Cancel';
 }

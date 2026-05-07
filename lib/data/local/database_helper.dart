@@ -539,6 +539,24 @@ class DatabaseHelper {
 
   // ========== MAINTENANCE ==========
 
+  /// Returns upload count per calendar day for the last [days] days.
+  /// Map key = 'yyyy-MM-dd', value = count.
+  Future<Map<String, int>> getDailyCountsForRange({int days = 30}) async {
+    final db = await database;
+    final cutoff = DateTime.now().subtract(Duration(days: days - 1));
+    final cutoffMs = DateTime(cutoff.year, cutoff.month, cutoff.day).millisecondsSinceEpoch;
+    final rows = await db.rawQuery(
+      '''
+      SELECT DATE(timestamp / 1000, 'unixepoch') as day, COUNT(*) as cnt
+      FROM contributions
+      WHERE success = 1 AND timestamp >= ?
+      GROUP BY day
+      ''',
+      [cutoffMs],
+    );
+    return {for (final r in rows) r['day'] as String: r['cnt'] as int};
+  }
+
   /// Clean old data (contributions older than 90 days)
   Future<void> cleanOldData({int daysToKeep = 90}) async {
     final db = await database;

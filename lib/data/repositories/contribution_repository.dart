@@ -25,4 +25,7 @@ class ContributionRepository {
     );
   }
 
+  Future<Map<String, int>> getDailyCountsForRange({int days = 30}) =>
+      _db.getDailyCountsForRange(days: days);
+
 }

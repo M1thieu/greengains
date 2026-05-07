@@ -263,10 +263,10 @@ export async function uploadRoutes(fastify: FastifyInstance) {
           await client.query('BEGIN');
 
           const insertResult = await client.query(
-            `INSERT INTO sensor_batches (device_hash, timestamp_utc, batch_json, user_id, h3_res9, h3_res8)
-             VALUES ($1, $2, $3::jsonb, $4, $5, $6)
+            `INSERT INTO sensor_batches (device_hash, timestamp_utc, batch_json, user_id, h3_res9, h3_res8, sensor_flags)
+             VALUES ($1, $2, $3::jsonb, $4, $5, $6, $7)
              ON CONFLICT (device_hash, timestamp_utc) DO NOTHING`,
-            [deviceHash, batch.timestamp, payloadJson, userId, h3Res9, h3Res8],
+            [deviceHash, batch.timestamp, payloadJson, userId, h3Res9, h3Res8, batch.sensor_flags ?? 0],
           );
           insertRowCount = insertResult.rowCount ?? 0;
 

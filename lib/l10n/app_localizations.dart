@@ -836,12 +836,6 @@ abstract class AppLocalizations {
   /// **'km² mapped'**
   String get statsKmMapped;
 
-  /// No description provided for @statsBestDay.
-  ///
-  /// In en, this message translates to:
-  /// **'Best day'**
-  String get statsBestDay;
-
   /// No description provided for @statsBarCalloutUploads.
   ///
   /// In en, this message translates to:
@@ -859,6 +853,138 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Best day'**
   String get statsBarCalloutBest;
+
+  /// No description provided for @statsBestDayLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Best day'**
+  String get statsBestDayLabel;
+
+  /// No description provided for @statsDetailTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your data'**
+  String get statsDetailTitle;
+
+  /// No description provided for @statsCityBlocks.
+  ///
+  /// In en, this message translates to:
+  /// **'~{count} city blocks covered'**
+  String statsCityBlocks(int count);
+
+  /// No description provided for @statsPersonalRecords.
+  ///
+  /// In en, this message translates to:
+  /// **'Personal records'**
+  String get statsPersonalRecords;
+
+  /// No description provided for @statsRecordBestDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Best day'**
+  String get statsRecordBestDay;
+
+  /// No description provided for @statsRecordLongestStreak.
+  ///
+  /// In en, this message translates to:
+  /// **'Longest streak'**
+  String get statsRecordLongestStreak;
+
+  /// No description provided for @statsRecordTotalUploads.
+  ///
+  /// In en, this message translates to:
+  /// **'Total uploads'**
+  String get statsRecordTotalUploads;
+
+  /// No description provided for @statsRecordFirstDay.
+  ///
+  /// In en, this message translates to:
+  /// **'First mapping day'**
+  String get statsRecordFirstDay;
+
+  /// No description provided for @statsZoneExplainer.
+  ///
+  /// In en, this message translates to:
+  /// **'Each zone is ~0.1 km² — a city block of sensor data'**
+  String get statsZoneExplainer;
+
+  /// No description provided for @statsUploadExplainer.
+  ///
+  /// In en, this message translates to:
+  /// **'Each upload = light + motion + pressure readings from one spot'**
+  String get statsUploadExplainer;
+
+  /// No description provided for @statsTabCore.
+  ///
+  /// In en, this message translates to:
+  /// **'Overview'**
+  String get statsTabCore;
+
+  /// No description provided for @statsTabInDepth.
+  ///
+  /// In en, this message translates to:
+  /// **'In depth'**
+  String get statsTabInDepth;
+
+  /// No description provided for @statsInDepth30Days.
+  ///
+  /// In en, this message translates to:
+  /// **'Last 30 days'**
+  String get statsInDepth30Days;
+
+  /// No description provided for @statsInDepthActiveDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Active days'**
+  String get statsInDepthActiveDays;
+
+  /// No description provided for @statsInDepthAvgPerDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Avg / active day'**
+  String get statsInDepthAvgPerDay;
+
+  /// No description provided for @statsInDepthBestWeekday.
+  ///
+  /// In en, this message translates to:
+  /// **'Best weekday'**
+  String get statsInDepthBestWeekday;
+
+  /// No description provided for @statsDaysUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'days'**
+  String get statsDaysUnit;
+
+  /// No description provided for @statsCurrentStreakLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Current streak'**
+  String get statsCurrentStreakLabel;
+
+  /// No description provided for @statsLongestLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Longest'**
+  String get statsLongestLabel;
+
+  /// No description provided for @statsAllTimeSection.
+  ///
+  /// In en, this message translates to:
+  /// **'ALL-TIME'**
+  String get statsAllTimeSection;
+
+  /// No description provided for @statsUploadsUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'uploads'**
+  String get statsUploadsUnit;
+
+  /// No description provided for @statsBestWeekLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Best week'**
+  String get statsBestWeekLabel;
 
   /// No description provided for @infoKmTitle.
   ///
@@ -1619,7 +1745,7 @@ abstract class AppLocalizations {
   /// No description provided for @referralInviteDescription.
   ///
   /// In en, this message translates to:
-  /// **'Every friend maps places you haven\'t been yet.'**
+  /// **'Every neighbor fills in what you haven\'t reached.'**
   String get referralInviteDescription;
 
   /// No description provided for @layerMine.
@@ -2114,6 +2240,108 @@ abstract class AppLocalizations {
   /// **'{count, plural, =1{1 day in a row} other{{count} days in a row}}'**
   String statsStreakDays(int count);
 
+  /// No description provided for @statsStreakNewRecord.
+  ///
+  /// In en, this message translates to:
+  /// **'New record'**
+  String get statsStreakNewRecord;
+
+  /// No description provided for @statsStreakPersonalBest.
+  ///
+  /// In en, this message translates to:
+  /// **'Best: {count} days'**
+  String statsStreakPersonalBest(int count);
+
+  /// No description provided for @statsChartWeekTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Week'**
+  String get statsChartWeekTab;
+
+  /// No description provided for @statsChartMonthTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Month'**
+  String get statsChartMonthTab;
+
+  /// No description provided for @statsChartMonthEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Walk more days to unlock monthly view'**
+  String get statsChartMonthEmpty;
+
+  /// No description provided for @statsBarCalloutDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'~{count, plural, =1{1 zone mapped} other{{count} zones mapped}} · light · motion · pressure'**
+  String statsBarCalloutDetail(int count);
+
+  /// No description provided for @statsTerritoryDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'See territory details'**
+  String get statsTerritoryDetails;
+
+  /// No description provided for @statsTerritorySheetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your territory'**
+  String get statsTerritorySheetTitle;
+
+  /// No description provided for @statsTerritoryZones.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 zone} other{{count} zones}}'**
+  String statsTerritoryZones(int count);
+
+  /// No description provided for @statsTerritoryWhatRecorded.
+  ///
+  /// In en, this message translates to:
+  /// **'What\'s recorded in each zone'**
+  String get statsTerritoryWhatRecorded;
+
+  /// No description provided for @statsTerritoryLightLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Light'**
+  String get statsTerritoryLightLabel;
+
+  /// No description provided for @statsTerritoryLightDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Ambient brightness — indoor, outdoor, shade, direct sun'**
+  String get statsTerritoryLightDesc;
+
+  /// No description provided for @statsTerritoryMotionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Motion'**
+  String get statsTerritoryMotionLabel;
+
+  /// No description provided for @statsTerritoryMotionDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Movement intensity — foot traffic, vehicles, vibration'**
+  String get statsTerritoryMotionDesc;
+
+  /// No description provided for @statsTerritoryPressureLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Pressure'**
+  String get statsTerritoryPressureLabel;
+
+  /// No description provided for @statsTerritoryPressureDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Air pressure — indicates altitude and weather conditions'**
+  String get statsTerritoryPressureDesc;
+
+  /// No description provided for @statsTerritoryMapCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap any zone on the map to see its readings'**
+  String get statsTerritoryMapCta;
+
   /// No description provided for @tileCommunityClaimCta.
   ///
   /// In en, this message translates to:
@@ -2557,6 +2785,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Got it'**
   String get returnDeltaDismiss;
+
+  /// No description provided for @settingsAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Account'**
+  String get settingsAccount;
+
+  /// No description provided for @settingsSignOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out'**
+  String get settingsSignOut;
+
+  /// No description provided for @settingsSignOutConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out?'**
+  String get settingsSignOutConfirmTitle;
+
+  /// No description provided for @settingsSignOutConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'ll need to sign back in to see your map.'**
+  String get settingsSignOutConfirmBody;
+
+  /// No description provided for @settingsSignOutConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out'**
+  String get settingsSignOutConfirm;
+
+  /// No description provided for @settingsSignOutCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get settingsSignOutCancel;
 }
 
 class _AppLocalizationsDelegate

@@ -39,6 +39,7 @@ class UserProfileResponse {
   final int coverageCells;
   final int deviceCount;
   final List<int> weekly;
+  final int? qualityPct;
 
   const UserProfileResponse({
     required this.totalUploads,
@@ -49,6 +50,7 @@ class UserProfileResponse {
     required this.coverageCells,
     required this.deviceCount,
     required this.weekly,
+    this.qualityPct,
   });
 
   factory UserProfileResponse.fromJson(Map<String, dynamic> json) {
@@ -63,6 +65,7 @@ class UserProfileResponse {
       coverageCells: (s['coverageCells'] as num?)?.toInt() ?? 0,
       deviceCount:   (s['deviceCount']   as num?)?.toInt() ?? 0,
       weekly: raw.map((e) => e is num ? e.toInt() : 0).toList(),
+      qualityPct:    (s['qualityPct']    as num?)?.toInt(),
     );
   }
 }

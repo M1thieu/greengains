@@ -26,6 +26,7 @@ internal class SensorQualityAnalyzer {
     )
 
     private val accelSamples = ArrayDeque<MotionSample>()
+    private val gyroSamples  = ArrayDeque<MotionSample>()
     private var lastProximityNear: Boolean? = null
     private val gravityVector = FloatArray(3)
     private var gravityInitialized = false
@@ -47,7 +48,11 @@ internal class SensorQualityAnalyzer {
     }
 
     fun onGyroscope(values: FloatArray) = synchronized(this) {
-        // Gyro logic if needed
+        val now = System.currentTimeMillis()
+        gyroSamples.addLast(MotionSample(now, magnitude(values)))
+        while (gyroSamples.isNotEmpty() && now - gyroSamples.first().timestamp > WINDOW_MS) {
+            gyroSamples.removeFirst()
+        }
     }
 
     /**
@@ -73,9 +78,11 @@ internal class SensorQualityAnalyzer {
         val orientationInfo = computeOrientation()
         val (motionState, motionConfidence) = classifyMotion(
             accelVariance = computeVariance(accelSamples),
-            gyroRms = 0.0 // We aren't tracking gyro samples yet in this analyzer
+            gyroRms = computeRms(gyroSamples)
         )
         val pocketState = determinePocketState(orientationInfo, lastLux, motionState)
+        val locationQuality = determineLocationQuality(location)
+        val precisionScore = computePrecisionScore(locationQuality, pocketState, location)
 
         return QualityMetadata(
             orientation = orientationInfo.state,
@@ -83,8 +90,9 @@ internal class SensorQualityAnalyzer {
             motionState = motionState,
             motionConfidence = motionConfidence,
             pocketState = pocketState,
-            locationQuality = determineLocationQuality(location),
-            proximityNear = lastProximityNear
+            locationQuality = locationQuality,
+            proximityNear = lastProximityNear,
+            precisionScore = precisionScore
         )
     }
 
@@ -146,6 +154,11 @@ internal class SensorQualityAnalyzer {
         return OrientationInfo(state = state, tiltDegrees = tiltDeg)
     }
 
+    private fun computeRms(samples: ArrayDeque<MotionSample>): Double {
+        if (samples.isEmpty()) return 0.0
+        return sqrt(samples.sumOf { it.magnitude.toDouble() * it.magnitude.toDouble() } / samples.size)
+    }
+
     private fun computeVariance(samples: ArrayDeque<MotionSample>): Double {
         if (samples.size < 2) return 0.0
         val mean = samples.sumOf { it.magnitude.toDouble() } / samples.size
@@ -162,8 +175,11 @@ internal class SensorQualityAnalyzer {
         if (accelSamples.isEmpty()) {
             return MotionState.UNKNOWN to 0f
         }
+        // Fuse accel variance (primary) and gyro RMS (secondary, 30% weight).
+        // Gyro catches subtle rotation that low-variance translation misses (e.g. slow pan).
         val accelRatio = (accelVariance / ACCEL_MOVING_VARIANCE).toFloat()
-        val confidence = accelRatio.coerceIn(0f, 1f)
+        val gyroRatio  = (gyroRms / GYRO_MOVING_RMS).toFloat()
+        val confidence = (0.7f * accelRatio + 0.3f * gyroRatio).coerceIn(0f, 1f)
 
         val state = when {
             confidence < 0.2f -> MotionState.STATIONARY
@@ -207,6 +223,27 @@ internal class SensorQualityAnalyzer {
         }
     }
 
+    /**
+     * GPS precision score [0.0, 1.0] based solely on the reported horizontal accuracy.
+     *
+     * location.accuracy is Android's 68% confidence radius (1σ). Motion state and pocket
+     * state are intentionally excluded — a runner's GPS fix is not spatially less valid
+     * than a stationary person's. Only the GPS signal quality itself matters here.
+     *
+     * Formula: linear interpolation from 0m (score=1.0) to MAX_ACCEPT_M (score=0.0),
+     * clamped. Any fix past the accuracy filter threshold is already excluded upstream.
+     */
+    private fun computePrecisionScore(
+        locationQuality: LocationQuality,
+        pocketState: PocketState,
+        location: Location?
+    ): Float? {
+        if (locationQuality == LocationQuality.NONE || locationQuality == LocationQuality.STALE) return null
+        val accuracy = location?.takeIf { it.hasAccuracy() }?.accuracy ?: return null
+        // Linear decay: 0m → 1.0, MAX_ACCEPT_M → 0.0
+        return (1f - accuracy / MAX_ACCEPTED_ACCURACY_M).coerceIn(0f, 1f)
+    }
+
     private fun determineLocationQuality(location: Location?): LocationQuality {
         location ?: return LocationQuality.NONE
         val now = System.currentTimeMillis()
@@ -232,5 +269,9 @@ internal class SensorQualityAnalyzer {
         private const val POCKET_TILT_MIN = 60f
         private const val POCKET_TILT_MAX = 120f
         private const val STALE_LOCATION_MS = 60_000L
+        // Accuracy filter threshold — matches the upstream rejection gate in ForegroundService.
+        // Stationary mode accepts up to 150m (BALANCED_POWER fix quality), active accepts 50m.
+        // Using 150m here so the score is always computed even for stationary fixes.
+        private const val MAX_ACCEPTED_ACCURACY_M = 150f
     }
 }

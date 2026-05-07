@@ -56,7 +56,13 @@ data class QualityMetadata(
      * Null = proximity sensor not available on this device.
      * More reliable than light+tilt heuristic for pocket detection.
      */
-    val proximityNear: Boolean? = null
+    val proximityNear: Boolean? = null,
+    /**
+     * Composite data quality score [0.0, 1.0] — higher = more trustworthy reading.
+     * Factored from: GPS accuracy, location quality tier, pocket state, motion confidence.
+     * Null = not yet computed (older readings before this field was added).
+     */
+    val precisionScore: Float? = null
 )
 
 enum class OrientationState {

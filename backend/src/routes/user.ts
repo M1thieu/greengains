@@ -240,7 +240,7 @@ export async function userRoutes(fastify: FastifyInstance) {
 
         // uploads_today always comes from sensor_batches — not cached (changes intraday).
         // device_count also live — rarely needed and fast with existing index.
-        const [liveResult, weeklyResult] = await Promise.all([
+        const [liveResult, weeklyResult, qualityResult] = await Promise.all([
           pool.query<{ uploads_today: number; device_count: number }>(
             `SELECT
                COUNT(*) FILTER (WHERE DATE(timestamp_utc) = CURRENT_DATE)::int AS uploads_today,
@@ -258,7 +258,20 @@ export async function userRoutes(fastify: FastifyInstance) {
              ORDER BY upload_date ASC`,
             [userId],
           ),
+          pool.query<{ valid_samples: number; samples_count: number }>(
+            `SELECT
+               COALESCE(SUM(valid_samples), 0)::int  AS valid_samples,
+               COALESCE(SUM(samples_count), 0)::int  AS samples_count
+             FROM user_stats
+             WHERE user_id = $1`,
+            [userId],
+          ),
         ]);
+
+        const qr = qualityResult.rows[0];
+        const qualityPct = (qr?.samples_count ?? 0) > 0
+          ? Math.round((qr.valid_samples / qr.samples_count) * 100)
+          : null;
 
         const weekly: number[] = Array(7).fill(0);
         const todayMs = Date.UTC(
@@ -365,6 +378,7 @@ export async function userRoutes(fastify: FastifyInstance) {
             firstUploadDate,
             lastUploadDate,
             weekly,
+            qualityPct,
           },
         };
         _profileCache.set(userId, { data: profileData, expiresAt: Date.now() + USER_PROFILE_CACHE_TTL_MS });

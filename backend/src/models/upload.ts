@@ -58,6 +58,8 @@ export const UploadBatchSchema = z.object({
   geohash: z.string().max(12).optional(),
   battery_level: z.number().min(-1).max(100).optional(),
   is_charging: z.boolean().optional(),
+  /** Bitmask: LIGHT=1, MOTION=2, PRESSURE=4, GYRO=8, MAGNETIC=16 */
+  sensor_flags: z.number().int().min(0).max(31).optional(),
 });
 
 export type LocationData = z.infer<typeof LocationDataSchema>;

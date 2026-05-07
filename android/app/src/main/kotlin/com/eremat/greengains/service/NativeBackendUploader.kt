@@ -429,15 +429,28 @@ class NativeBackendUploader(
 
         val geohash = if (shareLocation) computeGeohash() else null
 
+        // Bitmask: which sensor types actually provided data in this batch.
+        // LIGHT=1, MOTION=2, PRESSURE=4, GYRO=8, MAGNETIC=16
+        // Lets backend weight quality and lets B2B buyers know data coverage.
+        var sensorFlags = 0
+        for (r in batch.readings) {
+            if (r.light    != null) sensorFlags = sensorFlags or 1
+            if (r.accelerometer != null) sensorFlags = sensorFlags or 2
+            if (r.pressure != null) sensorFlags = sensorFlags or 4
+            if (r.gyroscope != null) sensorFlags = sensorFlags or 8
+            if (r.magneticField != null) sensorFlags = sensorFlags or 16
+        }
+
         return mapOf(
             "device_id"     to deviceId,
-            "batch_id"      to batch.batchId,    // stable UUID — server uses for idempotency
-            "timestamp"     to batch.capturedAt,  // frozen at creation — never overwritten on retry
+            "batch_id"      to batch.batchId,
+            "timestamp"     to batch.capturedAt,
             "batch"         to batchPayload,
             "location"      to locationMap,
             "geohash"       to geohash,
             "battery_level" to (batteryMonitor?.getBatteryLevel() ?: -1),
             "is_charging"   to (batteryMonitor?.isCharging() ?: false),
+            "sensor_flags"  to sensorFlags,
         ).filterValues { it != null }
     }
 
@@ -458,6 +471,7 @@ class NativeBackendUploader(
             "location_quality"  to locationQuality.name.lowercase(),
             "sample_count"      to sampleCount,
             "proximity_near"    to proximityNear,
+            "precision_score"   to precisionScore?.toDouble(),
         ).filterValues { it != null }
     }
 
