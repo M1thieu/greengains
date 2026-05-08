@@ -220,6 +220,13 @@
   "statsAllTimeSection": "ALL-TIME",
   "statsUploadsUnit": "uploads",
   "statsBestWeekLabel": "Best week",
+  "statsQualitySection": "DATA QUALITY",
+  "statsQualityExcellent": "Excellent",
+  "statsQualityGood": "Good",
+  "statsQualityFair": "Fair",
+  "statsQualityLow": "Low",
+  "statsQualitySubtitle": "Valid readings out of all recorded samples",
+  "statsAvgPrefix": "avg",
 
   "infoKmTitle": "Territory mapped",
   "infoKmBody": "Each hexagon covers ~0.1 km² — this is your personal footprint on the map.",

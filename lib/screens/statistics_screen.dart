@@ -274,18 +274,24 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                   child: ListView(
                     padding: AppTheme.pagePadding.copyWith(top: AppTheme.spaceMd, bottom: bottomPad),
                     children: [
+                      // Hero — bare number, no card
                       _withEntrance(_buildHeroCard(theme, isDark, l10n), 0),
-                      const SizedBox(height: AppTheme.spaceMd),
+                      const SizedBox(height: AppTheme.spaceLg),
+                      // Activity — 4-cell hairline grid + streak
+                      _StatsSectionLabel(l10n.statsActivitySection, isDark: isDark),
+                      const SizedBox(height: AppTheme.spaceXs),
                       _withEntrance(_buildSupportingTrio(theme, isDark), 1),
                       const SizedBox(height: AppTheme.spaceSm),
                       _withEntrance(_buildStreakCard(theme, isDark, l10n), 2),
+                      // 30-day heatmap
                       if (_dailyCounts != null) ...[
-                        const SizedBox(height: AppTheme.spaceSm),
+                        const SizedBox(height: AppTheme.spaceLg),
+                        _StatsSectionLabel(l10n.statsInDepth30Days.toUpperCase(), isDark: isDark),
+                        const SizedBox(height: AppTheme.spaceXs),
                         _withEntrance(_CalendarHeatmap(dailyCounts: _dailyCounts!, isDark: isDark), 3),
                       ],
-                      const SizedBox(height: AppTheme.spaceSm),
-                      _withEntrance(_buildActivityChart(theme, isDark, l10n), 4),
-                      const SizedBox(height: AppTheme.spaceMd),
+                      // Territory — milestone + link
+                      const SizedBox(height: AppTheme.spaceLg),
                       _StatsSectionLabel(l10n.statsTerritorySection, isDark: isDark),
                       const SizedBox(height: AppTheme.spaceXs),
                       _withEntrance(_buildMilestoneRow(theme, isDark, l10n), 5),
@@ -1205,26 +1211,27 @@ class _StatisticsScreenState extends State<StatisticsScreen>
   // ─── Quality bar ─────────────────────────────────────────────────────────────
 
   Widget _buildQualityBar(ThemeData theme, bool isDark, int pct) {
+    final l10n = context.l10n;
     final Color barColor;
     final String label;
     if (pct >= 80) {
       barColor = AppColors.quality;
-      label = 'Excellent';
+      label = l10n.statsQualityExcellent;
     } else if (pct >= 60) {
       barColor = AppColors.primary;
-      label = 'Good';
+      label = l10n.statsQualityGood;
     } else if (pct >= 40) {
       barColor = AppColors.warning;
-      label = 'Fair';
+      label = l10n.statsQualityFair;
     } else {
       barColor = AppColors.error;
-      label = 'Low';
+      label = l10n.statsQualityLow;
     }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _StatsSectionLabel('DATA QUALITY', isDark: isDark),
+        _StatsSectionLabel(l10n.statsQualitySection, isDark: isDark),
         const SizedBox(height: AppTheme.spaceXs),
         Row(children: [
           Text('$pct%', style: theme.textTheme.headlineMedium?.copyWith(
@@ -1264,7 +1271,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
         ),
         const SizedBox(height: AppTheme.spaceXxs),
         Text(
-          'Valid sensor readings out of all recorded samples',
+          l10n.statsQualitySubtitle,
           style: theme.textTheme.labelSmall?.copyWith(color: AppColors.textTertiary(isDark)),
         ),
       ],
@@ -1403,7 +1410,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                   fontWeight: AppFontWeights.bold,
                   height: _kLineHeightTight,
                 )),
-                Text('avg $bestWeekdayAvg', style: theme.textTheme.labelSmall?.copyWith(color: AppColors.textSecondary(isDark))),
+                Text('${l10n.statsAvgPrefix} $bestWeekdayAvg', style: theme.textTheme.labelSmall?.copyWith(color: AppColors.textSecondary(isDark))),
                 const SizedBox(height: AppTheme.spaceXxxs + 1),
                 Text(l10n.statsInDepthBestWeekday, style: TextStyle(
                   fontSize: AppTheme.fontSizeNavLabel,
@@ -1414,6 +1421,12 @@ class _StatisticsScreenState extends State<StatisticsScreen>
           ])),
           const SizedBox(height: AppTheme.spaceLg),
         ],
+
+        // ── Weekly chart ─────────────────────────────────────────────────
+        _StatsSectionLabel(l10n.statsActivityTrend.toUpperCase(), isDark: isDark),
+        const SizedBox(height: AppTheme.spaceXs),
+        _buildActivityChart(theme, isDark, l10n),
+        const SizedBox(height: AppTheme.spaceLg),
 
         // ── Best day callout (green card) ─────────────────────────────────
         if (bestDay > 0) ...[
@@ -1455,7 +1468,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                         fontWeight: AppFontWeights.bold,
                         color: AppColors.primary,
                       )),
-                      Text('your average', style: theme.textTheme.labelSmall?.copyWith(
+                      Text(l10n.statsInDepthAvgPerDay, style: theme.textTheme.labelSmall?.copyWith(
                         color: AppColors.textSecondary(isDark),
                       )),
                     ],

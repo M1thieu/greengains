@@ -986,6 +986,48 @@ abstract class AppLocalizations {
   /// **'Best week'**
   String get statsBestWeekLabel;
 
+  /// No description provided for @statsQualitySection.
+  ///
+  /// In en, this message translates to:
+  /// **'DATA QUALITY'**
+  String get statsQualitySection;
+
+  /// No description provided for @statsQualityExcellent.
+  ///
+  /// In en, this message translates to:
+  /// **'Excellent'**
+  String get statsQualityExcellent;
+
+  /// No description provided for @statsQualityGood.
+  ///
+  /// In en, this message translates to:
+  /// **'Good'**
+  String get statsQualityGood;
+
+  /// No description provided for @statsQualityFair.
+  ///
+  /// In en, this message translates to:
+  /// **'Fair'**
+  String get statsQualityFair;
+
+  /// No description provided for @statsQualityLow.
+  ///
+  /// In en, this message translates to:
+  /// **'Low'**
+  String get statsQualityLow;
+
+  /// No description provided for @statsQualitySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Valid readings out of all recorded samples'**
+  String get statsQualitySubtitle;
+
+  /// No description provided for @statsAvgPrefix.
+  ///
+  /// In en, this message translates to:
+  /// **'avg'**
+  String get statsAvgPrefix;
+
   /// No description provided for @infoKmTitle.
   ///
   /// In en, this message translates to:

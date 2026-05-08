@@ -539,6 +539,28 @@ class AppLocalizationsEn extends AppLocalizations {
   String get statsBestWeekLabel => 'Best week';
 
   @override
+  String get statsQualitySection => 'DATA QUALITY';
+
+  @override
+  String get statsQualityExcellent => 'Excellent';
+
+  @override
+  String get statsQualityGood => 'Good';
+
+  @override
+  String get statsQualityFair => 'Fair';
+
+  @override
+  String get statsQualityLow => 'Low';
+
+  @override
+  String get statsQualitySubtitle =>
+      'Valid readings out of all recorded samples';
+
+  @override
+  String get statsAvgPrefix => 'avg';
+
+  @override
   String get infoKmTitle => 'Territory mapped';
 
   @override

@@ -220,6 +220,13 @@
   "statsAllTimeSection": "TOTAL",
   "statsUploadsUnit": "contributions",
   "statsBestWeekLabel": "Meilleure semaine",
+  "statsQualitySection": "QUALITÉ DES DONNÉES",
+  "statsQualityExcellent": "Excellent",
+  "statsQualityGood": "Bon",
+  "statsQualityFair": "Correct",
+  "statsQualityLow": "Faible",
+  "statsQualitySubtitle": "Lectures valides sur toutes les mesures enregistrées",
+  "statsAvgPrefix": "moy.",
 
   "infoKmTitle": "Territoire cartographié",
   "infoKmBody": "Chaque hexagone couvre ~0,1 km² — c'est votre empreinte personnelle sur la carte.",
