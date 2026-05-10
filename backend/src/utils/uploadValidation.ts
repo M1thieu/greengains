@@ -12,8 +12,8 @@ const MAX_BATCHES_PER_HOUR = 120;
 const MAX_USER_BATCHES_PER_HOUR = 300;
 
 // Speed threshold for GPS velocity anomaly detection (m/s).
-// 300 m/s ≈ 1080 km/h — above any road/rail vehicle, well below commercial aircraft.
-const MAX_GPS_SPEED_MPS = 300;
+// 100 m/s ≈ 360 km/h — above any road/rail vehicle; tightened from 300 (which let low-altitude aircraft through).
+const MAX_GPS_SPEED_MPS = 100;
 
 // ─── In-Memory Rate Limiting ──────────────────────────────────────────────────
 //
@@ -107,9 +107,9 @@ export async function checkRateLimits(
 
 const SENSOR_BOUNDS = {
   light:    { min: 0,    max: 130_000 }, // lux: pitch dark → direct sunlight
-  pressure: { min: 870,  max: 1084 },    // hPa: Everest summit → Dead Sea (sea level extremes)
-  accelMag: { min: 0,    max: 50 },      // m/s² vector magnitude — far above any real device use
-  gyroMag:  { min: 0,    max: 20 },      // rad/s vector magnitude — beyond any phone rotation speed
+  pressure: { min: 900,  max: 1084 },    // hPa: ~2500m altitude → Dead Sea; tightened from 870 (Everest not a phone use-case)
+  accelMag: { min: 0,    max: 25 },      // m/s² vector magnitude — ~2.5g, covers hard drops; tightened from 50
+  gyroMag:  { min: 0,    max: 15 },      // rad/s vector magnitude — covers vigorous wrist flicks; tightened from 20
   magMag:   { min: 0,    max: 2000 },    // µT magnitude — 4× Earth's strongest field
 } as const;
 
@@ -150,8 +150,9 @@ export function validateSensorRanges(batch: UploadBatch): string | null {
 /** Max realistic batch window: 30 min. Longer implies buffered/replayed data. */
 const MAX_BATCH_WINDOW_MS = 30 * 60 * 1000;
 
-/** Accel std dev below this for a full batch = device never moved = suspicious. */
-const STATIC_DEVICE_STD_DEV_THRESHOLD = 0.08; // m/s²
+// Hand tremor produces ~0.05–0.15 m/s² std dev. 0.08 caused false-positives on seated users.
+// 0.12 requires a truly dead-flat signal before penalizing.
+const STATIC_DEVICE_STD_DEV_THRESHOLD = 0.12; // m/s²
 
 /** Min readings to make static-device judgment (short batches = noisy). */
 const STATIC_DEVICE_MIN_READINGS = 30;
@@ -215,6 +216,8 @@ export function checkBatchIntegrity(batch: UploadBatch): BatchIntegrityResult {
   if (windowTooLong)  qualityMultiplier *= 0.5;
   if (likelyStatic)   qualityMultiplier *= 0.3;
   if (allPocket)      qualityMultiplier *= 0.1;
+  // TODO(scalable): weight aggregates by qualityMultiplier in aggregator.ts
+  // TODO(scalable): calibrate STATIC_DEVICE_STD_DEV_THRESHOLD (0.12) against real device logs once corpus grows
 
   return { windowTooLong, likelyStatic, allPocket, qualityMultiplier };
 }

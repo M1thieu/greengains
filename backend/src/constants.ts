@@ -35,8 +35,9 @@ export const SENTRY_PROFILES_SAMPLE_RATE = 0.1;
 export const EARTH_RADIUS_METERS = 6_371_000;
 
 // ─── Sensor Analytics ────────────────────────────────────────────────────────
-/** Minimum motion_confidence score to consider a reading "in motion". */
-export const MOTION_CONFIDENCE_THRESHOLD = 0.2;
+// 0.2 was too lenient — inflated quality_valid_ratio on borderline-uncertain readings.
+// 0.35 requires moderate confidence before a reading counts as valid motion.
+export const MOTION_CONFIDENCE_THRESHOLD = 0.35;
 
 // ─── Aggregation Job ─────────────────────────────────────────────────────────
 /** Bucket width for the 5-minute aggregate table. */

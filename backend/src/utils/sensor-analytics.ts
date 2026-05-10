@@ -19,7 +19,9 @@ export interface Summary {
   period_start: Date;
   period_end: Date;
   light?: { avg: number; min: number; max: number };
+  /** Mean accel magnitude after MAD filter (NOT true RMS — mislabeled; rename would break existing JSONB). */
   accel_rms: number;
+  /** Mean gyro magnitude after MAD filter (same naming caveat as accel_rms). */
   gyro_rms: number;
   pressure?: { avg: number; min: number; max: number };
   magnetic_magnitude?: { avg: number; min: number; max: number };
