@@ -88,4 +88,5 @@ export interface StoragePayload {
   geohash?: string;
   battery_level?: number;
   is_charging?: boolean;
+  quality_multiplier?: number;
 }

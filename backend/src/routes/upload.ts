@@ -19,6 +19,7 @@ import {
   checkRateLimits,
   validateSensorRanges,
   checkGpsVelocity,
+  checkBatchIntegrity,
 } from '../utils/uploadValidation';
 
 function stdDev(values: number[]): number {
@@ -106,13 +107,14 @@ function summarizeBatch(readings: SensorReading[]): Summary {
   };
 }
 
-function buildStoragePayload(batch: UploadBatch): StoragePayload {
+function buildStoragePayload(batch: UploadBatch, qualityMultiplier = 1.0): StoragePayload {
   const summary = summarizeBatch(batch.batch);
 
   const payload: StoragePayload = {
     timestamp: batch.timestamp,
     summary,
     batch: batch.batch,
+    quality_multiplier: qualityMultiplier < 1.0 ? qualityMultiplier : undefined,
   };
 
   if (batch.location) payload.location = batch.location;
@@ -252,10 +254,24 @@ export async function uploadRoutes(fastify: FastifyInstance) {
           });
         }
 
+        // 4. Batch integrity: O(n) pure-compute checks — no DB queries.
+        const integrity = checkBatchIntegrity(batch);
+        if (integrity.allPocket) {
+          // >95% pocket-likely readings = no usable data in this batch.
+          // Accept with 202 (don't penalise the client) but don't store.
+          return reply.code(202).send({ accepted_records: 0, skipped: 'all_pocket' });
+        }
+        if (integrity.likelyStatic || integrity.windowTooLong) {
+          request.log.warn(
+            { deviceHash, likelyStatic: integrity.likelyStatic, windowTooLong: integrity.windowTooLong, qualityMultiplier: integrity.qualityMultiplier },
+            'Batch integrity warning — storing with reduced quality weight',
+          );
+        }
+
         // ─────────────────────────────────────────────────────────────────────
 
-        // Build storage payload
-        const sanitizedPayload = buildStoragePayload(batch);
+        // Build storage payload (integrity flags baked into JSON — no schema change)
+        const sanitizedPayload = buildStoragePayload(batch, integrity.qualityMultiplier);
         const payloadJson = JSON.stringify(sanitizedPayload);
 
         // Compute H3 indices at ingest — stored as indexed columns for fast tile queries.

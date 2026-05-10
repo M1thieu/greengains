@@ -193,12 +193,11 @@ class _StatisticsScreenState extends State<StatisticsScreen>
     // Only show chart skeleton on first load.
     if (_weeklyData == null) setState(() => _isLoadingWeekly = true);
     try {
-      final results = await Future.wait([
-        StatsService.instance.fetchProfileAndGlobal(),
-        StatsService.instance.fetchWeeklyTarget(),
-      ]);
-      final (:profile, :global) = results[0] as ({UserProfileResponse profile, GlobalStatsResponse global});
-      final weeklyTarget = results[1] as WeeklyTargetResponse?;
+      // Run independently so weekly target failure can't block profile data.
+      final profileFuture = StatsService.instance.fetchProfileAndGlobal();
+      final targetFuture = StatsService.instance.fetchWeeklyTarget();
+      final (:profile, :global) = await profileFuture;
+      final weeklyTarget = await targetFuture;
       if (mounted) {
         setState(() {
           _weeklyData = profile.weekly;
@@ -209,7 +208,12 @@ class _StatisticsScreenState extends State<StatisticsScreen>
           _daysActive = profile.daysActive;
           _longestStreak = profile.longestStreak;
           if (profile.bestDayCount != null) _bestDayCount = profile.bestDayCount;
-          if (profile.avgPerDay != null) _avgPerDay = profile.avgPerDay;
+          // Fallback: compute locally if backend field missing (pre-deploy).
+          final days = profile.daysActive > 0 ? profile.daysActive : null;
+          _avgPerDay = profile.avgPerDay ??
+              (days != null && profile.totalUploads > 0
+                  ? (profile.totalUploads / days * 10).round() / 10.0
+                  : 0.0);
           if (profile.qualityPct != null) _qualityPct = profile.qualityPct;
           if (weeklyTarget != null) _weeklyTarget = weeklyTarget;
           if (global.activeMappers > 0) _activeMappers = global.activeMappers;
@@ -283,33 +287,27 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                   child: ListView(
                     padding: AppTheme.pagePadding.copyWith(top: AppTheme.spaceMd, bottom: bottomPad),
                     children: [
-                      // Hero — bare number, no card
+                      // Hero — bare number
                       _withEntrance(_buildHeroCard(theme, isDark, l10n), 0),
+                      // Weekly target — the hook: new zones this week
+                      if (_weeklyTarget != null) ...[
+                        const SizedBox(height: AppTheme.spaceMd),
+                        _withEntrance(_buildWeeklyTargetCard(theme, isDark, l10n, _weeklyTarget!), 1),
+                      ],
                       const SizedBox(height: AppTheme.spaceLg),
-                      // Activity — 4-cell hairline grid + streak
+                      // Activity snapshot
                       _StatsSectionLabel(l10n.statsActivitySection, isDark: isDark),
                       const SizedBox(height: AppTheme.spaceXs),
-                      _withEntrance(_buildSupportingTrio(theme, isDark), 1),
+                      _withEntrance(_buildSupportingTrio(theme, isDark), 2),
                       const SizedBox(height: AppTheme.spaceSm),
-                      _withEntrance(_buildStreakCard(theme, isDark, l10n), 2),
-                      if (_weeklyTarget != null) ...[
-                        const SizedBox(height: AppTheme.spaceSm),
-                        _withEntrance(_buildWeeklyTargetCard(theme, isDark, l10n, _weeklyTarget!), 3),
-                      ],
-                      // 30-day heatmap
-                      if (_dailyCounts != null) ...[
-                        const SizedBox(height: AppTheme.spaceLg),
-                        _StatsSectionLabel(l10n.statsInDepth30Days.toUpperCase(), isDark: isDark),
-                        const SizedBox(height: AppTheme.spaceXs),
-                        _withEntrance(_CalendarHeatmap(dailyCounts: _dailyCounts!, isDark: isDark), 3),
-                      ],
-                      // Territory — milestone + link
+                      _withEntrance(_buildStreakCard(theme, isDark, l10n), 3),
+                      // Territory — milestone ring
                       const SizedBox(height: AppTheme.spaceLg),
                       _StatsSectionLabel(l10n.statsTerritorySection, isDark: isDark),
                       const SizedBox(height: AppTheme.spaceXs),
-                      _withEntrance(_buildMilestoneRow(theme, isDark, l10n), 5),
+                      _withEntrance(_buildMilestoneRow(theme, isDark, l10n), 4),
                       const SizedBox(height: AppTheme.spaceXs),
-                      _withEntrance(_buildTerritoryDetailsLink(theme, isDark, l10n), 6),
+                      _withEntrance(_buildTerritoryDetailsLink(theme, isDark, l10n), 5),
                     ],
                   ),
                 ),
@@ -529,7 +527,10 @@ class _StatisticsScreenState extends State<StatisticsScreen>
     final uploadsThisWeek = localWeek > 0 ? localWeek : (_weeklyData?.fold(0, (a, b) => a + b) ?? 0);
     final int? bestDay = _bestDayCount ?? (_weeklyData != null ? _weeklyData!.fold<int>(0, max) : null);
     final avgPerDay = _avgPerDay;
-    final avgLabel = avgPerDay != null ? avgPerDay.toStringAsFixed(1) : null;
+    // Show dash for zero (no history yet) — not a loading spinner.
+    final avgLabel = avgPerDay == null ? null
+        : avgPerDay == 0.0 ? '—'
+        : avgPerDay.toStringAsFixed(1);
     final hairline = AppColors.textTertiary(isDark).withValues(alpha: 0.12);
 
     return Container(
@@ -1423,6 +1424,13 @@ class _StatisticsScreenState extends State<StatisticsScreen>
     return ListView(
       padding: AppTheme.pagePadding.copyWith(top: AppTheme.spaceMd, bottom: bottomPad),
       children: [
+        // ── 30-day activity heatmap ───────────────────────────────────────
+        if (_dailyCounts != null) ...[
+          _StatsSectionLabel(l10n.statsInDepth30Days.toUpperCase(), isDark: isDark),
+          const SizedBox(height: AppTheme.spaceXs),
+          _CalendarHeatmap(dailyCounts: _dailyCounts!, isDark: isDark),
+          const SizedBox(height: AppTheme.spaceLg),
+        ],
         // ── All-time: side-by-side bare numbers with hairline ─────────────
         _StatsSectionLabel(l10n.statsAllTimeSection, isDark: isDark),
         const SizedBox(height: AppTheme.spaceXs),

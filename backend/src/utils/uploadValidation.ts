@@ -142,6 +142,83 @@ export function validateSensorRanges(batch: UploadBatch): string | null {
   return null;
 }
 
+// ─── Batch Integrity Checks ───────────────────────────────────────────────────
+//
+// All checks run in O(n) on the batch array — zero DB queries.
+// Return a flag string for logging; callers decide whether to reject or just tag.
+
+/** Max realistic batch window: 30 min. Longer implies buffered/replayed data. */
+const MAX_BATCH_WINDOW_MS = 30 * 60 * 1000;
+
+/** Accel std dev below this for a full batch = device never moved = suspicious. */
+const STATIC_DEVICE_STD_DEV_THRESHOLD = 0.08; // m/s²
+
+/** Min readings to make static-device judgment (short batches = noisy). */
+const STATIC_DEVICE_MIN_READINGS = 30;
+
+/** Pocket ratio above this for entire batch = data unusable. */
+const HIGH_POCKET_RATIO_THRESHOLD = 0.95;
+
+export interface BatchIntegrityResult {
+  windowTooLong: boolean;   // batch spans more than 30 minutes
+  likelyStatic: boolean;    // device never moved — possible fake node
+  allPocket: boolean;       // >95% readings in pocket — unusable
+  /** 0–1 composite quality multiplier (1.0 = fully trusted, 0.0 = reject). */
+  qualityMultiplier: number;
+}
+
+function vectorMagnitude(v: number[]): number {
+  return Math.sqrt(v.reduce((s, x) => s + x * x, 0));
+}
+
+function stdDev(values: number[]): number {
+  if (values.length < 2) return 0;
+  const mean = values.reduce((a, b) => a + b, 0) / values.length;
+  return Math.sqrt(values.reduce((a, b) => a + (b - mean) ** 2, 0) / values.length);
+}
+
+/**
+ * Pure-compute integrity check on an upload batch.
+ * No DB queries — runs at ingest time, costs a single O(n) pass.
+ *
+ * Catches: suspiciously long capture windows (buffered/replayed batches),
+ * devices that never move (fake nodes), and fully-pocketed sessions.
+ */
+export function checkBatchIntegrity(batch: UploadBatch): BatchIntegrityResult {
+  const readings = batch.batch;
+
+  // ── Window duration ───────────────────────────────────────────────────────
+  const timestamps = readings.map(r => r.t.getTime()).filter(t => !isNaN(t));
+  const windowMs = timestamps.length >= 2
+    ? Math.max(...timestamps) - Math.min(...timestamps)
+    : 0;
+  const windowTooLong = windowMs > MAX_BATCH_WINDOW_MS;
+
+  // ── Static device detection ───────────────────────────────────────────────
+  const accelMags = readings
+    .filter(r => r.accel !== undefined)
+    .map(r => vectorMagnitude(r.accel!));
+  const likelyStatic =
+    accelMags.length >= STATIC_DEVICE_MIN_READINGS &&
+    stdDev(accelMags) < STATIC_DEVICE_STD_DEV_THRESHOLD;
+
+  // ── Pocket ratio ──────────────────────────────────────────────────────────
+  const pocketReadings = readings.filter(r =>
+    String(r.quality?.pocket ?? '').toLowerCase() === 'likely',
+  ).length;
+  const allPocket =
+    readings.length > 0 &&
+    pocketReadings / readings.length > HIGH_POCKET_RATIO_THRESHOLD;
+
+  // ── Composite quality multiplier ──────────────────────────────────────────
+  let qualityMultiplier = 1.0;
+  if (windowTooLong)  qualityMultiplier *= 0.5;
+  if (likelyStatic)   qualityMultiplier *= 0.3;
+  if (allPocket)      qualityMultiplier *= 0.1;
+
+  return { windowTooLong, likelyStatic, allPocket, qualityMultiplier };
+}
+
 // ─── GPS Velocity Check ───────────────────────────────────────────────────────
 
 /** Haversine distance in metres between two lat/lon coordinates. */
