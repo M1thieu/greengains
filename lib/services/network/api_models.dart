@@ -40,6 +40,8 @@ class UserProfileResponse {
   final int deviceCount;
   final List<int> weekly;
   final int? qualityPct;
+  final int? bestDayCount;
+  final double? avgPerDay;
 
   const UserProfileResponse({
     required this.totalUploads,
@@ -51,6 +53,8 @@ class UserProfileResponse {
     required this.deviceCount,
     required this.weekly,
     this.qualityPct,
+    this.bestDayCount,
+    this.avgPerDay,
   });
 
   factory UserProfileResponse.fromJson(Map<String, dynamic> json) {
@@ -66,6 +70,8 @@ class UserProfileResponse {
       deviceCount:   (s['deviceCount']   as num?)?.toInt() ?? 0,
       weekly: raw.map((e) => e is num ? e.toInt() : 0).toList(),
       qualityPct:    (s['qualityPct']    as num?)?.toInt(),
+      bestDayCount:  (s['bestDayCount']  as num?)?.toInt(),
+      avgPerDay:     (s['avgPerDay']     as num?)?.toDouble(),
     );
   }
 }
@@ -89,6 +95,33 @@ class ReferralStatsResponse {
       ReferralStatsResponse(
         invitesShared: (json['invitesShared'] as num?)?.toInt() ?? 0,
         conversions:   (json['conversions']   as num?)?.toInt() ?? 0,
+      );
+}
+
+// ── Weekly target ───────────────────────────────────────────────────────────
+
+class WeeklyTargetResponse {
+  final String weekStart;
+  final String weekEnd;
+  final int newCellsThisWeek;
+  final int target;
+  final double pctComplete;
+
+  const WeeklyTargetResponse({
+    required this.weekStart,
+    required this.weekEnd,
+    required this.newCellsThisWeek,
+    required this.target,
+    required this.pctComplete,
+  });
+
+  factory WeeklyTargetResponse.fromJson(Map<String, dynamic> json) =>
+      WeeklyTargetResponse(
+        weekStart:        json['week_start']?.toString() ?? '',
+        weekEnd:          json['week_end']?.toString() ?? '',
+        newCellsThisWeek: (json['new_cells_this_week'] as num?)?.toInt() ?? 0,
+        target:           (json['target'] as num?)?.toInt() ?? 5,
+        pctComplete:      (json['pct_complete'] as num?)?.toDouble() ?? 0.0,
       );
 }
 

@@ -89,7 +89,7 @@ export async function dataRoutes(fastify: FastifyInstance) {
         const dataColumns = `
           samples_count, device_count,
           avg_light, avg_light_min, avg_light_max,
-          avg_accel_rms, avg_gyro_rms, avg_pressure, movement_score,
+          avg_accel_rms, avg_gyro_rms, avg_pressure, movement_score, vibration_score,
           battery_avg, location_share,
           ${query.bucket === 'day' ? 'device_hours' : 'NULL::DOUBLE PRECISION as device_hours'},
           quality_samples, quality_valid_ratio, quality_pocket_ratio
@@ -122,6 +122,7 @@ export async function dataRoutes(fastify: FastifyInstance) {
           avg_gyro_rms: numOrNull(row.avg_gyro_rms),
           avg_pressure: numOrNull(row.avg_pressure),
           movement_score: numOrNull(row.movement_score),
+          vibration_score: numOrNull(row.vibration_score),
           battery_avg: numOrNull(row.battery_avg),
           location_share: numOrNull(row.location_share),
           device_hours: numOrNull(row.device_hours),
@@ -171,10 +172,12 @@ export async function dataRoutes(fastify: FastifyInstance) {
           Movement: 'movement_score',
           Pressure: 'avg_pressure',
           Quality: 'quality_valid_ratio',
+          Vibration: 'vibration_score',
           light: 'avg_light',
           movement: 'movement_score',
           pressure: 'avg_pressure',
           quality: 'quality_valid_ratio',
+          vibration: 'vibration_score',
         };
 
         const column = sensorColumnMap[sensor] || 'avg_light';
@@ -414,6 +417,160 @@ export async function dataRoutes(fastify: FastifyInstance) {
           return reply.code(422).send({ error: 'Validation Error', details: error.errors });
         }
         request.log.error({ err: error, userId }, '/api/v1/data/coverage failed');
+        return reply.code(500).send({ error: 'Internal Server Error', requestId: request.id });
+      }
+    }
+  );
+
+  /**
+   * GET /api/v1/data/insights
+   * Semantic map insights: find H3 cells matching a named condition (rough_roads,
+   * poor_light, high_traffic, clean_air) with optional score and time filters.
+   * Tier-aware time window (same TIER_HISTORY_DAYS as other endpoints).
+   */
+  fastify.get(
+    '/api/v1/data/insights',
+    { preHandler: requireFirebaseAuth },
+    async (request: FastifyRequest, reply: FastifyReply) => {
+      const userId = request.user!.uid;
+      try {
+        const pool = getPool();
+        const query = z.object({
+          type:      z.enum(['rough_roads', 'poor_light', 'high_traffic', 'clean_air']).optional(),
+          min_score: z.coerce.number().min(0).max(1).optional(),
+          days:      z.coerce.number().int().min(1).max(365).optional(),
+          limit:     z.coerce.number().int().min(1).max(200).default(100),
+        }).parse(request.query);
+
+        const tier = await getOrgSubscriptionTier(pool, userId);
+        const maxDays = TIER_HISTORY_DAYS[tier as SubscriptionTier] ?? 7;
+        const days = Math.min(query.days ?? maxDays, maxDays);
+        const fromTime = new Date(Date.now() - days * MS_PER_DAY);
+
+        // Map insight type to score expression and sort direction.
+        // poor_light is inverted (lower avg_light = higher darkness score).
+        const AVG_LIGHT_DARK_THRESHOLD = 50; // lux — below this is considered poor light
+        type InsightDef = { scoreExpr: string; orderDir: 'DESC' | 'ASC' };
+        const insightMap: Record<string, InsightDef> = {
+          rough_roads:  { scoreExpr: 'AVG(vibration_score)',                                         orderDir: 'DESC' },
+          poor_light:   { scoreExpr: `AVG(GREATEST(0, 1.0 - avg_light / ${AVG_LIGHT_DARK_THRESHOLD}))`, orderDir: 'DESC' },
+          high_traffic: { scoreExpr: 'AVG(device_count)',                                            orderDir: 'DESC' },
+          clean_air:    { scoreExpr: 'AVG(quality_valid_ratio)',                                     orderDir: 'DESC' },
+        };
+
+        // If no type specified, default to clean_air as a sensible fallback.
+        const def = insightMap[query.type ?? 'clean_air'];
+
+        const params: (string | number)[] = [fromTime.toISOString()];
+        let minScoreFilter = '';
+        if (query.min_score !== undefined) {
+          params.push(query.min_score);
+          minScoreFilter = `HAVING ${def.scoreExpr} >= $${params.length}`;
+        }
+        params.push(query.limit);
+        const limitParam = params.length;
+
+        const result = await pool.query(
+          `SELECT
+             h3_index,
+             geohash,
+             (${def.scoreExpr})::float                      AS score,
+             MAX(device_count)::int                         AS device_count,
+             MAX(window_start)                              AS last_seen
+           FROM sensor_aggregates_5m
+           WHERE window_start >= $1
+             AND h3_index IS NOT NULL
+           GROUP BY h3_index, geohash
+           ${minScoreFilter}
+           ORDER BY score ${def.orderDir}
+           LIMIT $${limitParam}`,
+          params,
+        );
+
+        return reply.send({
+          tier,
+          type:  query.type ?? 'clean_air',
+          days,
+          items: result.rows.map(row => ({
+            h3_index:     row.h3_index,
+            geohash:      row.geohash,
+            score:        row.score !== null ? Math.round(row.score * 10000) / 10000 : null,
+            device_count: row.device_count,
+            last_seen:    row.last_seen,
+          })),
+        });
+      } catch (error) {
+        if (error instanceof z.ZodError) {
+          return reply.code(422).send({ error: 'Validation Error', details: error.errors });
+        }
+        request.log.error({ err: error, userId }, '/api/v1/data/insights failed');
+        return reply.code(500).send({ error: 'Internal Server Error', requestId: request.id });
+      }
+    }
+  );
+
+  /**
+   * GET /api/v1/data/foot-traffic
+   * Foot traffic patterns by H3 cell and hour of day (UTC).
+   * Aggregates device_count from 5m windows over the last N days.
+   * Use case: urban planners, retailers — "which blocks are busy at 8am vs 8pm".
+   * Tier-aware window: free=7d, pro=90d, enterprise=365d.
+   */
+  fastify.get(
+    '/api/v1/data/foot-traffic',
+    { preHandler: requireFirebaseAuth },
+    async (request: FastifyRequest, reply: FastifyReply) => {
+      const userId = request.user!.uid;
+      try {
+        const pool = getPool();
+        const query = z.object({
+          days: z.coerce.number().int().min(1).max(365).optional(),
+          h3_cell: z.string().max(16).optional(),
+          min_avg_devices: z.coerce.number().min(0).default(0),
+        }).parse(request.query);
+
+        const tier = await getOrgSubscriptionTier(pool, userId);
+        const maxDays = TIER_HISTORY_DAYS[tier as SubscriptionTier] ?? 7;
+        const days = Math.min(query.days ?? maxDays, maxDays);
+        const fromTime = new Date(Date.now() - days * MS_PER_DAY);
+
+        const params: (string | number)[] = [fromTime.toISOString()];
+        let h3Filter = '';
+        if (query.h3_cell) {
+          params.push(query.h3_cell);
+          h3Filter = `AND h3_index = $${params.length}`;
+        }
+        params.push(query.min_avg_devices);
+        const minDevicesParam = params.length;
+
+        const result = await pool.query(
+          `SELECT
+             h3_index,
+             EXTRACT(HOUR FROM window_start AT TIME ZONE 'UTC')::int AS hour_utc,
+             COUNT(*)::int                                              AS window_count,
+             ROUND(AVG(device_count)::numeric, 2)::float               AS avg_devices,
+             MAX(device_count)                                          AS peak_devices,
+             ROUND((SUM(device_count * 5.0) / 60.0)::numeric, 2)::float AS total_device_hours
+           FROM sensor_aggregates_5m
+           WHERE window_start >= $1
+             AND h3_index IS NOT NULL
+             ${h3Filter}
+           GROUP BY h3_index, hour_utc
+           HAVING AVG(device_count) >= $${minDevicesParam}
+           ORDER BY h3_index, hour_utc`,
+          params,
+        );
+
+        return reply.send({
+          tier,
+          days,
+          items: result.rows,
+        });
+      } catch (error) {
+        if (error instanceof z.ZodError) {
+          return reply.code(422).send({ error: 'Validation Error', details: error.errors });
+        }
+        request.log.error({ err: error, userId }, '/api/v1/data/foot-traffic failed');
         return reply.code(500).send({ error: 'Internal Server Error', requestId: request.id });
       }
     }

@@ -48,6 +48,21 @@ export function createErrorResponse(
 }
 
 /**
+ * Log and reply with a standardized 500 Internal Server Error.
+ * Use instead of inline reply.code(500).send({...}) to ensure requestId is always included.
+ */
+export function internalError(
+  reply: { code: (n: number) => { send: (body: unknown) => unknown } },
+  request: { id: string },
+  log: { error: (...args: unknown[]) => void },
+  context: string,
+  err: unknown,
+) {
+  log.error({ err, requestId: request.id }, `${context} failed`);
+  return reply.code(500).send({ error: 'Internal Server Error', requestId: request.id });
+}
+
+/**
  * Get HTTP status code for error code
  */
 export function getStatusCode(code: ErrorCode): number {

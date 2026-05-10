@@ -12,6 +12,7 @@ import '../data/repositories/contribution_repository.dart';
 import '../core/events/app_events.dart';
 import '../core/app_preferences.dart';
 import '../services/network/backend_client.dart';
+import '../services/stats/stats_service.dart';
 import '../core/constants.dart';
 
 // ── Chart / skeleton layout constants ────────────────────────────────────────
@@ -75,6 +76,12 @@ class _StatisticsScreenState extends State<StatisticsScreen>
   int? _activeMappers;
   // Streak data from backend profile
   int? _longestStreak;
+  // All-time best single day upload count
+  int? _bestDayCount;
+  // Average uploads per active day
+  double? _avgPerDay;
+  // Weekly new-territory target
+  WeeklyTargetResponse? _weeklyTarget;
   // Data quality 0–100 from user_stats valid_samples/samples_count
   int? _qualityPct;
 
@@ -186,13 +193,12 @@ class _StatisticsScreenState extends State<StatisticsScreen>
     // Only show chart skeleton on first load.
     if (_weeklyData == null) setState(() => _isLoadingWeekly = true);
     try {
-      // Profile + global community stats run in parallel — same auth, different cache TTLs.
       final results = await Future.wait([
-        BackendClient.get(kApiUserProfile),
-        BackendClient.get(kApiStatsGlobal).catchError((_) => <String, dynamic>{}),
+        StatsService.instance.fetchProfileAndGlobal(),
+        StatsService.instance.fetchWeeklyTarget(),
       ]);
-      final profile = UserProfileResponse.fromJson(results[0]);
-      final global = GlobalStatsResponse.fromJson(results[1]);
+      final (:profile, :global) = results[0] as ({UserProfileResponse profile, GlobalStatsResponse global});
+      final weeklyTarget = results[1] as WeeklyTargetResponse?;
       if (mounted) {
         setState(() {
           _weeklyData = profile.weekly;
@@ -202,7 +208,10 @@ class _StatisticsScreenState extends State<StatisticsScreen>
           _coverageCells = profile.coverageCells;
           _daysActive = profile.daysActive;
           _longestStreak = profile.longestStreak;
+          if (profile.bestDayCount != null) _bestDayCount = profile.bestDayCount;
+          if (profile.avgPerDay != null) _avgPerDay = profile.avgPerDay;
           if (profile.qualityPct != null) _qualityPct = profile.qualityPct;
+          if (weeklyTarget != null) _weeklyTarget = weeklyTarget;
           if (global.activeMappers > 0) _activeMappers = global.activeMappers;
           // Auto-highlight best day on first load
           if (_selectedBarIndex == null && profile.weekly.isNotEmpty) {
@@ -283,6 +292,10 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                       _withEntrance(_buildSupportingTrio(theme, isDark), 1),
                       const SizedBox(height: AppTheme.spaceSm),
                       _withEntrance(_buildStreakCard(theme, isDark, l10n), 2),
+                      if (_weeklyTarget != null) ...[
+                        const SizedBox(height: AppTheme.spaceSm),
+                        _withEntrance(_buildWeeklyTargetCard(theme, isDark, l10n, _weeklyTarget!), 3),
+                      ],
                       // 30-day heatmap
                       if (_dailyCounts != null) ...[
                         const SizedBox(height: AppTheme.spaceLg),
@@ -514,7 +527,9 @@ class _StatisticsScreenState extends State<StatisticsScreen>
     final uploadsToday = localToday > 0 ? localToday : (_backendUploadsToday ?? _weeklyData?.lastOrNull ?? 0);
     final localWeek = _stats?.uploadsThisWeek ?? 0;
     final uploadsThisWeek = localWeek > 0 ? localWeek : (_weeklyData?.fold(0, (a, b) => a + b) ?? 0);
-    final bestDay = _weeklyData != null ? _weeklyData!.fold(0, max) : null;
+    final int? bestDay = _bestDayCount ?? (_weeklyData != null ? _weeklyData!.fold<int>(0, max) : null);
+    final avgPerDay = _avgPerDay;
+    final avgLabel = avgPerDay != null ? avgPerDay.toStringAsFixed(1) : null;
     final hairline = AppColors.textTertiary(isDark).withValues(alpha: 0.12);
 
     return Container(
@@ -529,7 +544,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
         IntrinsicHeight(child: Row(children: [
           Expanded(child: _KpiCell(label: l10n.statsBestDayLabel, value: bestDay != null ? '$bestDay' : null, isDark: isDark, theme: theme)),
           Container(width: 1, color: hairline),
-          Expanded(child: _KpiCell(label: l10n.statsDaysActive, value: daysLoaded ? '$daysActive' : null, isDark: isDark, theme: theme)),
+          Expanded(child: _KpiCell(label: l10n.statsAvgPerDay, value: avgLabel, isDark: isDark, theme: theme)),
         ])),
       ]),
     );
@@ -651,11 +666,15 @@ class _StatisticsScreenState extends State<StatisticsScreen>
 
     final progress = (total / next).clamp(0.0, 1.0);
     final remaining = next - total;
+    final achieved = _kMilestones.where((m) => m <= total).toList();
 
     return Container(
         padding: const EdgeInsets.all(AppTheme.spaceMd),
         decoration: AppTheme.kpiCard(isDark: isDark, accentColor: AppColors.warning, radius: AppTheme.radiusLg),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
           children: [
             TweenAnimationBuilder<double>(
               tween: Tween(begin: 0, end: progress),
@@ -693,7 +712,78 @@ class _StatisticsScreenState extends State<StatisticsScreen>
               ),
             ),
           ],
+            ),
+            if (achieved.isNotEmpty) ...[
+              const SizedBox(height: AppTheme.spaceSm),
+              Wrap(
+                spacing: AppTheme.spaceXs,
+                runSpacing: AppTheme.spaceXxs,
+                children: achieved.map((m) => _MilestoneBadge(value: m, isDark: isDark)).toList(),
+              ),
+            ],
+          ],
         ),
+    );
+  }
+
+  // ─── Weekly target card ──────────────────────────────────────────────────────
+
+  Widget _buildWeeklyTargetCard(ThemeData theme, bool isDark, AppLocalizations l10n, WeeklyTargetResponse target) {
+    final done = target.newCellsThisWeek;
+    final total = target.target;
+    final pct = target.pctComplete.clamp(0.0, 1.0);
+    final complete = done >= total;
+    final hairline = AppColors.textTertiary(isDark).withValues(alpha: 0.12);
+    final accent = complete ? AppColors.primary : AppColors.warning;
+
+    return Container(
+      padding: const EdgeInsets.all(AppTheme.spaceMd),
+      decoration: AppTheme.surfaceContainer(isDark: isDark),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Row(children: [
+          Icon(complete ? Icons.check_circle : Icons.flag_outlined, size: AppIconSizes.xs, color: accent),
+          const SizedBox(width: AppTheme.spaceXs),
+          Text(
+            l10n.statsWeeklyTargetLabel,
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: AppColors.textSecondary(isDark),
+              letterSpacing: _kLetterSpacingCaps,
+            ),
+          ),
+          const Spacer(),
+          Text(
+            '$done / $total',
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: accent,
+              fontWeight: AppFontWeights.semibold,
+            ),
+          ),
+        ]),
+        const SizedBox(height: AppTheme.spaceSm),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(AppTheme.radiusMin),
+          child: TweenAnimationBuilder<double>(
+            tween: Tween(begin: 0, end: pct),
+            duration: AppDurations.medium,
+            curve: AppMotion.decelerated,
+            builder: (_, value, __) => LinearProgressIndicator(
+              value: value,
+              minHeight: 4,
+              backgroundColor: hairline,
+              valueColor: AlwaysStoppedAnimation(accent),
+            ),
+          ),
+        ),
+        const SizedBox(height: AppTheme.spaceXs),
+        Text(
+          complete
+              ? l10n.statsWeeklyTargetComplete
+              : l10n.statsWeeklyTargetRemaining(total - done),
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: AppColors.textSecondary(isDark),
+          ),
+        ),
+      ]),
     );
   }
 
@@ -1982,6 +2072,39 @@ class _MilestoneRing extends StatelessWidget {
                 ),
               ),
             ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _MilestoneBadge extends StatelessWidget {
+  const _MilestoneBadge({required this.value, required this.isDark});
+  final int value;
+  final bool isDark;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: AppColors.warning.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMin),
+        border: Border.all(color: AppColors.warning.withValues(alpha: 0.3), width: 0.5),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.check_circle, size: 10, color: AppColors.warning),
+          const SizedBox(width: 3),
+          Text(
+            '$value',
+            style: TextStyle(
+              fontSize: AppTheme.fontSizeNavLabel - 1,
+              color: AppColors.warning,
+              fontWeight: AppFontWeights.semibold,
+            ),
           ),
         ],
       ),

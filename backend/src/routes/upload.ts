@@ -21,6 +21,12 @@ import {
   checkGpsVelocity,
 } from '../utils/uploadValidation';
 
+function stdDev(values: number[]): number {
+  if (values.length < 2) return 0;
+  const mean = values.reduce((a, b) => a + b, 0) / values.length;
+  return Math.sqrt(values.reduce((a, b) => a + (b - mean) ** 2, 0) / values.length);
+}
+
 function summarizeBatch(readings: SensorReading[]): Summary {
   // Light — filter statistical outliers (MAD method) before averaging.
   // E.g. a single 65535 lux spike from sensor glitch won't skew the window average.
@@ -39,6 +45,8 @@ function summarizeBatch(readings: SensorReading[]): Summary {
   const accelMagnitudesRaw = accelReadings.length > 0
     ? accelReadings.map(r => vectorMagnitude(r.accel!))
     : [];
+  // Std dev computed on raw (pre-MAD) magnitudes — vibration spikes ARE the signal.
+  const accelStdDev = stdDev(accelMagnitudesRaw);
   const accelMagnitudes = filterOutliersMad(accelMagnitudesRaw);
 
   const gyroReadings = readings.filter(r => r.gyro !== undefined);
@@ -87,6 +95,7 @@ function summarizeBatch(readings: SensorReading[]): Summary {
     accel_rms: accelMagnitudes.length > 0
       ? accelMagnitudes.reduce((a, b) => a + b, 0) / accelMagnitudes.length
       : 0,
+    accel_std_dev: accelStdDev,
     gyro_rms: gyroMagnitudes.length > 0
       ? gyroMagnitudes.reduce((a, b) => a + b, 0) / gyroMagnitudes.length
       : 0,

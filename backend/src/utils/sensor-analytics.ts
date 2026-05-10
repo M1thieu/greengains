@@ -23,6 +23,8 @@ export interface Summary {
   gyro_rms: number;
   pressure?: { avg: number; min: number; max: number };
   magnetic_magnitude?: { avg: number; min: number; max: number };
+  /** Std dev of raw accel magnitudes — high = rough surface / vibration. */
+  accel_std_dev: number;
   /** Quality counters baked in at ingest so the aggregator never needs the raw batch array. */
   quality_valid: number;
   quality_pocket_likely: number;

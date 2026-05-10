@@ -76,6 +76,7 @@ export interface StoragePayload {
     period_end: Date;
     light?: { avg: number; min: number; max: number };
     accel_rms: number;
+    accel_std_dev: number;
     gyro_rms: number;
     pressure?: { avg: number; min: number; max: number };
     magnetic_magnitude?: { avg: number; min: number; max: number };
