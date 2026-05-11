@@ -173,6 +173,28 @@ final nominatimClient = Dio(BaseOptions(
   headers: {'User-Agent': 'GreenGains/1.0 (com.eremat.greengains)'},
 ));
 
+/// Reverse-geocode a lat/lon to a neighborhood name using Nominatim (OSM).
+///
+/// Privacy: coordinates sent are H3 cell centroids (~461m resolution), never
+/// the user's precise GPS position. No user identifier is sent. Result is
+/// stored only in local SharedPreferences, never on our backend.
+/// Returns the most specific available name: suburb > quarter > city_district > city.
+Future<String?> reverseGeocodeNeighborhood(double lat, double lon) async {
+  try {
+    final response = await nominatimClient.get<Map<String, dynamic>>(
+      '/reverse',
+      queryParameters: {'lat': lat, 'lon': lon, 'format': 'json', 'zoom': 14},
+    );
+    final address = response.data?['address'] as Map<String, dynamic>?;
+    if (address == null) return null;
+    return (address['suburb'] ?? address['quarter'] ??
+            address['city_district'] ?? address['neighbourhood'] ??
+            address['city'] ?? address['town']) as String?;
+  } catch (_) {
+    return null; // network error or rate limit — silently skip
+  }
+}
+
 /// Legacy exception type — kept for any external callers.
 /// Prefer [ApiException] for new code.
 class BackendException implements Exception {

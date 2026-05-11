@@ -473,6 +473,17 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                 height: _kLineHeightTight,
               ),
             ),
+          // City blocks context — makes km² tangible for non-technical users
+          if (showKm2 && zones > 0) ...[
+            const SizedBox(height: AppTheme.spaceXxxs),
+            Text(
+              l10n.statsCityBlocks((km2 / 0.0092).round()),
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: AppColors.textSecondary(isDark),
+                fontWeight: AppFontWeights.regular,
+              ),
+            ),
+          ],
           const SizedBox(height: AppTheme.spaceXxxs + 2),
           // Subtitle: upload count + map link
           Row(

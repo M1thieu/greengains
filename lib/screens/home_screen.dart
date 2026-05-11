@@ -105,15 +105,18 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   /// How many consecutive GPS readings have landed in [_pendingH3Index].
   int _pendingH3Count = 0;
   /// Minimum consecutive hits before committing a new live cell.
-  /// At 10s GPS interval: 2 hits = ~20s — imperceptible when walking, prevents
-  /// bus-speed bouncing where cells change every 5-15s.
-  static const _kLiveCellStabilityThreshold = 2;
+  /// At 10s GPS interval: 3 hits = ~30s — prevents H3 cell drift from low-accuracy
+  /// fixes leaking into the live map. Accuracy filter in ForegroundService now rejects
+  /// >50m reads, so stable 3-hit confirmation eliminates the last ~5% drift cases.
+  static const _kLiveCellStabilityThreshold = 3;
   /// Cached tile count — avoids recomputing on every build frame.
   int get _claimedTileCount => _h3Tiles.where((t) => t.boundary != null).length;
   /// Current streak — loaded after session ends, shown in session summary sheet.
   int _currentStreak = 0;
   /// Whether community tiles are visible on the map.
   bool _showCommunity = true;
+  /// Neighborhood name from reverse geocoding — shown below zone count.
+  String? _neighborhoodName;
 
   // Return-delta card: shown once per app-open when zones were gained since last session.
   // Dismissed by user tap or auto-dismissed after tracking starts.
@@ -129,6 +132,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     _setupUploadSuccessListener();
     _checkBatteryOptimization();
     unawaited(_checkPermissionHealth());
+    // Seed neighborhood name from prefs — shown instantly before any geocoding.
+    _neighborhoodName = _prefs.territoryLabel;
     // Load cached tiles off the main thread — map shows last known state before network.
     unawaited(_loadCachedTiles());
     // Prefetch Firebase token before tile requests fire — avoids token latency
@@ -495,6 +500,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         });
         // Persist for instant display on next open.
         unawaited(_prefs.setCachedPersonalTiles(jsonEncode(data)));
+        // Geocode neighborhood from the most-sampled tile centroid — fire-and-forget.
+        // Only runs once (or when name is missing). Sends H3 cell centroid (~461m),
+        // not the user's actual GPS position.
+        if (_prefs.territoryLabel == null && response.tiles.isNotEmpty) {
+          unawaited(_refreshNeighborhoodName(response.tiles));
+        }
       }
     } on ApiException catch (e) {
       debugPrint('Tiles: ApiException ${e.statusCode}');
@@ -523,6 +534,22 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     }
   }
 
+
+  /// Reverse-geocode the neighborhood name from the most-sampled personal tile.
+  /// Result is cached in SharedPreferences so Nominatim is called at most once.
+  Future<void> _refreshNeighborhoodName(List<H3Tile> tiles) async {
+    final best = tiles
+        .where((t) => t.centroid != null)
+        .fold<H3Tile?>(null, (best, t) =>
+            best == null || t.sampleCount > best.sampleCount ? t : best);
+    if (best?.centroid == null) return;
+    final name = await reverseGeocodeNeighborhood(
+        best!.centroid!.latitude, best.centroid!.longitude);
+    if (name != null && name.isNotEmpty && mounted) {
+      await _prefs.setTerritoryLabel(name);
+      setState(() => _neighborhoodName = name);
+    }
+  }
 
   /// Load community coverage tiles (all users, cached 5 min on server).
   /// Loads silently in background — never blocks the loading spinner.
@@ -761,9 +788,13 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        _IdlePill(
-                          hasTiles: _h3Tiles.isNotEmpty,
-                          currentZones: _claimedTileCount,
+                        GestureDetector(
+                          onTap: _claimedTileCount > 0 ? widget.onGoToStats : null,
+                          child: _IdlePill(
+                            hasTiles: _h3Tiles.isNotEmpty,
+                            currentZones: _claimedTileCount,
+                            neighborhoodName: _neighborhoodName,
+                          ),
                         ),
                         if (_returnDeltaZones > 0 && !_returnDeltaDismissed) ...[
                           const SizedBox(height: 6),
@@ -772,11 +803,14 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                             onDismiss: () => setState(() => _returnDeltaDismissed = true),
                           ),
                         ],
-                        _AmbientDataPill(
-                          currentH3Index: _currentH3Index,
-                          personalTiles: _h3Tiles,
-                          globalTiles: _globalTiles,
-                          userLocation: _userLocationNotifier.value,
+                        GestureDetector(
+                          onTap: _openSensorSheet,
+                          child: _AmbientDataPill(
+                            currentH3Index: _currentH3Index,
+                            personalTiles: _h3Tiles,
+                            globalTiles: _globalTiles,
+                            userLocation: _userLocationNotifier.value,
+                          ),
                         ),
                       ],
                     ),
@@ -1023,7 +1057,7 @@ class _ReturnDeltaCardState extends State<_ReturnDeltaCard>
                       Text(
                         l10n.returnDeltaDismiss,
                         style: TextStyle(
-                          fontSize: 11,
+                          fontSize: AppTheme.fontSizeXs,
                           fontWeight: AppFontWeights.semibold,
                           color: AppColors.primary.withValues(alpha: 0.75),
                         ),
@@ -1046,9 +1080,11 @@ class _IdlePill extends StatefulWidget {
   const _IdlePill({
     required this.hasTiles,
     required this.currentZones,
+    this.neighborhoodName,
   });
   final bool hasTiles;
   final int currentZones;
+  final String? neighborhoodName;
 
   @override
   State<_IdlePill> createState() => _IdlePillState();
@@ -1112,6 +1148,20 @@ class _IdlePillState extends State<_IdlePill>
                     letterSpacing: -0.1,
                   ),
                 ),
+                if (hasZones && widget.neighborhoodName != null) ...[
+                  const SizedBox(width: 5),
+                  Container(width: 1, height: 10, color: Colors.white24),
+                  const SizedBox(width: 5),
+                  Text(
+                    widget.neighborhoodName!,
+                    style: const TextStyle(
+                      fontSize: 11,
+                      fontWeight: AppFontWeights.regular,
+                      color: Colors.white70,
+                      letterSpacing: -0.1,
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
@@ -1583,7 +1633,7 @@ class _FirstUploadSheetState extends State<_FirstUploadSheet> {
                 Text(
                   context.l10n.firstUploadBadge,
                   style: const TextStyle(
-                    fontSize: 11,
+                    fontSize: AppTheme.fontSizeXs,
                     fontWeight: AppFontWeights.semibold,
                     color: AppColors.primary,
                     letterSpacing: 1.4,
@@ -1606,7 +1656,7 @@ class _FirstUploadSheetState extends State<_FirstUploadSheet> {
                 Text(
                   context.l10n.firstUploadSubtext,
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: AppTheme.fontSizeSm,
                     color: Colors.white.withValues(alpha: 0.55),
                     height: 1.5,
                   ),
@@ -1894,7 +1944,7 @@ class _TrackingHintPillState extends State<_TrackingHintPill>
                   child: Text(
                     '+$_lastGainDelta',
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: AppTheme.fontSizeSm,
                       fontWeight: AppFontWeights.bold,
                       color: AppColors.primary,
                     ),
@@ -1936,7 +1986,7 @@ class _NextMilestoneBar extends StatelessWidget {
             Text(
               l10n.statsMilestoneLabel,
               style: TextStyle(
-                fontSize: 11,
+                fontSize: AppTheme.fontSizeXs,
                 fontWeight: AppFontWeights.semibold,
                 letterSpacing: 0.8,
                 color: AppColors.textSecondary(isDark),
@@ -1945,7 +1995,7 @@ class _NextMilestoneBar extends StatelessWidget {
             Text(
               l10n.statsMilestoneTarget(target),
               style: TextStyle(
-                fontSize: 11,
+                fontSize: AppTheme.fontSizeXs,
                 fontWeight: AppFontWeights.semibold,
                 color: AppColors.textSecondary(isDark),
               ),
@@ -1966,7 +2016,7 @@ class _NextMilestoneBar extends StatelessWidget {
         Text(
           l10n.statsMilestoneRemaining(remaining),
           style: TextStyle(
-            fontSize: 11,
+            fontSize: AppTheme.fontSizeXs,
             color: AppColors.textTertiary(isDark),
           ),
         ),
@@ -2078,7 +2128,7 @@ class _SessionSummarySheetState extends State<_SessionSummarySheet> {
                   Text(
                     l10n.sessionSummaryBadge,
                     style: TextStyle(
-                      fontSize: 11,
+                      fontSize: AppTheme.fontSizeXs,
                       fontWeight: AppFontWeights.semibold,
                       color: Colors.white.withValues(alpha: 0.5),
                       letterSpacing: 0.8,
@@ -2102,7 +2152,7 @@ class _SessionSummarySheetState extends State<_SessionSummarySheet> {
                 Text(
                   l10n.sessionSummaryZonesGainedLabel,
                   style: const TextStyle(
-                    fontSize: 11,
+                    fontSize: AppTheme.fontSizeXs,
                     fontWeight: AppFontWeights.semibold,
                     color: AppColors.primary,
                     letterSpacing: 0.8,
@@ -2138,7 +2188,7 @@ class _SessionSummarySheetState extends State<_SessionSummarySheet> {
                 Text(
                   l10n.sessionSummaryNoZonesLabel,
                   style: const TextStyle(
-                    fontSize: 11,
+                    fontSize: AppTheme.fontSizeXs,
                     fontWeight: AppFontWeights.semibold,
                     color: AppColors.primary,
                     letterSpacing: 0.8,
@@ -2172,41 +2222,21 @@ class _SessionSummarySheetState extends State<_SessionSummarySheet> {
                 ),
               ],
 
-              // ── Streak + personal best row ────────────────────────────────
-              if (widget.streak >= 2 || widget.isPersonalBest) ...[
+              if (widget.isPersonalBest) ...[
                 const SizedBox(height: AppTheme.spaceMd),
                 Row(
                   children: [
-                    if (widget.streak >= 2) ...[
-                      Icon(Icons.local_fire_department_rounded,
-                          size: 18, color: AppColors.warning),
-                      const SizedBox(width: 6),
-                      Text(
-                        l10n.statsStreakDays(widget.streak),
-                        style: const TextStyle(
-                          fontSize: 15,
-                          fontWeight: AppFontWeights.semibold,
-                          color: AppColors.warning,
-                          letterSpacing: -0.2,
-                        ),
+                    Icon(Icons.arrow_upward_rounded, size: 15, color: AppColors.primary),
+                    const SizedBox(width: 5),
+                    Text(
+                      l10n.sessionPersonalBest,
+                      style: const TextStyle(
+                        fontSize: AppTheme.fontSizeSm,
+                        fontWeight: AppFontWeights.semibold,
+                        color: AppColors.primary,
+                        letterSpacing: -0.1,
                       ),
-                    ],
-                    if (widget.streak >= 2 && widget.isPersonalBest)
-                      const SizedBox(width: 14),
-                    if (widget.isPersonalBest) ...[
-                      Icon(Icons.arrow_upward_rounded,
-                          size: 15, color: AppColors.primary),
-                      const SizedBox(width: 5),
-                      Text(
-                        l10n.sessionPersonalBest,
-                        style: const TextStyle(
-                          fontSize: 13,
-                          fontWeight: AppFontWeights.semibold,
-                          color: AppColors.primary,
-                          letterSpacing: -0.1,
-                        ),
-                      ),
-                    ],
+                    ),
                   ],
                 ),
               ],
@@ -2273,7 +2303,7 @@ class _SessionSummarySheetState extends State<_SessionSummarySheet> {
                     ? l10n.sessionSummaryNextHook
                     : l10n.sessionSummaryNextHookEmpty,
                 style: TextStyle(
-                  fontSize: 11,
+                  fontSize: AppTheme.fontSizeXs,
                   color: Colors.white.withValues(alpha: 0.45),
                   letterSpacing: -0.1,
                 ),
@@ -2383,7 +2413,7 @@ class _MilestoneBannerState extends State<_MilestoneBanner>
               child: Text(
                 widget.l10n.sessionMilestoneHit(widget.milestone),
                 style: const TextStyle(
-                  fontSize: 13,
+                  fontSize: AppTheme.fontSizeSm,
                   fontWeight: AppFontWeights.semibold,
                   color: AppColors.primary,
                   letterSpacing: -0.1,
@@ -2532,7 +2562,7 @@ class _AmbientDataPillState extends State<_AmbientDataPill> {
               Text(
                 prefix,
                 style: TextStyle(
-                  fontSize: 11,
+                  fontSize: AppTheme.fontSizeXs,
                   fontWeight: AppFontWeights.semibold,
                   color: Colors.white.withValues(alpha: 0.4),
                   letterSpacing: 0.5,
@@ -2591,7 +2621,7 @@ class _PermissionLostCard extends StatelessWidget {
                   Text(
                     l10n.permissionLostTitle,
                     style: const TextStyle(
-                      fontSize: 13,
+                      fontSize: AppTheme.fontSizeSm,
                       fontWeight: AppFontWeights.semibold,
                       color: AppColors.warning,
                       letterSpacing: -0.1,
@@ -2649,7 +2679,7 @@ class _SummaryStatCell extends StatelessWidget {
             Text(
               label,
               style: const TextStyle(
-                fontSize: 11,
+                fontSize: AppTheme.fontSizeXs,
                 fontWeight: AppFontWeights.medium,
                 color: Color(0x73FFFFFF),
                 letterSpacing: 0.6,
