@@ -474,6 +474,20 @@ class AppLocalizationsFr extends AppLocalizations {
   String get statsBestDayLabel => 'Meilleur jour';
 
   @override
+  String get statsAvgPerDay => 'Moy. / jour';
+
+  @override
+  String get statsWeeklyTargetLabel => 'NOUVEAUX ENDROITS CETTE SEMAINE';
+
+  @override
+  String get statsWeeklyTargetComplete => 'Objectif hebdomadaire atteint';
+
+  @override
+  String statsWeeklyTargetRemaining(int count) {
+    return '$count de plus pour atteindre ton objectif';
+  }
+
+  @override
   String get statsDetailTitle => 'Tes données';
 
   @override
@@ -498,11 +512,11 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get statsZoneExplainer =>
-      'Chaque zone = ~0,1 km² — un pâté de maisons de données capteurs';
+      'Chaque endroit fait environ un pâté de maisons — ton téléphone l\'a scanné en passant';
 
   @override
   String get statsUploadExplainer =>
-      'Chaque envoi = mesures lumière + mouvement + pression d\'un endroit';
+      'Chaque envoi est un instantané de ce que ton téléphone a capté — luminosité, mouvement et pression à un endroit';
 
   @override
   String get statsTabCore => 'Aperçu';
@@ -557,7 +571,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get statsQualitySubtitle =>
-      'Lectures valides sur toutes les mesures enregistrées';
+      'Quelle part de tes données capturées on a pu utiliser';
 
   @override
   String get statsAvgPrefix => 'moy.';
@@ -567,7 +581,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get infoKmBody =>
-      'Chaque hexagone couvre ~0,1 km² — c\'est votre empreinte personnelle sur la carte.';
+      'Chaque zone sur ta carte fait environ la taille d\'un pâté de maisons. C\'est la part de ton quartier que tu as scannée.';
 
   @override
   String get infoDataPtsTitle => 'Envois';
@@ -1164,19 +1178,19 @@ class AppLocalizationsFr extends AppLocalizations {
   String get legendHighLabel => 'Qualité élevée';
 
   @override
-  String get legendHighSub => '≥75% de lectures valides';
+  String get legendHighSub => 'Beaucoup de bonnes données ici';
 
   @override
   String get legendMidLabel => 'Qualité moyenne';
 
   @override
-  String get legendMidSub => '50–74% de lectures valides';
+  String get legendMidSub => 'Quelques données — repasse ici pour améliorer';
 
   @override
   String get legendLowLabel => 'Qualité faible';
 
   @override
-  String get legendLowSub => 'Moins de 50% — besoin de plus de données';
+  String get legendLowSub => 'Presque rien — il faut y repasser';
 
   @override
   String get legendCommunitySub => 'Enregistré par d\'autres personnes';
@@ -1310,7 +1324,8 @@ class AppLocalizationsFr extends AppLocalizations {
   String get statsStreakLabel => 'Série';
 
   @override
-  String get statsStreakAtRisk => 'Ne brise pas la chaîne';
+  String get statsStreakAtRisk =>
+      'Cartographie aujourd\'hui ou ta série repart à zéro';
 
   @override
   String statsStreakDays(int count) {
@@ -1370,29 +1385,28 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get statsTerritoryWhatRecorded =>
-      'Ce qui est enregistré dans chaque zone';
+  String get statsTerritoryWhatRecorded => 'Ce que ton téléphone a mesuré ici';
 
   @override
   String get statsTerritoryLightLabel => 'Lumière';
 
   @override
   String get statsTerritoryLightDesc =>
-      'Luminosité ambiante — intérieur, extérieur, ombre, soleil direct';
+      'À quel point cet endroit est lumineux ou sombre — intérieur, extérieur, à l\'ombre';
 
   @override
-  String get statsTerritoryMotionLabel => 'Mouvement';
+  String get statsTerritoryMotionLabel => 'Activité';
 
   @override
   String get statsTerritoryMotionDesc =>
-      'Intensité des mouvements — trafic piéton, véhicules, vibrations';
+      'L\'animation habituelle de cet endroit — personnes, trafic, mouvement';
 
   @override
-  String get statsTerritoryPressureLabel => 'Pression';
+  String get statsTerritoryPressureLabel => 'Météo';
 
   @override
   String get statsTerritoryPressureDesc =>
-      'Pression atmosphérique — indique l\'altitude et les conditions météo';
+      'La pression atmosphérique enregistrée ici — reflète les conditions météo locales';
 
   @override
   String get statsTerritoryMapCta =>
@@ -1403,7 +1417,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get tileLowQualityHint =>
-      'Repasse ici — plus de passages = données plus solides.';
+      'Repasse par ici — plus tu y vas, plus les données s\'améliorent.';
 
   @override
   String homeZonesOnYourMap(int count) {

@@ -860,6 +860,30 @@ abstract class AppLocalizations {
   /// **'Best day'**
   String get statsBestDayLabel;
 
+  /// No description provided for @statsAvgPerDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Avg / day'**
+  String get statsAvgPerDay;
+
+  /// No description provided for @statsWeeklyTargetLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'NEW PLACES THIS WEEK'**
+  String get statsWeeklyTargetLabel;
+
+  /// No description provided for @statsWeeklyTargetComplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly goal reached'**
+  String get statsWeeklyTargetComplete;
+
+  /// No description provided for @statsWeeklyTargetRemaining.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} more to reach your weekly goal'**
+  String statsWeeklyTargetRemaining(int count);
+
   /// No description provided for @statsDetailTitle.
   ///
   /// In en, this message translates to:
@@ -905,13 +929,13 @@ abstract class AppLocalizations {
   /// No description provided for @statsZoneExplainer.
   ///
   /// In en, this message translates to:
-  /// **'Each zone is ~0.1 km² — a city block of sensor data'**
+  /// **'Each place is roughly one city block — your phone scanned it as you passed through'**
   String get statsZoneExplainer;
 
   /// No description provided for @statsUploadExplainer.
   ///
   /// In en, this message translates to:
-  /// **'Each upload = light + motion + pressure readings from one spot'**
+  /// **'Each upload is a snapshot of what your phone sensed — brightness, movement, and air pressure at one spot'**
   String get statsUploadExplainer;
 
   /// No description provided for @statsTabCore.
@@ -1019,7 +1043,7 @@ abstract class AppLocalizations {
   /// No description provided for @statsQualitySubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Valid readings out of all recorded samples'**
+  /// **'How much of your captured data we could use'**
   String get statsQualitySubtitle;
 
   /// No description provided for @statsAvgPrefix.
@@ -1037,7 +1061,7 @@ abstract class AppLocalizations {
   /// No description provided for @infoKmBody.
   ///
   /// In en, this message translates to:
-  /// **'Each hexagon covers ~0.1 km² — this is your personal footprint on the map.'**
+  /// **'Each area on your map is roughly the size of a city block. This is how much of your neighborhood you\'ve scanned.'**
   String get infoKmBody;
 
   /// No description provided for @infoDataPtsTitle.
@@ -2051,7 +2075,7 @@ abstract class AppLocalizations {
   /// No description provided for @legendHighSub.
   ///
   /// In en, this message translates to:
-  /// **'≥75% valid sensor readings'**
+  /// **'Lots of good data from here'**
   String get legendHighSub;
 
   /// No description provided for @legendMidLabel.
@@ -2063,7 +2087,7 @@ abstract class AppLocalizations {
   /// No description provided for @legendMidSub.
   ///
   /// In en, this message translates to:
-  /// **'50–74% valid readings'**
+  /// **'Some data — walk here again to fill it in'**
   String get legendMidSub;
 
   /// No description provided for @legendLowLabel.
@@ -2075,7 +2099,7 @@ abstract class AppLocalizations {
   /// No description provided for @legendLowSub.
   ///
   /// In en, this message translates to:
-  /// **'Below 50% — needs more data'**
+  /// **'Barely any data — needs more passes'**
   String get legendLowSub;
 
   /// No description provided for @legendCommunitySub.
@@ -2273,7 +2297,7 @@ abstract class AppLocalizations {
   /// No description provided for @statsStreakAtRisk.
   ///
   /// In en, this message translates to:
-  /// **'Don\'t break the chain'**
+  /// **'Map today or your streak resets'**
   String get statsStreakAtRisk;
 
   /// No description provided for @statsStreakDays.
@@ -2339,7 +2363,7 @@ abstract class AppLocalizations {
   /// No description provided for @statsTerritoryWhatRecorded.
   ///
   /// In en, this message translates to:
-  /// **'What\'s recorded in each zone'**
+  /// **'What your phone measured here'**
   String get statsTerritoryWhatRecorded;
 
   /// No description provided for @statsTerritoryLightLabel.
@@ -2351,31 +2375,31 @@ abstract class AppLocalizations {
   /// No description provided for @statsTerritoryLightDesc.
   ///
   /// In en, this message translates to:
-  /// **'Ambient brightness — indoor, outdoor, shade, direct sun'**
+  /// **'How bright or dark this place usually is — indoors, outdoors, shaded'**
   String get statsTerritoryLightDesc;
 
   /// No description provided for @statsTerritoryMotionLabel.
   ///
   /// In en, this message translates to:
-  /// **'Motion'**
+  /// **'Activity'**
   String get statsTerritoryMotionLabel;
 
   /// No description provided for @statsTerritoryMotionDesc.
   ///
   /// In en, this message translates to:
-  /// **'Movement intensity — foot traffic, vehicles, vibration'**
+  /// **'How lively this place usually feels — people, traffic, movement'**
   String get statsTerritoryMotionDesc;
 
   /// No description provided for @statsTerritoryPressureLabel.
   ///
   /// In en, this message translates to:
-  /// **'Pressure'**
+  /// **'Weather'**
   String get statsTerritoryPressureLabel;
 
   /// No description provided for @statsTerritoryPressureDesc.
   ///
   /// In en, this message translates to:
-  /// **'Air pressure — indicates altitude and weather conditions'**
+  /// **'Air pressure recorded here — reflects local weather conditions'**
   String get statsTerritoryPressureDesc;
 
   /// No description provided for @statsTerritoryMapCta.
@@ -2393,7 +2417,7 @@ abstract class AppLocalizations {
   /// No description provided for @tileLowQualityHint.
   ///
   /// In en, this message translates to:
-  /// **'Walk here again — more passes = stronger data.'**
+  /// **'Walk through here again — more visits make this place stronger on the map.'**
   String get tileLowQualityHint;
 
   /// No description provided for @homeZonesOnYourMap.

@@ -11,9 +11,7 @@ import '../data/models/contribution_stats.dart';
 import '../data/repositories/contribution_repository.dart';
 import '../core/events/app_events.dart';
 import '../core/app_preferences.dart';
-import '../services/network/backend_client.dart';
 import '../services/stats/stats_service.dart';
-import '../core/constants.dart';
 
 // ── Chart / skeleton layout constants ────────────────────────────────────────
 // Named so that any future change touches ONE place, not scattered literals.
@@ -26,7 +24,6 @@ const _kBarLabelSize      = AppTheme.fontSizeXs;  // day-of-week label below eac
 const _kSkeletonTitleW    = 160.0;                // width of section-title skeleton rect
 const _kSkeletonHeroH     = 96.0;                 // height of hero card skeleton placeholder
 const _kHeroIconSize      = 80.0;                 // empty-state centre icon size
-const _kTrioLabelSize     = AppTheme.fontSizeXs;  // small label inside supporting trio tiles
 // ── Typography constants ──────────────────────────────────────────────────────
 const _kLetterSpacingDisplay  = -2.0;  // tight tracking for displayLarge hero number
 const _kLetterSpacingHero     = -0.5;  // tight tracking for titleLarge in tiles
@@ -73,7 +70,6 @@ class _StatisticsScreenState extends State<StatisticsScreen>
   // Previous km² value — used as animation start on reload so it never resets to 0
   double _prevKm2 = 0;
   // Community stats — active mapper count from /api/stats/global (1h server cache)
-  int? _activeMappers;
   // Streak data from backend profile
   int? _longestStreak;
   // All-time best single day upload count
@@ -216,7 +212,6 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                   : 0.0);
           if (profile.qualityPct != null) _qualityPct = profile.qualityPct;
           if (weeklyTarget != null) _weeklyTarget = weeklyTarget;
-          if (global.activeMappers > 0) _activeMappers = global.activeMappers;
           // Auto-highlight best day on first load
           if (_selectedBarIndex == null && profile.weekly.isNotEmpty) {
             final maxV = profile.weekly.fold(0, max);
@@ -332,7 +327,6 @@ class _StatisticsScreenState extends State<StatisticsScreen>
     final totalUploads = localTotal > 0 ? localTotal : (_backendTotalUploads ?? 0);
     final zones = _coverageCells ?? 0;
     final km2 = zones * 0.1053;
-    final km2Str = km2 < 1.0 ? km2.toStringAsFixed(2) : km2.toStringAsFixed(1);
     final cityBlocks = (km2 / 0.0092).round(); // ~1 city block ≈ 0.0092 km²
     final bestDay = _weeklyData != null ? _weeklyData!.fold(0, max) : 0;
     final streak = _stats?.currentStreak ?? 0;
@@ -519,13 +513,11 @@ class _StatisticsScreenState extends State<StatisticsScreen>
 
   Widget _buildSupportingTrio(ThemeData theme, bool isDark) {
     final l10n = context.l10n;
-    final daysActive = _daysActive ?? 0;
-    final daysLoaded = _daysActive != null;
     final localToday = _stats?.uploadsToday ?? 0;
     final uploadsToday = localToday > 0 ? localToday : (_backendUploadsToday ?? _weeklyData?.lastOrNull ?? 0);
     final localWeek = _stats?.uploadsThisWeek ?? 0;
     final uploadsThisWeek = localWeek > 0 ? localWeek : (_weeklyData?.fold(0, (a, b) => a + b) ?? 0);
-    final int? bestDay = _bestDayCount ?? (_weeklyData != null ? _weeklyData!.fold<int>(0, max) : null);
+    final int? bestDay = _bestDayCount ?? _weeklyData?.fold<int>(0, max);
     final avgPerDay = _avgPerDay;
     // Show dash for zero (no history yet) — not a loading spinner.
     final avgLabel = avgPerDay == null ? null
@@ -2201,6 +2193,7 @@ class _KpiCell extends StatelessWidget {
 // ── Record row (dot + label + right-aligned value) ────────────────────────────
 
 class _RecordRow extends StatelessWidget {
+  // ignore: unused_element_parameter
   const _RecordRow({required this.dot, required this.label, this.sub, required this.value, required this.unit, required this.isDark});
   final Color dot;
   final String label;
