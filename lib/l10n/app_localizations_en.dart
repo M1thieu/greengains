@@ -322,8 +322,8 @@ class AppLocalizationsEn extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count pts',
-      one: '1 pt',
+      other: '$count scans',
+      one: '1 scan',
     );
     return '$_temp0';
   }
@@ -333,8 +333,8 @@ class AppLocalizationsEn extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '+$count zones',
-      one: '+1 zone',
+      other: '+$count new places',
+      one: '+1 new place',
       zero: 'Mapping',
     );
     return '$_temp0';
@@ -383,8 +383,8 @@ class AppLocalizationsEn extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count zones on your map — tap ▶ to keep growing',
-      one: '1 zone on your map — tap ▶ to keep growing',
+      other: '$count places on your map — tap ▶ to explore more',
+      one: '1 place on your map — tap ▶ to explore more',
     );
     return '$_temp0';
   }
@@ -394,7 +394,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String uploadSuccessNewZone(int count) {
-    return 'New area · $count zones on your map';
+    return 'New place added · $count on your map';
   }
 
   @override
@@ -440,16 +440,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get statsTotal => 'Total';
 
   @override
-  String get statsCoverage => 'Zones';
+  String get statsCoverage => 'Places';
 
   @override
-  String get statsAreasLabel => 'zones mapped';
+  String get statsAreasLabel => 'places covered';
 
   @override
-  String get statsDataPtsLabel => 'recordings';
+  String get statsDataPtsLabel => 'times mapped';
 
   @override
-  String get statsKmMapped => 'km² mapped';
+  String get statsKmMapped => 'area covered';
 
   @override
   String statsBarCalloutUploads(int count) {
@@ -510,11 +510,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get statsZoneExplainer =>
-      'Each place is roughly one city block — your phone scanned it as you passed through';
+      'Each place is roughly one city block. Your phone scanned it as you passed through.';
 
   @override
   String get statsUploadExplainer =>
-      'Each upload is a snapshot of what your phone sensed — brightness, movement, and air pressure at one spot';
+      'Each upload is a snapshot of what your phone sensed: brightness, movement, and air pressure at one spot.';
 
   @override
   String get statsTabCore => 'Overview';
@@ -579,14 +579,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get infoKmBody =>
-      'Each area on your map is roughly the size of a city block. This is how much of your neighborhood you\'ve scanned.';
+      'Each area on your map is roughly the size of a city block. This is how much of your neighborhood you have scanned.';
 
   @override
   String get infoDataPtsTitle => 'Uploads';
 
   @override
   String get infoDataPtsBody =>
-      'Each upload captures light, pressure, and movement — more uploads means a denser map.';
+      'Each time you map, your phone records what that spot is like. The more you pass through, the more accurate it gets.';
 
   @override
   String get infoTodayTitle => 'Recordings today';
@@ -644,7 +644,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Mapped by others — walk here to make it yours.';
 
   @override
-  String get statsTotalContributions => 'Total Contributions';
+  String get statsTotalContributions => 'Times you\'ve mapped';
 
   @override
   String get statsActivityTrend => 'Your week';
@@ -761,8 +761,8 @@ class AppLocalizationsEn extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count zones mapped',
-      one: '1 zone mapped',
+      other: '$count places on your map',
+      one: '1 place on your map',
     );
     return '$_temp0';
   }
@@ -1093,7 +1093,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String statsCommunityAreas(int count) {
-    return '$count areas mapped by community';
+    return '$count places mapped by people near you';
   }
 
   @override
@@ -1173,13 +1173,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get legendMidLabel => 'Medium quality';
 
   @override
-  String get legendMidSub => 'Some data — walk here again to fill it in';
+  String get legendMidSub => 'Some data. Walk here again to fill it in.';
 
   @override
   String get legendLowLabel => 'Low quality';
 
   @override
-  String get legendLowSub => 'Barely any data — needs more passes';
+  String get legendLowSub => 'Barely any data. Needs more passes.';
 
   @override
   String get legendCommunitySub => 'Recorded by other people';
@@ -1363,8 +1363,8 @@ class AppLocalizationsEn extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count zones',
-      one: '1 zone',
+      other: '$count places',
+      one: '1 place',
     );
     return '$_temp0';
   }
@@ -1377,21 +1377,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get statsTerritoryLightDesc =>
-      'How bright or dark this place usually is — indoors, outdoors, shaded';
+      'How bright or dark this place usually is: indoors, outdoors, shaded';
 
   @override
   String get statsTerritoryMotionLabel => 'Activity';
 
   @override
   String get statsTerritoryMotionDesc =>
-      'How lively this place usually feels — people, traffic, movement';
+      'How lively this place usually feels: people, traffic, movement';
 
   @override
   String get statsTerritoryPressureLabel => 'Weather';
 
   @override
   String get statsTerritoryPressureDesc =>
-      'Air pressure recorded here — reflects local weather conditions';
+      'The air pressure recorded here. Reflects local weather conditions.';
 
   @override
   String get statsTerritoryMapCta =>
@@ -1402,15 +1402,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get tileLowQualityHint =>
-      'Walk through here again — more visits make this place stronger on the map.';
+      'Walk through here again. More visits make this place stronger on the map.';
 
   @override
   String homeZonesOnYourMap(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count zones on your map',
-      one: '1 zone on your map',
+      other: '$count places on your map',
+      one: '1 place on your map',
     );
     return '$_temp0';
   }
@@ -1569,26 +1569,26 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get firstUploadBadge => 'FIRST ZONE UPLOADED';
+  String get firstUploadBadge => 'FIRST PLACE MAPPED';
 
   @override
-  String get firstUploadHeadline => 'Your first zone is on the map.';
+  String get firstUploadHeadline => 'Your first spot is on the map.';
 
   @override
   String get firstUploadSubtext =>
-      'Your first zone is live. Keep walking — every place you visit fills in.';
+      'Keep walking — every place you pass through fills in automatically.';
 
   @override
-  String get firstUploadSensorsLabel => 'SENSORS';
+  String get firstUploadSensorsLabel => 'WHAT WE MEASURE';
 
   @override
-  String get firstUploadSensorsValue => 'light · motion · pressure';
+  String get firstUploadSensorsValue => 'brightness · activity · weather';
 
   @override
   String get firstUploadPrivacyLabel => 'PRIVACY';
 
   @override
-  String get firstUploadPrivacyValue => 'anonymised';
+  String get firstUploadPrivacyValue => 'anonymous · no route stored';
 
   @override
   String get firstUploadKeepMappingCta => 'Keep mapping';

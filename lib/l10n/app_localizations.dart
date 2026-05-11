@@ -677,13 +677,13 @@ abstract class AppLocalizations {
   /// No description provided for @chipDataPts.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, =1{1 pt} other{{count} pts}}'**
+  /// **'{count, plural, =1{1 scan} other{{count} scans}}'**
   String chipDataPts(int count);
 
   /// No description provided for @homeSessionZones.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, =0{Mapping} =1{+1 zone} other{+{count} zones}}'**
+  /// **'{count, plural, =0{Mapping} =1{+1 new place} other{+{count} new places}}'**
   String homeSessionZones(int count);
 
   /// No description provided for @homeYourMap.
@@ -731,7 +731,7 @@ abstract class AppLocalizations {
   /// No description provided for @homeReturnHint.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, =1{1 zone on your map — tap ▶ to keep growing} other{{count} zones on your map — tap ▶ to keep growing}}'**
+  /// **'{count, plural, =1{1 place on your map — tap ▶ to explore more} other{{count} places on your map — tap ▶ to explore more}}'**
   String homeReturnHint(int count);
 
   /// No description provided for @uploadSuccessMessage.
@@ -743,7 +743,7 @@ abstract class AppLocalizations {
   /// No description provided for @uploadSuccessNewZone.
   ///
   /// In en, this message translates to:
-  /// **'New area · {count} zones on your map'**
+  /// **'New place added · {count} on your map'**
   String uploadSuccessNewZone(int count);
 
   /// No description provided for @semanticsRefreshMap.
@@ -815,25 +815,25 @@ abstract class AppLocalizations {
   /// No description provided for @statsCoverage.
   ///
   /// In en, this message translates to:
-  /// **'Zones'**
+  /// **'Places'**
   String get statsCoverage;
 
   /// No description provided for @statsAreasLabel.
   ///
   /// In en, this message translates to:
-  /// **'zones mapped'**
+  /// **'places covered'**
   String get statsAreasLabel;
 
   /// No description provided for @statsDataPtsLabel.
   ///
   /// In en, this message translates to:
-  /// **'recordings'**
+  /// **'times mapped'**
   String get statsDataPtsLabel;
 
   /// No description provided for @statsKmMapped.
   ///
   /// In en, this message translates to:
-  /// **'km² mapped'**
+  /// **'area covered'**
   String get statsKmMapped;
 
   /// No description provided for @statsBarCalloutUploads.
@@ -929,13 +929,13 @@ abstract class AppLocalizations {
   /// No description provided for @statsZoneExplainer.
   ///
   /// In en, this message translates to:
-  /// **'Each place is roughly one city block — your phone scanned it as you passed through'**
+  /// **'Each place is roughly one city block. Your phone scanned it as you passed through.'**
   String get statsZoneExplainer;
 
   /// No description provided for @statsUploadExplainer.
   ///
   /// In en, this message translates to:
-  /// **'Each upload is a snapshot of what your phone sensed — brightness, movement, and air pressure at one spot'**
+  /// **'Each upload is a snapshot of what your phone sensed: brightness, movement, and air pressure at one spot.'**
   String get statsUploadExplainer;
 
   /// No description provided for @statsTabCore.
@@ -1061,7 +1061,7 @@ abstract class AppLocalizations {
   /// No description provided for @infoKmBody.
   ///
   /// In en, this message translates to:
-  /// **'Each area on your map is roughly the size of a city block. This is how much of your neighborhood you\'ve scanned.'**
+  /// **'Each area on your map is roughly the size of a city block. This is how much of your neighborhood you have scanned.'**
   String get infoKmBody;
 
   /// No description provided for @infoDataPtsTitle.
@@ -1073,7 +1073,7 @@ abstract class AppLocalizations {
   /// No description provided for @infoDataPtsBody.
   ///
   /// In en, this message translates to:
-  /// **'Each upload captures light, pressure, and movement — more uploads means a denser map.'**
+  /// **'Each time you map, your phone records what that spot is like. The more you pass through, the more accurate it gets.'**
   String get infoDataPtsBody;
 
   /// No description provided for @infoTodayTitle.
@@ -1175,7 +1175,7 @@ abstract class AppLocalizations {
   /// No description provided for @statsTotalContributions.
   ///
   /// In en, this message translates to:
-  /// **'Total Contributions'**
+  /// **'Times you\'ve mapped'**
   String get statsTotalContributions;
 
   /// No description provided for @statsActivityTrend.
@@ -1391,7 +1391,7 @@ abstract class AppLocalizations {
   /// No description provided for @homeZonesMapped.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, =1{1 zone mapped} other{{count} zones mapped}}'**
+  /// **'{count, plural, =1{1 place on your map} other{{count} places on your map}}'**
   String homeZonesMapped(int count);
 
   /// No description provided for @tileInfoSamplesLabel.
@@ -1937,7 +1937,7 @@ abstract class AppLocalizations {
   /// No description provided for @statsCommunityAreas.
   ///
   /// In en, this message translates to:
-  /// **'{count} areas mapped by community'**
+  /// **'{count} places mapped by people near you'**
   String statsCommunityAreas(int count);
 
   /// No description provided for @batteryDialogTitle.
@@ -2087,7 +2087,7 @@ abstract class AppLocalizations {
   /// No description provided for @legendMidSub.
   ///
   /// In en, this message translates to:
-  /// **'Some data — walk here again to fill it in'**
+  /// **'Some data. Walk here again to fill it in.'**
   String get legendMidSub;
 
   /// No description provided for @legendLowLabel.
@@ -2099,7 +2099,7 @@ abstract class AppLocalizations {
   /// No description provided for @legendLowSub.
   ///
   /// In en, this message translates to:
-  /// **'Barely any data — needs more passes'**
+  /// **'Barely any data. Needs more passes.'**
   String get legendLowSub;
 
   /// No description provided for @legendCommunitySub.
@@ -2357,7 +2357,7 @@ abstract class AppLocalizations {
   /// No description provided for @statsTerritoryZones.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, =1{1 zone} other{{count} zones}}'**
+  /// **'{count, plural, =1{1 place} other{{count} places}}'**
   String statsTerritoryZones(int count);
 
   /// No description provided for @statsTerritoryWhatRecorded.
@@ -2375,7 +2375,7 @@ abstract class AppLocalizations {
   /// No description provided for @statsTerritoryLightDesc.
   ///
   /// In en, this message translates to:
-  /// **'How bright or dark this place usually is — indoors, outdoors, shaded'**
+  /// **'How bright or dark this place usually is: indoors, outdoors, shaded'**
   String get statsTerritoryLightDesc;
 
   /// No description provided for @statsTerritoryMotionLabel.
@@ -2387,7 +2387,7 @@ abstract class AppLocalizations {
   /// No description provided for @statsTerritoryMotionDesc.
   ///
   /// In en, this message translates to:
-  /// **'How lively this place usually feels — people, traffic, movement'**
+  /// **'How lively this place usually feels: people, traffic, movement'**
   String get statsTerritoryMotionDesc;
 
   /// No description provided for @statsTerritoryPressureLabel.
@@ -2399,7 +2399,7 @@ abstract class AppLocalizations {
   /// No description provided for @statsTerritoryPressureDesc.
   ///
   /// In en, this message translates to:
-  /// **'Air pressure recorded here — reflects local weather conditions'**
+  /// **'The air pressure recorded here. Reflects local weather conditions.'**
   String get statsTerritoryPressureDesc;
 
   /// No description provided for @statsTerritoryMapCta.
@@ -2417,13 +2417,13 @@ abstract class AppLocalizations {
   /// No description provided for @tileLowQualityHint.
   ///
   /// In en, this message translates to:
-  /// **'Walk through here again — more visits make this place stronger on the map.'**
+  /// **'Walk through here again. More visits make this place stronger on the map.'**
   String get tileLowQualityHint;
 
   /// No description provided for @homeZonesOnYourMap.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, =1{1 zone on your map} other{{count} zones on your map}}'**
+  /// **'{count, plural, =1{1 place on your map} other{{count} places on your map}}'**
   String homeZonesOnYourMap(int count);
 
   /// No description provided for @homeCommunityScopeHint.
@@ -2669,31 +2669,31 @@ abstract class AppLocalizations {
   /// No description provided for @firstUploadBadge.
   ///
   /// In en, this message translates to:
-  /// **'FIRST ZONE UPLOADED'**
+  /// **'FIRST PLACE MAPPED'**
   String get firstUploadBadge;
 
   /// No description provided for @firstUploadHeadline.
   ///
   /// In en, this message translates to:
-  /// **'Your first zone is on the map.'**
+  /// **'Your first spot is on the map.'**
   String get firstUploadHeadline;
 
   /// No description provided for @firstUploadSubtext.
   ///
   /// In en, this message translates to:
-  /// **'Your first zone is live. Keep walking — every place you visit fills in.'**
+  /// **'Keep walking — every place you pass through fills in automatically.'**
   String get firstUploadSubtext;
 
   /// No description provided for @firstUploadSensorsLabel.
   ///
   /// In en, this message translates to:
-  /// **'SENSORS'**
+  /// **'WHAT WE MEASURE'**
   String get firstUploadSensorsLabel;
 
   /// No description provided for @firstUploadSensorsValue.
   ///
   /// In en, this message translates to:
-  /// **'light · motion · pressure'**
+  /// **'brightness · activity · weather'**
   String get firstUploadSensorsValue;
 
   /// No description provided for @firstUploadPrivacyLabel.
@@ -2705,7 +2705,7 @@ abstract class AppLocalizations {
   /// No description provided for @firstUploadPrivacyValue.
   ///
   /// In en, this message translates to:
-  /// **'anonymised'**
+  /// **'anonymous · no route stored'**
   String get firstUploadPrivacyValue;
 
   /// No description provided for @firstUploadKeepMappingCta.

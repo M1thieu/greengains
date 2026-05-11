@@ -139,11 +139,11 @@
   "chipPaused": "Paused",
   "chipTapStart": "Tap ▶ to start mapping",
   "chipTapStartFirst": "Start mapping your neighborhood",
-  "chipDataPts": "{count, plural, =1{1 pt} other{{count} pts}}",
+  "chipDataPts": "{count, plural, =1{1 scan} other{{count} scans}}",
   "@chipDataPts": {
     "placeholders": { "count": { "type": "int" } }
   },
-  "homeSessionZones": "{count, plural, =0{Mapping} =1{+1 zone} other{+{count} zones}}",
+  "homeSessionZones": "{count, plural, =0{Mapping} =1{+1 new place} other{+{count} new places}}",
   "@homeSessionZones": {
     "placeholders": { "count": { "type": "int" } }
   },
@@ -160,13 +160,13 @@
   "@homeTrackingReadings": {
     "placeholders": { "count": { "type": "num", "format": "compact" } }
   },
-  "homeReturnHint": "{count, plural, =1{1 zone on your map — tap ▶ to keep growing} other{{count} zones on your map — tap ▶ to keep growing}}",
+  "homeReturnHint": "{count, plural, =1{1 place on your map — tap ▶ to explore more} other{{count} places on your map — tap ▶ to explore more}}",
   "@homeReturnHint": {
     "placeholders": { "count": { "type": "int" } }
   },
 
   "uploadSuccessMessage": "Map updated!",
-  "uploadSuccessNewZone": "New area · {count} zones on your map",
+  "uploadSuccessNewZone": "New place added · {count} on your map",
   "@uploadSuccessNewZone": {
     "placeholders": { "count": { "type": "int" } }
   },
@@ -187,10 +187,10 @@
   "statsThisWeek": "This week",
   "statsDaysActive": "Days Active",
   "statsTotal": "Total",
-  "statsCoverage": "Zones",
-  "statsAreasLabel": "zones mapped",
-  "statsDataPtsLabel": "recordings",
-  "statsKmMapped": "km² mapped",
+  "statsCoverage": "Places",
+  "statsAreasLabel": "places covered",
+  "statsDataPtsLabel": "times mapped",
+  "statsKmMapped": "area covered",
   "statsBarCalloutUploads": "{count, plural, =1{1 upload} other{{count} uploads}}",
   "@statsBarCalloutUploads": {
     "placeholders": { "count": { "type": "int" } }
@@ -211,8 +211,8 @@
   "statsRecordLongestStreak": "Longest streak",
   "statsRecordTotalUploads": "Total uploads",
   "statsRecordFirstDay": "First mapping day",
-  "statsZoneExplainer": "Each place is roughly one city block — your phone scanned it as you passed through",
-  "statsUploadExplainer": "Each upload is a snapshot of what your phone sensed — brightness, movement, and air pressure at one spot",
+  "statsZoneExplainer": "Each place is roughly one city block. Your phone scanned it as you passed through.",
+  "statsUploadExplainer": "Each upload is a snapshot of what your phone sensed: brightness, movement, and air pressure at one spot.",
   "statsTabCore": "Overview",
   "statsTabInDepth": "In depth",
   "statsInDepth30Days": "Last 30 days",
@@ -234,9 +234,9 @@
   "statsAvgPrefix": "avg",
 
   "infoKmTitle": "Territory mapped",
-  "infoKmBody": "Each area on your map is roughly the size of a city block. This is how much of your neighborhood you've scanned.",
+  "infoKmBody": "Each area on your map is roughly the size of a city block. This is how much of your neighborhood you have scanned.",
   "infoDataPtsTitle": "Uploads",
-  "infoDataPtsBody": "Each upload captures light, pressure, and movement — more uploads means a denser map.",
+  "infoDataPtsBody": "Each time you map, your phone records what that spot is like. The more you pass through, the more accurate it gets.",
   "infoTodayTitle": "Recordings today",
   "infoTodayBody": "Sensor readings uploaded today — light, pressure, and movement at each stop.",
   "infoThisWeekTitle": "This week",
@@ -253,7 +253,7 @@
   "infoTilePersonalBody": "Your phone recorded here.",
   "infoTileCommunityTitle": "Community area",
   "infoTileCommunityBody": "Mapped by others — walk here to make it yours.",
-  "statsTotalContributions": "Total Contributions",
+  "statsTotalContributions": "Times you've mapped",
   "statsActivityTrend": "Your week",
   "statsLast7Days": "Last 7 days",
   "statsTodayLabel": "TODAY",
@@ -298,7 +298,7 @@
 
   "chipZones": "zones",
   "chipSensors": "signals",
-  "homeZonesMapped": "{count, plural, =1{1 zone mapped} other{{count} zones mapped}}",
+  "homeZonesMapped": "{count, plural, =1{1 place on your map} other{{count} places on your map}}",
   "@homeZonesMapped": {
     "placeholders": { "count": { "type": "int" } }
   },
@@ -441,7 +441,7 @@
       "target": { "type": "int" }
     }
   },
-  "statsCommunityAreas": "{count} areas mapped by community",
+  "statsCommunityAreas": "{count} places mapped by people near you",
   "@statsCommunityAreas": {
     "placeholders": {
       "count": {"type": "int"}
@@ -484,9 +484,9 @@
   "legendHighLabel": "High quality",
   "legendHighSub": "Lots of good data from here",
   "legendMidLabel": "Medium quality",
-  "legendMidSub": "Some data — walk here again to fill it in",
+  "legendMidSub": "Some data. Walk here again to fill it in.",
   "legendLowLabel": "Low quality",
-  "legendLowSub": "Barely any data — needs more passes",
+  "legendLowSub": "Barely any data. Needs more passes.",
   "legendCommunitySub": "Recorded by other people",
 
   "permissionPrimingTitle": "One thing before we start",
@@ -569,20 +569,20 @@
   "@statsBarCalloutDetail": { "placeholders": { "count": { "type": "int" } } },
   "statsTerritoryDetails": "See territory details",
   "statsTerritorySheetTitle": "Your territory",
-  "statsTerritoryZones": "{count, plural, =1{1 zone} other{{count} zones}}",
+  "statsTerritoryZones": "{count, plural, =1{1 place} other{{count} places}}",
   "@statsTerritoryZones": { "placeholders": { "count": { "type": "int" } } },
   "statsTerritoryWhatRecorded": "What your phone measured here",
   "statsTerritoryLightLabel": "Light",
-  "statsTerritoryLightDesc": "How bright or dark this place usually is — indoors, outdoors, shaded",
+  "statsTerritoryLightDesc": "How bright or dark this place usually is: indoors, outdoors, shaded",
   "statsTerritoryMotionLabel": "Activity",
-  "statsTerritoryMotionDesc": "How lively this place usually feels — people, traffic, movement",
+  "statsTerritoryMotionDesc": "How lively this place usually feels: people, traffic, movement",
   "statsTerritoryPressureLabel": "Weather",
-  "statsTerritoryPressureDesc": "Air pressure recorded here — reflects local weather conditions",
+  "statsTerritoryPressureDesc": "The air pressure recorded here. Reflects local weather conditions.",
   "statsTerritoryMapCta": "Tap any zone on the map to see its readings",
 
   "tileCommunityClaimCta": "Walk through here to make it yours",
-  "tileLowQualityHint": "Walk through here again — more visits make this place stronger on the map.",
-  "homeZonesOnYourMap": "{count, plural, =1{1 zone on your map} other{{count} zones on your map}}",
+  "tileLowQualityHint": "Walk through here again. More visits make this place stronger on the map.",
+  "homeZonesOnYourMap": "{count, plural, =1{1 place on your map} other{{count} places on your map}}",
   "@homeZonesOnYourMap": {
     "placeholders": { "count": { "type": "int" } }
   },
@@ -682,13 +682,13 @@
     "placeholders": { "count": { "type": "int" } }
   },
 
-  "firstUploadBadge": "FIRST ZONE UPLOADED",
-  "firstUploadHeadline": "Your first zone is on the map.",
-  "firstUploadSubtext": "Your first zone is live. Keep walking — every place you visit fills in.",
-  "firstUploadSensorsLabel": "SENSORS",
-  "firstUploadSensorsValue": "light · motion · pressure",
+  "firstUploadBadge": "FIRST PLACE MAPPED",
+  "firstUploadHeadline": "Your first spot is on the map.",
+  "firstUploadSubtext": "Keep walking — every place you pass through fills in automatically.",
+  "firstUploadSensorsLabel": "WHAT WE MEASURE",
+  "firstUploadSensorsValue": "brightness · activity · weather",
   "firstUploadPrivacyLabel": "PRIVACY",
-  "firstUploadPrivacyValue": "anonymised",
+  "firstUploadPrivacyValue": "anonymous · no route stored",
   "firstUploadKeepMappingCta": "Keep mapping",
 
   "liveSensorsHeader": "LIVE SENSORS",

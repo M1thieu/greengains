@@ -139,11 +139,11 @@
   "chipPaused": "En pause",
   "chipTapStart": "Appuie sur ▶ pour commencer",
   "chipTapStartFirst": "Commence à cartographier ton quartier",
-  "chipDataPts": "{count, plural, =1{1 pt} other{{count} pts}}",
+  "chipDataPts": "{count, plural, =1{1 scan} other{{count} scans}}",
   "@chipDataPts": {
     "placeholders": { "count": { "type": "int" } }
   },
-  "homeSessionZones": "{count, plural, =0{Cartographie} =1{+1 zone} other{+{count} zones}}",
+  "homeSessionZones": "{count, plural, =0{Cartographie} =1{+1 nouvel endroit} other{+{count} nouveaux endroits}}",
   "@homeSessionZones": {
     "placeholders": { "count": { "type": "int" } }
   },
@@ -160,13 +160,13 @@
   "@homeTrackingReadings": {
     "placeholders": { "count": { "type": "num", "format": "compact" } }
   },
-  "homeReturnHint": "{count, plural, =1{1 zone sur votre carte — appuyez sur ▶ pour continuer} other{{count} zones sur votre carte — appuyez sur ▶ pour continuer}}",
+  "homeReturnHint": "{count, plural, =1{1 endroit sur ta carte — appuie sur ▶ pour explorer plus} other{{count} endroits sur ta carte — appuie sur ▶ pour explorer plus}}",
   "@homeReturnHint": {
     "placeholders": { "count": { "type": "int" } }
   },
 
   "uploadSuccessMessage": "Carte mise à jour !",
-  "uploadSuccessNewZone": "Nouvelle zone · {count} sur votre carte",
+  "uploadSuccessNewZone": "Nouvel endroit ajouté · {count} sur ta carte",
   "@uploadSuccessNewZone": {
     "placeholders": { "count": { "type": "int" } }
   },
@@ -187,10 +187,10 @@
   "statsThisWeek": "Cette semaine",
   "statsDaysActive": "Jours actifs",
   "statsTotal": "Total",
-  "statsCoverage": "Zones",
-  "statsAreasLabel": "zones cartographiées",
-  "statsDataPtsLabel": "enregistrements",
-  "statsKmMapped": "km² cartographiés",
+  "statsCoverage": "Endroits",
+  "statsAreasLabel": "endroits couverts",
+  "statsDataPtsLabel": "fois cartographié",
+  "statsKmMapped": "surface couverte",
   "statsBarCalloutUploads": "{count, plural, =1{1 envoi} other{{count} envois}}",
   "@statsBarCalloutUploads": {
     "placeholders": { "count": { "type": "int" } }
@@ -211,8 +211,8 @@
   "statsRecordLongestStreak": "Série la plus longue",
   "statsRecordTotalUploads": "Total d'envois",
   "statsRecordFirstDay": "Premier jour de cartographie",
-  "statsZoneExplainer": "Chaque endroit fait environ un pâté de maisons — ton téléphone l'a scanné en passant",
-  "statsUploadExplainer": "Chaque envoi est un instantané de ce que ton téléphone a capté — luminosité, mouvement et pression à un endroit",
+  "statsZoneExplainer": "Chaque endroit fait environ un pâté de maisons. Ton téléphone l'a scanné en passant.",
+  "statsUploadExplainer": "Chaque envoi est un instantané de ce que ton téléphone a capté : luminosité, mouvement et pression à un endroit.",
   "statsTabCore": "Aperçu",
   "statsTabInDepth": "Détails",
   "statsInDepth30Days": "30 derniers jours",
@@ -234,9 +234,9 @@
   "statsAvgPrefix": "moy.",
 
   "infoKmTitle": "Territoire cartographié",
-  "infoKmBody": "Chaque zone sur ta carte fait environ la taille d'un pâté de maisons. C'est la part de ton quartier que tu as scannée.",
+  "infoKmBody": "Chaque endroit sur ta carte fait environ la taille d'un pâté de maisons. C'est la part de ton quartier que tu as scannée.",
   "infoDataPtsTitle": "Envois",
-  "infoDataPtsBody": "Chaque envoi capture lumière, pression et mouvement — plus d'envois = carte plus dense.",
+  "infoDataPtsBody": "Chaque passage enregistre ce que cet endroit est vraiment — plus tu y passes, plus les données sont précises.",
   "infoTodayTitle": "Enregistrements aujourd'hui",
   "infoTodayBody": "Mesures envoyées aujourd'hui — lumière, pression et mouvement à chaque arrêt.",
   "infoThisWeekTitle": "Cette semaine",
@@ -253,7 +253,7 @@
   "infoTilePersonalBody": "Votre téléphone a enregistré ici.",
   "infoTileCommunityTitle": "Zone communautaire",
   "infoTileCommunityBody": "Cartographié par d'autres — passez ici pour vous l'approprier.",
-  "statsTotalContributions": "Total des contributions",
+  "statsTotalContributions": "Fois où tu as cartographié",
   "statsActivityTrend": "Cette semaine",
   "statsLast7Days": "7 derniers jours",
   "statsTodayLabel": "AUJOURD'HUI",
@@ -298,7 +298,7 @@
 
   "chipZones": "zones",
   "chipSensors": "signaux",
-  "homeZonesMapped": "{count, plural, =1{1 zone cartographiée} other{{count} zones cartographiées}}",
+  "homeZonesMapped": "{count, plural, =1{1 endroit sur ta carte} other{{count} endroits sur ta carte}}",
   "@homeZonesMapped": {
     "placeholders": { "count": { "type": "int" } }
   },
@@ -441,7 +441,7 @@
       "target": { "type": "int" }
     }
   },
-  "statsCommunityAreas": "{count} zones cartographiées par la communauté",
+  "statsCommunityAreas": "{count} endroits cartographiés par des gens près de toi",
   "@statsCommunityAreas": {
     "placeholders": {
       "count": {"type": "int"}
@@ -484,9 +484,9 @@
   "legendHighLabel": "Qualité élevée",
   "legendHighSub": "Beaucoup de bonnes données ici",
   "legendMidLabel": "Qualité moyenne",
-  "legendMidSub": "Quelques données — repasse ici pour améliorer",
+  "legendMidSub": "Quelques données. Repasse ici pour améliorer.",
   "legendLowLabel": "Qualité faible",
-  "legendLowSub": "Presque rien — il faut y repasser",
+  "legendLowSub": "Presque rien. Il faut y repasser.",
   "legendCommunitySub": "Enregistré par d'autres personnes",
 
   "permissionPrimingTitle": "Une chose avant de commencer",
@@ -569,20 +569,20 @@
   "@statsBarCalloutDetail": { "placeholders": { "count": { "type": "int" } } },
   "statsTerritoryDetails": "Voir les détails du territoire",
   "statsTerritorySheetTitle": "Ton territoire",
-  "statsTerritoryZones": "{count, plural, =1{1 zone} other{{count} zones}}",
+  "statsTerritoryZones": "{count, plural, =1{1 endroit} other{{count} endroits}}",
   "@statsTerritoryZones": { "placeholders": { "count": { "type": "int" } } },
   "statsTerritoryWhatRecorded": "Ce que ton téléphone a mesuré ici",
   "statsTerritoryLightLabel": "Lumière",
-  "statsTerritoryLightDesc": "À quel point cet endroit est lumineux ou sombre — intérieur, extérieur, à l'ombre",
+  "statsTerritoryLightDesc": "À quel point cet endroit est lumineux ou sombre : intérieur, extérieur, à l'ombre",
   "statsTerritoryMotionLabel": "Activité",
-  "statsTerritoryMotionDesc": "L'animation habituelle de cet endroit — personnes, trafic, mouvement",
+  "statsTerritoryMotionDesc": "L'animation habituelle de cet endroit : personnes, trafic, mouvement",
   "statsTerritoryPressureLabel": "Météo",
-  "statsTerritoryPressureDesc": "La pression atmosphérique enregistrée ici — reflète les conditions météo locales",
+  "statsTerritoryPressureDesc": "La pression atmosphérique enregistrée ici. Reflète les conditions météo locales.",
   "statsTerritoryMapCta": "Touche une zone sur la carte pour voir ses mesures",
 
   "tileCommunityClaimCta": "Passe par ici pour te l'approprier",
-  "tileLowQualityHint": "Repasse par ici — plus tu y vas, plus les données s'améliorent.",
-  "homeZonesOnYourMap": "{count, plural, =1{1 zone sur ta carte} other{{count} zones sur ta carte}}",
+  "tileLowQualityHint": "Repasse par ici. Plus tu y vas, plus les données s'améliorent.",
+  "homeZonesOnYourMap": "{count, plural, =1{1 endroit sur ta carte} other{{count} endroits sur ta carte}}",
   "@homeZonesOnYourMap": {
     "placeholders": { "count": { "type": "int" } }
   },
@@ -682,13 +682,13 @@
     "placeholders": { "count": { "type": "int" } }
   },
 
-  "firstUploadBadge": "PREMIÈRE ZONE TÉLÉCHARGÉE",
-  "firstUploadHeadline": "Votre première zone est sur la carte.",
-  "firstUploadSubtext": "Ta première zone est en ligne. Continue — chaque endroit visité s'ajoute à la carte.",
+  "firstUploadBadge": "PREMIER ENDROIT CARTOGRAPHIÉ",
+  "firstUploadHeadline": "Ton premier endroit est sur la carte.",
+  "firstUploadSubtext": "Continue à marcher — chaque endroit par où tu passes s'ajoute automatiquement.",
   "firstUploadSensorsLabel": "CAPTEURS",
-  "firstUploadSensorsValue": "lumière · mouvement · pression",
+  "firstUploadSensorsValue": "luminosité · activité · météo",
   "firstUploadPrivacyLabel": "CONFIDENTIALITÉ",
-  "firstUploadPrivacyValue": "anonymisé",
+  "firstUploadPrivacyValue": "anonyme · trajet non enregistré",
   "firstUploadKeepMappingCta": "Continuer à cartographier",
 
   "liveSensorsHeader": "CAPTEURS EN DIRECT",
