@@ -24,7 +24,13 @@ const _kFabActiveShadowSpread = AppTheme.spaceXxxs;  // 2
 /// Color transitions via AnimatedContainer.
 /// Fades out when bottom sheet expands — caller wraps in AnimatedOpacity.
 class TrackingFab extends StatefulWidget {
-  const TrackingFab({super.key});
+  const TrackingFab({super.key, this.newZones = 0, this.onOpenMap});
+
+  /// Zones gained in the current session — shown in the live status sheet.
+  final int newZones;
+
+  /// Called when the user taps "Open map" in the live status sheet.
+  final VoidCallback? onOpenMap;
 
   @override
   State<TrackingFab> createState() => _TrackingFabState();
@@ -110,11 +116,29 @@ class _TrackingFabState extends State<TrackingFab>
   Future<void> _toggle() async {
     if (_isToggling) return;
 
-    // Fire jelly immediately — doesn't wait for service ops
-    _jellyController.forward(from: 0.0);
-
-    var isRunning = _locationService.isRunning.value;
+    final isRunning = _locationService.isRunning.value;
     final isPaused = _locationService.isPaused.value;
+
+    if (isRunning && !isPaused) {
+      _jellyController.forward(from: 0.0);
+      if (mounted) {
+        showModalBottomSheet(
+          context: context,
+          backgroundColor: Colors.transparent,
+          builder: (_) => _MappingActiveSheet(
+            newZones: widget.newZones,
+            onOpenMap: () {
+              Navigator.of(context).pop();
+              widget.onOpenMap?.call();
+            },
+          ),
+        );
+      }
+      return;
+    }
+
+    // Fire jelly only for actionable states
+    _jellyController.forward(from: 0.0);
 
     if (!isRunning) {
       // Show permission priming screen before the OS dialog — only when not yet granted.
@@ -133,7 +157,6 @@ class _TrackingFabState extends State<TrackingFab>
         return;
       }
       await _prefs.setShareLocation(true);
-      isRunning = _locationService.isRunning.value;
     }
 
     setState(() => _isToggling = true);
@@ -145,9 +168,6 @@ class _TrackingFabState extends State<TrackingFab>
       } else if (isPaused) {
         HapticFeedback.lightImpact();
         await _locationService.resumeTracking();
-      } else {
-        HapticFeedback.lightImpact();
-        await _locationService.pauseTracking();
       }
     } catch (e) {
       if (!mounted) return;
@@ -166,10 +186,10 @@ class _TrackingFabState extends State<TrackingFab>
     // FAB floats over the dark map — colours intentionally use isDark: true.
     final l10n = context.l10n;
     final (icon, bgColor, fgColor, tooltip) = switch (true) {
-      _ when _isToggling => (Icons.hourglass_empty, AppColors.surfaceElevated(true), AppColors.textSecondary(true), l10n.trackingFabStarting),
-      _ when isActive    => (Icons.pause,            AppColors.darkBackground,        Colors.white,   l10n.trackingFabPause),
-      _ when isPaused    => (Icons.play_arrow,        AppColors.primary,              Colors.white,   l10n.trackingFabResume),
-      _                  => (Icons.play_arrow,        AppColors.primary,              Colors.white,   l10n.trackingFabStart),
+      _ when _isToggling => (Icons.hourglass_empty,           AppColors.surfaceElevated(true), AppColors.textSecondary(true), l10n.trackingFabStarting),
+      _ when isActive    => (Icons.radio_button_checked,      AppColors.darkBackground,        AppColors.primary,            l10n.trackingFabRecording),
+      _ when isPaused    => (Icons.play_arrow,                AppColors.primary,               Colors.white,                 l10n.trackingFabResume),
+      _                  => (Icons.play_arrow,                AppColors.primary,               Colors.white,                 l10n.trackingFabStart),
     };
 
     // Pre-compute gradient colors — only recalculated when bgColor changes (state toggle),
@@ -231,6 +251,140 @@ class _TrackingFabState extends State<TrackingFab>
               ),
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+// ── Mapping active status sheet ──────────────────────────────────────────────
+
+class _MappingActiveSheet extends StatelessWidget {
+  const _MappingActiveSheet({required this.newZones, this.onOpenMap});
+  final int newZones;
+  final VoidCallback? onOpenMap;
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = context.isDarkMode;
+    final l10n = context.l10n;
+    final theme = Theme.of(context);
+
+    return Container(
+      margin: const EdgeInsets.symmetric(
+        horizontal: AppTheme.spaceMd,
+        vertical: AppTheme.spaceSm,
+      ),
+      decoration: BoxDecoration(
+        color: AppColors.surface(isDark),
+        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+        border: Border.all(color: AppColors.border(isDark)),
+      ),
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.all(AppTheme.spaceLg),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 32,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: AppColors.textSecondary(isDark).withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: AppTheme.spaceLg),
+              Row(
+                children: [
+                  _PulsingDot(),
+                  const SizedBox(width: AppTheme.spaceXs),
+                  Text(
+                    l10n.mappingActiveSheetTitle,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: AppFontWeights.semibold,
+                      letterSpacing: -0.2,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: AppTheme.spaceSm),
+              Text(
+                l10n.mappingActiveSheetZones(newZones),
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  color: AppColors.primary,
+                  fontWeight: AppFontWeights.semibold,
+                ),
+              ),
+              const SizedBox(height: AppTheme.spaceXs),
+              Text(
+                l10n.mappingActiveSheetBody,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: AppColors.textSecondary(isDark),
+                  height: 1.4,
+                ),
+              ),
+              const SizedBox(height: AppTheme.spaceLg),
+              GestureDetector(
+                onTap: onOpenMap,
+                child: Text(
+                  l10n.mappingActiveSheetCta,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: AppColors.primary,
+                    fontWeight: AppFontWeights.semibold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _PulsingDot extends StatefulWidget {
+  @override
+  State<_PulsingDot> createState() => _PulsingDotState();
+}
+
+class _PulsingDotState extends State<_PulsingDot>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _ctrl;
+  late Animation<double> _anim;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 900),
+    )..repeat(reverse: true);
+    _anim = Tween<double>(begin: 0.4, end: 1.0).animate(
+      CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FadeTransition(
+      opacity: _anim,
+      child: Container(
+        width: 8,
+        height: 8,
+        decoration: const BoxDecoration(
+          color: AppColors.primary,
+          shape: BoxShape.circle,
         ),
       ),
     );

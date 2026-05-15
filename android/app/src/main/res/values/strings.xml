@@ -59,9 +59,14 @@
     <string name="notification_worker_body">Saving your map data</string>
 
     <!-- Re-engagement notification — fires if no activity today -->
+    <!-- %1$d = current streak in days -->
     <string name="notification_streak_channel_name">Map Reminders</string>
-    <string name="notification_streak_title">Your map is waiting</string>
-    <string name="notification_streak_body">Open the app and start moving — every new street fills in your map.</string>
+    <string name="notification_streak_title">%1$d day streak at risk</string>
+    <string name="notification_streak_body">Open the app and keep your streak alive.</string>
+
+    <!-- Permission result toasts -->
+    <string name="toast_location_granted">Location permission granted</string>
+    <string name="toast_location_denied">Location permission denied</string>
 
     <!-- Weekly ambient digest — passive map summary, no call-to-action -->
     <string name="notification_weekly_channel_name">Weekly Map Update</string>

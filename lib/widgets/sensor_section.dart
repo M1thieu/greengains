@@ -51,6 +51,25 @@ class _SensorSectionState extends State<SensorSection> {
     return l10n.magnetHighNearMetal;
   }
 
+  String _getAccelDescription(double ms2, AppLocalizations l10n) {
+    if (ms2 < 0.5)  return l10n.sensorAccelStill;
+    if (ms2 < 3.0)  return l10n.sensorAccelWalk;
+    if (ms2 < 8.0)  return l10n.sensorAccelActive;
+    return l10n.sensorAccelHeavy;
+  }
+
+  String _getGyroDescription(double rads, AppLocalizations l10n) {
+    if (rads < 0.2) return l10n.sensorGyroStill;
+    if (rads < 1.5) return l10n.sensorGyroSlow;
+    return l10n.sensorGyroFast;
+  }
+
+  String _getPressureDescription(double hpa, AppLocalizations l10n) {
+    if (hpa > 1010) return l10n.sensorHpaLow;
+    if (hpa > 1000) return l10n.sensorHpaMid;
+    return l10n.sensorHpaHigh;
+  }
+
   String _sensorStatus({
     required bool isLive,
     required bool isPaused,
@@ -132,9 +151,9 @@ class _SensorSectionState extends State<SensorSection> {
                 icon: Icons.light_mode,
                 title: l10n.sensorLight,
                 value: light != null
-                    ? '${light.lux.toStringAsFixed(0)} lux'
+                    ? _getLightDescription(light.lux, l10n)
                     : null,
-                unit: light != null ? _getLightDescription(light.lux, l10n) : 'lux',
+                unit: '',
                 enabled: isLive,
                 statusLabel: _sensorStatus(
                   isLive: isLive,
@@ -158,11 +177,9 @@ class _SensorSectionState extends State<SensorSection> {
                 icon: Icons.explore,
                 title: l10n.sensorMagneticField,
                 value: mag != null
-                    ? '${mag.magnitude.toStringAsFixed(1)} µT'
-                    : null,
-                unit: mag != null
                     ? _getMagneticDescription(mag.magnitude, l10n)
-                    : 'microtesla',
+                    : null,
+                unit: '',
                 enabled: isLive,
                 statusLabel: _sensorStatus(
                   isLive: isLive,
@@ -195,9 +212,9 @@ class _SensorSectionState extends State<SensorSection> {
                 icon: Icons.vibration,
                 title: l10n.sensorAcceleration,
                 value: accel != null
-                    ? '${accel.magnitude.toStringAsFixed(1)} m/s²'
+                    ? _getAccelDescription(accel.magnitude, l10n)
                     : null,
-                unit: l10n.sensorAccelerationIntensity,
+                unit: '',
                 enabled: isLive,
                 statusLabel: _sensorStatus(
                   isLive: isLive,
@@ -221,9 +238,9 @@ class _SensorSectionState extends State<SensorSection> {
                 icon: Icons.screen_rotation,
                 title: l10n.sensorOrientation,
                 value: gyro != null
-                    ? '${gyro.magnitude.toStringAsFixed(2)} °/s'
+                    ? _getGyroDescription(gyro.magnitude, l10n)
                     : null,
-                unit: l10n.sensorRotationSpeed,
+                unit: '',
                 enabled: isLive,
                 statusLabel: _sensorStatus(
                   isLive: isLive,
@@ -247,9 +264,9 @@ class _SensorSectionState extends State<SensorSection> {
                 icon: Icons.compress,
                 title: l10n.sensorAirPressure,
                 value: data != null
-                    ? '${data.hPa.toStringAsFixed(1)} hPa'
+                    ? _getPressureDescription(data.hPa, l10n)
                     : null,
-                unit: l10n.sensorAtmosphericPressure,
+                unit: '',
                 enabled: isLive,
                 statusLabel: _sensorStatus(
                   isLive: isLive,

@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -19,7 +18,6 @@ import '../widgets/referral_invite_card.dart';
 import 'settings_screen.dart';
 
 // ── Profile layout constants ──────────────────────────────────────────────────
-const _kProfileEmptyIconSize = 80.0;
 const _kAvatarRadius         = 48.0;           // 96px diameter — prominent header
 const _kAvatarFallbackSize   = AppIconSizes.xl;
 const _kAvatarRingWidth      = 2.5;            // gradient ring around avatar
@@ -39,6 +37,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   int? _totalUploads;
   int? _daysActive;
   int? _coverageCells;
+  int? _currentStreak;
+  int? _longestStreak;
   // Previous display values — so count-up never resets to 0 on reload
   double _prevTotalUploads = 0;
   double _prevDaysActive = 0;
@@ -74,6 +74,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
           _totalUploads = profile.totalUploads;
           _daysActive = profile.daysActive;
           _coverageCells = profile.coverageCells;
+          _currentStreak = profile.currentStreak;
+          _longestStreak = profile.longestStreak;
         });
       }
     } catch (e) {
@@ -137,14 +139,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
         child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.account_circle_outlined,
-            size: _kProfileEmptyIconSize,
-            color: theme.colorScheme.onSurfaceVariant,
+          Container(
+            width: 64, height: 64,
+            decoration: BoxDecoration(
+              color: AppColors.primaryAlpha(0.10),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.map_outlined, size: 32, color: AppColors.primary),
           ),
           const SizedBox(height: AppTheme.spaceMd),
           Text(
-            l10n.profileNotSignedIn,
+            l10n.profileUnlockTitle,
             style: theme.textTheme.titleLarge?.copyWith(
               fontWeight: AppFontWeights.semibold,
             ),
@@ -152,7 +157,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
           const SizedBox(height: AppTheme.spaceSm),
           Text(
-            l10n.profileSignInPrompt,
+            l10n.profileUnlockBody,
             style: theme.textTheme.bodyMedium?.copyWith(
               color: AppColors.textSecondary(isDark),
             ),
@@ -248,22 +253,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
               _ProfileSectionLabel(l10n.profileImpactSection, isDark: isDark),
               const SizedBox(height: AppTheme.spaceXs),
               _buildImpactRow(theme, isDark, l10n),
-              if (_coverageCells != null && _coverageCells! > 0) ...[
-                const SizedBox(height: AppTheme.spaceMd),
-                _MilestoneBadgesRow(earned: _coverageCells!, isDark: isDark),
+              if (_currentStreak != null || _longestStreak != null) ...[
+                const SizedBox(height: AppTheme.spaceSm),
+                _buildStreakRow(theme, isDark, l10n),
               ],
+              const SizedBox(height: AppTheme.spaceMd),
+              ReferralInviteCard(
+                user: user,
+                neighborhoodName: AppPreferences.instance.territoryLabel,
+              ),
               const SizedBox(height: AppTheme.spaceXl),
-              if (!user.isAnonymous) ...[
-                ReferralInviteCard(
-                  user: user,
-                  neighborhoodName: AppPreferences.instance.territoryLabel,
-                ),
-                const SizedBox(height: AppTheme.spaceXl),
-              ],
-              _ProfileSectionLabel(l10n.profileAccountSection, isDark: isDark),
-              const SizedBox(height: AppTheme.spaceXs),
-              _buildAccountSection(user, theme, isDark, l10n),
-              const SizedBox(height: AppTheme.spaceSm),
+              const SizedBox(height: AppTheme.spaceMd),
             ]),
           ),
         ),
@@ -271,50 +271,114 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  /// Account section — sign out + anonymous notice.
-  Widget _buildAccountSection(User user, ThemeData theme, bool isDark, AppLocalizations l10n) {
-    if (!user.isAnonymous) {
-      return InkWell(
-        onTap: _handleSignOut,
-        borderRadius: BorderRadius.circular(AppTheme.radiusSm),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: AppTheme.spaceXs),
-          child: Row(
-            children: [
-              Icon(Icons.logout, size: AppIconSizes.sm, color: AppColors.textTertiary(isDark)),
-              const SizedBox(width: AppTheme.spaceSm),
-              Text(
-                l10n.profileSignOut,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: AppColors.textSecondary(isDark),
+  Widget _buildStreakRow(ThemeData theme, bool isDark, AppLocalizations l10n) {
+    final current = _currentStreak ?? 0;
+    final longest = _longestStreak ?? 0;
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppTheme.spaceMd,
+        vertical: AppTheme.spaceSm,
+      ),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceElevated(isDark),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+        border: Border.all(color: AppColors.border(isDark)),
+      ),
+      child: IntrinsicHeight(
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    l10n.statsCurrentStreakLabel.toUpperCase(),
+                    style: TextStyle(
+                      fontSize: AppTheme.fontSizeXs,
+                      fontWeight: AppFontWeights.semibold,
+                      color: AppColors.textSecondary(isDark),
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                  const SizedBox(height: AppTheme.spaceXxxs),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.baseline,
+                    textBaseline: TextBaseline.alphabetic,
+                    children: [
+                      Text(
+                        '$current',
+                        style: theme.textTheme.titleLarge?.copyWith(
+                          fontWeight: AppFontWeights.bold,
+                          color: current > 0 ? AppColors.primary : AppColors.textPrimary(isDark),
+                          letterSpacing: -0.5,
+                          height: 1.0,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        l10n.statsDaysUnit,
+                        style: TextStyle(
+                          fontSize: AppTheme.fontSizeSm,
+                          color: AppColors.textSecondary(isDark),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            Container(width: 1, color: AppColors.border(isDark)),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.only(left: AppTheme.spaceMd),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l10n.statsLongestLabel.toUpperCase(),
+                      style: TextStyle(
+                        fontSize: AppTheme.fontSizeXs,
+                        fontWeight: AppFontWeights.semibold,
+                        color: AppColors.textSecondary(isDark),
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                    const SizedBox(height: AppTheme.spaceXxxs),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.baseline,
+                      textBaseline: TextBaseline.alphabetic,
+                      children: [
+                        Text(
+                          '$longest',
+                          style: theme.textTheme.titleLarge?.copyWith(
+                            fontWeight: AppFontWeights.bold,
+                            letterSpacing: -0.5,
+                            height: 1.0,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          l10n.statsDaysUnit,
+                          style: TextStyle(
+                            fontSize: AppTheme.fontSizeSm,
+                            color: AppColors.textSecondary(isDark),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
-            ],
-          ),
-        ),
-      );
-    }
-    return Container(
-      padding: const EdgeInsets.all(AppTheme.spaceMd),
-      decoration: AppTheme.surfaceContainer(isDark: isDark),
-      child: Row(
-        children: [
-          Icon(Icons.info_outline, color: theme.colorScheme.onSurfaceVariant, size: AppIconSizes.sm),
-          const SizedBox(width: AppTheme.spaceSm),
-          Expanded(
-            child: Text(
-              l10n.profileAnonymousNote,
-              style: theme.textTheme.bodySmall?.copyWith(color: AppColors.textSecondary(isDark)),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
   /// 3-column impact stat row shown below the user header
   Widget _buildImpactRow(ThemeData theme, bool isDark, AppLocalizations l10n) {
-    final km2 = _coverageCells != null ? (_coverageCells! * 0.1053) : null;
+    final km2 = _coverageCells != null ? (_coverageCells! * kKm2PerCell) : null;
     final kmDisplay = (km2 == null || km2 == 0.0) ? '—' : (km2 < 1.0 ? km2.toStringAsFixed(2) : km2.toStringAsFixed(1));
     final tiles = [
       (
@@ -360,7 +424,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 AppTheme.spaceSm,
                 AppTheme.spaceSm + AppTheme.spaceXxs,
               ),
-              decoration: AppTheme.kpiCard(isDark: isDark, accentColor: tile.color),
+              decoration: BoxDecoration(
+                color: AppColors.surfaceElevated(isDark),
+                borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                border: Border.all(color: AppColors.border(isDark)),
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -388,7 +456,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   Text(
                     tile.label,
                     style: theme.textTheme.labelSmall?.copyWith(
-                      fontSize: 11.0,
+                      fontSize: AppTheme.fontSizeXs,
                       color: AppColors.textSecondary(isDark),
                       letterSpacing: 0.4,
                     ),
@@ -497,82 +565,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return TimeAgoService.format(t, locale: locale);
   }
 
-  Future<void> _handleSignOut() async {
-    final l10n = context.l10n; // capture before async gap
-    HapticFeedback.lightImpact();
-    try {
-      // Clear account-specific cache before signing out
-      await AppPreferences.instance.clearReferralCode();
-      await FirebaseAuth.instance.signOut();
-      if (mounted) {
-        setState(() {});
-        AppSnackbars.showSuccess(context, l10n.profileSignedOut);
-      }
-    } catch (e) {
-      if (mounted) {
-        AppSnackbars.showError(context, l10n.errorGeneric);
-      }
-    }
-  }
-}
-
-/// Horizontal row of milestone badge pills — earned ones filled, upcoming greyed.
-class _MilestoneBadgesRow extends StatelessWidget {
-  const _MilestoneBadgesRow({required this.earned, required this.isDark});
-  final int earned;
-  final bool isDark;
-
-  static const _milestones = [5, 10, 25, 50, 100, 250, 500, 1000];
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 28,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        itemCount: _milestones.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 6),
-        itemBuilder: (_, i) {
-          final m = _milestones[i];
-          final isEarned = earned >= m;
-          return AnimatedContainer(
-            duration: Duration(milliseconds: 200 + i * 40),
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            decoration: BoxDecoration(
-              color: isEarned
-                  ? AppColors.primary.withValues(alpha: 0.15)
-                  : AppColors.border(isDark).withValues(alpha: 0.5),
-              borderRadius: BorderRadius.circular(AppTheme.radiusPill),
-              border: Border.all(
-                color: isEarned
-                    ? AppColors.primary.withValues(alpha: 0.40)
-                    : AppColors.border(isDark),
-              ),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (isEarned) ...[
-                  Icon(Icons.check_rounded, size: 11, color: AppColors.primary),
-                  const SizedBox(width: 3),
-                ],
-                Text(
-                  m >= 1000 ? '${m ~/ 1000}k' : '$m',
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: isEarned ? AppFontWeights.semibold : AppFontWeights.regular,
-                    color: isEarned
-                        ? AppColors.primary
-                        : AppColors.textTertiary(isDark),
-                  ),
-                ),
-              ],
-            ),
-          );
-        },
-      ),
-    );
-  }
 }
 
 class _ProfileSectionLabel extends StatelessWidget {
@@ -585,7 +577,7 @@ class _ProfileSectionLabel extends StatelessWidget {
     return Text(
       text,
       style: TextStyle(
-        fontSize: 11,
+        fontSize: AppTheme.fontSizeXs,
         fontWeight: AppFontWeights.semibold,
         color: AppColors.textSecondary(isDark),
         letterSpacing: 0.8,

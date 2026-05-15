@@ -107,7 +107,7 @@ abstract class AppLocalizations {
   /// No description provided for @onboardingWelcomeSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Your phone reads light, pressure, and motion as you walk — and builds a map of everywhere you\'ve been.'**
+  /// **'Your phone reads light, pressure, and motion as you walk. It builds a map of everywhere you\'ve been.'**
   String get onboardingWelcomeSubtitle;
 
   /// No description provided for @onboardingFeature1Title.
@@ -119,7 +119,7 @@ abstract class AppLocalizations {
   /// No description provided for @onboardingFeature1Description.
   ///
   /// In en, this message translates to:
-  /// **'Start once, carry your phone. That\'s it — your map builds itself.'**
+  /// **'Start once, carry your phone. Your map builds itself.'**
   String get onboardingFeature1Description;
 
   /// No description provided for @onboardingFeature2Title.
@@ -131,7 +131,7 @@ abstract class AppLocalizations {
   /// No description provided for @onboardingFeature2Description.
   ///
   /// In en, this message translates to:
-  /// **'Your route is never stored — readings are anonymized before they leave your phone.'**
+  /// **'Your route is never stored. Readings are anonymous before they leave your phone.'**
   String get onboardingFeature2Description;
 
   /// No description provided for @onboardingFeature3Title.
@@ -608,47 +608,11 @@ abstract class AppLocalizations {
   /// **'Error'**
   String get error;
 
-  /// No description provided for @profileNotSignedIn.
-  ///
-  /// In en, this message translates to:
-  /// **'Not Signed In'**
-  String get profileNotSignedIn;
-
-  /// No description provided for @profileSignInPrompt.
-  ///
-  /// In en, this message translates to:
-  /// **'Sign in with Google to keep your map synced across devices.'**
-  String get profileSignInPrompt;
-
-  /// No description provided for @profileAnonymousNote.
-  ///
-  /// In en, this message translates to:
-  /// **'Using anonymously. Sign in to save your map.'**
-  String get profileAnonymousNote;
-
   /// No description provided for @profileUserFallback.
   ///
   /// In en, this message translates to:
   /// **'User'**
   String get profileUserFallback;
-
-  /// No description provided for @profileViewStats.
-  ///
-  /// In en, this message translates to:
-  /// **'View Statistics'**
-  String get profileViewStats;
-
-  /// No description provided for @profileContributionsHint.
-  ///
-  /// In en, this message translates to:
-  /// **'See your map'**
-  String get profileContributionsHint;
-
-  /// No description provided for @profileSignedOut.
-  ///
-  /// In en, this message translates to:
-  /// **'Signed out'**
-  String get profileSignedOut;
 
   /// No description provided for @chipContributing.
   ///
@@ -704,22 +668,16 @@ abstract class AppLocalizations {
   /// **'YOUR MAP'**
   String get profileImpactSection;
 
-  /// No description provided for @profileAccountSection.
-  ///
-  /// In en, this message translates to:
-  /// **'ACCOUNT'**
-  String get profileAccountSection;
-
   /// No description provided for @homeFirstUseHint.
   ///
   /// In en, this message translates to:
-  /// **'Tap ▶ — watch your first zone appear on the map'**
+  /// **'Tap ▶ to watch your first place appear on the map'**
   String get homeFirstUseHint;
 
   /// No description provided for @homeFirstTrackingHint.
   ///
   /// In en, this message translates to:
-  /// **'Scanning light, pressure and motion — first zone after first upload'**
+  /// **'Scanning brightness, activity and weather. First place appears after the first upload.'**
   String get homeFirstTrackingHint;
 
   /// No description provided for @homeTrackingReadings.
@@ -731,7 +689,7 @@ abstract class AppLocalizations {
   /// No description provided for @homeReturnHint.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, =1{1 place on your map — tap ▶ to explore more} other{{count} places on your map — tap ▶ to explore more}}'**
+  /// **'{count, plural, =1{1 place on your map. Tap ▶ to explore more} other{{count} places on your map. Tap ▶ to explore more}}'**
   String homeReturnHint(int count);
 
   /// No description provided for @uploadSuccessMessage.
@@ -767,7 +725,7 @@ abstract class AppLocalizations {
   /// No description provided for @semanticsZoneCount.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, =1{1 zone — view stats} other{{count} zones — view stats}}'**
+  /// **'{count, plural, =1{1 place: view stats} other{{count} places: view stats}}'**
   String semanticsZoneCount(int count);
 
   /// No description provided for @tipViewLiveDataTitle.
@@ -956,6 +914,12 @@ abstract class AppLocalizations {
   /// **'Last 30 days'**
   String get statsInDepth30Days;
 
+  /// No description provided for @statsInDepthHabits.
+  ///
+  /// In en, this message translates to:
+  /// **'Your habits'**
+  String get statsInDepthHabits;
+
   /// No description provided for @statsInDepthActiveDays.
   ///
   /// In en, this message translates to:
@@ -1085,7 +1049,7 @@ abstract class AppLocalizations {
   /// No description provided for @infoTodayBody.
   ///
   /// In en, this message translates to:
-  /// **'Sensor readings uploaded today — light, pressure, and movement at each stop.'**
+  /// **'Sensor readings uploaded today: brightness, weather, and movement at each stop.'**
   String get infoTodayBody;
 
   /// No description provided for @infoThisWeekTitle.
@@ -1097,7 +1061,7 @@ abstract class AppLocalizations {
   /// No description provided for @infoThisWeekBody.
   ///
   /// In en, this message translates to:
-  /// **'Recordings over the last 7 days — consistency builds richer map data.'**
+  /// **'Recordings over the last 7 days. Consistency builds richer map data.'**
   String get infoThisWeekBody;
 
   /// No description provided for @infoDaysActiveTitle.
@@ -1109,7 +1073,7 @@ abstract class AppLocalizations {
   /// No description provided for @infoDaysActiveBody.
   ///
   /// In en, this message translates to:
-  /// **'Days you contributed — no need to be active every day.'**
+  /// **'Days you contributed. No need to be active every day.'**
   String get infoDaysActiveBody;
 
   /// No description provided for @infoBestDayTitle.
@@ -1121,7 +1085,7 @@ abstract class AppLocalizations {
   /// No description provided for @infoBestDayBody.
   ///
   /// In en, this message translates to:
-  /// **'Your most active day this week — usually means more time outdoors.'**
+  /// **'Your most active day this week. Usually means more time outdoors.'**
   String get infoBestDayBody;
 
   /// No description provided for @infoMilestoneTitle.
@@ -1169,7 +1133,7 @@ abstract class AppLocalizations {
   /// No description provided for @infoTileCommunityBody.
   ///
   /// In en, this message translates to:
-  /// **'Mapped by others — walk here to make it yours.'**
+  /// **'Mapped by others. Walk here to make it yours.'**
   String get infoTileCommunityBody;
 
   /// No description provided for @statsTotalContributions.
@@ -1208,59 +1172,29 @@ abstract class AppLocalizations {
   /// **'Contribution Timeline'**
   String get statsContributionTimeline;
 
-  /// No description provided for @statsAchievements.
-  ///
-  /// In en, this message translates to:
-  /// **''**
-  String get statsAchievements;
-
-  /// No description provided for @statsEarnings.
-  ///
-  /// In en, this message translates to:
-  /// **''**
-  String get statsEarnings;
-
-  /// No description provided for @statsVisualizationNote.
-  ///
-  /// In en, this message translates to:
-  /// **''**
-  String get statsVisualizationNote;
-
-  /// No description provided for @statsAchievementsDescription.
-  ///
-  /// In en, this message translates to:
-  /// **''**
-  String get statsAchievementsDescription;
-
-  /// No description provided for @statsEarningsTracking.
-  ///
-  /// In en, this message translates to:
-  /// **''**
-  String get statsEarningsTracking;
-
-  /// No description provided for @statsEarningsDescription.
-  ///
-  /// In en, this message translates to:
-  /// **''**
-  String get statsEarningsDescription;
-
   /// No description provided for @statsStartContributing.
   ///
   /// In en, this message translates to:
-  /// **'Your map is blank.'**
+  /// **'Nothing mapped yet.'**
   String get statsStartContributing;
 
   /// No description provided for @statsEmptyDescription.
   ///
   /// In en, this message translates to:
-  /// **'Tap ▶. Your first zone is waiting to be mapped.'**
+  /// **'Walk anywhere. Your phone reads what\'s around you — light, movement, pressure. First place appears after the first upload.'**
   String get statsEmptyDescription;
 
   /// No description provided for @statsEmptyGoMap.
   ///
   /// In en, this message translates to:
-  /// **'Go to map'**
+  /// **'Start mapping'**
   String get statsEmptyGoMap;
+
+  /// No description provided for @statsEmptyUnlockHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Walk to unlock'**
+  String get statsEmptyUnlockHint;
 
   /// No description provided for @statsUpdatedPrefix.
   ///
@@ -1331,7 +1265,7 @@ abstract class AppLocalizations {
   /// No description provided for @impactCardContext.
   ///
   /// In en, this message translates to:
-  /// **'zones mapped'**
+  /// **'places mapped'**
   String get impactCardContext;
 
   /// No description provided for @loadingStatsLabel.
@@ -1343,7 +1277,7 @@ abstract class AppLocalizations {
   /// No description provided for @noContributionsYet.
   ///
   /// In en, this message translates to:
-  /// **'Nothing recorded yet — tap ▶ to start.'**
+  /// **'Nothing recorded yet. Tap ▶ to start.'**
   String get noContributionsYet;
 
   /// No description provided for @startContributingTitle.
@@ -1379,7 +1313,7 @@ abstract class AppLocalizations {
   /// No description provided for @chipZones.
   ///
   /// In en, this message translates to:
-  /// **'zones'**
+  /// **'places'**
   String get chipZones;
 
   /// No description provided for @chipSensors.
@@ -1685,7 +1619,7 @@ abstract class AppLocalizations {
   /// No description provided for @magnetHighNearMetal.
   ///
   /// In en, this message translates to:
-  /// **'High — near metal'**
+  /// **'High. Near metal.'**
   String get magnetHighNearMetal;
 
   /// No description provided for @daysActive.
@@ -1697,31 +1631,37 @@ abstract class AppLocalizations {
   /// No description provided for @trackingFabStarting.
   ///
   /// In en, this message translates to:
-  /// **'Starting…'**
+  /// **'Starting...'**
   String get trackingFabStarting;
 
-  /// No description provided for @trackingFabPause.
+  /// No description provided for @trackingFabRecording.
   ///
   /// In en, this message translates to:
-  /// **'Pause tracking'**
-  String get trackingFabPause;
+  /// **'Mapping in background'**
+  String get trackingFabRecording;
 
   /// No description provided for @trackingFabResume.
   ///
   /// In en, this message translates to:
-  /// **'Resume tracking'**
+  /// **'Tap to resume'**
   String get trackingFabResume;
 
   /// No description provided for @trackingFabStart.
   ///
   /// In en, this message translates to:
-  /// **'Start tracking'**
+  /// **'Tap to start'**
   String get trackingFabStart;
+
+  /// No description provided for @trackingFabStopInSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Mapping is on. Turn it off in Settings.'**
+  String get trackingFabStopInSettings;
 
   /// No description provided for @trackingErrorUpdateFailed.
   ///
   /// In en, this message translates to:
-  /// **'Couldn\'t update tracking — please try again.'**
+  /// **'Couldn\'t update tracking. Please try again.'**
   String get trackingErrorUpdateFailed;
 
   /// No description provided for @settingsThemeLight.
@@ -1741,6 +1681,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Auto'**
   String get settingsThemeAuto;
+
+  /// No description provided for @settingsTracking.
+  ///
+  /// In en, this message translates to:
+  /// **'Mapping'**
+  String get settingsTracking;
+
+  /// No description provided for @settingsTrackingDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn off to stop all background mapping'**
+  String get settingsTrackingDesc;
 
   /// No description provided for @settingsLocationDescription.
   ///
@@ -1913,7 +1865,7 @@ abstract class AppLocalizations {
   /// No description provided for @statsMilestoneHint.
   ///
   /// In en, this message translates to:
-  /// **'Map enough zones to reach this level and unlock the next one'**
+  /// **'Map enough places to reach this level and unlock the next one'**
   String get statsMilestoneHint;
 
   /// No description provided for @statsMilestoneElite.
@@ -1925,7 +1877,7 @@ abstract class AppLocalizations {
   /// No description provided for @statsMilestoneRemaining.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, =1{1 zone to go} other{{count} zones to go}}'**
+  /// **'{count, plural, =1{1 place to go} other{{count} places to go}}'**
   String statsMilestoneRemaining(int count);
 
   /// No description provided for @milestoneNudge.
@@ -2123,7 +2075,7 @@ abstract class AppLocalizations {
   /// No description provided for @permissionPrimingBatteryDesc.
   ///
   /// In en, this message translates to:
-  /// **'Less than 1% per hour — adapts automatically in background'**
+  /// **'Less than 1% per hour. Adapts automatically in background.'**
   String get permissionPrimingBatteryDesc;
 
   /// No description provided for @permissionPrimingCollects.
@@ -2135,7 +2087,7 @@ abstract class AppLocalizations {
   /// No description provided for @permissionPrimingCollectsDesc.
   ///
   /// In en, this message translates to:
-  /// **'Light, pressure and motion only — never your route or identity'**
+  /// **'Brightness, activity and weather only. Never your route or identity.'**
   String get permissionPrimingCollectsDesc;
 
   /// No description provided for @permissionPrimingCta.
@@ -2153,7 +2105,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsBatteryModeDesc.
   ///
   /// In en, this message translates to:
-  /// **'Quiet when still, precise when moving — adapts automatically'**
+  /// **'Quiet when still, precise when moving. Adapts automatically.'**
   String get settingsBatteryModeDesc;
 
   /// No description provided for @firstStartTitle.
@@ -2165,7 +2117,7 @@ abstract class AppLocalizations {
   /// No description provided for @firstStartBody.
   ///
   /// In en, this message translates to:
-  /// **'Move — zones appear as you go.'**
+  /// **'Move around. New places appear as you go.'**
   String get firstStartBody;
 
   /// No description provided for @alwaysOnBannerBody.
@@ -2183,13 +2135,13 @@ abstract class AppLocalizations {
   /// No description provided for @milestoneReachedTitle.
   ///
   /// In en, this message translates to:
-  /// **'{count} zones mapped'**
+  /// **'{count} places mapped'**
   String milestoneReachedTitle(int count);
 
   /// No description provided for @milestoneReachedBody.
   ///
   /// In en, this message translates to:
-  /// **'Keep pushing — your next goal is waiting.'**
+  /// **'Keep going. Your next goal is waiting.'**
   String get milestoneReachedBody;
 
   /// No description provided for @milestoneReachedCta.
@@ -2207,7 +2159,7 @@ abstract class AppLocalizations {
   /// No description provided for @firstUploadBody.
   ///
   /// In en, this message translates to:
-  /// **'Keep moving — your map is growing.'**
+  /// **'Keep moving. Your map is growing.'**
   String get firstUploadBody;
 
   /// No description provided for @firstUploadCta.
@@ -2225,13 +2177,13 @@ abstract class AppLocalizations {
   /// No description provided for @sessionSummaryZonesClaimed.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, =1{zone mapped} other{zones mapped}}'**
+  /// **'{count, plural, =1{place mapped} other{places mapped}}'**
   String sessionSummaryZonesClaimed(int count);
 
   /// No description provided for @sessionSummaryTotal.
   ///
   /// In en, this message translates to:
-  /// **'Total: {zones} zones · {km2} km²'**
+  /// **'Total: {zones} places · {km2} km²'**
   String sessionSummaryTotal(int zones, String km2);
 
   /// No description provided for @sessionSummaryCta.
@@ -2249,7 +2201,7 @@ abstract class AppLocalizations {
   /// No description provided for @statsMapGrowing.
   ///
   /// In en, this message translates to:
-  /// **'map growing — keep walking'**
+  /// **'map growing. keep walking'**
   String get statsMapGrowing;
 
   /// No description provided for @statsWeeklyChartOffline.
@@ -2261,7 +2213,7 @@ abstract class AppLocalizations {
   /// No description provided for @uploadMilestone.
   ///
   /// In en, this message translates to:
-  /// **'{count} uploads — keep going!'**
+  /// **'{count} uploads. Keep going!'**
   String uploadMilestone(int count);
 
   /// No description provided for @statsViewOnMap.
@@ -2339,7 +2291,7 @@ abstract class AppLocalizations {
   /// No description provided for @statsBarCalloutDetail.
   ///
   /// In en, this message translates to:
-  /// **'~{count, plural, =1{1 zone mapped} other{{count} zones mapped}} · light · motion · pressure'**
+  /// **'~{count, plural, =1{1 scan} other{{count} scans}} · brightness · activity · weather'**
   String statsBarCalloutDetail(int count);
 
   /// No description provided for @statsTerritoryDetails.
@@ -2405,7 +2357,7 @@ abstract class AppLocalizations {
   /// No description provided for @statsTerritoryMapCta.
   ///
   /// In en, this message translates to:
-  /// **'Tap any zone on the map to see its readings'**
+  /// **'Tap any place on the map to see its readings'**
   String get statsTerritoryMapCta;
 
   /// No description provided for @tileCommunityClaimCta.
@@ -2429,7 +2381,7 @@ abstract class AppLocalizations {
   /// No description provided for @homeCommunityScopeHint.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, =1{1 zone mapped in your area} other{{count} zones mapped in your area}}'**
+  /// **'{count, plural, =1{1 place mapped in your area} other{{count} places mapped in your area}}'**
   String homeCommunityScopeHint(int count);
 
   /// No description provided for @tileCivicNote.
@@ -2447,19 +2399,19 @@ abstract class AppLocalizations {
   /// No description provided for @tileShareText.
   ///
   /// In en, this message translates to:
-  /// **'I measured this spot — {condition}. Check it out on the map.'**
+  /// **'I measured this spot: {condition}. Check it out on the map.'**
   String tileShareText(String condition);
 
   /// No description provided for @sessionSummaryShareText.
   ///
   /// In en, this message translates to:
-  /// **'I mapped +{gained} zones today — {total} zones total · {km2} km²'**
+  /// **'I mapped +{gained} new places today. {total} total · {km2} km²'**
   String sessionSummaryShareText(int gained, int total, String km2);
 
   /// No description provided for @sessionSummaryShareTextEmpty.
   ///
   /// In en, this message translates to:
-  /// **'Mapped for {duration} — {total} zones on my map · {km2} km²'**
+  /// **'Mapped for {duration}. {total} places on my map · {km2} km²'**
   String sessionSummaryShareTextEmpty(String duration, int total, String km2);
 
   /// No description provided for @sensorLuxLabel.
@@ -2507,7 +2459,7 @@ abstract class AppLocalizations {
   /// No description provided for @sensorMovementLow.
   ///
   /// In en, this message translates to:
-  /// **'Quiet zone'**
+  /// **'Quiet area'**
   String get sensorMovementLow;
 
   /// No description provided for @sensorMovementMid.
@@ -2546,11 +2498,77 @@ abstract class AppLocalizations {
   /// **'Unsettled weather'**
   String get sensorHpaHigh;
 
+  /// No description provided for @sensorAccelStill.
+  ///
+  /// In en, this message translates to:
+  /// **'Barely moving'**
+  String get sensorAccelStill;
+
+  /// No description provided for @sensorAccelWalk.
+  ///
+  /// In en, this message translates to:
+  /// **'Walking'**
+  String get sensorAccelWalk;
+
+  /// No description provided for @sensorAccelActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Running / cycling'**
+  String get sensorAccelActive;
+
+  /// No description provided for @sensorAccelHeavy.
+  ///
+  /// In en, this message translates to:
+  /// **'Heavy movement'**
+  String get sensorAccelHeavy;
+
+  /// No description provided for @sensorGyroStill.
+  ///
+  /// In en, this message translates to:
+  /// **'Holding still'**
+  String get sensorGyroStill;
+
+  /// No description provided for @sensorGyroSlow.
+  ///
+  /// In en, this message translates to:
+  /// **'Slow turn'**
+  String get sensorGyroSlow;
+
+  /// No description provided for @sensorGyroFast.
+  ///
+  /// In en, this message translates to:
+  /// **'Fast rotation'**
+  String get sensorGyroFast;
+
   /// No description provided for @tileSensorInsightsLabel.
   ///
   /// In en, this message translates to:
   /// **'What\'s usually here'**
   String get tileSensorInsightsLabel;
+
+  /// No description provided for @tileVibrationCalm.
+  ///
+  /// In en, this message translates to:
+  /// **'Very still'**
+  String get tileVibrationCalm;
+
+  /// No description provided for @tileVibrationLight.
+  ///
+  /// In en, this message translates to:
+  /// **'Light activity'**
+  String get tileVibrationLight;
+
+  /// No description provided for @tileVibrationActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Active surface'**
+  String get tileVibrationActive;
+
+  /// No description provided for @tileVibrationHeavy.
+  ///
+  /// In en, this message translates to:
+  /// **'Heavy traffic'**
+  String get tileVibrationHeavy;
 
   /// No description provided for @tileConditionSummary.
   ///
@@ -2567,13 +2585,13 @@ abstract class AppLocalizations {
   /// No description provided for @territoryHeroLabel.
   ///
   /// In en, this message translates to:
-  /// **'{neighborhood} · {count} zones'**
+  /// **'{neighborhood} · {count} places'**
   String territoryHeroLabel(String neighborhood, int count);
 
   /// No description provided for @serverWakingUp.
   ///
   /// In en, this message translates to:
-  /// **'Starting up — hang tight…'**
+  /// **'Starting up. Hang tight...'**
   String get serverWakingUp;
 
   /// No description provided for @ambientHereLabel.
@@ -2615,7 +2633,7 @@ abstract class AppLocalizations {
   /// No description provided for @referralNeighborhoodHook.
   ///
   /// In en, this message translates to:
-  /// **'Help map {neighborhood} — every neighbor fills in what you haven\'t reached.'**
+  /// **'Help map {neighborhood}. Every neighbor fills in what you haven\'t reached.'**
   String referralNeighborhoodHook(String neighborhood);
 
   /// No description provided for @onboardingActivateTitle.
@@ -2627,7 +2645,7 @@ abstract class AppLocalizations {
   /// No description provided for @onboardingActivateSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Allow location access — your phone maps as you move.'**
+  /// **'Allow location access. Your phone maps as you move.'**
   String get onboardingActivateSubtitle;
 
   /// No description provided for @onboardingActivateCta.
@@ -2663,7 +2681,7 @@ abstract class AppLocalizations {
   /// No description provided for @homeMaxClusterHint.
   ///
   /// In en, this message translates to:
-  /// **'biggest area: {count} zones'**
+  /// **'biggest area: {count} places'**
   String homeMaxClusterHint(int count);
 
   /// No description provided for @firstUploadBadge.
@@ -2681,7 +2699,7 @@ abstract class AppLocalizations {
   /// No description provided for @firstUploadSubtext.
   ///
   /// In en, this message translates to:
-  /// **'Keep walking — every place you pass through fills in automatically.'**
+  /// **'Keep walking. Every place you pass through fills in automatically.'**
   String get firstUploadSubtext;
 
   /// No description provided for @firstUploadSensorsLabel.
@@ -2735,13 +2753,13 @@ abstract class AppLocalizations {
   /// No description provided for @sessionSummaryBadge.
   ///
   /// In en, this message translates to:
-  /// **'WALK DONE'**
+  /// **'MAP UPDATED'**
   String get sessionSummaryBadge;
 
   /// No description provided for @sessionSummaryZonesGainedLabel.
   ///
   /// In en, this message translates to:
-  /// **'NEW ZONES'**
+  /// **'NEW PLACES'**
   String get sessionSummaryZonesGainedLabel;
 
   /// No description provided for @sessionSummarySubline.
@@ -2777,19 +2795,19 @@ abstract class AppLocalizations {
   /// No description provided for @sessionMilestoneHit.
   ///
   /// In en, this message translates to:
-  /// **'{milestone} zones reached. You earned it.'**
+  /// **'{milestone} places mapped. You earned it.'**
   String sessionMilestoneHit(int milestone);
 
   /// No description provided for @sessionSummaryNextHook.
   ///
   /// In en, this message translates to:
-  /// **'Come back tomorrow — don\'t break the chain.'**
+  /// **'Good session.'**
   String get sessionSummaryNextHook;
 
   /// No description provided for @sessionSummaryNextHookEmpty.
   ///
   /// In en, this message translates to:
-  /// **'Walk more next time — zones fill in as you move.'**
+  /// **'Walk more next time. New places appear as you move.'**
   String get sessionSummaryNextHookEmpty;
 
   /// No description provided for @sessionStatArea.
@@ -2813,7 +2831,7 @@ abstract class AppLocalizations {
   /// No description provided for @statsMilestoneTarget.
   ///
   /// In en, this message translates to:
-  /// **'{target} zones'**
+  /// **'{target} places'**
   String statsMilestoneTarget(int target);
 
   /// No description provided for @statsActivitySection.
@@ -2831,7 +2849,7 @@ abstract class AppLocalizations {
   /// No description provided for @mapTapHint.
   ///
   /// In en, this message translates to:
-  /// **'Tap a hex to explore'**
+  /// **'Tap a place to explore'**
   String get mapTapHint;
 
   /// No description provided for @sessionPersonalBest.
@@ -2843,7 +2861,7 @@ abstract class AppLocalizations {
   /// No description provided for @returnDeltaTitle.
   ///
   /// In en, this message translates to:
-  /// **'{zones} new zones while you were away.'**
+  /// **'{zones} new places while you were away.'**
   String returnDeltaTitle(int zones);
 
   /// No description provided for @returnDeltaDismiss.
@@ -2887,6 +2905,138 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Cancel'**
   String get settingsSignOutCancel;
+
+  /// No description provided for @mappingActiveSheetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Mapping now'**
+  String get mappingActiveSheetTitle;
+
+  /// No description provided for @mappingActiveSheetBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep moving to discover new places. Your map grows automatically.'**
+  String get mappingActiveSheetBody;
+
+  /// No description provided for @mappingActiveSheetZones.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No new places yet} =1{1 new place this session} other{{count} new places this session}}'**
+  String mappingActiveSheetZones(int count);
+
+  /// No description provided for @mappingActiveSheetCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Open map'**
+  String get mappingActiveSheetCta;
+
+  /// No description provided for @homeStreakBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 day streak} other{{count} day streak}}'**
+  String homeStreakBadge(int count);
+
+  /// No description provided for @streakResetBanner.
+  ///
+  /// In en, this message translates to:
+  /// **'Your streak reset. Start a new one today.'**
+  String get streakResetBanner;
+
+  /// No description provided for @sessionSummaryNextHookStreak.
+  ///
+  /// In en, this message translates to:
+  /// **'Your streak is alive.'**
+  String get sessionSummaryNextHookStreak;
+
+  /// No description provided for @sessionSummaryNextHookFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Come back tomorrow to start a streak.'**
+  String get sessionSummaryNextHookFirst;
+
+  /// No description provided for @weeklyGoalTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Week complete.'**
+  String get weeklyGoalTitle;
+
+  /// No description provided for @weeklyGoalBody.
+  ///
+  /// In en, this message translates to:
+  /// **'You mapped everything you set out to. See you next week.'**
+  String get weeklyGoalBody;
+
+  /// No description provided for @weeklyGoalDismiss.
+  ///
+  /// In en, this message translates to:
+  /// **'Nice'**
+  String get weeklyGoalDismiss;
+
+  /// No description provided for @statsEmptyLockLight.
+  ///
+  /// In en, this message translates to:
+  /// **'Light'**
+  String get statsEmptyLockLight;
+
+  /// No description provided for @statsEmptyLockMovement.
+  ///
+  /// In en, this message translates to:
+  /// **'Movement'**
+  String get statsEmptyLockMovement;
+
+  /// No description provided for @statsEmptyLockPressure.
+  ///
+  /// In en, this message translates to:
+  /// **'Air pressure'**
+  String get statsEmptyLockPressure;
+
+  /// No description provided for @statsKm2Unit.
+  ///
+  /// In en, this message translates to:
+  /// **'km²'**
+  String get statsKm2Unit;
+
+  /// No description provided for @statsLast30DaysUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'/ 30'**
+  String get statsLast30DaysUnit;
+
+  /// No description provided for @referralWaiting.
+  ///
+  /// In en, this message translates to:
+  /// **'Link sent. Waiting for your first neighbor.'**
+  String get referralWaiting;
+
+  /// No description provided for @referralFirstJoined.
+  ///
+  /// In en, this message translates to:
+  /// **'First neighbor joined.'**
+  String get referralFirstJoined;
+
+  /// No description provided for @referralShareAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Share again'**
+  String get referralShareAgain;
+
+  /// No description provided for @profileUnlockTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your map is saving.'**
+  String get profileUnlockTitle;
+
+  /// No description provided for @profileUnlockBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in to keep it forever and sync across devices.'**
+  String get profileUnlockBody;
+
+  /// No description provided for @profileUnlockCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in to keep my map'**
+  String get profileUnlockCta;
 }
 
 class _AppLocalizationsDelegate

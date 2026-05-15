@@ -71,6 +71,12 @@ export function vectorMagnitude(vector: number[]): number {
   return Math.sqrt(vector.reduce((sum, component) => sum + component ** 2, 0));
 }
 
+export function stdDev(values: number[]): number {
+  if (values.length < 2) return 0;
+  const mean = values.reduce((a, b) => a + b, 0) / values.length;
+  return Math.sqrt(values.reduce((a, b) => a + (b - mean) ** 2, 0) / values.length);
+}
+
 /**
  * Analyze sensor reading quality metrics
  *
@@ -82,17 +88,78 @@ export function vectorMagnitude(vector: number[]): number {
  * @param readings Array of sensor readings with optional quality metadata
  * @returns Quality counters for the batch
  */
-export function analyzeQuality(readings: SensorReading[]): QualityCounters {
-  const counters: QualityCounters = {
-    total: 0,
-    valid: 0,
-    pocketLikely: 0,
-  };
+/**
+ * Weighted quality score for a single reading (0.0–1.0).
+ *
+ * Replaces the old OR logic (too permissive — pocket-free + any signal = valid).
+ * Now requires a composite score ≥ QUALITY_COMPOSITE_THRESHOLD across three axes:
+ *   • Location accuracy  (45% weight)
+ *   • Motion confidence  (35% weight)
+ *   • Exposure / pocket  (20% weight)
+ *
+ * A reading with poor GPS AND unknown motion no longer passes — it needs at least
+ * two decent signals, not just one.
+ */
+const QUALITY_COMPOSITE_THRESHOLD = 0.42;
 
-  // Guard against non-array input
-  if (!Array.isArray(readings)) {
-    return counters;
-  }
+const LOCATION_SCORES: Record<string, number> = {
+  high: 1.0, medium: 0.7, low: 0.4, poor: 0.1, stale: 0.05,
+};
+
+/**
+ * Convert GPS accuracy_m to a continuous location score (0–1).
+ * Replaces coarse string buckets when the device reports actual accuracy in metres.
+ * Calibrated against H3 res-9 hex diameter (~174m): ≤10m = excellent, >150m = unusable.
+ */
+function accuracyMToLocScore(m: number): number {
+  if (m <= 10)  return 1.0;
+  if (m <= 30)  return 0.85;
+  if (m <= 60)  return 0.65;
+  if (m <= 100) return 0.40;
+  if (m <= 150) return 0.20;
+  return 0.05;
+}
+
+function readingQualityScore(
+  quality: {
+    pocket?: unknown;
+    location_quality?: unknown;
+    motion_state?: unknown;
+    motion_confidence?: unknown;
+    proximity_near?: unknown;
+    orientation?: unknown;
+  },
+  batchAccuracyM?: number,
+): number {
+  const pocket = String(quality.pocket ?? '').toLowerCase();
+  if (pocket === 'likely') return 0; // automatic disqualifier
+
+  // proximity_near (phone pressed against surface) and face_down orientation are
+  // direct "sensors blocked" signals — treat same as pocket: likely.
+  // Source: same physical occlusion logic as pocket detection; these fields were
+  // already collected but never scored.
+  const orientation = String(quality.orientation ?? '').toLowerCase();
+  if (quality.proximity_near === true || orientation === 'face_down') return 0;
+
+  // Prefer continuous accuracy_m over coarse string bucket when available.
+  const locScore = batchAccuracyM != null
+    ? accuracyMToLocScore(batchAccuracyM)
+    : (LOCATION_SCORES[String(quality.location_quality ?? '').toLowerCase()] ?? 0.15);
+
+  const motionConf = typeof quality.motion_confidence === 'number' ? quality.motion_confidence : 0;
+  const motionState = String(quality.motion_state ?? '').toLowerCase();
+  const motionScore = motionState === 'unknown'
+    ? 0.15
+    : Math.max(MOTION_CONFIDENCE_THRESHOLD, motionConf);
+  const exposureScore = pocket === 'unlikely' ? 1.0 : 0.5;
+
+  return locScore * 0.45 + motionScore * 0.35 + exposureScore * 0.20;
+}
+
+export function analyzeQuality(readings: SensorReading[], batchAccuracyM?: number): QualityCounters {
+  const counters: QualityCounters = { total: 0, valid: 0, pocketLikely: 0 };
+
+  if (!Array.isArray(readings)) return counters;
 
   for (const reading of readings) {
     const quality = reading?.quality;
@@ -100,24 +167,13 @@ export function analyzeQuality(readings: SensorReading[]): QualityCounters {
 
     counters.total += 1;
 
-    // Check pocket state first
     const pocket = String(quality.pocket ?? '').toLowerCase();
     if (pocket === 'likely') {
       counters.pocketLikely += 1;
-      continue; // Skip further quality checks for pocket readings
+      continue;
     }
 
-    // Check location and motion quality
-    const locationQuality = String(quality.location_quality ?? '').toLowerCase();
-    const motionState = String(quality.motion_state ?? '').toLowerCase();
-    const motionConfidence =
-      typeof quality.motion_confidence === 'number' ? quality.motion_confidence : 0;
-
-    const locationOk = ['high', 'medium', 'low'].includes(locationQuality);
-    const motionOk = motionState !== 'unknown' && motionConfidence >= MOTION_CONFIDENCE_THRESHOLD;
-
-    // Valid if: good location OR good motion OR explicitly not in pocket
-    if (locationOk || motionOk || pocket === 'unlikely') {
+    if (readingQualityScore(quality, batchAccuracyM) >= QUALITY_COMPOSITE_THRESHOLD) {
       counters.valid += 1;
     }
   }

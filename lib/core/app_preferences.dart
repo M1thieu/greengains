@@ -47,9 +47,13 @@ class PreferenceKeys {
   static const totalUploadCount = 'total_upload_count';
   static const reviewRequested = 'review_requested';
   static const firstUploadCelebrated = 'first_upload_celebrated';
+  static const firstUploadPending = 'first_upload_pending';
   static const lastUploadMilestoneCelebrated = 'last_upload_milestone_celebrated';
 
   static const currentStreak = 'current_streak';
+  static const lastKnownStreak = 'last_known_streak';
+  static const weeklyGoalCelebratedWeek = 'weekly_goal_celebrated_week';
+  static const referralShared = 'referral_shared';
   static const lastSessionZonesGained = 'last_session_zones_gained';
   static const lastSessionEndAt = 'last_session_end_at';
   static const bestSessionZonesGained = 'best_session_zones_gained';
@@ -437,6 +441,26 @@ class AppPreferences {
     await _sp.setInt(PreferenceKeys.currentStreak, streak);
   }
 
+  int get lastKnownStreak => _sp.getInt(PreferenceKeys.lastKnownStreak) ?? 0;
+
+  Future<void> setLastKnownStreak(int streak) async {
+    await _sp.setInt(PreferenceKeys.lastKnownStreak, streak);
+  }
+
+  /// ISO week string e.g. "2026-W20" — used to dedup weekly goal celebration.
+  String get weeklyGoalCelebratedWeek =>
+      _sp.getString(PreferenceKeys.weeklyGoalCelebratedWeek) ?? '';
+
+  Future<void> setWeeklyGoalCelebratedWeek(String week) async {
+    await _sp.setString(PreferenceKeys.weeklyGoalCelebratedWeek, week);
+  }
+
+  bool get referralShared => _sp.getBool(PreferenceKeys.referralShared) ?? false;
+
+  Future<void> setReferralShared() async {
+    await _sp.setBool(PreferenceKeys.referralShared, true);
+  }
+
   // ── One-time UX flags ────────────────────────────────────────────────────────
 
   bool get trackingEverStarted =>
@@ -499,6 +523,13 @@ class AppPreferences {
     await _sp.setBool(PreferenceKeys.firstUploadCelebrated, true);
   }
 
+  bool get firstUploadPending =>
+      _sp.getBool(PreferenceKeys.firstUploadPending) ?? false;
+
+  Future<void> setFirstUploadPending(bool value) async {
+    await _sp.setBool(PreferenceKeys.firstUploadPending, value);
+  }
+
   int get lastUploadMilestoneCelebrated =>
       _sp.getInt(PreferenceKeys.lastUploadMilestoneCelebrated) ?? 0;
 
@@ -533,6 +564,20 @@ class AppPreferences {
 
   Future<void> setCachedGlobalTiles(String json) async {
     await _sp.setString(PreferenceKeys.cachedGlobalTiles, json);
+  }
+
+  // ── Cached weekly stats (instant stats display on cold start) ────────────────
+
+  List<int>? get cachedWeeklyData {
+    final raw = _sp.getString('cached_weekly_data');
+    if (raw == null) return null;
+    try {
+      return raw.split(',').map(int.parse).toList();
+    } catch (_) { return null; }
+  }
+
+  Future<void> setCachedWeeklyData(List<int> data) async {
+    await _sp.setString('cached_weekly_data', data.join(','));
   }
 
   // ── Last known GPS position (for instant map centering on cold start) ───────

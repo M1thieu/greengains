@@ -15,7 +15,10 @@ import android.provider.Settings
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
+import java.util.concurrent.TimeUnit
 import com.eremat.greengains.service.ForegroundService
 import com.eremat.greengains.util.AppLogger
 import com.eremat.greengains.worker.StreakAlertWorker
@@ -38,10 +41,14 @@ class MainActivity : FlutterActivity() {
         AppLogger.init(this)
         AppLogger.i("MainActivity", "App started")
         checkAndRequestNotificationPermission()
-        // Cancel any previously scheduled alert workers — only the foreground
-        // service notification is used. Workers that fire their own notifications
-        // are disabled so the app never interrupts users unprompted.
-        WorkManager.getInstance(this).cancelUniqueWork(StreakAlertWorker.WORK_NAME)
+        // Schedule daily streak-at-risk alert near 20:00 local time.
+        // Worker self-gates: only fires if streak >= 2 and no upload today.
+        val streakWork = PeriodicWorkRequestBuilder<StreakAlertWorker>(1L, TimeUnit.DAYS).build()
+        WorkManager.getInstance(this).enqueueUniquePeriodicWork(
+            StreakAlertWorker.WORK_NAME,
+            ExistingPeriodicWorkPolicy.KEEP,
+            streakWork,
+        )
     }
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
@@ -183,10 +190,10 @@ class MainActivity : FlutterActivity() {
                 val coarseGranted = grantResults.getOrNull(1) == PackageManager.PERMISSION_GRANTED
                 when {
                     fineGranted || coarseGranted -> {
-                        Toast.makeText(this, "Location permission granted", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this, getString(R.string.toast_location_granted), Toast.LENGTH_SHORT).show()
                     }
                     else -> {
-                        Toast.makeText(this, "Location permission denied", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this, getString(R.string.toast_location_denied), Toast.LENGTH_SHORT).show()
                     }
                 }
             }

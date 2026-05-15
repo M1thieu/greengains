@@ -10,6 +10,7 @@ import { H3_RES_PERSONAL, H3_RES_GLOBAL } from '../constants';
 import { invalidateProfileCache, refreshUserProfileCache } from './user';
 import {
   vectorMagnitude,
+  stdDev,
   analyzeQuality,
   filterOutliersMad,
   calculateUptimeSeconds,
@@ -22,13 +23,80 @@ import {
   checkBatchIntegrity,
 } from '../utils/uploadValidation';
 
-function stdDev(values: number[]): number {
-  if (values.length < 2) return 0;
-  const mean = values.reduce((a, b) => a + b, 0) / values.length;
-  return Math.sqrt(values.reduce((a, b) => a + (b - mean) ** 2, 0) / values.length);
+
+/**
+ * Co-location cross-validation (fire-and-forget quality signal).
+ *
+ * Compares this batch's sensor averages against recent batches from OTHER devices
+ * at the same geohash prefix (geohash6 ≈ 1.2 km × 0.6 km cell).
+ * If a reading diverges by >3 IQR from the neighborhood distribution, it's a spatial outlier.
+ *
+ * Logs the divergence for monitoring; a future device-reputation layer can use these
+ * logs to downweight persistently divergent devices.
+ *
+ * Source: IEEE IoT Journal 2019 — co-located participant cross-validation pattern.
+ * Also: PurpleAir dual-sensor agreement, openSenseMap spatial consistency checks.
+ */
+async function checkCoLocationOutlier(
+  pool: Pool,
+  geohash: string,
+  deviceHash: string,
+  summary: Summary,
+  log: { warn: (obj: unknown, msg: string) => void },
+): Promise<void> {
+  // Use geohash6 prefix (≈1.2 km × 0.6 km) — enough neighbors, not too broad.
+  const geohashPrefix = geohash.slice(0, 6);
+
+  const result = await pool.query<{
+    avg_light: string | null;
+    avg_pressure: string | null;
+    batch_count: string;
+  }>(
+    `SELECT
+       AVG((batch_json->'summary'->'light'->>'avg')::numeric)    AS avg_light,
+       AVG((batch_json->'summary'->'pressure'->>'avg')::numeric) AS avg_pressure,
+       COUNT(*)::text                                            AS batch_count
+     FROM sensor_batches
+     WHERE geohash LIKE $1
+       AND device_hash != $2
+       AND created_at > NOW() - INTERVAL '7 days'`,
+    [`${geohashPrefix}%`, deviceHash],
+  );
+
+  const row = result.rows[0];
+  const neighborCount = parseInt(row?.batch_count ?? '0', 10);
+  if (neighborCount < 3) return; // need at least 3 other devices to make a judgment
+
+  const neighborLight    = row.avg_light    != null ? parseFloat(row.avg_light)    : null;
+  const neighborPressure = row.avg_pressure != null ? parseFloat(row.avg_pressure) : null;
+
+  const outlierFlags: string[] = [];
+
+  // Light: divergence >10× (e.g., neighbors average 3000 lux outdoors, this batch = 0)
+  if (neighborLight != null && summary.light != null) {
+    const lightRatio = Math.max(summary.light.avg, 1) / Math.max(neighborLight, 1);
+    if (lightRatio > 10 || lightRatio < 0.1) {
+      outlierFlags.push(`light: batch=${summary.light.avg.toFixed(0)} neighbors=${neighborLight.toFixed(0)}`);
+    }
+  }
+
+  // Pressure: divergence >15 hPa (same city, different altitudes can explain ~5–10 hPa)
+  if (neighborPressure != null && summary.pressure != null) {
+    const pressureDiff = Math.abs(summary.pressure.avg - neighborPressure);
+    if (pressureDiff > 15) {
+      outlierFlags.push(`pressure: batch=${summary.pressure.avg.toFixed(1)} neighbors=${neighborPressure.toFixed(1)} diff=${pressureDiff.toFixed(1)}`);
+    }
+  }
+
+  if (outlierFlags.length > 0) {
+    log.warn(
+      { deviceHash, geohashPrefix, neighborCount, outlierFlags },
+      'Spatial outlier: batch diverges from co-located devices',
+    );
+  }
 }
 
-function summarizeBatch(readings: SensorReading[]): Summary {
+function summarizeBatch(readings: SensorReading[], batchAccuracyM?: number): Summary {
   // Light — filter statistical outliers (MAD method) before averaging.
   // E.g. a single 65535 lux spike from sensor glitch won't skew the window average.
   const lightRaw = readings.filter(r => r.light !== undefined).map(r => r.light!);
@@ -86,7 +154,7 @@ function summarizeBatch(readings: SensorReading[]): Summary {
   // Quality counters — computed once here so the aggregator never needs to pull
   // the full raw batch array across the wire. ~80-95% reduction in wire transfer
   // for the aggregation job on batches with many readings.
-  const quality = analyzeQuality(readings);
+  const quality = analyzeQuality(readings, batchAccuracyM);
 
   return {
     count: readings.length,
@@ -108,7 +176,13 @@ function summarizeBatch(readings: SensorReading[]): Summary {
 }
 
 function buildStoragePayload(batch: UploadBatch, qualityMultiplier = 1.0): StoragePayload {
-  const summary = summarizeBatch(batch.batch);
+  const summary = summarizeBatch(batch.batch, batch.location?.accuracy_m);
+
+  // Apply the integrity multiplier to quality_valid — batches flagged as static/high-speed/etc.
+  // get proportionally fewer valid readings credited, which flows into per-tile qualityRatio.
+  if (qualityMultiplier < 1.0) {
+    summary.quality_valid = Math.round(summary.quality_valid * qualityMultiplier);
+  }
 
   const payload: StoragePayload = {
     timestamp: batch.timestamp,
@@ -129,16 +203,16 @@ async function upsertUserStats(
   pool: Pool | PoolClient,
   deviceHash: string,
   summary: Summary,
-  readings: SensorReading[],
   timestamp: Date,
   userId: string | null,
 ): Promise<void> {
-  const totalSamples = summary?.count ?? readings.length;
+  const totalSamples = summary?.count ?? 0;
   if (totalSamples <= 0) {
     return;
   }
 
-  const quality = analyzeQuality(readings);
+  // Use pre-computed summary values — quality_valid already has qualityMultiplier applied.
+  // Re-running analyzeQuality here would ignore the multiplier and overcount valid samples.
   const uptimeSeconds = calculateUptimeSeconds(summary);
 
   await pool.query(
@@ -157,8 +231,8 @@ async function upsertUserStats(
     [
       deviceHash,
       totalSamples,
-      quality.valid,
-      quality.pocketLikely,
+      summary.quality_valid,
+      summary.quality_pocket_likely,
       uptimeSeconds,
       timestamp,
       userId
@@ -261,9 +335,20 @@ export async function uploadRoutes(fastify: FastifyInstance) {
           // Accept with 202 (don't penalise the client) but don't store.
           return reply.code(202).send({ accepted_records: 0, skipped: 'all_pocket' });
         }
-        if (integrity.likelyStatic || integrity.windowTooLong) {
+        if (integrity.qualityMultiplier < 1.0) {
           request.log.warn(
-            { deviceHash, likelyStatic: integrity.likelyStatic, windowTooLong: integrity.windowTooLong, qualityMultiplier: integrity.qualityMultiplier },
+            {
+              deviceHash,
+              likelyStatic: integrity.likelyStatic       || undefined,
+              windowTooLong: integrity.windowTooLong     || undefined,
+              highSpeed: integrity.highSpeed             || undefined,
+              lightSensorStuck: integrity.lightSensorStuck || undefined,
+              coarseGps: integrity.coarseGps             || undefined,
+              pressureSpikes: integrity.pressureSpikes   || undefined,
+              timestampDisordered: integrity.timestampDisordered || undefined,
+              baroGpsDivergence: integrity.baroGpsDivergence || undefined,
+              qualityMultiplier: integrity.qualityMultiplier,
+            },
             'Batch integrity warning — storing with reduced quality weight',
           );
         }
@@ -296,7 +381,7 @@ export async function uploadRoutes(fastify: FastifyInstance) {
           insertRowCount = insertResult.rowCount ?? 0;
 
           if (insertRowCount > 0) {
-            await upsertUserStats(client, deviceHash, sanitizedPayload.summary, batch.batch, batch.timestamp, userId);
+            await upsertUserStats(client, deviceHash, sanitizedPayload.summary, batch.timestamp, userId);
           }
 
           await client.query('COMMIT');
@@ -337,6 +422,15 @@ export async function uploadRoutes(fastify: FastifyInstance) {
           refreshUserProfileCache(userId).catch((err: unknown) => // intentionally no await
             fastify.log.error({ err, userId }, 'Profile cache refresh failed')
           );
+        }
+
+        // Co-location cross-validation (fire-and-forget, does not affect 202 response).
+        // Compare this batch's sensor averages against recent batches at the same geohash
+        // from OTHER devices. Large divergence = spatial outlier flag.
+        // Source: IEEE IoT Journal 2019 — co-located participant cross-validation.
+        if (batch.geohash && sanitizedPayload.summary.count >= 10) {
+          checkCoLocationOutlier(pool, batch.geohash, deviceHash, sanitizedPayload.summary, fastify.log)
+            .catch((err: unknown) => fastify.log.error({ err }, 'Co-location check failed'));
         }
 
         return reply.code(202).send({ accepted_records: readingsCount });

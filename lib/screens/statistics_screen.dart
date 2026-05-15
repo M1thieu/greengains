@@ -9,6 +9,7 @@ import '../core/themes.dart';
 import '../l10n/app_localizations.dart';
 import '../data/models/contribution_stats.dart';
 import '../data/repositories/contribution_repository.dart';
+import '../core/constants.dart';
 import '../core/events/app_events.dart';
 import '../core/app_preferences.dart';
 import '../services/stats/stats_service.dart';
@@ -23,7 +24,6 @@ const _kBarAnimStagger    = 40;    // ms added per bar for cascade entrance
 const _kBarLabelSize      = AppTheme.fontSizeXs;  // day-of-week label below each bar
 const _kSkeletonTitleW    = 160.0;                // width of section-title skeleton rect
 const _kSkeletonHeroH     = 96.0;                 // height of hero card skeleton placeholder
-const _kHeroIconSize      = 80.0;                 // empty-state centre icon size
 // ── Typography constants ──────────────────────────────────────────────────────
 const _kLetterSpacingDisplay  = -2.0;  // tight tracking for displayLarge hero number
 const _kLetterSpacingHero     = -0.5;  // tight tracking for titleLarge in tiles
@@ -86,6 +86,8 @@ class _StatisticsScreenState extends State<StatisticsScreen>
 
   StreamSubscription<UploadSuccessEvent>? _uploadSuccessSub;
   StreamSubscription<StatsUpdatedEvent>? _statsUpdatedSub;
+  /// True while the weekly-goal celebration overlay is visible.
+  bool _showWeeklyCelebration = false;
 
   // ── Entrance animations ───────────────────────────────────────────────────────
   late final AnimationController _entranceCtrl;
@@ -211,7 +213,10 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                   ? (profile.totalUploads / days * 10).round() / 10.0
                   : 0.0);
           if (profile.qualityPct != null) _qualityPct = profile.qualityPct;
-          if (weeklyTarget != null) _weeklyTarget = weeklyTarget;
+          if (weeklyTarget != null) {
+            _weeklyTarget = weeklyTarget;
+            _maybeFireWeeklyCelebration(weeklyTarget);
+          }
           // Auto-highlight best day on first load
           if (_selectedBarIndex == null && profile.weekly.isNotEmpty) {
             final maxV = profile.weekly.fold(0, max);
@@ -245,6 +250,22 @@ class _StatisticsScreenState extends State<StatisticsScreen>
     await Future.wait([_loadStats(), _loadWeeklyStats(), _loadDailyCounts()]);
   }
 
+  void _maybeFireWeeklyCelebration(WeeklyTargetResponse target) {
+    if (target.newCellsThisWeek < target.target) return;
+    // ISO week: "2026-W20"
+    final now = DateTime.now();
+    final weekNum = ((now.difference(DateTime(now.year, 1, 1)).inDays + DateTime(now.year, 1, 1).weekday) / 7).ceil();
+    final weekKey = '${now.year}-W$weekNum';
+    final prefs = AppPreferences.instance;
+    if (prefs.weeklyGoalCelebratedWeek == weekKey) return;
+    unawaited(prefs.setWeeklyGoalCelebratedWeek(weekKey));
+    HapticFeedback.mediumImpact();
+    setState(() => _showWeeklyCelebration = true);
+    Future.delayed(const Duration(seconds: 4), () {
+      if (mounted) setState(() => _showWeeklyCelebration = false);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -262,7 +283,9 @@ class _StatisticsScreenState extends State<StatisticsScreen>
     if (stillLoading) return Scaffold(body: SafeArea(child: _buildLoadingSkeleton(isDark)));
     if (effectiveTotal == 0) return Scaffold(body: SafeArea(child: _buildEmptyState(context, theme, isDark, l10n)));
 
-    return Scaffold(
+    return Stack(
+      children: [
+      Scaffold(
       body: Column(
         children: [
           // Tab bar pinned below status bar
@@ -312,7 +335,12 @@ class _StatisticsScreenState extends State<StatisticsScreen>
             ),
           ),
         ],
-      ),
+      ),   // Column
+      ),   // Scaffold
+      // ── Weekly goal celebration overlay ────────────────────────────────────
+      if (_showWeeklyCelebration)
+        _WeeklyGoalCelebration(onDismiss: () => setState(() => _showWeeklyCelebration = false)),
+    ],
     );
   }
 
@@ -326,8 +354,8 @@ class _StatisticsScreenState extends State<StatisticsScreen>
     final localTotal = _stats?.totalUploads ?? 0;
     final totalUploads = localTotal > 0 ? localTotal : (_backendTotalUploads ?? 0);
     final zones = _coverageCells ?? 0;
-    final km2 = zones * 0.1053;
-    final cityBlocks = (km2 / 0.0092).round(); // ~1 city block ≈ 0.0092 km²
+    final km2 = zones * kKm2PerCell;
+    final cityBlocks = (km2 / kKm2PerCityBlock).round();
     final bestDay = _weeklyData != null ? _weeklyData!.fold(0, max) : 0;
     final streak = _stats?.currentStreak ?? 0;
     final longest = _longestStreak ?? streak;
@@ -415,7 +443,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
     final localTotal = _stats?.totalUploads ?? 0;
     final totalUploads = localTotal > 0 ? localTotal : (_backendTotalUploads ?? 0);
     final zones = _coverageCells ?? 0;
-    final km2 = zones * 0.1053;
+    final km2 = zones * kKm2PerCell;
     final showKm2 = zones > 0;
 
     return GestureDetector(
@@ -477,7 +505,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
           if (showKm2 && zones > 0) ...[
             const SizedBox(height: AppTheme.spaceXxxs),
             Text(
-              l10n.statsCityBlocks((km2 / 0.0092).round()),
+              l10n.statsCityBlocks((km2 / kKm2PerCityBlock).round()),
               style: theme.textTheme.bodySmall?.copyWith(
                 color: AppColors.textSecondary(isDark),
                 fontWeight: AppFontWeights.regular,
@@ -1188,7 +1216,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final zones = _coverageCells ?? 0;
-    final km2 = zones * 0.1053;
+    final km2 = zones * kKm2PerCell;
     final km2Str = km2 < 1.0 ? km2.toStringAsFixed(2) : km2.toStringAsFixed(1);
 
     showModalBottomSheet(
@@ -1276,15 +1304,23 @@ class _StatisticsScreenState extends State<StatisticsScreen>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Container(
-              padding: const EdgeInsets.all(AppTheme.spaceXl),
-              decoration: BoxDecoration(color: AppColors.primaryAlpha(0.08), shape: BoxShape.circle),
-              child: Icon(Icons.terrain, size: _kHeroIconSize, color: AppColors.primary),
+            Text(
+              l10n.statsStartContributing,
+              style: theme.textTheme.titleLarge?.copyWith(fontWeight: AppFontWeights.semibold),
+            ),
+            const SizedBox(height: AppTheme.spaceXs),
+            Text(
+              l10n.statsEmptyDescription,
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary(isDark)),
             ),
             const SizedBox(height: AppTheme.spaceLg),
-            Text(l10n.statsStartContributing, style: theme.textTheme.headlineSmall?.copyWith(fontWeight: AppFontWeights.semibold)),
+            // Locked sensor rows — Duolingo-style preview of what gets unlocked
+            _LockedSensorRow(icon: Icons.wb_sunny_outlined, color: AppColors.light, label: l10n.statsEmptyLockLight, isDark: isDark),
             const SizedBox(height: AppTheme.spaceXs),
-            Text(l10n.statsEmptyDescription, textAlign: TextAlign.center, style: theme.textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary(isDark))),
+            _LockedSensorRow(icon: Icons.directions_walk_rounded, color: AppColors.movement, label: l10n.statsEmptyLockMovement, isDark: isDark),
+            const SizedBox(height: AppTheme.spaceXs),
+            _LockedSensorRow(icon: Icons.compress_rounded, color: AppColors.pressure, label: l10n.statsEmptyLockPressure, isDark: isDark),
             if (widget.onGoToHome != null) ...[
               const SizedBox(height: AppTheme.spaceXl),
               FilledButton.icon(
@@ -1292,7 +1328,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                   HapticFeedback.lightImpact();
                   widget.onGoToHome!();
                 },
-                icon: const Icon(Icons.map_outlined, size: AppIconSizes.sm),
+                icon: const Icon(Icons.play_arrow_rounded, size: AppIconSizes.sm),
                 label: Text(l10n.statsEmptyGoMap),
               ),
             ],
@@ -1378,7 +1414,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
     final localTotal = _stats?.totalUploads ?? 0;
     final totalUploads = localTotal > 0 ? localTotal : (_backendTotalUploads ?? 0);
     final zones = _coverageCells ?? 0;
-    final km2 = zones * 0.1053;
+    final km2 = zones * kKm2PerCell;
     final km2Str = km2 < 1.0 ? km2.toStringAsFixed(2) : km2.toStringAsFixed(1);
     final daysActive = _daysActive ?? 0;
     final bestDay = _weeklyData != null ? _weeklyData!.fold(0, max) : 0;
@@ -1458,7 +1494,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                 letterSpacing: _kLetterSpacingDisplay,
               )),
               const SizedBox(height: AppTheme.spaceXxxs),
-              Text('km²', style: theme.textTheme.labelSmall?.copyWith(
+              Text(l10n.statsKm2Unit, style: theme.textTheme.labelSmall?.copyWith(
                 color: AppColors.textSecondary(isDark),
               )),
             ])),
@@ -1472,9 +1508,9 @@ class _StatisticsScreenState extends State<StatisticsScreen>
           const SizedBox(height: AppTheme.spaceLg),
         ],
 
-        // ── Last 30 days: 3-column hairline grid ─────────────────────────
+        // ── Habits: 3-column hairline grid ───────────────────────────────
         if (counts30 != null) ...[
-          _StatsSectionLabel(l10n.statsInDepth30Days.toUpperCase(), isDark: isDark),
+          _StatsSectionLabel(l10n.statsInDepthHabits.toUpperCase(), isDark: isDark),
           const SizedBox(height: AppTheme.spaceXs),
           IntrinsicHeight(child: Row(children: [
             Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -1483,7 +1519,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                 height: _kLineHeightTight,
                 letterSpacing: _kLetterSpacingDisplay,
               )),
-              Text('/ 30', style: theme.textTheme.labelSmall?.copyWith(color: AppColors.textSecondary(isDark))),
+              Text(l10n.statsLast30DaysUnit, style: theme.textTheme.labelSmall?.copyWith(color: AppColors.textSecondary(isDark))),
               const SizedBox(height: AppTheme.spaceXxxs + 1),
               Text(l10n.statsInDepthActiveDays, style: TextStyle(
                 fontSize: AppTheme.fontSizeNavLabel,
@@ -2259,6 +2295,158 @@ class _Divider extends StatelessWidget {
       color: AppColors.textTertiary(isDark).withValues(alpha: 0.12),
       indent: AppTheme.spaceMd,
       endIndent: AppTheme.spaceMd,
+    );
+  }
+}
+
+// ── Weekly goal celebration overlay ──────────────────────────────────────────
+// Full-screen dimmed overlay with a centered card.
+// Auto-dismisses after 4s; tappable anywhere to dismiss early.
+class _WeeklyGoalCelebration extends StatefulWidget {
+  const _WeeklyGoalCelebration({required this.onDismiss});
+  final VoidCallback onDismiss;
+
+  @override
+  State<_WeeklyGoalCelebration> createState() => _WeeklyGoalCelebrationState();
+}
+
+class _WeeklyGoalCelebrationState extends State<_WeeklyGoalCelebration>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _ctrl;
+  late Animation<double> _scaleAnim;
+  late Animation<double> _fadeAnim;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 350));
+    _scaleAnim = Tween<double>(begin: 0.88, end: 1.0).animate(
+      CurvedAnimation(parent: _ctrl, curve: Curves.easeOutBack),
+    );
+    _fadeAnim = CurvedAnimation(parent: _ctrl, curve: Curves.easeOut);
+    _ctrl.forward();
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return GestureDetector(
+      onTap: widget.onDismiss,
+      child: AnimatedBuilder(
+        animation: _ctrl,
+        builder: (_, child) => Opacity(
+          opacity: _fadeAnim.value,
+          child: ColoredBox(
+            color: Colors.black.withValues(alpha: 0.55 * _fadeAnim.value),
+            child: Center(
+              child: Transform.scale(
+                scale: _scaleAnim.value,
+                child: child,
+              ),
+            ),
+          ),
+        ),
+        child: Container(
+          margin: const EdgeInsets.symmetric(horizontal: AppTheme.spaceLg),
+          padding: const EdgeInsets.all(AppTheme.spaceLg),
+          decoration: BoxDecoration(
+            color: AppColors.surface(isDark),
+            borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+            border: Border.all(color: AppColors.primary.withValues(alpha: 0.30)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 64, height: 64,
+                decoration: BoxDecoration(
+                  color: AppColors.primaryAlpha(0.12),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.check_rounded, size: 36, color: AppColors.primary),
+              ),
+              const SizedBox(height: AppTheme.spaceMd),
+              Text(
+                l10n.weeklyGoalTitle,
+                style: const TextStyle(
+                  fontSize: 22,
+                  fontWeight: AppFontWeights.bold,
+                  letterSpacing: -0.5,
+                ),
+              ),
+              const SizedBox(height: AppTheme.spaceXs),
+              Text(
+                l10n.weeklyGoalBody,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: AppTheme.fontSizeSm,
+                  color: AppColors.textSecondary(isDark),
+                ),
+              ),
+              const SizedBox(height: AppTheme.spaceLg),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton(
+                  onPressed: widget.onDismiss,
+                  child: Text(l10n.weeklyGoalDismiss),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ── Locked sensor row for empty state ────────────────────────────────────────
+class _LockedSensorRow extends StatelessWidget {
+  const _LockedSensorRow({
+    required this.icon,
+    required this.color,
+    required this.label,
+    required this.isDark,
+  });
+  final IconData icon;
+  final Color color;
+  final String label;
+  final bool isDark;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppTheme.spaceMd,
+        vertical: AppTheme.spaceXs,
+      ),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceElevated(isDark),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+        border: Border.all(color: AppColors.textTertiary(isDark).withValues(alpha: 0.10)),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, size: AppIconSizes.sm, color: color.withValues(alpha: 0.35)),
+          const SizedBox(width: AppTheme.spaceSm),
+          Expanded(
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: AppTheme.fontSizeSm,
+                color: AppColors.textTertiary(isDark),
+              ),
+            ),
+          ),
+          Icon(Icons.lock_outline_rounded, size: 14, color: AppColors.textTertiary(isDark).withValues(alpha: 0.50)),
+        ],
+      ),
     );
   }
 }

@@ -78,9 +78,8 @@ export async function refreshUserProfileCache(userId: string): Promise<void> {
         stats.last_upload_date,
       ],
     );
-  } catch (err) {
-    // Non-fatal — profile endpoint falls back to live queries if cache is missing.
-    console.error('[refreshUserProfileCache] failed:', err);
+  } catch {
+    // Non-fatal — error is logged by the caller (upload route) via fastify.log.
   }
 }
 
@@ -140,7 +139,7 @@ async function fetchUserProfileData(pool: ReturnType<typeof getPool>, userId: st
  * same data quality for a coverage map. Results are cached 5 min in-memory.
  * Falls back to geohash decode for rows without h3_index.
  */
-async function fetchGlobalTiles(): Promise<unknown> {
+async function fetchGlobalTiles(log?: { warn: (obj: unknown, msg: string) => void }): Promise<unknown> {
   const cacheKey = `global_${GLOBAL_TILE_WINDOW_HOURS}`;
   const cached = _globalTileCache.get(cacheKey);
   if (cached && cached.expiresAt > Date.now()) return cached.data;
@@ -154,6 +153,7 @@ async function fetchGlobalTiles(): Promise<unknown> {
     sample_count: number;
     device_count: number;
     quality_valid_ratio: number | null;
+    vibration_score: number | null;
     last_update: Date;
   }>(
     `SELECT
@@ -161,6 +161,7 @@ async function fetchGlobalTiles(): Promise<unknown> {
        SUM(samples_count)::int                AS sample_count,
        MAX(device_count)::int                 AS device_count,
        AVG(quality_valid_ratio)               AS quality_valid_ratio,
+       AVG(vibration_score)                   AS vibration_score,
        MAX(day)                               AS last_update
      FROM sensor_aggregates_daily
      WHERE day > CURRENT_DATE - ($1 * INTERVAL '1 day')
@@ -188,11 +189,12 @@ async function fetchGlobalTiles(): Promise<unknown> {
       return {
         h3Index,
         boundary,
-        confidence: sampleConfidence,
+        confidence:    sampleConfidence,
         qualityScore,
-        deviceCount: row.device_count,
-        sampleCount: row.sample_count,
-        lastUpdate: row.last_update,
+        deviceCount:   row.device_count,
+        sampleCount:   row.sample_count,
+        lastUpdate:    row.last_update,
+        vibrationScore: row.vibration_score !== null ? Math.round((row.vibration_score ?? 0) * 100) / 100 : null,
       };
     })
     .filter(Boolean);
@@ -205,7 +207,7 @@ async function fetchGlobalTiles(): Promise<unknown> {
   if (Buffer.byteLength(jsonString, 'utf8') > MAX_TILE_RESPONSE_BYTES) {
     const truncatedTiles = tiles.slice(0, Math.floor(tiles.length * 0.8)); // rough 20% reduction
     const truncatedData = { tiles: truncatedTiles };
-    console.warn(`[fetchGlobalTiles] Response size exceeded ${MAX_TILE_RESPONSE_BYTES} bytes, truncated to ${truncatedTiles.length} tiles`);
+    log?.warn({ limit: MAX_TILE_RESPONSE_BYTES, truncatedTo: truncatedTiles.length }, 'Global tiles response size exceeded limit, truncated');
     return truncatedData;
   }
 
@@ -413,16 +415,23 @@ export async function userRoutes(fastify: FastifyInstance) {
           avg_lux: number | null;
           avg_hpa: number | null;
           avg_movement: number | null;
+          avg_accel_std_dev: number | null;
+          avg_quality_ratio: number | null;
         }>(
           `SELECT
              h3_res9,
-             batch_json->>'geohash'                                            AS geohash,
-             COUNT(*)::int                                                      AS batch_count,
-             COUNT(DISTINCT device_hash)::int                                   AS device_count,
-             MAX(timestamp_utc)                                                 AS last_update,
-             AVG((batch_json->'summary'->'light'->>'avg')::numeric)             AS avg_lux,
-             AVG((batch_json->'summary'->'pressure'->>'avg')::numeric)          AS avg_hpa,
-             AVG((batch_json->'summary'->>'accel_rms')::numeric)                AS avg_movement
+             batch_json->>'geohash'                                                        AS geohash,
+             COUNT(*)::int                                                                  AS batch_count,
+             COUNT(DISTINCT device_hash)::int                                               AS device_count,
+             MAX(timestamp_utc)                                                             AS last_update,
+             AVG((batch_json->'summary'->'light'->>'avg')::numeric)                        AS avg_lux,
+             AVG((batch_json->'summary'->'pressure'->>'avg')::numeric)                     AS avg_hpa,
+             AVG((batch_json->'summary'->>'accel_rms')::numeric)                           AS avg_movement,
+             AVG((batch_json->'summary'->>'accel_std_dev')::numeric)                       AS avg_accel_std_dev,
+             AVG(
+               (batch_json->'summary'->>'quality_valid')::numeric
+               / NULLIF((batch_json->'summary'->>'count')::numeric, 0)
+             )                                                                              AS avg_quality_ratio
            FROM sensor_batches
            WHERE user_id = $1
              AND (h3_res9 IS NOT NULL OR batch_json->>'geohash' IS NOT NULL)
@@ -439,6 +448,8 @@ export async function userRoutes(fastify: FastifyInstance) {
           luxSum: number; luxCount: number;
           hpaSum: number; hpaCount: number;
           movementSum: number; movementCount: number;
+          vibrationSum: number; vibrationCount: number;
+          qualitySum: number; qualityCount: number;
         }>();
         for (const row of tilesResult.rows) {
           let h3Index: string | null = row.h3_res9;
@@ -453,15 +464,19 @@ export async function userRoutes(fastify: FastifyInstance) {
             existing.batchCount += row.batch_count;
             existing.deviceCount = Math.max(existing.deviceCount, row.device_count);
             if (row.last_update > existing.lastUpdate) existing.lastUpdate = row.last_update;
-            if (row.avg_lux !== null) { existing.luxSum += row.avg_lux * row.batch_count; existing.luxCount += row.batch_count; }
-            if (row.avg_hpa !== null) { existing.hpaSum += row.avg_hpa * row.batch_count; existing.hpaCount += row.batch_count; }
-            if (row.avg_movement !== null) { existing.movementSum += row.avg_movement * row.batch_count; existing.movementCount += row.batch_count; }
+            if (row.avg_lux !== null)          { existing.luxSum       += row.avg_lux          * row.batch_count; existing.luxCount       += row.batch_count; }
+            if (row.avg_hpa !== null)          { existing.hpaSum       += row.avg_hpa          * row.batch_count; existing.hpaCount       += row.batch_count; }
+            if (row.avg_movement !== null)     { existing.movementSum  += row.avg_movement     * row.batch_count; existing.movementCount  += row.batch_count; }
+            if (row.avg_accel_std_dev !== null){ existing.vibrationSum += row.avg_accel_std_dev* row.batch_count; existing.vibrationCount += row.batch_count; }
+            if (row.avg_quality_ratio !== null){ existing.qualitySum   += row.avg_quality_ratio* row.batch_count; existing.qualityCount   += row.batch_count; }
           } else {
             tileMap.set(h3Index, {
               batchCount: row.batch_count, deviceCount: row.device_count, lastUpdate: row.last_update,
-              luxSum: row.avg_lux !== null ? row.avg_lux * row.batch_count : 0, luxCount: row.avg_lux !== null ? row.batch_count : 0,
-              hpaSum: row.avg_hpa !== null ? row.avg_hpa * row.batch_count : 0, hpaCount: row.avg_hpa !== null ? row.batch_count : 0,
-              movementSum: row.avg_movement !== null ? row.avg_movement * row.batch_count : 0, movementCount: row.avg_movement !== null ? row.batch_count : 0,
+              luxSum:       row.avg_lux           !== null ? row.avg_lux           * row.batch_count : 0, luxCount:       row.avg_lux           !== null ? row.batch_count : 0,
+              hpaSum:       row.avg_hpa           !== null ? row.avg_hpa           * row.batch_count : 0, hpaCount:       row.avg_hpa           !== null ? row.batch_count : 0,
+              movementSum:  row.avg_movement      !== null ? row.avg_movement      * row.batch_count : 0, movementCount:  row.avg_movement      !== null ? row.batch_count : 0,
+              vibrationSum: row.avg_accel_std_dev !== null ? row.avg_accel_std_dev * row.batch_count : 0, vibrationCount: row.avg_accel_std_dev !== null ? row.batch_count : 0,
+              qualitySum:   row.avg_quality_ratio !== null ? row.avg_quality_ratio * row.batch_count : 0, qualityCount:   row.avg_quality_ratio !== null ? row.batch_count : 0,
             });
           }
         }
@@ -472,17 +487,21 @@ export async function userRoutes(fastify: FastifyInstance) {
           .map(([h3Index, stats]) => {
             const boundary = cellToBoundary(h3Index, true) as [number, number][];
             const [lat, lng] = cellToLatLng(h3Index);
+            const rawVibration = stats.vibrationCount > 0 ? stats.vibrationSum / stats.vibrationCount : null;
             return {
               h3Index,
               boundary,
               centroid: { lat, lng },
-              confidence: Math.min(1.0, stats.batchCount / CONFIDENCE_BATCH_THRESHOLD),
-              sampleCount: stats.batchCount,
-              deviceCount: stats.deviceCount,
-              lastUpdate: stats.lastUpdate,
-              avgLux:      stats.luxCount      > 0 ? Math.round(stats.luxSum      / stats.luxCount)      : null,
-              avgHpa:      stats.hpaCount      > 0 ? Math.round((stats.hpaSum     / stats.hpaCount) * 10) / 10 : null,
-              avgMovement: stats.movementCount > 0 ? Math.round((stats.movementSum / stats.movementCount) * 100) / 100 : null,
+              confidence:   Math.min(1.0, stats.batchCount / CONFIDENCE_BATCH_THRESHOLD),
+              sampleCount:  stats.batchCount,
+              deviceCount:  stats.deviceCount,
+              lastUpdate:   stats.lastUpdate,
+              avgLux:       stats.luxCount      > 0 ? Math.round(stats.luxSum      / stats.luxCount)                            : null,
+              avgHpa:       stats.hpaCount      > 0 ? Math.round((stats.hpaSum     / stats.hpaCount) * 10) / 10                 : null,
+              avgMovement:  stats.movementCount > 0 ? Math.round((stats.movementSum/ stats.movementCount) * 100) / 100          : null,
+              // vibration: normalize accel std-dev to 0–1 (same formula as aggregator vibrationScore)
+              avgVibration: rawVibration !== null ? Math.round(Math.min(1, rawVibration / 5.0) * 100) / 100 : null,
+              qualityRatio: stats.qualityCount  > 0 ? Math.round((stats.qualitySum  / stats.qualityCount) * 100) / 100         : null,
             };
           });
 
@@ -491,7 +510,7 @@ export async function userRoutes(fastify: FastifyInstance) {
         const jsonString = JSON.stringify(data);
         if (Buffer.byteLength(jsonString, 'utf8') > MAX_TILE_RESPONSE_BYTES) {
           const truncatedTiles = tiles.slice(0, Math.floor(tiles.length * 0.8));
-          console.warn(`[user tiles] Response size exceeded ${MAX_TILE_RESPONSE_BYTES} bytes, truncated to ${truncatedTiles.length} tiles`);
+          request.log.warn({ limit: MAX_TILE_RESPONSE_BYTES, truncatedTo: truncatedTiles.length, userId }, 'User tiles response size exceeded limit, truncated');
           return reply.send({ tiles: truncatedTiles });
         }
 
@@ -514,7 +533,7 @@ export async function userRoutes(fastify: FastifyInstance) {
       try {
         // private: per-user auth, but client can still cache for the TTL window
         reply.header('Cache-Control', `private, max-age=${GLOBAL_TILE_CACHE_TTL_S}`);
-        return reply.send(await fetchGlobalTiles());
+        return reply.send(await fetchGlobalTiles(request.log));
       } catch (error) {
         request.log.error({ err: error }, 'Global tiles fetch error');
         return reply.code(500).send({ error: 'Internal Server Error', requestId: request.id });
@@ -574,7 +593,7 @@ export async function userRoutes(fastify: FastifyInstance) {
       try {
         // public: CDN/proxy can cache this — no user-specific data
         reply.header('Cache-Control', `public, max-age=${GLOBAL_TILE_CACHE_TTL_S}, stale-while-revalidate=60`);
-        return reply.send(await fetchGlobalTiles());
+        return reply.send(await fetchGlobalTiles(request.log));
       } catch (error) {
         request.log.error({ err: error }, 'Public tiles fetch error');
         return reply.code(500).send({ error: 'Internal Server Error', requestId: request.id });

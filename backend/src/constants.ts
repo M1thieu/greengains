@@ -89,8 +89,6 @@ export const GLOBAL_TILE_CACHE_TTL_S = 5 * 60;
 // ─── Profile Cache ────────────────────────────────────────────────────────────
 /** In-process per-user profile cache TTL (1 hour). */
 export const PROFILE_CACHE_TTL_MS = 60 * 60 * 1_000;
-/** Cache-Control max-age for profile responses (seconds). */
-export const PROFILE_CACHE_TTL_S  = 60 * 60;
 
 // ─── Global Stats Cache ───────────────────────────────────────────────────────
 /** In-process cache TTL for global stats (active mappers / total zones) — 1 hour. */

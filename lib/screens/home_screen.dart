@@ -113,6 +113,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   int get _claimedTileCount => _h3Tiles.where((t) => t.boundary != null).length;
   /// Current streak — loaded after session ends, shown in session summary sheet.
   int _currentStreak = 0;
+  /// True when streak dropped to 0 since last app open — shows one-time banner.
+  bool _streakReset = false;
   /// Whether community tiles are visible on the map.
   bool _showCommunity = true;
   /// Neighborhood name from reverse geocoding — shown below zone count.
@@ -146,6 +148,15 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     _subscribeToLocationUpdates();
     unawaited(_loadStreak());
     _loadReturnDelta();
+    _maybeShowPendingFirstUpload();
+  }
+
+  void _maybeShowPendingFirstUpload() {
+    if (!_prefs.firstUploadPending) return;
+    Future.delayed(const Duration(milliseconds: 400), () {
+      if (!mounted || !context.mounted) return;
+      _showFirstUploadSheet();
+    });
   }
 
   void _loadReturnDelta() {
@@ -162,11 +173,15 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   Future<void> _loadStreak() async {
     try {
       final stats = await ContributionRepository().getStats();
-      if (mounted) {
-        setState(() {
-          _currentStreak = stats.currentStreak;
-        });
-      }
+      if (!mounted) return;
+      final prev = _prefs.lastKnownStreak;
+      final next = stats.currentStreak;
+      final reset = prev > 0 && next == 0;
+      await _prefs.setLastKnownStreak(next);
+      setState(() {
+        _currentStreak = next;
+        if (reset) _streakReset = true;
+      });
     } catch (_) {}
   }
 
@@ -190,8 +205,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       final clampedGained = gained.clamp(0, 9999);
       final isPersonalBest = clampedGained > 0 && clampedGained > _prefs.bestSessionZonesGained;
       unawaited(_prefs.saveLastSession(zonesGained: clampedGained));
-      // Show summary for any meaningful session (≥2 min) or when zones were gained.
-      final worthSummary = gained > 0 || sessionDuration >= const Duration(minutes: 2);
+      // Show summary for any session ≥2 min, regardless of whether zones were gained.
+      final worthSummary = sessionDuration >= const Duration(minutes: 2);
       if (worthSummary && _sessionStartZoneCount >= 0 && mounted) {
         final total = _claimedTileCount;
         Future.delayed(AppDurations.fast, () {
@@ -281,8 +296,24 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         AppEventBus.instance.on<UploadSuccessEvent>().listen(_onUploadSuccess);
   }
 
+  void _showFirstUploadSheet() {
+    unawaited(_prefs.setFirstUploadCelebrated());
+    unawaited(_prefs.setFirstUploadPending(false));
+    HapticFeedback.mediumImpact();
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (_) => const _FirstUploadSheet(),
+    );
+  }
+
   void _onUploadSuccess(UploadSuccessEvent event) {
     if (!mounted) return;
+    // Mark pending immediately — if the app goes to background before the sheet
+    // shows, the resumed check in didChangeAppLifecycleState will pick it up.
+    if (!_prefs.firstUploadCelebrated) {
+      unawaited(_prefs.setFirstUploadPending(true));
+    }
     final prevCount = _claimedTileCount;
     Future.delayed(const Duration(seconds: 3), () {
       if (!mounted) return;
@@ -292,13 +323,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         final gained = newCount - prevCount;
         if (gained > 0) HapticFeedback.mediumImpact();
         if (!_prefs.firstUploadCelebrated && newCount > 0) {
-          unawaited(_prefs.setFirstUploadCelebrated());
-          HapticFeedback.mediumImpact();
-          showModalBottomSheet(
-            context: context,
-            backgroundColor: Colors.transparent,
-            builder: (_) => const _FirstUploadSheet(),
-          );
+          _showFirstUploadSheet();
           return;
         }
         final msg = gained > 0
@@ -388,6 +413,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       _reloadUploadStatus();
       _loadH3Tiles();
       unawaited(_checkPermissionHealth());
+      _maybeShowPendingFirstUpload();
+      unawaited(_loadStreak());
     }
   }
 
@@ -742,7 +769,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               ),
 
             // ── 0c. Contextual hint ─────────────────────────────────────
-            // Active tracking → top-center under chip: "+N new zones · MM:SS"
+            // Active tracking → top-center under chip: "+N new places · MM:SS"
             // Idle/first-use → bottom above FAB: onboarding or return CTA
             ListenableBuilder(
               listenable: Listenable.merge([
@@ -801,6 +828,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                           _ReturnDeltaCard(
                             zones: _returnDeltaZones,
                             onDismiss: () => setState(() => _returnDeltaDismissed = true),
+                          ),
+                        ],
+                        if (_streakReset) ...[
+                          const SizedBox(height: 6),
+                          _StreakResetBanner(
+                            onDismiss: () => setState(() => _streakReset = false),
                           ),
                         ],
                         GestureDetector(
@@ -917,12 +950,33 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     Semantics(
                       button: true,
                       label: context.l10n.semanticsToggleTracking,
-                      child: const TrackingFab(),
+                      child: TrackingFab(
+                        newZones: (_claimedTileCount - _sessionStartZoneCount).clamp(0, 999),
+                      ),
                     ),
                   ],
                 ),
               ),
             ),
+
+            // ── 2b. Streak badge (top-right, idle only, streak > 0) ──────
+            if (_currentStreak > 0)
+              ListenableBuilder(
+                listenable: Listenable.merge([_locationService.isRunning, _locationService.isPaused]),
+                builder: (context, _) {
+                  final isRunning = _locationService.isRunning.value;
+                  final isPaused  = _locationService.isPaused.value;
+                  if (isRunning || isPaused) return const SizedBox.shrink();
+                  return Positioned(
+                    top: topPadding + AppTheme.spaceXs,
+                    right: AppTheme.spaceMd,
+                    child: GestureDetector(
+                      onTap: widget.onGoToStats,
+                      child: _StreakBadge(streak: _currentStreak),
+                    ),
+                  );
+                },
+              ),
 
             // ── 3. My Location button (bottom-left) ───────────────────────
             ValueListenableBuilder<LatLng?>(
@@ -954,7 +1008,84 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
 /// Single idle pill — merges hint + status into one surface.
 /// States (priority order):
-///   gain  → "+N new zones · 🔥 streak" (green tint, pulsing)
+///   gain  → "+N new places · 🔥 streak" (green tint, pulsing)
+// ─── Streak-reset banner ─────────────────────────────────────────────────────
+// Shown once per app-open when the streak dropped to 0 since last open.
+// Warm amber tint — informational, not alarming. Dismissed by tap.
+class _StreakResetBanner extends StatefulWidget {
+  const _StreakResetBanner({required this.onDismiss});
+  final VoidCallback onDismiss;
+
+  @override
+  State<_StreakResetBanner> createState() => _StreakResetBannerState();
+}
+
+class _StreakResetBannerState extends State<_StreakResetBanner>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _ctrl;
+  late Animation<double> _fadeAnim;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 300));
+    _fadeAnim = CurvedAnimation(parent: _ctrl, curve: Curves.easeOut);
+    _ctrl.forward();
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    const amber = Color(0xFFfbbf24);
+    return FadeTransition(
+      opacity: _fadeAnim,
+      child: GestureDetector(
+        onTap: widget.onDismiss,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(AppTheme.radiusPill),
+          child: BackdropFilter(
+            filter: ui.ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppTheme.spaceMd,
+                vertical: AppTheme.spaceXs,
+              ),
+              decoration: BoxDecoration(
+                color: amber.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(AppTheme.radiusPill),
+                border: Border.all(color: amber.withValues(alpha: 0.28)),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.local_fire_department_rounded,
+                      size: 14, color: amber.withValues(alpha: 0.80)),
+                  const SizedBox(width: 6),
+                  Flexible(
+                    child: Text(
+                      context.l10n.streakResetBanner,
+                      style: TextStyle(
+                        fontSize: AppTheme.fontSizeXs,
+                        color: Colors.white.withValues(alpha: 0.75),
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 // ─── Return-delta card ───────────────────────────────────────────────────────
 // Shown once per app-open when the user comes back after a session ended >10min
 // ago. Reveals how many zones the background service captured while they were
@@ -1074,7 +1205,7 @@ class _ReturnDeltaCardState extends State<_ReturnDeltaCard>
   }
 }
 
-///   zones → "N zones · 🔥 streak" or "N zones on your map"
+///   places → "N places · 🔥 streak" or "N places on your map"
 ///   fresh → "Tap to start mapping" (pulsing, no data yet)
 class _IdlePill extends StatefulWidget {
   const _IdlePill({
@@ -1155,7 +1286,7 @@ class _IdlePillState extends State<_IdlePill>
                   Text(
                     widget.neighborhoodName!,
                     style: const TextStyle(
-                      fontSize: 11,
+                      fontSize: AppTheme.fontSizeXs,
                       fontWeight: AppFontWeights.regular,
                       color: Colors.white70,
                       letterSpacing: -0.1,
@@ -1353,6 +1484,50 @@ class _BrandMarkPainter extends CustomPainter {
 }
 
 
+
+class _StreakBadge extends StatelessWidget {
+  const _StreakBadge({required this.streak});
+  final int streak;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppTheme.spaceSm,
+        vertical: AppTheme.spaceXxxs + 2,
+      ),
+      decoration: BoxDecoration(
+        color: AppColors.darkBackground.withValues(alpha: 0.75),
+        borderRadius: BorderRadius.circular(AppTheme.radiusPill),
+        border: Border.all(
+          color: AppColors.primary.withValues(alpha: 0.35),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.local_fire_department_rounded,
+            color: AppColors.primary,
+            size: 14,
+          ),
+          const SizedBox(width: 4),
+          Text(
+            l10n.homeStreakBadge(streak),
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: AppFontWeights.semibold,
+              color: AppColors.primary,
+              letterSpacing: 0.2,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
 
 /// My Location button — standard map UX (Google Maps / Waze / Apple Maps pattern).
 /// 48×48 circular dark button.
@@ -2088,6 +2263,13 @@ class _SessionSummarySheetState extends State<_SessionSummarySheet> {
     return '$m:$s';
   }
 
+  String _nextHookCopy(AppLocalizations l10n) {
+    if (widget.zonesGained == 0) return l10n.sessionSummaryNextHookEmpty;
+    if (widget.streak >= 2) return l10n.sessionSummaryNextHookStreak;
+    if (widget.streak == 1) return l10n.sessionSummaryNextHookFirst;
+    return l10n.sessionSummaryNextHook;
+  }
+
   String _fmtDate() {
     final now = DateTime.now();
     return '${now.month.toString().padLeft(2, '0')}·${now.day.toString().padLeft(2, '0')}·${now.year.toString().substring(2)}';
@@ -2097,7 +2279,7 @@ class _SessionSummarySheetState extends State<_SessionSummarySheet> {
   Widget build(BuildContext context) {
     final isDark = context.isDarkMode;
     final l10n = context.l10n;
-    final km2 = widget.totalZones * 0.1053;
+    final km2 = widget.totalZones * kKm2PerCell;
     final km2Display = km2 < 1.0 ? km2.toStringAsFixed(2) : km2.toStringAsFixed(1);
     final next = _nextMilestone();
     final hit = _hitMilestone();
@@ -2252,7 +2434,11 @@ class _SessionSummarySheetState extends State<_SessionSummarySheet> {
               IntrinsicHeight(
                 child: Row(
                   children: [
-                    _SummaryStatCell(label: l10n.sessionStatArea, value: '$km2Display km²'),
+                    _SummaryStatCell(
+                      label: l10n.sessionStatArea,
+                      value: '$km2Display km²',
+                      subValue: l10n.statsCityBlocks((km2 / kKm2PerCityBlock).round()),
+                    ),
                     const VerticalDivider(width: 1, thickness: 1, color: Color(0x14FFFFFF)),
                     _SummaryStatCell(label: l10n.sessionStatDuration, value: _fmtDuration(widget.sessionDuration)),
                     const VerticalDivider(width: 1, thickness: 1, color: Color(0x14FFFFFF)),
@@ -2297,11 +2483,9 @@ class _SessionSummarySheetState extends State<_SessionSummarySheet> {
 
               const SizedBox(height: AppTheme.spaceSm),
 
-              // ── Next-session hook — one quiet line, contextual ────────────
+              // ── Next-session hook — contextual, never commanding ──────────
               Text(
-                widget.zonesGained > 0
-                    ? l10n.sessionSummaryNextHook
-                    : l10n.sessionSummaryNextHookEmpty,
+                _nextHookCopy(l10n),
                 style: TextStyle(
                   fontSize: AppTheme.fontSizeXs,
                   color: Colors.white.withValues(alpha: 0.45),
@@ -2663,9 +2847,10 @@ class _PermissionLostCard extends StatelessWidget {
 }
 
 class _SummaryStatCell extends StatelessWidget {
-  const _SummaryStatCell({required this.label, required this.value});
+  const _SummaryStatCell({required this.label, required this.value, this.subValue});
   final String label;
   final String value;
+  final String? subValue;
 
   @override
   Widget build(BuildContext context) {
@@ -2696,6 +2881,17 @@ class _SummaryStatCell extends StatelessWidget {
                 fontFeatures: [ui.FontFeature.tabularFigures()],
               ),
             ),
+            if (subValue != null) ...[
+              const SizedBox(height: 2),
+              Text(
+                subValue!,
+                style: const TextStyle(
+                  fontSize: 10,
+                  color: Color(0x55FFFFFF),
+                  letterSpacing: -0.1,
+                ),
+              ),
+            ],
           ],
         ),
       ),

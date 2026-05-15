@@ -51,10 +51,14 @@
     <string name="notification_worker_title">GreenGains · synchronisation</string>
     <string name="notification_worker_body">Sauvegarde de vos données</string>
 
-    <!-- Re-engagement notification -->
+    <!-- Re-engagement notification — %1$d = série en jours -->
     <string name="notification_streak_channel_name">Rappels carte</string>
-    <string name="notification_streak_title">Votre carte vous attend</string>
-    <string name="notification_streak_body">Ouvrez l\'appli et continuez à bouger — chaque nouvelle rue remplit votre carte.</string>
+    <string name="notification_streak_title">Série de %1$d jour(s) en danger</string>
+    <string name="notification_streak_body">Ouvrez l\'appli et gardez votre série vivante.</string>
+
+    <!-- Permission result toasts -->
+    <string name="toast_location_granted">Permission de localisation accordée</string>
+    <string name="toast_location_denied">Permission de localisation refusée</string>
 
     <!-- Digest hebdomadaire — résumé passif de la carte, sans appel à l\'action -->
     <string name="notification_weekly_channel_name">Bilan hebdomadaire</string>

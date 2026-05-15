@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -6,18 +7,6 @@ import '../core/app_preferences.dart';
 import '../core/extensions/context_extensions.dart';
 import '../core/themes.dart';
 import '../services/referral/referral_service.dart';
-import '../utils/app_snackbars.dart';
-
-// ── ReferralInviteCard layout constants ───────────────────────────────────────
-const _kReferralAvatarSize = AppTheme.spaceXl + AppTheme.spaceXs;  // 40 — header icon circle
-const _kConvBadgePadH      = AppTheme.spaceXs;                     //  8 — conversions badge h-pad
-const _kConvBadgePadV      = AppTheme.spaceXxxs;                   //  2 — conversions badge v-pad
-const _kConvBadgeRadius    = AppTheme.radiusMd;                    // 12 — conversions badge radius
-const _kCodePad            = AppTheme.spaceSm;                     // 12 — code container padding
-const _kCodeRadius         = AppTheme.radiusMd;                    // 12 — code container radius
-const _kStepCircleSize     = AppTheme.spaceXl + AppTheme.spaceXs;  // 40 — step icon circle
-const _kStepArrowPad       = AppTheme.spaceXxs;                    //  4 — arrow left/right inset
-const _kStepArrowIconSize  = AppTheme.spaceSm;                     // 12 — chevron icon size
 
 class ReferralInviteCard extends StatefulWidget {
   const ReferralInviteCard({
@@ -27,8 +16,6 @@ class ReferralInviteCard extends StatefulWidget {
   });
 
   final User user;
-  /// Primary neighborhood name — when set, shows a geographic hook line
-  /// ("Help map Belleville — every neighbor fills in what you haven't reached.")
   final String? neighborhoodName;
 
   @override
@@ -36,309 +23,273 @@ class ReferralInviteCard extends StatefulWidget {
 }
 
 class _ReferralInviteCardState extends State<ReferralInviteCard> {
-  int? _conversions;
   String? _referralCode;
-  bool _isLoading = true;
+  int _conversions = 0;
   bool _hasLoadError = false;
+  bool _hasShared = false;
+  Timer? _pollTimer;
+  int _pollCount = 0;
+  static const _kMaxPolls = 3;
+  static const _kPollInterval = Duration(seconds: 30);
 
   @override
   void initState() {
     super.initState();
-    // Show cached code immediately — no spinner if we already have it
+    _hasShared = AppPreferences.instance.referralShared;
     final cached = AppPreferences.instance.referralCode;
     if (cached != null) {
       _referralCode = cached;
-      _isLoading = false;
     }
     _loadReferralData();
   }
 
-  Future<void> _loadReferralData() async {
-    if (_referralCode == null) {
-      setState(() {
-        _isLoading = true;
-        _hasLoadError = false;
-      });
-    }
+  @override
+  void dispose() {
+    _pollTimer?.cancel();
+    super.dispose();
+  }
 
+  Future<void> _loadReferralData() async {
+    if (_referralCode == null) setState(() { _hasLoadError = false; });
     try {
-      // Run code and stats in parallel
       final results = await Future.wait([
         ReferralService.instance.fetchReferralCode(),
         ReferralService.instance.fetchStats(),
       ]);
-
       final code = results[0] as String?;
       final stats = results[1] as ({int invitesShared, int conversions})?;
-
       if (!mounted) return;
+      final prevConversions = _conversions;
+      final newConversions = stats?.conversions ?? 0;
       setState(() {
-        _conversions = stats?.conversions ?? 0;
         _referralCode = code;
-        _isLoading = false;
+        _conversions = newConversions;
         _hasLoadError = code == null;
       });
+      if (prevConversions == 0 && newConversions > 0) {
+        HapticFeedback.mediumImpact();
+      }
     } catch (_) {
       if (!mounted) return;
-      setState(() {
-        _conversions = 0;
-        _isLoading = false;
-        // Keep existing cached code if we have it; only flag error if never loaded
-        if (_referralCode == null) _hasLoadError = true;
-      });
+      setState(() { if (_referralCode == null) _hasLoadError = true; });
     }
   }
 
+  void _startPolling() {
+    _pollTimer?.cancel();
+    _pollCount = 0;
+    _pollTimer = Timer.periodic(_kPollInterval, (_) async {
+      if (!mounted || _pollCount >= _kMaxPolls) { _pollTimer?.cancel(); return; }
+      _pollCount++;
+      await _loadReferralData();
+      if (_conversions > 0) _pollTimer?.cancel();
+    });
+  }
+
+  Future<void> _share() async {
+    final code = _referralCode;
+    if (code == null) return;
+    final link = 'https://greengains.eremat.org/invite/$code';
+    await ReferralService.instance.registerReferralInvite(referralCode: code);
+    await SharePlus.instance.share(ShareParams(uri: Uri.parse(link)));
+    if (!mounted) return;
+    unawaited(AppPreferences.instance.setReferralShared());
+    setState(() => _hasShared = true);
+    _startPolling();
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final referralCode = _referralCode;
-    final referralLink = referralCode == null
-        ? null
-        : 'https://greengains.eremat.org/invite/$referralCode';
+    final isDark = theme.brightness == Brightness.dark;
+    final l10n = context.l10n;
+    final canShare = _referralCode != null;
 
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Card(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
-        side: BorderSide(color: AppColors.border(isDark), width: 1),
+    final String bodyText;
+    if (_hasShared && _conversions == 0) {
+      bodyText = l10n.referralWaiting;
+    } else if (_conversions > 0) {
+      bodyText = _conversions == 1
+          ? l10n.referralFirstJoined
+          : l10n.referralConversions(_conversions);
+    } else {
+      bodyText = widget.neighborhoodName != null
+          ? l10n.referralNeighborhoodHook(widget.neighborhoodName!)
+          : l10n.referralInviteDescription;
+    }
+
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.primaryAlpha(0.06),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+        border: Border.all(color: AppColors.primaryAlpha(0.20), width: AppBorderWidths.hairline),
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(AppTheme.spaceMd),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  width: _kReferralAvatarSize,
-                  height: _kReferralAvatarSize,
+      padding: const EdgeInsets.all(AppTheme.spaceMd),
+      child: Row(
+        children: [
+          Container(
+            width: 36, height: 36,
+            decoration: BoxDecoration(color: AppColors.primaryAlpha(0.14), shape: BoxShape.circle),
+            child: Icon(
+              _conversions > 0 ? Icons.people_rounded : Icons.people_outline_rounded,
+              color: AppColors.primary,
+              size: AppIconSizes.xs,
+            ),
+          ),
+          const SizedBox(width: AppTheme.spaceSm),
+
+          Expanded(
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 300),
+              child: Align(
+                key: ValueKey(bodyText),
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  bodyText,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: _conversions > 0 ? AppColors.primary : AppColors.textPrimary(isDark),
+                    fontWeight: _conversions > 0 ? AppFontWeights.semibold : AppFontWeights.medium,
+                    height: AppLineHeights.snug,
+                  ),
+                ),
+              ),
+            ),
+          ),
+
+          const SizedBox(width: AppTheme.spaceSm),
+
+          if (_hasLoadError && !canShare)
+            _IconBtn(icon: Icons.refresh_rounded, onPressed: _loadReferralData)
+          else if (_hasShared && _conversions == 0)
+            _WaitingDots()
+          else
+            _ShareBtn(
+              label: _hasShared ? l10n.referralShareAgain : l10n.referralShareLink,
+              enabled: canShare,
+              onPressed: _share,
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _WaitingDots extends StatefulWidget {
+  @override
+  State<_WaitingDots> createState() => _WaitingDotsState();
+}
+
+class _WaitingDotsState extends State<_WaitingDots> with SingleTickerProviderStateMixin {
+  late AnimationController _ctrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 1200))
+      ..repeat();
+  }
+
+  @override
+  void dispose() { _ctrl.dispose(); super.dispose(); }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _ctrl,
+      builder: (_, __) {
+        return Row(
+          mainAxisSize: MainAxisSize.min,
+          children: List.generate(3, (i) {
+            final phase = ((_ctrl.value * 3) - i).clamp(0.0, 1.0);
+            final opacity = (1 - (phase - 0.5).abs() * 2).clamp(0.25, 1.0);
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 2),
+              child: Opacity(
+                opacity: opacity,
+                child: Container(
+                  width: 5, height: 5,
                   decoration: BoxDecoration(
-                    color: AppColors.primaryAlpha(0.12),
+                    color: AppColors.primary,
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(Icons.diversity_3, color: AppColors.primary, size: AppIconSizes.md),
                 ),
-                const SizedBox(width: AppTheme.spaceSm),
-                Expanded(
-                  child: Text(
-                    context.l10n.referralInviteTitle,
-                    style: theme.textTheme.titleMedium?.copyWith(fontWeight: AppFontWeights.semibold),
-                  ),
-                ),
-                if (_conversions != null && _conversions! > 0)
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: _kConvBadgePadH,
-                      vertical: _kConvBadgePadV,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppColors.primaryAlpha(0.12),
-                      borderRadius: BorderRadius.circular(_kConvBadgeRadius),
-                    ),
-                    child: Text(
-                      '$_conversions',
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: AppColors.primary,
-                        fontWeight: AppFontWeights.semibold,
-                      ),
-                    ),
-                  ),
-              ],
+              ),
+            );
+          }),
+        );
+      },
+    );
+  }
+}
+
+class _ShareBtn extends StatefulWidget {
+  const _ShareBtn({required this.label, required this.enabled, required this.onPressed});
+  final String label;
+  final bool enabled;
+  final VoidCallback onPressed;
+
+  @override
+  State<_ShareBtn> createState() => _ShareBtnState();
+}
+
+class _ShareBtnState extends State<_ShareBtn> {
+  bool _pressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final active = widget.enabled;
+    return GestureDetector(
+      onTapDown: active ? (_) => setState(() => _pressed = true) : null,
+      onTapUp: active ? (_) { setState(() => _pressed = false); widget.onPressed(); } : null,
+      onTapCancel: () => setState(() => _pressed = false),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 80),
+        curve: Curves.easeOut,
+        transform: Matrix4.translationValues(0, _pressed ? 2.5 : 0, 0),
+        decoration: BoxDecoration(
+          color: active ? AppColors.primary : AppColors.primaryAlpha(0.12),
+          borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+          boxShadow: (_pressed || !active) ? [] : [
+            BoxShadow(
+              color: AppColors.primary.withValues(alpha: 0.45),
+              offset: const Offset(0, 3),
+              blurRadius: 0,
             ),
-            if (widget.neighborhoodName != null) ...[
-              const SizedBox(height: AppTheme.spaceXs),
-              Text(
-                context.l10n.referralNeighborhoodHook(widget.neighborhoodName!),
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: AppColors.textSecondary(isDark),
-                ),
-              ),
-            ],
-            const SizedBox(height: AppTheme.spaceMd),
-            // 3-step visual flow: Share → They join → You earn
-            Row(
-              children: [
-                Expanded(child: _ReferralStep(icon: Icons.share_outlined, label: context.l10n.referralStepShare)),
-                _ReferralStepArrow(),
-                Expanded(child: _ReferralStep(icon: Icons.person_add_outlined, label: context.l10n.referralStepJoin)),
-                _ReferralStepArrow(),
-                Expanded(child: _ReferralStep(icon: Icons.map_outlined, label: context.l10n.referralStepEarn)),
-              ],
-            ),
-            if (_conversions != null) ...[
-              const SizedBox(height: AppTheme.spaceXxs),
-              Text(
-                context.l10n.referralConversions(_conversions!),
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: _conversions! > 0
-                      ? AppColors.primary
-                      : AppColors.textSecondary(isDark),
-                ),
-              ),
-            ],
-            const SizedBox(height: AppTheme.spaceSm),
-            Container(
-              padding: const EdgeInsets.all(_kCodePad),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(_kCodeRadius),
-                color: AppColors.surfaceElevated(isDark),
-                border: Border.all(color: AppColors.border(isDark)),
-              ),
-              child: _buildCodeBar(
-                context: context,
-                theme: theme,
-                isDark: isDark,
-                referralCode: referralCode,
-                referralLink: referralLink,
-              ),
-            ),
-            if (_hasLoadError && !_isLoading) ...[
-              const SizedBox(height: AppTheme.spaceXxs),
-              Text(
-                context.l10n.errorGeneric,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.error,
-                ),
-              ),
-            ],
           ],
         ),
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppTheme.spaceSm + AppTheme.spaceXxxs,
+          vertical: AppTheme.spaceXs,
+        ),
+        child: Text(
+          widget.label,
+          style: Theme.of(context).textTheme.labelSmall?.copyWith(
+            fontWeight: AppFontWeights.semibold,
+            color: active ? Colors.white : AppColors.primaryAlpha(0.50),
+          ),
+        ),
       ),
-    );
-  }
-
-  Widget _buildCodeBar({
-    required BuildContext context,
-    required ThemeData theme,
-    required bool isDark,
-    required String? referralCode,
-    required String? referralLink,
-  }) {
-    return Row(
-      children: [
-        Expanded(
-          child: Text(
-            referralCode ?? (_hasLoadError ? context.l10n.errorGeneric : context.l10n.loading),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontFeatures: const [FontFeature.tabularFigures()],
-              fontWeight: AppFontWeights.semibold,
-              letterSpacing: 0.5,
-              color: AppColors.textPrimary(isDark),
-            ),
-          ),
-        ),
-        _buildCodeActions(
-          context: context,
-          referralCode: referralCode,
-          referralLink: referralLink,
-        ),
-      ],
-    );
-  }
-
-  Widget _buildCodeActions({
-    required BuildContext context,
-    required String? referralCode,
-    required String? referralLink,
-  }) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        if (_hasLoadError && !_isLoading)
-          IconButton(
-            tooltip: context.l10n.buttonRetry,
-            onPressed: _loadReferralData,
-            icon: const Icon(Icons.refresh, size: AppIconSizes.sm),
-          ),
-        TextButton.icon(
-          onPressed: referralLink == null
-              ? null
-              : () async {
-                  await Clipboard.setData(ClipboardData(text: referralLink));
-                  await ReferralService.instance.registerReferralInvite(
-                    referralCode: referralCode!,
-                  );
-                  if (context.mounted) {
-                    AppSnackbars.showInfo(context, context.l10n.referralLinkCopied);
-                  }
-                },
-          icon: const Icon(Icons.copy, size: AppIconSizes.xs),
-          label: Text(context.l10n.referralCopyLink),
-        ),
-        IconButton(
-          tooltip: context.l10n.referralShareLink,
-          onPressed: referralLink == null
-              ? null
-              : () async {
-                  await ReferralService.instance.registerReferralInvite(
-                    referralCode: referralCode!,
-                  );
-                  await SharePlus.instance.share(ShareParams(
-                    uri: Uri.parse(referralLink),
-                  ));
-                },
-          icon: const Icon(Icons.ios_share, size: AppIconSizes.sm),
-        ),
-      ],
     );
   }
 }
 
-class _ReferralStep extends StatelessWidget {
-  const _ReferralStep({required this.icon, required this.label});
+class _IconBtn extends StatelessWidget {
+  const _IconBtn({required this.icon, required this.onPressed});
   final IconData icon;
-  final String label;
+  final VoidCallback onPressed;
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Container(
-          width: _kStepCircleSize,
-          height: _kStepCircleSize,
-          decoration: BoxDecoration(
-            color: AppColors.primaryAlpha(0.18),
-            shape: BoxShape.circle,
-          ),
-          child: Icon(icon, size: AppIconSizes.sm, color: AppColors.primary),
+    return SizedBox(
+      width: 34, height: 34,
+      child: Material(
+        color: AppColors.primaryAlpha(0.10),
+        borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+          onTap: onPressed,
+          child: Icon(icon, size: AppIconSizes.xs, color: AppColors.primary),
         ),
-        const SizedBox(height: AppTheme.spaceXxs),
-        Text(
-          label,
-          textAlign: TextAlign.center,
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-          style: theme.textTheme.labelSmall?.copyWith(
-            color: theme.colorScheme.onSurface.withValues(alpha: 0.75),
-            fontWeight: AppFontWeights.medium,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _ReferralStepArrow extends StatelessWidget {
-  const _ReferralStepArrow();
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(
-        bottom: AppTheme.spaceMd,
-        left: _kStepArrowPad,
-        right: _kStepArrowPad,
-      ),
-      child: Icon(
-        Icons.arrow_forward_ios,
-        size: _kStepArrowIconSize,
-        color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.55),
       ),
     );
   }
