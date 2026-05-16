@@ -1,19 +1,4 @@
 {
-  "hooks": {
-    "PostToolUse": [
-      {
-        "matcher": "Write|Edit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "jq -r '.tool_input.file_path // \"\"' | grep -q '\\.arb$' && cd /c/Users/mathi/Documents/GitHub/greengains && /c/Users/mathi/flutter/bin/flutter gen-l10n 2>/dev/null || true",
-            "statusMessage": "Regenerating l10n...",
-            "async": true
-          }
-        ]
-      }
-    ]
-  },
   "permissions": {
     "allow": [
       "Bash(git *)",
@@ -45,8 +30,32 @@
       "WebSearch",
       "Read(//c/Users/mathi/Downloads/**)",
       "Read(//c/Users/mathi/Documents/Eremat/**)",
-      "Read(//c/Users/mathi/Documents/private/**)"
+      "Read(//c/Users/mathi/Documents/private/**)",
+      "Bash(/c/Users/mathi/AppData/Local/Android/Sdk/platform-tools/adb.exe devices *)",
+      "Bash(/c/Users/mathi/AppData/Local/Android/Sdk/platform-tools/adb.exe kill-server *)",
+      "Bash(/c/Users/mathi/AppData/Local/Android/Sdk/platform-tools/adb.exe start-server *)",
+      "Bash(grep -v \".dart:.*//.*TODO in comment\")",
+      "Bash(mv /c/Users/mathi/Documents/GitHub/greengains/FogOff /tmp/)",
+      "Bash(mv /c/Users/mathi/Documents/GitHub/greengains/dawarich /tmp/)",
+      "Bash(echo \"PID: $!\")",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\mathi\\\\Downloads\\\\Duolingo\\\\sources\\\\com\\\\duolingo\\\\\" -Recurse -Directory | Select-Object -First 30)",
+      "Bash(grep -n \"Colors\\\\\\\\.white\\\\|Colors\\\\\\\\.black\" c:/Users/mathi/Documents/GitHub/greengains/lib/widgets/coverage_map_widget.dart)"
     ],
     "deny": []
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -r '.tool_input.file_path // \"\"' | grep -q '\\.arb$' && cd /c/Users/mathi/Documents/GitHub/greengains && /c/Users/mathi/flutter/bin/flutter gen-l10n 2>/dev/null || true",
+            "statusMessage": "Regenerating l10n...",
+            "async": true
+          }
+        ]
+      }
+    ]
   }
 }

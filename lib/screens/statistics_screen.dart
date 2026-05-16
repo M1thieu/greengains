@@ -305,9 +305,11 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                   child: ListView(
                     padding: AppTheme.pagePadding.copyWith(top: AppTheme.spaceMd, bottom: bottomPad),
                     children: [
-                      // Verdict headline — plain-language week summary
-                      _withEntrance(_buildVerdictHeader(theme, isDark, l10n), 0),
-                      const SizedBox(height: AppTheme.spaceLg),
+                      // Verdict headline — plain-language week summary (skip while loading)
+                      if (_weeklyData != null) ...[
+                        _withEntrance(_buildVerdictHeader(theme, isDark, l10n), 0),
+                        const SizedBox(height: AppTheme.spaceLg),
+                      ],
                       // Hero — bare number
                       _withEntrance(_buildHeroCard(theme, isDark, l10n), 0),
                       // Weekly target — the hook: new zones this week
