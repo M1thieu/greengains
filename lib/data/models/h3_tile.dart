@@ -20,9 +20,15 @@ class H3Tile {
   final bool isGlobal;
 
   /// Sensor aggregates — only populated for personal tiles (from batch_json).
-  final int? avgLux;       // average illuminance (lux)
-  final double? avgHpa;    // average barometric pressure (hPa)
-  final double? avgMovement; // average accelerometer RMS
+  final int? avgLux;         // average illuminance (lux)
+  final double? avgHpa;      // average barometric pressure (hPa)
+  final double? avgMovement; // average accelerometer magnitude
+  /// Surface vibration / roughness score 0–1. Derived from accel std-dev.
+  /// 0 = completely still; 1 = heavy vibration (transit/rough road).
+  final double? avgVibration;
+  /// Fraction of readings that passed the weighted quality composite (0–1).
+  /// Only populated for personal tiles; global tiles use qualityScore instead.
+  final double? qualityRatio;
 
   const H3Tile({
     required this.h3Index,
@@ -37,6 +43,8 @@ class H3Tile {
     this.avgLux,
     this.avgHpa,
     this.avgMovement,
+    this.avgVibration,
+    this.qualityRatio,
   });
 
   /// Parses a tile from the backend API JSON.
@@ -75,9 +83,13 @@ class H3Tile {
       lastUpdate: lastUpdate,
       centroid: centroid,
       isGlobal: isGlobal,
-      avgLux: (json['avgLux'] as num?)?.toInt(),
-      avgHpa: (json['avgHpa'] as num?)?.toDouble(),
-      avgMovement: (json['avgMovement'] as num?)?.toDouble(),
+      avgLux:       (json['avgLux']       as num?)?.toInt(),
+      avgHpa:       (json['avgHpa']       as num?)?.toDouble(),
+      avgMovement:  (json['avgMovement']  as num?)?.toDouble(),
+      // personal tiles send avgVibration; global tiles send vibrationScore
+      avgVibration: (json['avgVibration'] as num?)?.toDouble()
+                 ?? (json['vibrationScore'] as num?)?.toDouble(),
+      qualityRatio: (json['qualityRatio'] as num?)?.toDouble(),
     );
   }
 }

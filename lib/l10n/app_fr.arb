@@ -31,6 +31,12 @@
   "navSettings": "Paramètres",
 
   "homeTitle": "GreenGains",
+  "homeIdleTagline": "Ton quartier, cartographié par toi",
+  "homeIdleSubtitle": "Marche où tu veux — ton téléphone lit la lumière, la pression et le mouvement.",
+  "homeActionStart": "Commencer",
+  "homeActionPause": "Pause",
+  "homeActionResume": "Reprendre",
+  "homeActionStop": "Arrêter",
   "startTracking": "Démarrer le suivi",
   "stopTracking": "Arrêter le suivi",
   "trackingActive": "Suivi actif",
@@ -91,6 +97,7 @@
   "settingsLanguageSystem": "Système",
   "settingsLanguageEnglish": "English",
   "settingsLanguageFrench": "Français",
+  "settingsDisplay": "Affichage",
   "settingsTheme": "Thème",
   "settingsLocationSharing": "Partage de position",
   "settingsMobileData": "Envoi sur données mobiles",
@@ -192,6 +199,17 @@
   "statsBarCalloutBest": "Meilleur jour",
   "statsBestDayLabel": "Meilleur jour",
   "statsAvgPerDay": "Moy. / jour",
+  "statsVerdictStrong": "Excellente semaine",
+  "statsVerdictGood": "Bonne semaine",
+  "statsVerdictSlow": "Semaine calme",
+  "statsVerdictNone": "Pas encore de données cette semaine",
+  "statsVerdictSubStrong": "Tu as cartographié {days} jours sur 7 — continue comme ça.",
+  "@statsVerdictSubStrong": { "placeholders": { "days": { "type": "int" } } },
+  "statsVerdictSubGood": "Tu as cartographié {days} jours sur 7.",
+  "@statsVerdictSubGood": { "placeholders": { "days": { "type": "int" } } },
+  "statsVerdictSubSlow": "Seulement {days} jour cette semaine. Une petite marche aide.",
+  "@statsVerdictSubSlow": { "placeholders": { "days": { "type": "int" } } },
+  "statsVerdictSubNone": "Ouvre la carte et appuie sur Commencer pour contribuer.",
   "statsWeeklyTargetLabel": "NOUVEAUX ENDROITS CETTE SEMAINE",
   "statsWeeklyTargetComplete": "Objectif hebdomadaire atteint",
   "statsWeeklyTargetRemaining": "{count} de plus pour atteindre ton objectif",
@@ -748,6 +766,7 @@
     "placeholders": { "count": { "type": "int" } }
   },
   "mappingActiveSheetCta": "Ouvrir la carte",
+  "mappingActiveSheetStop": "Arrêter la cartographie",
 
   "homeStreakBadge": "{count, plural, =1{1 jour de suite} other{{count} jours de suite}}",
   "@homeStreakBadge": {
@@ -772,6 +791,16 @@
   "referralWaiting": "Lien envoyé. En attente de ton premier voisin.",
   "referralFirstJoined": "Premier voisin rejoint.",
   "referralShareAgain": "Partager à nouveau",
+  "referralShareText": "Rejoins-moi sur GreenGains — on cartographie notre quartier. Utilise mon code d'invitation {code} quand tu t'inscris.",
+  "@referralShareText": {
+    "placeholders": {
+      "code": { "type": "String" }
+    }
+  },
+
+  "onboardingHaveCode": "Tu as un code d'invitation ?",
+  "onboardingCodeHint": "Entrer le code (ex. GG-XXXXX)",
+  "onboardingCodeApplied": "Code d'invitation appliqué.",
 
   "profileUnlockTitle": "Ta carte est en train d'être sauvegardée.",
   "profileUnlockBody": "Connecte-toi pour la conserver et la synchroniser sur tous tes appareils.",

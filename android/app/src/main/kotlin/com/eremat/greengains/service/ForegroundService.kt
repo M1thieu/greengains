@@ -185,20 +185,29 @@ class ForegroundService : Service() {
         locationCallback = object : LocationCallback() {
             override fun onLocationResult(locationResult: LocationResult) {
                 locationResult.lastLocation?.let { location ->
+                    // Accuracy filter: readings worse than 50m are too noisy for stable H3 res-9
+                    // cell assignment (~174m edge). ~50m accuracy = 95th-percentile open-sky GPS.
+                    // STATIONARY mode uses BALANCED_POWER (~100m) so threshold loosens to 150m.
+                    val accuracyThreshold = if (currentMotionState == MotionState.STATIONARY) 150f else 50f
+                    if (location.hasAccuracy() && location.accuracy > accuracyThreshold) {
+                        Log.d(TAG, "GPS accuracy rejected: ${location.accuracy.toInt()}m > ${accuracyThreshold.toInt()}m")
+                        return@let
+                    }
+
                     val prev = lastAcceptedLocation
                     if (prev != null) {
                         val dtMs = location.time - prev.time
                         val distM = prev.distanceTo(location)
                         // Reject physically impossible jumps: > 300 m/s (1080 km/h) is a GPS glitch.
-                        // Legitimate fast travel (highway, train) is well under this threshold.
                         val speedMs = if (dtMs > 0) distM / (dtMs / 1000.0) else 0.0
                         if (speedMs > MAX_PLAUSIBLE_SPEED_MS) {
-                            Log.w(TAG, "GPS jump rejected: ${speedMs.toInt()} m/s from (${prev.latitude},${prev.longitude}) to (${location.latitude},${location.longitude})")
+                            Log.w(TAG, "GPS jump rejected: ${speedMs.toInt()} m/s")
                             return@let
                         }
+
                     }
                     lastAcceptedLocation = location
-                    Log.d(TAG, "Location accepted: lat=${location.latitude}, lon=${location.longitude}, accuracy=${location.accuracy}m, provider=${location.provider}")
+                    Log.d(TAG, "Location accepted: lat=${location.latitude}, lon=${location.longitude}, accuracy=${location.accuracy}m")
                     _locationFlow.value = location
                 }
             }

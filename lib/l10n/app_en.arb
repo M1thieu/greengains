@@ -31,6 +31,12 @@
   "navSettings": "Settings",
 
   "homeTitle": "GreenGains",
+  "homeIdleTagline": "Your neighborhood, mapped by you",
+  "homeIdleSubtitle": "Walk anywhere — your phone reads light, pressure, and motion.",
+  "homeActionStart": "Start mapping",
+  "homeActionPause": "Pause",
+  "homeActionResume": "Resume",
+  "homeActionStop": "Stop",
   "startTracking": "Start Tracking",
   "stopTracking": "Stop Tracking",
   "trackingActive": "Tracking Active",
@@ -91,6 +97,7 @@
   "settingsLanguageSystem": "System",
   "settingsLanguageEnglish": "English",
   "settingsLanguageFrench": "Français",
+  "settingsDisplay": "Display",
   "settingsTheme": "Theme",
   "settingsLocationSharing": "Location Sharing",
   "settingsMobileData": "Mobile Data Upload",
@@ -192,6 +199,17 @@
   "statsBarCalloutBest": "Best day",
   "statsBestDayLabel": "Best day",
   "statsAvgPerDay": "Avg / day",
+  "statsVerdictStrong": "Strong week",
+  "statsVerdictGood": "Good week",
+  "statsVerdictSlow": "Slow week",
+  "statsVerdictNone": "No data yet this week",
+  "statsVerdictSubStrong": "You mapped {days} of 7 days — keep it up.",
+  "@statsVerdictSubStrong": { "placeholders": { "days": { "type": "int" } } },
+  "statsVerdictSubGood": "You mapped {days} of 7 days.",
+  "@statsVerdictSubGood": { "placeholders": { "days": { "type": "int" } } },
+  "statsVerdictSubSlow": "Only {days} day this week. A short walk helps.",
+  "@statsVerdictSubSlow": { "placeholders": { "days": { "type": "int" } } },
+  "statsVerdictSubNone": "Open the map and tap Start to contribute.",
   "statsWeeklyTargetLabel": "NEW PLACES THIS WEEK",
   "statsWeeklyTargetComplete": "Weekly goal reached",
   "statsWeeklyTargetRemaining": "{count} more to reach your weekly goal",
@@ -748,6 +766,7 @@
     "placeholders": { "count": { "type": "int" } }
   },
   "mappingActiveSheetCta": "Open map",
+  "mappingActiveSheetStop": "Stop mapping",
 
   "homeStreakBadge": "{count, plural, =1{1 day streak} other{{count} day streak}}",
   "@homeStreakBadge": {
@@ -772,6 +791,16 @@
   "referralWaiting": "Link sent. Waiting for your first neighbor.",
   "referralFirstJoined": "First neighbor joined.",
   "referralShareAgain": "Share again",
+  "referralShareText": "Join me on GreenGains — we're mapping our neighborhood's air, light & sound. Use my invite code {code} when you sign up.",
+  "@referralShareText": {
+    "placeholders": {
+      "code": { "type": "String" }
+    }
+  },
+
+  "onboardingHaveCode": "Got an invite code?",
+  "onboardingCodeHint": "Enter invite code (e.g. GG-XXXXX)",
+  "onboardingCodeApplied": "Invite code applied.",
 
   "profileUnlockTitle": "Your map is saving.",
   "profileUnlockBody": "Sign in to keep it forever and sync across devices.",

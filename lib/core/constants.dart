@@ -48,3 +48,13 @@ const kCoarseGpsTimeout = Duration(seconds: 5);
 const kReviewRequestThreshold = 5;
 /// Minimum gap between battery-optimisation prompt appearances.
 const kBatteryPromptInterval = Duration(days: 2);
+
+
+// ─── H3 / Coverage Geometry ──────────────────────────────────────────────────
+/// Approximate area of one H3 res-9 cell in km² (≈ 0.1053 km²).
+/// Used to convert cell counts to human-readable area.
+const kKm2PerCell = 0.1053;
+
+/// Approximate area of one city block in km² (≈ 0.0092 km²).
+/// Used to express coverage in a relatable unit.
+const kKm2PerCityBlock = 0.0092;

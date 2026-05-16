@@ -21,7 +21,6 @@ import '../utils/app_snackbars.dart';
 import '../core/app_preferences.dart';
 import '../widgets/coverage_map_widget.dart';
 import '../widgets/tracking_status_chip.dart';
-import '../widgets/tracking_fab.dart';
 import '../widgets/sensor_section.dart';
 import '../data/repositories/contribution_repository.dart';
 
@@ -52,7 +51,7 @@ const _kLiveCellResolution = 9;
 ///   0. CoverageMapWidget (edge-to-edge background)
 ///   1. Status chip (top overlay)
 ///   2. Map legend (top-right overlay)
-///   3. TrackingFab + MyLocationButton (bottom overlay)
+///   3. Bottom action bar + MyLocationButton
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key, this.onGoToStats, this.onOpenProfile});
   final VoidCallback? onGoToStats;
@@ -252,6 +251,74 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     final lost = permission == LocationPermission.denied ||
         permission == LocationPermission.deniedForever;
     if (mounted && lost != _permissionLost) setState(() => _permissionLost = lost);
+  }
+
+  // ── Bottom action bar controls ──────────────────────────────────────────────
+
+  bool _actionBusy = false;
+
+  Future<bool> _requestAndCheckPermission() async {
+    final current = await Geolocator.checkPermission();
+    if (current == LocationPermission.deniedForever) {
+      if (mounted) AppSnackbars.showInfo(context, context.l10n.permissionLocationMessage);
+      return false;
+    }
+    final granted = await Geolocator.requestPermission();
+    if (granted == LocationPermission.denied || granted == LocationPermission.deniedForever) {
+      if (mounted) AppSnackbars.showInfo(context, context.l10n.permissionLocationMessage);
+      return false;
+    }
+    return true;
+  }
+
+  Future<void> _actionStart() async {
+    if (_actionBusy) return;
+    setState(() => _actionBusy = true);
+    try {
+      final granted = await _requestAndCheckPermission();
+      if (!granted || !mounted) return;
+      HapticFeedback.mediumImpact();
+      await _prefs.setShareLocation(true);
+      await _locationService.start();
+    } catch (_) {
+      if (mounted) AppSnackbars.showError(context, context.l10n.trackingErrorUpdateFailed);
+    } finally {
+      if (mounted) setState(() => _actionBusy = false);
+    }
+  }
+
+  Future<void> _actionPause() async {
+    if (_actionBusy) return;
+    setState(() => _actionBusy = true);
+    try {
+      HapticFeedback.lightImpact();
+      await _locationService.pauseTracking();
+    } finally {
+      if (mounted) setState(() => _actionBusy = false);
+    }
+  }
+
+  Future<void> _actionResume() async {
+    if (_actionBusy) return;
+    setState(() => _actionBusy = true);
+    try {
+      HapticFeedback.lightImpact();
+      await _locationService.resumeTracking();
+    } finally {
+      if (mounted) setState(() => _actionBusy = false);
+    }
+  }
+
+  Future<void> _actionStop() async {
+    if (_actionBusy) return;
+    setState(() => _actionBusy = true);
+    try {
+      HapticFeedback.heavyImpact();
+      await _locationService.stop();
+      await _prefs.setShareLocation(false);
+    } finally {
+      if (mounted) setState(() => _actionBusy = false);
+    }
   }
 
   Future<void> _checkBatteryOptimization() async {
@@ -923,7 +990,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               Positioned(
                 left: AppTheme.spaceMd,
                 right: AppTheme.spaceMd,
-                bottom: bottomPadding + AppTheme.floatingNavHeight + AppTheme.spaceLg + 64,
+                bottom: bottomPadding + AppTheme.floatingNavHeight + _kActionBarHeight + AppTheme.spaceMd,
                 child: _PermissionLostCard(
                   onFix: () async {
                     await Geolocator.openAppSettings();
@@ -931,31 +998,36 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 ),
               ),
 
-            // ── 2. Layer toggle + FAB (center-bottom, above floating nav bar) ─
+            // ── 2. Bottom action bar ──────────────────────────────────────
             Positioned(
               left: 0,
               right: 0,
-              bottom: bottomPadding + AppTheme.floatingNavHeight + AppTheme.spaceLg,
-              child: Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // Layer toggle — only when community tiles exist
-                    if (_globalTiles.isNotEmpty)
-                      _LayerToggle(
-                        showCommunity: _showCommunity,
-                        onChanged: (val) => setState(() => _showCommunity = val),
-                      ),
-                    if (_globalTiles.isNotEmpty) const SizedBox(height: AppTheme.spaceSm),
-                    Semantics(
-                      button: true,
-                      label: context.l10n.semanticsToggleTracking,
-                      child: TrackingFab(
-                        newZones: (_claimedTileCount - _sessionStartZoneCount).clamp(0, 999),
-                      ),
-                    ),
-                  ],
-                ),
+              bottom: 0,
+              child: ListenableBuilder(
+                listenable: Listenable.merge([
+                  _locationService.isRunning,
+                  _locationService.isPaused,
+                ]),
+                builder: (context, _) {
+                  final isRunning = _locationService.isRunning.value;
+                  final isPaused  = _locationService.isPaused.value;
+                  final isActive  = isRunning && !isPaused;
+                  return _HomeActionBar(
+                    isRunning: isRunning,
+                    isPaused: isPaused,
+                    isActive: isActive,
+                    isBusy: _actionBusy,
+                    hasTiles: _h3Tiles.isNotEmpty,
+                    bottomPadding: bottomPadding + AppTheme.floatingNavHeight,
+                    showCommunity: _showCommunity,
+                    hasGlobalTiles: _globalTiles.isNotEmpty,
+                    onLayerToggle: (val) => setState(() => _showCommunity = val),
+                    onStart: _actionStart,
+                    onPause: _actionPause,
+                    onResume: _actionResume,
+                    onStop: _actionStop,
+                  );
+                },
               ),
             ),
 
@@ -978,14 +1050,14 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 },
               ),
 
-            // ── 3. My Location button (bottom-left) ───────────────────────
+            // ── 3. My Location button (bottom-left, above action bar) ─────
             ValueListenableBuilder<LatLng?>(
               valueListenable: _userLocationNotifier,
               builder: (context, userLocation, _) {
                 if (userLocation == null) return const SizedBox.shrink();
                 return Positioned(
                   left: AppTheme.spaceMd,
-                  bottom: bottomPadding + AppTheme.floatingNavHeight + AppTheme.spaceLg,
+                  bottom: bottomPadding + AppTheme.floatingNavHeight + _kActionBarHeight + AppTheme.spaceSm,
                   child: Semantics(
                     button: true,
                     label: context.l10n.semanticsCenterOnMe,
@@ -1003,6 +1075,201 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     );
   }
 }
+
+// ─── Constants ───────────────────────────────────────────────────────────────
+
+// Approximate height of the action bar content (gradient + buttons).
+// Used to position overlapping controls (My Location, permission banner) above it.
+const _kActionBarHeight = 112.0;
+
+// ─── Bottom action bar ────────────────────────────────────────────────────────
+
+class _HomeActionBar extends StatelessWidget {
+  const _HomeActionBar({
+    required this.isRunning,
+    required this.isPaused,
+    required this.isActive,
+    required this.isBusy,
+    required this.hasTiles,
+    required this.bottomPadding,
+    required this.showCommunity,
+    required this.hasGlobalTiles,
+    required this.onLayerToggle,
+    required this.onStart,
+    required this.onPause,
+    required this.onResume,
+    required this.onStop,
+  });
+
+  final bool isRunning;
+  final bool isPaused;
+  final bool isActive;
+  final bool isBusy;
+  final bool hasTiles;
+  final double bottomPadding;
+  final bool showCommunity;
+  final bool hasGlobalTiles;
+  final ValueChanged<bool> onLayerToggle;
+  final VoidCallback onStart;
+  final VoidCallback onPause;
+  final VoidCallback onResume;
+  final VoidCallback onStop;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final theme = Theme.of(context);
+
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.bottomCenter,
+          end: Alignment.topCenter,
+          colors: [Color(0xF00a1316), Color(0x000a1316)],
+          stops: [0.55, 1.0],
+        ),
+      ),
+      padding: EdgeInsets.fromLTRB(
+        AppTheme.spaceMd,
+        AppTheme.spaceLg + AppTheme.spaceXl,
+        AppTheme.spaceMd,
+        bottomPadding + AppTheme.spaceMd,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Idle only: tagline — only shown when user has no tiles yet (first-time feel)
+          if (!isRunning && !hasTiles) ...[
+            Text(
+              l10n.homeIdleTagline,
+              style: theme.textTheme.titleMedium?.copyWith(
+                color: Colors.white,
+                fontWeight: AppFontWeights.semibold,
+                letterSpacing: -0.2,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: AppTheme.spaceXxs),
+            Text(
+              l10n.homeIdleSubtitle,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: Colors.white60,
+                height: AppLineHeights.normal,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: AppTheme.spaceMd),
+          ],
+
+          // Layer toggle (when community tiles exist)
+          if (hasGlobalTiles && !isRunning) ...[
+            _LayerToggle(showCommunity: showCommunity, onChanged: onLayerToggle),
+            const SizedBox(height: AppTheme.spaceSm),
+          ],
+
+          // Buttons
+          if (!isRunning)
+            _ActionButton.primary(
+              label: l10n.homeActionStart,
+              busy: isBusy,
+              onPressed: onStart,
+            )
+          else
+            Row(
+              children: [
+                Expanded(
+                  child: isPaused
+                      ? _ActionButton.primary(label: l10n.homeActionResume, busy: isBusy, onPressed: onResume)
+                      : _ActionButton.secondary(label: l10n.homeActionPause, busy: isBusy, onPressed: onPause),
+                ),
+                const SizedBox(width: AppTheme.spaceSm),
+                Expanded(
+                  child: _ActionButton.danger(label: l10n.homeActionStop, busy: isBusy, onPressed: onStop),
+                ),
+              ],
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ActionButton extends StatelessWidget {
+  const _ActionButton._({
+    required this.label,
+    required this.busy,
+    required this.onPressed,
+    required this.style,
+  });
+
+  factory _ActionButton.primary({required String label, required bool busy, required VoidCallback onPressed}) =>
+      _ActionButton._(label: label, busy: busy, onPressed: onPressed, style: _ActionBtnStyle.primary);
+  factory _ActionButton.secondary({required String label, required bool busy, required VoidCallback onPressed}) =>
+      _ActionButton._(label: label, busy: busy, onPressed: onPressed, style: _ActionBtnStyle.secondary);
+  factory _ActionButton.danger({required String label, required bool busy, required VoidCallback onPressed}) =>
+      _ActionButton._(label: label, busy: busy, onPressed: onPressed, style: _ActionBtnStyle.danger);
+
+  final String label;
+  final bool busy;
+  final VoidCallback onPressed;
+  final _ActionBtnStyle style;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    final bgColor = switch (style) {
+      _ActionBtnStyle.primary   => AppColors.primary,
+      _ActionBtnStyle.secondary => AppColors.surfaceElevated(true),
+      _ActionBtnStyle.danger    => AppColors.surfaceElevated(true),
+    };
+    final fgColor = switch (style) {
+      _ActionBtnStyle.primary   => const Color(0xFF04221a),
+      _ActionBtnStyle.secondary => Colors.white,
+      _ActionBtnStyle.danger    => AppColors.error,
+    };
+    final borderColor = switch (style) {
+      _ActionBtnStyle.primary   => Colors.transparent,
+      _ActionBtnStyle.secondary => Colors.white12,
+      _ActionBtnStyle.danger    => AppColors.error.withValues(alpha: 0.3),
+    };
+
+    return SizedBox(
+      width: double.infinity,
+      height: 52,
+      child: Material(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+        child: InkWell(
+          onTap: busy ? null : onPressed,
+          borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+              border: Border.all(color: borderColor, width: 0.5),
+            ),
+            alignment: Alignment.center,
+            child: busy
+                ? SizedBox(
+                    width: 18, height: 18,
+                    child: CircularProgressIndicator(strokeWidth: 2, color: fgColor),
+                  )
+                : Text(
+                    label,
+                    style: theme.textTheme.labelLarge?.copyWith(
+                      color: fgColor,
+                      fontWeight: AppFontWeights.semibold,
+                      letterSpacing: -0.1,
+                    ),
+                  ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+enum _ActionBtnStyle { primary, secondary, danger }
 
 // ─── Private widgets ────────────────────────────────────────────────────────
 

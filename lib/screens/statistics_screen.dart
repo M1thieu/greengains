@@ -305,6 +305,9 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                   child: ListView(
                     padding: AppTheme.pagePadding.copyWith(top: AppTheme.spaceMd, bottom: bottomPad),
                     children: [
+                      // Verdict headline — plain-language week summary
+                      _withEntrance(_buildVerdictHeader(theme, isDark, l10n), 0),
+                      const SizedBox(height: AppTheme.spaceLg),
                       // Hero — bare number
                       _withEntrance(_buildHeroCard(theme, isDark, l10n), 0),
                       // Weekly target — the hook: new zones this week
@@ -341,6 +344,64 @@ class _StatisticsScreenState extends State<StatisticsScreen>
       if (_showWeeklyCelebration)
         _WeeklyGoalCelebration(onDismiss: () => setState(() => _showWeeklyCelebration = false)),
     ],
+    );
+  }
+
+  // ─── Verdict header ──────────────────────────────────────────────────────────
+
+  Widget _buildVerdictHeader(ThemeData theme, bool isDark, AppLocalizations l10n) {
+    final weekly = _weeklyData ?? [];
+    final daysActive = weekly.where((v) => v > 0).length;
+    final weekSum = weekly.fold(0, (a, b) => a + b);
+
+    final String headline;
+    final String sub;
+
+    if (weekSum == 0) {
+      headline = l10n.statsVerdictNone;
+      sub = l10n.statsVerdictSubNone;
+    } else if (daysActive >= 5) {
+      headline = l10n.statsVerdictStrong;
+      sub = l10n.statsVerdictSubStrong(daysActive);
+    } else if (daysActive >= 3) {
+      headline = l10n.statsVerdictGood;
+      sub = l10n.statsVerdictSubGood(daysActive);
+    } else {
+      headline = l10n.statsVerdictSlow;
+      sub = l10n.statsVerdictSubSlow(daysActive);
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          l10n.statsThisWeek.toUpperCase(),
+          style: TextStyle(
+            fontSize: AppTheme.fontSizeNavLabel,
+            fontWeight: AppFontWeights.semibold,
+            color: AppColors.textTertiary(isDark),
+            letterSpacing: _kLetterSpacingCaps,
+          ),
+        ),
+        const SizedBox(height: AppTheme.spaceXxxs),
+        Text(
+          headline,
+          style: theme.textTheme.headlineMedium?.copyWith(
+            fontWeight: AppFontWeights.bold,
+            letterSpacing: -0.5,
+            color: AppColors.textPrimary(isDark),
+            height: 1.1,
+          ),
+        ),
+        const SizedBox(height: AppTheme.spaceXxs),
+        Text(
+          sub,
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: AppColors.textSecondary(isDark),
+            height: AppLineHeights.normal,
+          ),
+        ),
+      ],
     );
   }
 

@@ -3,7 +3,7 @@ allprojects {
         google()
         mavenCentral()
     }
-    // Force older library versions that are compatible with AGP 8.6.0
+    // Force library versions compatible with AGP 8.6.0
     configurations.configureEach {
         resolutionStrategy {
             force 'androidx.browser:browser:1.8.0'
@@ -13,14 +13,16 @@ allprojects {
     }
 }
 
-rootProject.buildDir = "../build"
+// Redirect build output to project root /build so Flutter can find the APK.
+// Uses the Gradle 8.x Provider API instead of the deprecated buildDir property.
+rootProject.layout.buildDirectory.set(file("../build"))
 subprojects {
-    project.buildDir = "${rootProject.buildDir}/${project.name}"
+    layout.buildDirectory.set(rootProject.layout.buildDirectory.dir(project.name))
 }
 subprojects {
     project.evaluationDependsOn(":app")
 }
 
 tasks.register("clean", Delete) {
-    delete rootProject.buildDir
+    delete rootProject.layout.buildDirectory
 }

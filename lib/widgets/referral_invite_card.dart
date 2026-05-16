@@ -89,9 +89,10 @@ class _ReferralInviteCardState extends State<ReferralInviteCard> {
   Future<void> _share() async {
     final code = _referralCode;
     if (code == null) return;
-    final link = 'https://greengains.eremat.org/invite/$code';
+    final l10n = context.l10n;
+    final text = l10n.referralShareText(code);
     await ReferralService.instance.registerReferralInvite(referralCode: code);
-    await SharePlus.instance.share(ShareParams(uri: Uri.parse(link)));
+    await SharePlus.instance.share(ShareParams(text: text));
     if (!mounted) return;
     unawaited(AppPreferences.instance.setReferralShared());
     setState(() => _hasShared = true);

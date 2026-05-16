@@ -214,6 +214,41 @@ class AppDurations {
   static const Duration medium = Duration(milliseconds: 600);
   static const Duration slow = Duration(milliseconds: 900);
   static const Duration pageTransition = Duration(milliseconds: 200);
+  static const Duration shimmer = Duration(milliseconds: 750);
+}
+
+/// Border and stroke widths
+class AppBorderWidths {
+  AppBorderWidths._();
+
+  static const double hairline   = 0.5; // subtle container borders
+  static const double thin       = 1.0; // standard dividers
+  static const double medium     = 1.5; // emphasis borders
+  static const double thick      = 3.0; // accent stripes (kpi cards)
+  static const double spinner    = 2.0; // circular progress indicators
+  static const double ringStroke = 4.5; // milestone ring painter
+}
+
+/// Opacity scale for consistent alpha usage
+class AppOpacity {
+  AppOpacity._();
+
+  static const double disabled  = 0.38;
+  static const double hint      = 0.55;
+  static const double secondary = 0.65;
+  static const double subtle    = 0.75;
+  static const double overlay   = 0.85;
+}
+
+/// Animation slide/offset distances (dp) for enter/exit transitions
+class AppOffsets {
+  AppOffsets._();
+
+  static const double slideXs  = 8.0;
+  static const double slideSm  = 12.0;
+  static const double slideMd  = 18.0;  // standard enter-from-bottom
+  static const double slideLg  = 28.0;  // hero / page-level transitions
+  static const double shadowY  = 2.0;   // standard shadow y-offset
 }
 
 /// Text shadow presets for premium look on floating elements
@@ -328,11 +363,22 @@ class AppMotion {
 class AppIconSizes {
   AppIconSizes._();
 
-  static const double xs = 16;
-  static const double sm = 20;
-  static const double md = 24;
-  static const double lg = 32;
-  static const double xl = 48;
+  static const double xxs = 14;
+  static const double xs  = 16;
+  static const double sm  = 20;
+  static const double md  = 24;
+  static const double lg  = 32;
+  static const double xl  = 48;
+}
+
+/// Line-height (height) scale for Text widgets
+class AppLineHeights {
+  AppLineHeights._();
+
+  static const double tight   = 1.1; // display numbers, headings
+  static const double snug    = 1.3; // card body copy
+  static const double normal  = 1.4; // default body
+  static const double relaxed = 1.5; // longer paragraphs
 }
 
 class AppTheme {
@@ -367,6 +413,10 @@ class AppTheme {
   // Floating nav bar
   static const double floatingNavHeight = 64;
   static const double fontSizeNavLabel  = 10.0; // sub-caption, below bodySmall(12)
+
+  // Sub-body font sizes (below Material bodySmall=12)
+  static const double fontSizeXs = 11.0; // labelSmall equivalent — captions, badges
+  static const double fontSizeSm = 13.0; // between bodySmall(12) and bodyMedium(14)
 
   // Glass UI constants (BackdropFilter + frosted container)
   static const double glassBlurSigma = 16.0; // consistent across all glass overlays
@@ -461,8 +511,6 @@ class AppTheme {
   }
 
   /// KPI card decoration — flat surface with a colored left-border accent.
-  /// Used for stat tiles across profile, statistics, and any metric display.
-  /// Matches the dashboard aesthetic (Linear / Vercel style).
   static BoxDecoration kpiCard({
     required bool isDark,
     Color accentColor = AppColors.primary,

@@ -82,6 +82,25 @@ class AppLocalizationsFr extends AppLocalizations {
   String get homeTitle => 'GreenGains';
 
   @override
+  String get homeIdleTagline => 'Ton quartier, cartographié par toi';
+
+  @override
+  String get homeIdleSubtitle =>
+      'Marche où tu veux — ton téléphone lit la lumière, la pression et le mouvement.';
+
+  @override
+  String get homeActionStart => 'Commencer';
+
+  @override
+  String get homeActionPause => 'Pause';
+
+  @override
+  String get homeActionResume => 'Reprendre';
+
+  @override
+  String get homeActionStop => 'Arrêter';
+
+  @override
   String get startTracking => 'Démarrer le suivi';
 
   @override
@@ -197,6 +216,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settingsLanguageFrench => 'Français';
+
+  @override
+  String get settingsDisplay => 'Affichage';
 
   @override
   String get settingsTheme => 'Thème';
@@ -452,6 +474,37 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get statsAvgPerDay => 'Moy. / jour';
+
+  @override
+  String get statsVerdictStrong => 'Excellente semaine';
+
+  @override
+  String get statsVerdictGood => 'Bonne semaine';
+
+  @override
+  String get statsVerdictSlow => 'Semaine calme';
+
+  @override
+  String get statsVerdictNone => 'Pas encore de données cette semaine';
+
+  @override
+  String statsVerdictSubStrong(int days) {
+    return 'Tu as cartographié $days jours sur 7 — continue comme ça.';
+  }
+
+  @override
+  String statsVerdictSubGood(int days) {
+    return 'Tu as cartographié $days jours sur 7.';
+  }
+
+  @override
+  String statsVerdictSubSlow(int days) {
+    return 'Seulement $days jour cette semaine. Une petite marche aide.';
+  }
+
+  @override
+  String get statsVerdictSubNone =>
+      'Ouvre la carte et appuie sur Commencer pour contribuer.';
 
   @override
   String get statsWeeklyTargetLabel => 'NOUVEAUX ENDROITS CETTE SEMAINE';
@@ -1737,6 +1790,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get mappingActiveSheetCta => 'Ouvrir la carte';
 
   @override
+  String get mappingActiveSheetStop => 'Arrêter la cartographie';
+
+  @override
   String homeStreakBadge(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -1792,6 +1848,20 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get referralShareAgain => 'Partager à nouveau';
+
+  @override
+  String referralShareText(String code) {
+    return 'Rejoins-moi sur GreenGains — on cartographie notre quartier. Utilise mon code d\'invitation $code quand tu t\'inscris.';
+  }
+
+  @override
+  String get onboardingHaveCode => 'Tu as un code d\'invitation ?';
+
+  @override
+  String get onboardingCodeHint => 'Entrer le code (ex. GG-XXXXX)';
+
+  @override
+  String get onboardingCodeApplied => 'Code d\'invitation appliqué.';
 
   @override
   String get profileUnlockTitle => 'Ta carte est en train d\'être sauvegardée.';

@@ -16,6 +16,7 @@ import '../l10n/app_localizations.dart';
 import '../services/auth/auth_service.dart';
 import '../services/location/foreground_location_service.dart';
 import '../services/network/backend_client.dart';
+import '../services/referral/referral_service.dart';
 import '../core/constants.dart';
 import '../utils/app_snackbars.dart';
 import 'webview_screen.dart';
@@ -48,6 +49,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   bool _signingIn = false;
   bool _startingTracking = false;
   int? _activeMappers; // null = not yet loaded / failed
+  bool _showCodeField = false;
+  String _inviteCode = '';
+  final _codeController = TextEditingController();
 
   @override
   void initState() {
@@ -68,6 +72,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   @override
   void dispose() {
     _pageController.dispose();
+    _codeController.dispose();
     super.dispose();
   }
 
@@ -107,6 +112,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           // Non-critical — consent date will be set on next successful call.
         }),
       );
+
+      // If the user entered an invite code, convert it fire-and-forget.
+      final code = _inviteCode.trim().toUpperCase();
+      if (code.isNotEmpty) {
+        unawaited(
+          ReferralService.instance.registerReferralOpen(referralCode: code),
+        );
+      }
 
       AppSnackbars.showSuccess(context, l10n.signInSuccess);
       await Future.delayed(AppDurations.medium);
@@ -464,6 +477,44 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             }),
 
             const SizedBox(height: AppTheme.spaceLg),
+
+            // Invite code — optional, collapsed by default
+            AnimatedSize(
+              duration: AppDurations.fast,
+              curve: AppMotion.standard,
+              child: _showCodeField
+                  ? Padding(
+                      padding: const EdgeInsets.only(bottom: AppTheme.spaceSm),
+                      child: TextField(
+                        controller: _codeController,
+                        textCapitalization: TextCapitalization.characters,
+                        decoration: InputDecoration(
+                          hintText: l10n.onboardingCodeHint,
+                          isDense: true,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: AppTheme.spaceSm,
+                            vertical: AppTheme.spaceXs + AppTheme.spaceXxs,
+                          ),
+                        ),
+                        onChanged: (v) => _inviteCode = v,
+                        style: theme.textTheme.bodySmall,
+                      ),
+                    )
+                  : GestureDetector(
+                      onTap: () => setState(() => _showCodeField = true),
+                      child: Padding(
+                        padding: const EdgeInsets.only(bottom: AppTheme.spaceSm),
+                        child: Text(
+                          l10n.onboardingHaveCode,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: AppColors.primary,
+                            decoration: TextDecoration.underline,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+            ),
 
             // Official Google Sign-In Button — full-width
             SizedBox(

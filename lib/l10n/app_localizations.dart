@@ -230,6 +230,42 @@ abstract class AppLocalizations {
   /// **'GreenGains'**
   String get homeTitle;
 
+  /// No description provided for @homeIdleTagline.
+  ///
+  /// In en, this message translates to:
+  /// **'Your neighborhood, mapped by you'**
+  String get homeIdleTagline;
+
+  /// No description provided for @homeIdleSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Walk anywhere — your phone reads light, pressure, and motion.'**
+  String get homeIdleSubtitle;
+
+  /// No description provided for @homeActionStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Start mapping'**
+  String get homeActionStart;
+
+  /// No description provided for @homeActionPause.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause'**
+  String get homeActionPause;
+
+  /// No description provided for @homeActionResume.
+  ///
+  /// In en, this message translates to:
+  /// **'Resume'**
+  String get homeActionResume;
+
+  /// No description provided for @homeActionStop.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop'**
+  String get homeActionStop;
+
   /// No description provided for @startTracking.
   ///
   /// In en, this message translates to:
@@ -445,6 +481,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Français'**
   String get settingsLanguageFrench;
+
+  /// No description provided for @settingsDisplay.
+  ///
+  /// In en, this message translates to:
+  /// **'Display'**
+  String get settingsDisplay;
 
   /// No description provided for @settingsTheme.
   ///
@@ -823,6 +865,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Avg / day'**
   String get statsAvgPerDay;
+
+  /// No description provided for @statsVerdictStrong.
+  ///
+  /// In en, this message translates to:
+  /// **'Strong week'**
+  String get statsVerdictStrong;
+
+  /// No description provided for @statsVerdictGood.
+  ///
+  /// In en, this message translates to:
+  /// **'Good week'**
+  String get statsVerdictGood;
+
+  /// No description provided for @statsVerdictSlow.
+  ///
+  /// In en, this message translates to:
+  /// **'Slow week'**
+  String get statsVerdictSlow;
+
+  /// No description provided for @statsVerdictNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No data yet this week'**
+  String get statsVerdictNone;
+
+  /// No description provided for @statsVerdictSubStrong.
+  ///
+  /// In en, this message translates to:
+  /// **'You mapped {days} of 7 days — keep it up.'**
+  String statsVerdictSubStrong(int days);
+
+  /// No description provided for @statsVerdictSubGood.
+  ///
+  /// In en, this message translates to:
+  /// **'You mapped {days} of 7 days.'**
+  String statsVerdictSubGood(int days);
+
+  /// No description provided for @statsVerdictSubSlow.
+  ///
+  /// In en, this message translates to:
+  /// **'Only {days} day this week. A short walk helps.'**
+  String statsVerdictSubSlow(int days);
+
+  /// No description provided for @statsVerdictSubNone.
+  ///
+  /// In en, this message translates to:
+  /// **'Open the map and tap Start to contribute.'**
+  String get statsVerdictSubNone;
 
   /// No description provided for @statsWeeklyTargetLabel.
   ///
@@ -2930,6 +3020,12 @@ abstract class AppLocalizations {
   /// **'Open map'**
   String get mappingActiveSheetCta;
 
+  /// No description provided for @mappingActiveSheetStop.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop mapping'**
+  String get mappingActiveSheetStop;
+
   /// No description provided for @homeStreakBadge.
   ///
   /// In en, this message translates to:
@@ -3019,6 +3115,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Share again'**
   String get referralShareAgain;
+
+  /// No description provided for @referralShareText.
+  ///
+  /// In en, this message translates to:
+  /// **'Join me on GreenGains — we\'re mapping our neighborhood\'s air, light & sound. Use my invite code {code} when you sign up.'**
+  String referralShareText(String code);
+
+  /// No description provided for @onboardingHaveCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Got an invite code?'**
+  String get onboardingHaveCode;
+
+  /// No description provided for @onboardingCodeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter invite code (e.g. GG-XXXXX)'**
+  String get onboardingCodeHint;
+
+  /// No description provided for @onboardingCodeApplied.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite code applied.'**
+  String get onboardingCodeApplied;
 
   /// No description provided for @profileUnlockTitle.
   ///

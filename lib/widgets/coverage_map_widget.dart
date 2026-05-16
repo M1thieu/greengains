@@ -1077,7 +1077,7 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.hexagon, size: 16, color: AppColors.primary),
+                  Icon(Icons.place_outlined, size: 16, color: AppColors.primary),
                   const SizedBox(width: 6),
                   Text(
                     context.l10n.tilesCount(widget.tiles.length),
@@ -1417,9 +1417,12 @@ class _TileInfoSheetState extends State<TileInfoSheet> {
     final l10n = widget.l10n;
     final theme = Theme.of(context);
 
-    final qualityPct = tile.qualityScore != null
-        ? (tile.qualityScore! * 100).round()
-        : (tile.confidence * 100).round();
+    // Priority: personal quality ratio (weighted composite) > global quality score > confidence
+    final qualityPct = tile.qualityRatio != null
+        ? (tile.qualityRatio! * 100).round()
+        : tile.qualityScore != null
+            ? (tile.qualityScore! * 100).round()
+            : (tile.confidence * 100).round();
     final qualityColor = qualityPct >= 75
         ? AppColors.quality
         : qualityPct >= 50
@@ -1601,7 +1604,9 @@ class _TileInfoSheetState extends State<TileInfoSheet> {
                   if (tile.avgHpa != null)
                     (icon: Icons.compress_rounded, color: AppColors.pressure, title: l10n.sensorAirPressure, label: _hpaContext(tile.avgHpa!, l10n)),
                   if (tile.avgMovement != null)
-                    (icon: Icons.vibration_rounded, color: AppColors.movement, title: l10n.sensorAcceleration, label: _movementContext(tile.avgMovement!, l10n)),
+                    (icon: Icons.directions_walk_rounded, color: AppColors.movement, title: l10n.sensorMovement, label: _movementContext(tile.avgMovement!, l10n)),
+                  if (tile.avgVibration != null)
+                    (icon: Icons.vibration_rounded, color: AppColors.movement.withValues(alpha: 0.75), title: l10n.sensorAcceleration, label: _vibrationContext(tile.avgVibration!, l10n)),
                 ];
                 if (cards.isEmpty) return const SizedBox.shrink();
                 return Column(
@@ -1728,6 +1733,14 @@ class _TileInfoSheetState extends State<TileInfoSheet> {
     if (rms < 2.0) return l10n.sensorMovementMid;
     if (rms < 5.0) return l10n.sensorMovementHigh;
     return l10n.sensorMovementIntense;
+  }
+
+  // vibration: normalized 0–1 (accel std-dev / 5 m/s²)
+  static String _vibrationContext(double v, AppLocalizations l10n) {
+    if (v < 0.15) return l10n.tileVibrationCalm;
+    if (v < 0.40) return l10n.tileVibrationLight;
+    if (v < 0.70) return l10n.tileVibrationActive;
+    return l10n.tileVibrationHeavy;
   }
 }
 

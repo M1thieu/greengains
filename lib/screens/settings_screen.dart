@@ -1,23 +1,19 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import '../core/extensions/context_extensions.dart';
 import '../core/themes.dart';
 import '../core/theme_controller.dart';
 import '../core/language_controller.dart';
 import '../core/app_preferences.dart';
+import '../services/location/foreground_location_service.dart';
 import 'diagnostics_screen.dart';
 import 'webview_screen.dart';
 
-// Legal page URLs — single source of truth (update version paths here only)
-const _kSectionHeaderTracking = 1.2; // letter-spacing for small-caps section headers
 const _kPrivacyPolicyUrl = 'https://greengains.eremat.org/privacy-policy';
-const _kTermsUrl = 'https://greengains.eremat.org/terms-of-service';
-const _kDataDeletionUrl = 'https://greengains.eremat.org/data-deletion-request';
+const _kTermsUrl         = 'https://greengains.eremat.org/terms-of-service';
+const _kSectionSpacing   = AppTheme.spaceSm;
 
-/// Settings screen for Data & Privacy, Themes, and Legal
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
 
@@ -27,28 +23,48 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   final _prefs = AppPreferences.instance;
+  final _locationService = ForegroundLocationService.instance;
   final _themeController = ThemeController.instance;
   final _languageController = LanguageController.instance;
-  String _version = 'Loading...';
+  String _version = '';
 
   @override
   void initState() {
     super.initState();
-    _loadVersion();
+    PackageInfo.fromPlatform().then((info) {
+      if (mounted) setState(() => _version = '${info.version}+${info.buildNumber}');
+    });
   }
 
-  Future<void> _loadVersion() async {
-    final packageInfo = await PackageInfo.fromPlatform();
-    if (mounted) {
-      setState(() {
-        _version = '${packageInfo.version}+${packageInfo.buildNumber}';
-      });
+  Future<void> _signOut() async {
+    final l10n = context.l10n;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l10n.settingsSignOutConfirmTitle),
+        content: Text(l10n.settingsSignOutConfirmBody),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: Text(l10n.settingsSignOutCancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            style: TextButton.styleFrom(foregroundColor: AppColors.error),
+            child: Text(l10n.settingsSignOutConfirm),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true) {
+      await FirebaseAuth.instance.signOut();
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final l10n = context.l10n;
 
     return Scaffold(
@@ -56,214 +72,218 @@ class _SettingsScreenState extends State<SettingsScreen> {
       body: ListView(
         padding: AppTheme.pagePadding,
         children: [
-          // ── User identity ────────────────────────────────────────────────
-          _SettingsUserHeader(),
-          const SizedBox(height: AppTheme.spaceMd),
-
-          // ── Appearance ──────────────────────────────────────────────────
-          _SettingsSectionContainer(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _SettingsSectionTitle(text: l10n.settingsTheme),
-                ListenableBuilder(
-                  listenable: _themeController,
-                  builder: (context, _) {
-                    final l = context.l10n;
-                    return SegmentedButton<ThemeMode>(
-                      segments: [
-                        ButtonSegment(value: ThemeMode.light, icon: const Icon(Icons.light_mode), label: Text(l.settingsThemeLight)),
-                        ButtonSegment(value: ThemeMode.dark,  icon: const Icon(Icons.dark_mode),  label: Text(l.settingsThemeDark)),
-                        ButtonSegment(value: ThemeMode.system, icon: const Icon(Icons.auto_mode), label: Text(l.settingsThemeAuto)),
-                      ],
-                      selected: {_themeController.mode},
-                      onSelectionChanged: (s) {
-                        _themeController.setMode(s.first);
-                      },
-                    );
-                  },
-                ),
-                const SizedBox(height: AppTheme.spaceMd),
-                ListenableBuilder(
-                  listenable: _languageController,
-                  builder: (context, _) {
-                    final l = context.l10n;
-                    return SegmentedButton<String?>(
-                      segments: [
-                        ButtonSegment(value: null,  icon: const Icon(Icons.auto_mode), label: Text(l.settingsLanguageSystem)),
-                        ButtonSegment(value: 'en',  icon: const Icon(Icons.language),  label: Text(l.settingsLanguageEnglish)),
-                        ButtonSegment(value: 'fr',  icon: const Icon(Icons.language),  label: Text(l.settingsLanguageFrench)),
-                      ],
-                      selected: {_languageController.locale?.languageCode},
-                      onSelectionChanged: (s) {
-                        final code = s.first;
-                        _languageController.setLocale(code != null ? Locale(code) : null);
-                      },
-                    );
-                  },
-                ),
-              ],
-            ),
+          // ── Display ──────────────────────────────────────────────────────
+          _SectionCard(
+            label: l10n.settingsDisplay,
+            children: [
+              ListenableBuilder(
+                listenable: _themeController,
+                builder: (context, _) {
+                  final l = context.l10n;
+                  return SegmentedButton<ThemeMode>(
+                    style: SegmentedButton.styleFrom(
+                      textStyle: theme.textTheme.bodySmall?.copyWith(fontWeight: AppFontWeights.semibold),
+                    ),
+                    segments: [
+                      ButtonSegment(value: ThemeMode.light, icon: const Icon(Icons.light_mode_outlined), label: Text(l.settingsThemeLight)),
+                      ButtonSegment(value: ThemeMode.dark,  icon: const Icon(Icons.dark_mode_outlined),  label: Text(l.settingsThemeDark)),
+                      ButtonSegment(value: ThemeMode.system, icon: const Icon(Icons.auto_mode_outlined), label: Text(l.settingsThemeAuto)),
+                    ],
+                    selected: {_themeController.mode},
+                    onSelectionChanged: (s) => _themeController.setMode(s.first),
+                  );
+                },
+              ),
+              const SizedBox(height: AppTheme.spaceMd),
+              ListenableBuilder(
+                listenable: _languageController,
+                builder: (context, _) {
+                  final l = context.l10n;
+                  return SegmentedButton<String?>(
+                    style: SegmentedButton.styleFrom(
+                      textStyle: theme.textTheme.bodySmall?.copyWith(fontWeight: AppFontWeights.semibold),
+                    ),
+                    segments: [
+                      ButtonSegment(value: null,  icon: const Icon(Icons.auto_mode_outlined), label: Text(l.settingsLanguageSystem)),
+                      ButtonSegment(value: 'en',  icon: const Icon(Icons.language_outlined),  label: Text(l.settingsLanguageEnglish)),
+                      ButtonSegment(value: 'fr',  icon: const Icon(Icons.language_outlined),  label: Text(l.settingsLanguageFrench)),
+                    ],
+                    selected: {_languageController.locale?.languageCode},
+                    onSelectionChanged: (s) {
+                      final code = s.first;
+                      _languageController.setLocale(code != null ? Locale(code) : null);
+                    },
+                  );
+                },
+              ),
+            ],
           ),
+          const SizedBox(height: _kSectionSpacing),
 
-          // ── Privacy ──────────────────────────────────────────────────────
-          _SettingsSectionContainer(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _SettingsSectionTitle(text: l10n.settingsPrivacy),
-                _SettingsToggleRow(
-                  icon: Icons.location_on_outlined,
-                  iconColor: AppColors.pressure,
-                  title: l10n.settingsLocationSharing,
-                  subtitle: l10n.settingsLocationDescription,
-                  value: _prefs.shareLocation,
-                  onChanged: (value) async {
-                    await _prefs.setShareLocation(value);
-                    if (mounted) setState(() {});
-                  },
-                ),
-                const Divider(height: AppTheme.spaceLg, thickness: 0.5),
-                _SettingsToggleRow(
-                  icon: Icons.podcasts_outlined,
-                  iconColor: AppColors.movement,
-                  title: l10n.settingsMobileData,
-                  subtitle: l10n.settingsMobileDataDescription,
-                  value: _prefs.useMobileUploads,
-                  onChanged: (value) async {
-                    await _prefs.setUseMobileUploads(value);
-                    if (mounted) setState(() {});
-                  },
-                ),
-              ],
-            ),
-          ),
-
-          // ── Data ─────────────────────────────────────────────────────────
-          _SettingsSectionContainer(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _SettingsSectionTitle(text: l10n.settingsDataSection),
-                _DataInfoRow(
-                  icon: Icons.verified_user_outlined,
+          // ── Tracking ──────────────────────────────────────────────────────
+          _SectionCard(
+            label: l10n.settingsTracking,
+            children: [
+              ListenableBuilder(
+                listenable: _locationService.isRunning,
+                builder: (context, _) => _ToggleRow(
+                  icon: Icons.map_outlined,
                   iconColor: AppColors.primary,
-                  label: () {
-                    final d = _prefs.consentDate;
-                    if (d == null) return l10n.settingsConsentDate('—');
-                    final locale = Localizations.localeOf(context).toString();
-                    return l10n.settingsConsentDate(DateFormat('MMM d, y', locale).format(d.toLocal()));
-                  }(),
+                  title: l10n.settingsTracking,
+                  subtitle: l10n.settingsTrackingDesc,
+                  value: _locationService.isRunning.value,
+                  onChanged: (v) async {
+                    if (v) {
+                      await _locationService.start();
+                    } else {
+                      await _locationService.stop();
+                      await _prefs.setShareLocation(false);
+                    }
+                    if (mounted) setState(() {});
+                  },
                 ),
-                const Divider(height: AppTheme.spaceLg, thickness: 0.5),
-                _SettingsNavRow(
-                  icon: Icons.sensors_outlined,
-                  iconColor: AppColors.light,
-                  title: l10n.settingsDiagnostics,
-                  subtitle: l10n.settingsDiagnosticsDesc,
-                  onTap: () => Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const DiagnosticsScreen()),
+              ),
+              _divider(isDark),
+              _ToggleRow(
+                icon: Icons.signal_cellular_alt_outlined,
+                iconColor: AppColors.movement,
+                title: l10n.settingsMobileData,
+                subtitle: l10n.settingsMobileDataDescription,
+                value: _prefs.useMobileUploads,
+                onChanged: (v) async {
+                  await _prefs.setUseMobileUploads(v);
+                  if (mounted) setState(() {});
+                },
+              ),
+            ],
+          ),
+          const SizedBox(height: _kSectionSpacing),
+
+          // ── Account ───────────────────────────────────────────────────────
+          _SectionCard(
+            label: l10n.settingsAccount,
+            children: [
+              _NavRow(
+                icon: Icons.logout_rounded,
+                iconColor: AppColors.error,
+                title: l10n.settingsSignOut,
+                subtitle: FirebaseAuth.instance.currentUser?.email ?? '',
+                onTap: _signOut,
+                danger: true,
+              ),
+            ],
+          ),
+          const SizedBox(height: _kSectionSpacing),
+
+          // ── About ─────────────────────────────────────────────────────────
+          _SectionCard(
+            label: l10n.settingsAbout,
+            children: [
+              _NavRow(
+                icon: Icons.sensors_outlined,
+                iconColor: AppColors.light,
+                title: l10n.settingsDiagnostics,
+                subtitle: l10n.settingsDiagnosticsDesc,
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const DiagnosticsScreen()),
+                ),
+              ),
+              _divider(isDark),
+              _NavRow(
+                icon: Icons.lock_outline_rounded,
+                iconColor: AppColors.textTertiary(isDark),
+                title: l10n.privacyPolicy,
+                subtitle: '',
+                onTap: () => _openWebView(context, _kPrivacyPolicyUrl, l10n.privacyPolicy),
+              ),
+              _divider(isDark),
+              _NavRow(
+                icon: Icons.description_outlined,
+                iconColor: AppColors.textTertiary(isDark),
+                title: l10n.termsOfService,
+                subtitle: '',
+                onTap: () => _openWebView(context, _kTermsUrl, l10n.termsOfService),
+              ),
+              if (_version.isNotEmpty) ...[
+                _divider(isDark),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: AppTheme.spaceXs),
+                  child: Text(
+                    l10n.settingsVersion(_version),
+                    style: theme.textTheme.bodySmall?.copyWith(color: AppColors.textTertiary(isDark)),
                   ),
                 ),
               ],
-            ),
+            ],
           ),
-
-          // Legal footer — minimal text links, no card (industry standard: Stripe, Linear, Notion)
-          Center(
-            child: Wrap(
-              alignment: WrapAlignment.center,
-              children: [
-                _legalLink(context, l10n.privacyPolicy, _kPrivacyPolicyUrl, theme),
-                Text(' · ', style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.outline)),
-                _legalLink(context, l10n.termsOfService, _kTermsUrl, theme),
-                Text(' · ', style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.outline)),
-                _legalLink(context, l10n.settingsDataDeletion, _kDataDeletionUrl, theme),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: AppTheme.spaceSm),
-
-          Center(
-            child: Text(
-              l10n.settingsVersion(_version),
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.outline,
-              ),
-            ),
-          ),
-
           const SizedBox(height: AppTheme.spaceXl),
         ],
       ),
     );
   }
 
+  Widget _divider(bool isDark) => Divider(
+        height: AppTheme.spaceLg,
+        thickness: 0.5,
+        color: AppColors.divider(isDark),
+      );
+
   void _openWebView(BuildContext context, String url, String title) {
     Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => WebViewScreen(
-          url: url,
-          title: title,
-        ),
-      ),
+      MaterialPageRoute(builder: (_) => WebViewScreen(url: url, title: title)),
     );
   }
 
-  Widget _legalLink(BuildContext context, String label, String url, ThemeData theme) {
-    return GestureDetector(
-      onTap: () => _openWebView(context, url, label),
-      child: Text(
-        label,
-        style: theme.textTheme.bodySmall?.copyWith(
-          color: theme.colorScheme.outline,
-          decoration: TextDecoration.underline,
-          decorationColor: theme.colorScheme.outline,
-        ),
-      ),
-    );
-  }
 }
 
-class _SettingsSectionTitle extends StatelessWidget {
-  const _SettingsSectionTitle({required this.text});
+// ── Section card ──────────────────────────────────────────────────────────────
 
-  final String text;
+class _SectionCard extends StatelessWidget {
+  const _SectionCard({required this.label, required this.children});
+
+  final String label;
+  final List<Widget> children;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    return Padding(
-      padding: const EdgeInsets.only(bottom: AppTheme.spaceSm, top: AppTheme.spaceSm),
-      child: Text(
-        text.toUpperCase(),
-        style: theme.textTheme.labelSmall?.copyWith(
-          color: AppColors.textTertiary(isDark),
-          letterSpacing: _kSectionHeaderTracking,
-          fontWeight: AppFontWeights.semibold,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 4, bottom: AppTheme.spaceXs),
+          child: Text(
+            label.toUpperCase(),
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: AppColors.textTertiary(isDark),
+              letterSpacing: 1.2,
+              fontWeight: AppFontWeights.semibold,
+            ),
+          ),
         ),
-      ),
+        Container(
+          decoration: BoxDecoration(
+            color: AppColors.surface(isDark),
+            borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+            border: Border.all(color: AppColors.border(isDark), width: 0.5),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceMd, vertical: AppTheme.spaceMd),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: children,
+          ),
+        ),
+      ],
     );
   }
 }
 
-class _SettingsSectionContainer extends StatelessWidget {
-  const _SettingsSectionContainer({required this.child});
-  final Widget child;
 
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: AppTheme.spaceLg),
-      child: child,
-    );
-  }
-}
+// ── Row variants ──────────────────────────────────────────────────────────────
 
-class _SettingsToggleRow extends StatelessWidget {
-  const _SettingsToggleRow({
+class _ToggleRow extends StatelessWidget {
+  const _ToggleRow({
     required this.icon,
     required this.title,
     required this.subtitle,
@@ -276,16 +296,20 @@ class _SettingsToggleRow extends StatelessWidget {
   final String title;
   final String subtitle;
   final bool value;
-  final ValueChanged<bool> onChanged;
+  final ValueChanged<bool>? onChanged;
   final Color? iconColor;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final color = iconColor ?? (value ? AppColors.primary : AppColors.textTertiary(isDark));
+    final disabled = onChanged == null;
+    final color = disabled
+        ? AppColors.textTertiary(isDark)
+        : (iconColor ?? AppColors.primary);
+
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         _IconBox(icon: icon, color: color),
         const SizedBox(width: AppTheme.spaceMd),
@@ -297,9 +321,10 @@ class _SettingsToggleRow extends StatelessWidget {
                 title,
                 style: theme.textTheme.bodyMedium?.copyWith(
                   fontWeight: AppFontWeights.semibold,
+                  color: disabled ? AppColors.textSecondary(isDark) : AppColors.textPrimary(isDark),
                 ),
               ),
-              const SizedBox(height: AppTheme.spaceXxs),
+              const SizedBox(height: 2),
               Text(
                 subtitle,
                 style: theme.textTheme.bodySmall?.copyWith(
@@ -309,6 +334,7 @@ class _SettingsToggleRow extends StatelessWidget {
             ],
           ),
         ),
+        const SizedBox(width: AppTheme.spaceXs),
         Switch(
           value: value,
           onChanged: onChanged,
@@ -318,14 +344,14 @@ class _SettingsToggleRow extends StatelessWidget {
   }
 }
 
-/// Tappable nav row — navigates to another screen.
-class _SettingsNavRow extends StatelessWidget {
-  const _SettingsNavRow({
+class _NavRow extends StatelessWidget {
+  const _NavRow({
     required this.icon,
     required this.title,
     required this.subtitle,
     required this.onTap,
     this.iconColor,
+    this.danger = false,
   });
 
   final IconData icon;
@@ -333,11 +359,13 @@ class _SettingsNavRow extends StatelessWidget {
   final String subtitle;
   final VoidCallback onTap;
   final Color? iconColor;
+  final bool danger;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final titleColor = danger ? AppColors.error : AppColors.textPrimary(isDark);
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(AppTheme.radiusSm),
@@ -346,29 +374,25 @@ class _SettingsNavRow extends StatelessWidget {
         child: Row(
           children: [
             _IconBox(icon: icon, color: iconColor ?? AppColors.textTertiary(isDark)),
-            const SizedBox(width: AppTheme.spaceSm),
+            const SizedBox(width: AppTheme.spaceMd),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(
-                    title,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: AppColors.textPrimary(isDark),
-                      fontWeight: AppFontWeights.semibold,
-                    ),
-                  ),
-                  Text(
-                    subtitle,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: AppColors.textSecondary(isDark),
-                    ),
-                  ),
+                  Text(title, style: theme.textTheme.bodyMedium?.copyWith(
+                    fontWeight: AppFontWeights.semibold,
+                    color: titleColor,
+                  )),
+                  if (subtitle.isNotEmpty)
+                    Text(subtitle, style: theme.textTheme.bodySmall?.copyWith(
+                      color: danger ? AppColors.error.withValues(alpha: 0.6) : AppColors.textSecondary(isDark),
+                    )),
                 ],
               ),
             ),
-            Icon(Icons.chevron_right, size: AppIconSizes.sm, color: AppColors.textTertiary(isDark)),
+            if (!danger)
+              Icon(Icons.chevron_right, size: AppIconSizes.sm, color: AppColors.textTertiary(isDark)),
           ],
         ),
       ),
@@ -376,92 +400,6 @@ class _SettingsNavRow extends StatelessWidget {
   }
 }
 
-/// Read-only info row used in the Data section.
-class _DataInfoRow extends StatelessWidget {
-  const _DataInfoRow({required this.icon, required this.label, this.iconColor});
-
-  final IconData icon;
-  final String label;
-  final Color? iconColor;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(top: 1),
-          child: Icon(icon, size: AppIconSizes.sm, color: iconColor ?? AppColors.textTertiary(isDark)),
-        ),
-        const SizedBox(width: AppTheme.spaceSm),
-        Expanded(
-          child: Text(
-            label,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: AppColors.textSecondary(isDark),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-/// Signed-in user identity header — shown at the top of settings.
-class _SettingsUserHeader extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return const SizedBox.shrink();
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    return Row(
-      children: [
-        CircleAvatar(
-          radius: 20,
-          backgroundColor: AppColors.primary.withValues(alpha: 0.15),
-          backgroundImage: user.photoURL != null
-              ? CachedNetworkImageProvider(user.photoURL!)
-              : null,
-          child: user.photoURL == null
-              ? Icon(Icons.person_rounded, size: 20, color: AppColors.primary)
-              : null,
-        ),
-        const SizedBox(width: AppTheme.spaceSm),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (user.displayName != null && user.displayName!.isNotEmpty)
-                Text(
-                  user.displayName!,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    fontWeight: AppFontWeights.semibold,
-                    color: AppColors.textPrimary(isDark),
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              if (user.email != null)
-                Text(
-                  user.email!,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: AppColors.textSecondary(isDark),
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-/// Rounded square icon container — iOS Settings style.
-/// Gives each row a color-coded visual anchor without decorative clutter.
 class _IconBox extends StatelessWidget {
   const _IconBox({required this.icon, required this.color});
   final IconData icon;
@@ -470,10 +408,10 @@ class _IconBox extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 32,
-      height: 32,
+      width: 36,
+      height: 36,
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.15),
+        color: color.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(AppTheme.radiusSm),
       ),
       child: Icon(icon, size: AppIconSizes.xs, color: color),

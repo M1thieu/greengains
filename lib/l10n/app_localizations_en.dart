@@ -82,6 +82,25 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeTitle => 'GreenGains';
 
   @override
+  String get homeIdleTagline => 'Your neighborhood, mapped by you';
+
+  @override
+  String get homeIdleSubtitle =>
+      'Walk anywhere — your phone reads light, pressure, and motion.';
+
+  @override
+  String get homeActionStart => 'Start mapping';
+
+  @override
+  String get homeActionPause => 'Pause';
+
+  @override
+  String get homeActionResume => 'Resume';
+
+  @override
+  String get homeActionStop => 'Stop';
+
+  @override
   String get startTracking => 'Start Tracking';
 
   @override
@@ -196,6 +215,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsLanguageFrench => 'Français';
+
+  @override
+  String get settingsDisplay => 'Display';
 
   @override
   String get settingsTheme => 'Theme';
@@ -450,6 +472,36 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get statsAvgPerDay => 'Avg / day';
+
+  @override
+  String get statsVerdictStrong => 'Strong week';
+
+  @override
+  String get statsVerdictGood => 'Good week';
+
+  @override
+  String get statsVerdictSlow => 'Slow week';
+
+  @override
+  String get statsVerdictNone => 'No data yet this week';
+
+  @override
+  String statsVerdictSubStrong(int days) {
+    return 'You mapped $days of 7 days — keep it up.';
+  }
+
+  @override
+  String statsVerdictSubGood(int days) {
+    return 'You mapped $days of 7 days.';
+  }
+
+  @override
+  String statsVerdictSubSlow(int days) {
+    return 'Only $days day this week. A short walk helps.';
+  }
+
+  @override
+  String get statsVerdictSubNone => 'Open the map and tap Start to contribute.';
 
   @override
   String get statsWeeklyTargetLabel => 'NEW PLACES THIS WEEK';
@@ -1719,6 +1771,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mappingActiveSheetCta => 'Open map';
 
   @override
+  String get mappingActiveSheetStop => 'Stop mapping';
+
+  @override
   String homeStreakBadge(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -1772,6 +1827,20 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get referralShareAgain => 'Share again';
+
+  @override
+  String referralShareText(String code) {
+    return 'Join me on GreenGains — we\'re mapping our neighborhood\'s air, light & sound. Use my invite code $code when you sign up.';
+  }
+
+  @override
+  String get onboardingHaveCode => 'Got an invite code?';
+
+  @override
+  String get onboardingCodeHint => 'Enter invite code (e.g. GG-XXXXX)';
+
+  @override
+  String get onboardingCodeApplied => 'Invite code applied.';
 
   @override
   String get profileUnlockTitle => 'Your map is saving.';

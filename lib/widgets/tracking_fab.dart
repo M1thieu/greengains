@@ -131,6 +131,10 @@ class _TrackingFabState extends State<TrackingFab>
               Navigator.of(context).pop();
               widget.onOpenMap?.call();
             },
+            onStop: () {
+              Navigator.of(context).pop();
+              _stop();
+            },
           ),
         );
       }
@@ -260,9 +264,10 @@ class _TrackingFabState extends State<TrackingFab>
 // ── Mapping active status sheet ──────────────────────────────────────────────
 
 class _MappingActiveSheet extends StatelessWidget {
-  const _MappingActiveSheet({required this.newZones, this.onOpenMap});
+  const _MappingActiveSheet({required this.newZones, this.onOpenMap, this.onStop});
   final int newZones;
   final VoidCallback? onOpenMap;
+  final VoidCallback? onStop;
 
   @override
   Widget build(BuildContext context) {
@@ -329,15 +334,29 @@ class _MappingActiveSheet extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: AppTheme.spaceLg),
-              GestureDetector(
-                onTap: onOpenMap,
-                child: Text(
-                  l10n.mappingActiveSheetCta,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: AppColors.primary,
-                    fontWeight: AppFontWeights.semibold,
+              Row(
+                children: [
+                  GestureDetector(
+                    onTap: onOpenMap,
+                    child: Text(
+                      l10n.mappingActiveSheetCta,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: AppColors.primary,
+                        fontWeight: AppFontWeights.semibold,
+                      ),
+                    ),
                   ),
-                ),
+                  const Spacer(),
+                  TextButton(
+                    onPressed: onStop,
+                    style: TextButton.styleFrom(
+                      foregroundColor: AppColors.error,
+                      padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceSm, vertical: AppTheme.spaceXxs),
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    child: Text(l10n.mappingActiveSheetStop, style: theme.textTheme.bodyMedium?.copyWith(fontWeight: AppFontWeights.semibold)),
+                  ),
+                ],
               ),
             ],
           ),
