@@ -455,8 +455,8 @@ class AppLocalizationsEn extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count uploads',
-      one: '1 upload',
+      other: '$count scans',
+      one: '1 scan',
     );
     return '$_temp0';
   }
@@ -532,7 +532,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get statsRecordLongestStreak => 'Longest streak';
 
   @override
-  String get statsRecordTotalUploads => 'Total uploads';
+  String get statsRecordTotalUploads => 'Total scans';
 
   @override
   String get statsRecordFirstDay => 'First mapping day';
@@ -543,7 +543,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get statsUploadExplainer =>
-      'Each upload is a snapshot of what your phone sensed: brightness, movement, and air pressure at one spot.';
+      'Each scan captures what your phone sensed at that moment: brightness, how much you were moving, and air pressure.';
 
   @override
   String get statsTabCore => 'Overview';
@@ -579,13 +579,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get statsAllTimeSection => 'ALL-TIME';
 
   @override
-  String get statsUploadsUnit => 'uploads';
+  String get statsUploadsUnit => 'scans';
 
   @override
   String get statsBestWeekLabel => 'Best week';
 
   @override
-  String get statsQualitySection => 'DATA QUALITY';
+  String get statsQualitySection => 'SIGNAL QUALITY';
 
   @override
   String get statsQualityExcellent => 'Excellent';
@@ -601,7 +601,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get statsQualitySubtitle =>
-      'How much of your captured data we could use';
+      'How clean your readings are — strong signal, fewer gaps';
 
   @override
   String get statsAvgPrefix => 'avg';
@@ -857,10 +857,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get sensorLiveReadings => 'Live readings';
+  String get sensorLiveReadings => 'What\'s around you';
 
   @override
-  String get sensorLiveSubtitle => 'Real-time sensor readings from your phone.';
+  String get sensorLiveSubtitle =>
+      'Light, movement and air pressure — live from your phone.';
 
   @override
   String get sensorInactiveTitle => 'Not recording';
@@ -890,7 +891,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sensorLight => 'Light';
 
   @override
-  String get sensorMagneticField => 'Magnetic Field';
+  String get sensorMagneticField => 'Interference';
 
   @override
   String get sensorOrientation => 'Orientation';

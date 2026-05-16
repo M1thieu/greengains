@@ -1000,9 +1000,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
             // ── 2. Bottom action bar ──────────────────────────────────────
             Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
+              left: AppTheme.spaceMd,
+              right: AppTheme.spaceMd,
+              bottom: bottomPadding + AppTheme.floatingNavHeight + AppTheme.spaceSm,
               child: ListenableBuilder(
                 listenable: Listenable.merge([
                   _locationService.isRunning,
@@ -1018,7 +1018,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     isActive: isActive,
                     isBusy: _actionBusy,
                     hasTiles: _h3Tiles.isNotEmpty,
-                    bottomPadding: bottomPadding + AppTheme.floatingNavHeight,
                     showCommunity: _showCommunity,
                     hasGlobalTiles: _globalTiles.isNotEmpty,
                     onLayerToggle: (val) => setState(() => _showCommunity = val),
@@ -1080,7 +1079,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
 // Approximate height of the action bar content (gradient + buttons).
 // Used to position overlapping controls (My Location, permission banner) above it.
-const _kActionBarHeight = 112.0;
+const _kActionBarHeight = 90.0; // button(~44) + layerToggle(~32) + spaceXs(8) + shadow
 
 // ─── Bottom action bar ────────────────────────────────────────────────────────
 
@@ -1091,7 +1090,6 @@ class _HomeActionBar extends StatelessWidget {
     required this.isActive,
     required this.isBusy,
     required this.hasTiles,
-    required this.bottomPadding,
     required this.showCommunity,
     required this.hasGlobalTiles,
     required this.onLayerToggle,
@@ -1106,7 +1104,6 @@ class _HomeActionBar extends StatelessWidget {
   final bool isActive;
   final bool isBusy;
   final bool hasTiles;
-  final double bottomPadding;
   final bool showCommunity;
   final bool hasGlobalTiles;
   final ValueChanged<bool> onLayerToggle;
@@ -1118,78 +1115,48 @@ class _HomeActionBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final theme = Theme.of(context);
 
-    return Container(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.bottomCenter,
-          end: Alignment.topCenter,
-          colors: [Color(0xF00a1316), Color(0x000a1316)],
-          stops: [0.55, 1.0],
-        ),
-      ),
-      padding: EdgeInsets.fromLTRB(
-        AppTheme.spaceMd,
-        AppTheme.spaceLg + AppTheme.spaceXl,
-        AppTheme.spaceMd,
-        bottomPadding + AppTheme.spaceMd,
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Idle only: tagline — only shown when user has no tiles yet (first-time feel)
-          if (!isRunning && !hasTiles) ...[
-            Text(
-              l10n.homeIdleTagline,
-              style: theme.textTheme.titleMedium?.copyWith(
-                color: Colors.white,
-                fontWeight: AppFontWeights.semibold,
-                letterSpacing: -0.2,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: AppTheme.spaceXxs),
-            Text(
-              l10n.homeIdleSubtitle,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: Colors.white60,
-                height: AppLineHeights.normal,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: AppTheme.spaceMd),
-          ],
-
-          // Layer toggle (when community tiles exist)
-          if (hasGlobalTiles && !isRunning) ...[
-            _LayerToggle(showCommunity: showCommunity, onChanged: onLayerToggle),
-            const SizedBox(height: AppTheme.spaceSm),
-          ],
-
-          // Buttons
-          if (!isRunning)
-            _ActionButton.primary(
-              label: l10n.homeActionStart,
-              busy: isBusy,
-              onPressed: onStart,
-            )
-          else
-            Row(
-              children: [
-                Expanded(
-                  child: isPaused
-                      ? _ActionButton.primary(label: l10n.homeActionResume, busy: isBusy, onPressed: onResume)
-                      : _ActionButton.secondary(label: l10n.homeActionPause, busy: isBusy, onPressed: onPause),
-                ),
-                const SizedBox(width: AppTheme.spaceSm),
-                Expanded(
-                  child: _ActionButton.danger(label: l10n.homeActionStop, busy: isBusy, onPressed: onStop),
-                ),
-              ],
-            ),
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (hasGlobalTiles && !isRunning) ...[
+          _LayerToggle(showCommunity: showCommunity, onChanged: onLayerToggle),
+          const SizedBox(height: AppTheme.spaceXs),
         ],
-      ),
+        if (!isRunning)
+          _ActionButton.primary(
+            label: l10n.homeActionStart,
+            icon: Icons.radio_button_checked,
+            busy: isBusy,
+            onPressed: onStart,
+          )
+        else
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              isPaused
+                  ? _ActionButton.primary(
+                      label: l10n.homeActionResume,
+                      icon: Icons.play_arrow_rounded,
+                      busy: isBusy,
+                      onPressed: onResume,
+                    )
+                  : _ActionButton.secondary(
+                      label: l10n.homeActionPause,
+                      icon: Icons.pause_rounded,
+                      busy: isBusy,
+                      onPressed: onPause,
+                    ),
+              const SizedBox(width: AppTheme.spaceXs),
+              _ActionButton.danger(
+                label: l10n.homeActionStop,
+                icon: Icons.stop_rounded,
+                busy: isBusy,
+                onPressed: onStop,
+              ),
+            ],
+          ),
+      ],
     );
   }
 }
@@ -1197,19 +1164,21 @@ class _HomeActionBar extends StatelessWidget {
 class _ActionButton extends StatelessWidget {
   const _ActionButton._({
     required this.label,
+    required this.icon,
     required this.busy,
     required this.onPressed,
     required this.style,
   });
 
-  factory _ActionButton.primary({required String label, required bool busy, required VoidCallback onPressed}) =>
-      _ActionButton._(label: label, busy: busy, onPressed: onPressed, style: _ActionBtnStyle.primary);
-  factory _ActionButton.secondary({required String label, required bool busy, required VoidCallback onPressed}) =>
-      _ActionButton._(label: label, busy: busy, onPressed: onPressed, style: _ActionBtnStyle.secondary);
-  factory _ActionButton.danger({required String label, required bool busy, required VoidCallback onPressed}) =>
-      _ActionButton._(label: label, busy: busy, onPressed: onPressed, style: _ActionBtnStyle.danger);
+  factory _ActionButton.primary({required String label, required IconData icon, required bool busy, required VoidCallback onPressed}) =>
+      _ActionButton._(label: label, icon: icon, busy: busy, onPressed: onPressed, style: _ActionBtnStyle.primary);
+  factory _ActionButton.secondary({required String label, required IconData icon, required bool busy, required VoidCallback onPressed}) =>
+      _ActionButton._(label: label, icon: icon, busy: busy, onPressed: onPressed, style: _ActionBtnStyle.secondary);
+  factory _ActionButton.danger({required String label, required IconData icon, required bool busy, required VoidCallback onPressed}) =>
+      _ActionButton._(label: label, icon: icon, busy: busy, onPressed: onPressed, style: _ActionBtnStyle.danger);
 
   final String label;
+  final IconData icon;
   final bool busy;
   final VoidCallback onPressed;
   final _ActionBtnStyle style;
@@ -1220,8 +1189,8 @@ class _ActionButton extends StatelessWidget {
 
     final bgColor = switch (style) {
       _ActionBtnStyle.primary   => AppColors.primary,
-      _ActionBtnStyle.secondary => AppColors.surfaceElevated(true),
-      _ActionBtnStyle.danger    => AppColors.surfaceElevated(true),
+      _ActionBtnStyle.secondary => const Color(0xFF1c2f2a),
+      _ActionBtnStyle.danger    => const Color(0xFF2a1c1c),
     };
     final fgColor = switch (style) {
       _ActionBtnStyle.primary   => const Color(0xFF04221a),
@@ -1230,37 +1199,45 @@ class _ActionButton extends StatelessWidget {
     };
     final borderColor = switch (style) {
       _ActionBtnStyle.primary   => Colors.transparent,
-      _ActionBtnStyle.secondary => Colors.white12,
-      _ActionBtnStyle.danger    => AppColors.error.withValues(alpha: 0.3),
+      _ActionBtnStyle.secondary => Colors.white.withValues(alpha: 0.08),
+      _ActionBtnStyle.danger    => AppColors.error.withValues(alpha: 0.25),
     };
 
-    return SizedBox(
-      width: double.infinity,
-      height: 52,
-      child: Material(
-        color: bgColor,
-        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-        child: InkWell(
-          onTap: busy ? null : onPressed,
-          borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-          child: Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-              border: Border.all(color: borderColor, width: 0.5),
-            ),
-            alignment: Alignment.center,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: busy ? null : onPressed,
+        borderRadius: BorderRadius.circular(AppTheme.radiusPill),
+        child: Ink(
+          decoration: BoxDecoration(
+            color: bgColor,
+            borderRadius: BorderRadius.circular(AppTheme.radiusPill),
+            border: Border.all(color: borderColor, width: 1),
+            boxShadow: style == _ActionBtnStyle.primary
+                ? [BoxShadow(color: AppColors.primary.withValues(alpha: 0.3), blurRadius: 12, offset: const Offset(0, 3))]
+                : [BoxShadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 8, offset: const Offset(0, 2))],
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 11),
             child: busy
                 ? SizedBox(
                     width: 18, height: 18,
                     child: CircularProgressIndicator(strokeWidth: 2, color: fgColor),
                   )
-                : Text(
-                    label,
-                    style: theme.textTheme.labelLarge?.copyWith(
-                      color: fgColor,
-                      fontWeight: AppFontWeights.semibold,
-                      letterSpacing: -0.1,
-                    ),
+                : Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(icon, size: 16, color: fgColor),
+                      const SizedBox(width: 6),
+                      Text(
+                        label,
+                        style: theme.textTheme.labelLarge?.copyWith(
+                          color: fgColor,
+                          fontWeight: AppFontWeights.semibold,
+                          letterSpacing: -0.1,
+                        ),
+                      ),
+                    ],
                   ),
           ),
         ),

@@ -839,7 +839,7 @@ abstract class AppLocalizations {
   /// No description provided for @statsBarCalloutUploads.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, =1{1 upload} other{{count} uploads}}'**
+  /// **'{count, plural, =1{1 scan} other{{count} scans}}'**
   String statsBarCalloutUploads(int count);
 
   /// No description provided for @statsBarCalloutToday.
@@ -965,7 +965,7 @@ abstract class AppLocalizations {
   /// No description provided for @statsRecordTotalUploads.
   ///
   /// In en, this message translates to:
-  /// **'Total uploads'**
+  /// **'Total scans'**
   String get statsRecordTotalUploads;
 
   /// No description provided for @statsRecordFirstDay.
@@ -983,7 +983,7 @@ abstract class AppLocalizations {
   /// No description provided for @statsUploadExplainer.
   ///
   /// In en, this message translates to:
-  /// **'Each upload is a snapshot of what your phone sensed: brightness, movement, and air pressure at one spot.'**
+  /// **'Each scan captures what your phone sensed at that moment: brightness, how much you were moving, and air pressure.'**
   String get statsUploadExplainer;
 
   /// No description provided for @statsTabCore.
@@ -1055,7 +1055,7 @@ abstract class AppLocalizations {
   /// No description provided for @statsUploadsUnit.
   ///
   /// In en, this message translates to:
-  /// **'uploads'**
+  /// **'scans'**
   String get statsUploadsUnit;
 
   /// No description provided for @statsBestWeekLabel.
@@ -1067,7 +1067,7 @@ abstract class AppLocalizations {
   /// No description provided for @statsQualitySection.
   ///
   /// In en, this message translates to:
-  /// **'DATA QUALITY'**
+  /// **'SIGNAL QUALITY'**
   String get statsQualitySection;
 
   /// No description provided for @statsQualityExcellent.
@@ -1097,7 +1097,7 @@ abstract class AppLocalizations {
   /// No description provided for @statsQualitySubtitle.
   ///
   /// In en, this message translates to:
-  /// **'How much of your captured data we could use'**
+  /// **'How clean your readings are — strong signal, fewer gaps'**
   String get statsQualitySubtitle;
 
   /// No description provided for @statsAvgPrefix.
@@ -1529,13 +1529,13 @@ abstract class AppLocalizations {
   /// No description provided for @sensorLiveReadings.
   ///
   /// In en, this message translates to:
-  /// **'Live readings'**
+  /// **'What\'s around you'**
   String get sensorLiveReadings;
 
   /// No description provided for @sensorLiveSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Real-time sensor readings from your phone.'**
+  /// **'Light, movement and air pressure — live from your phone.'**
   String get sensorLiveSubtitle;
 
   /// No description provided for @sensorInactiveTitle.
@@ -1595,7 +1595,7 @@ abstract class AppLocalizations {
   /// No description provided for @sensorMagneticField.
   ///
   /// In en, this message translates to:
-  /// **'Magnetic Field'**
+  /// **'Interference'**
   String get sensorMagneticField;
 
   /// No description provided for @sensorOrientation.
