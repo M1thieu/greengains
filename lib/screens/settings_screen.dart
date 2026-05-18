@@ -10,9 +10,12 @@ import '../services/location/foreground_location_service.dart';
 import 'diagnostics_screen.dart';
 import 'webview_screen.dart';
 
-const _kPrivacyPolicyUrl = 'https://greengains.eremat.org/privacy-policy';
-const _kTermsUrl         = 'https://greengains.eremat.org/terms-of-service';
+const _kPrivacyPolicyUrl    = 'https://greengains.eremat.org/legal/privacy-policy';
+const _kTermsUrl            = 'https://greengains.eremat.org/legal/terms-of-service';
+const _kDataTransparencyUrl = 'https://greengains.eremat.org/legal/data-transparency';
+const _kDataDeletionUrl     = 'https://greengains.eremat.org/legal/data-deletion';
 const _kSectionSpacing   = AppTheme.spaceSm;
+const _kIconBoxSize      = 36.0; // icon container — between spaceXl(32) and minTouchTarget(48)
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -125,13 +128,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
             label: l10n.settingsTracking,
             children: [
               ListenableBuilder(
-                listenable: _locationService.isRunning,
+                listenable: Listenable.merge([_locationService.isRunning, _locationService.isPaused]),
                 builder: (context, _) => _ToggleRow(
                   icon: Icons.map_outlined,
                   iconColor: AppColors.primary,
                   title: l10n.settingsTracking,
                   subtitle: l10n.settingsTrackingDesc,
-                  value: _locationService.isRunning.value,
+                  value: _locationService.isRunning.value || _locationService.isPaused.value,
                   onChanged: (v) async {
                     if (v) {
                       await _locationService.start();
@@ -139,7 +142,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       await _locationService.stop();
                       await _prefs.setShareLocation(false);
                     }
-                    if (mounted) setState(() {});
                   },
                 ),
               ),
@@ -188,22 +190,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   MaterialPageRoute(builder: (_) => const DiagnosticsScreen()),
                 ),
               ),
-              _divider(isDark),
-              _NavRow(
-                icon: Icons.lock_outline_rounded,
-                iconColor: AppColors.textTertiary(isDark),
-                title: l10n.privacyPolicy,
-                subtitle: '',
-                onTap: () => _openWebView(context, _kPrivacyPolicyUrl, l10n.privacyPolicy),
-              ),
-              _divider(isDark),
-              _NavRow(
-                icon: Icons.description_outlined,
-                iconColor: AppColors.textTertiary(isDark),
-                title: l10n.termsOfService,
-                subtitle: '',
-                onTap: () => _openWebView(context, _kTermsUrl, l10n.termsOfService),
-              ),
               if (_version.isNotEmpty) ...[
                 _divider(isDark),
                 Padding(
@@ -217,6 +203,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ],
           ),
           const SizedBox(height: AppTheme.spaceXl),
+
+          // ── Legal footer ──────────────────────────────────────────────────
+          Padding(
+            padding: const EdgeInsets.only(bottom: AppTheme.spaceXl),
+            child: Wrap(
+              alignment: WrapAlignment.center,
+              spacing: AppTheme.spaceMd,
+              runSpacing: AppTheme.spaceXxs,
+              children: [
+                _LegalLink(label: l10n.privacyPolicy,
+                    onTap: () => _openWebView(context, _kPrivacyPolicyUrl, l10n.privacyPolicy)),
+                _LegalLink(label: l10n.termsOfService,
+                    onTap: () => _openWebView(context, _kTermsUrl, l10n.termsOfService)),
+                _LegalLink(label: l10n.settingsDataTransparency,
+                    onTap: () => _openWebView(context, _kDataTransparencyUrl, l10n.settingsDataTransparency)),
+                _LegalLink(label: l10n.settingsDataDeletion,
+                    onTap: () => _openWebView(context, _kDataDeletionUrl, l10n.settingsDataDeletion)),
+              ],
+            ),
+          ),
         ],
       ),
     );
@@ -238,6 +244,30 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
 // ── Section card ──────────────────────────────────────────────────────────────
 
+/// Inline text link for legal footer — matches iOS/Android app store convention.
+class _LegalLink extends StatelessWidget {
+  const _LegalLink({required this.label, required this.onTap});
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = context.isDarkMode;
+    return GestureDetector(
+      onTap: onTap,
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: AppTheme.fontSizeXs,
+          color: AppColors.textTertiary(isDark),
+          decoration: TextDecoration.underline,
+          decorationColor: AppColors.textTertiary(isDark),
+        ),
+      ),
+    );
+  }
+}
+
 class _SectionCard extends StatelessWidget {
   const _SectionCard({required this.label, required this.children});
 
@@ -252,7 +282,7 @@ class _SectionCard extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.only(left: 4, bottom: AppTheme.spaceXs),
+          padding: const EdgeInsets.only(left: AppTheme.spaceXxs, bottom: AppTheme.spaceXs),
           child: Text(
             label.toUpperCase(),
             style: theme.textTheme.labelSmall?.copyWith(
@@ -324,7 +354,7 @@ class _ToggleRow extends StatelessWidget {
                   color: disabled ? AppColors.textSecondary(isDark) : AppColors.textPrimary(isDark),
                 ),
               ),
-              const SizedBox(height: 2),
+              const SizedBox(height: AppTheme.spaceXxs),
               Text(
                 subtitle,
                 style: theme.textTheme.bodySmall?.copyWith(
@@ -408,8 +438,8 @@ class _IconBox extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 36,
-      height: 36,
+      width: _kIconBoxSize,
+      height: _kIconBoxSize,
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(AppTheme.radiusSm),

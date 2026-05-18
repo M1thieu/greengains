@@ -242,6 +242,18 @@ abstract class AppLocalizations {
   /// **'Walk anywhere — your phone reads light, pressure, and motion.'**
   String get homeIdleSubtitle;
 
+  /// No description provided for @homeStatPlaces.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} places'**
+  String homeStatPlaces(int count);
+
+  /// No description provided for @homeStatStreak.
+  ///
+  /// In en, this message translates to:
+  /// **'{count}-day streak'**
+  String homeStatStreak(int count);
+
   /// No description provided for @homeActionStart.
   ///
   /// In en, this message translates to:
@@ -887,7 +899,7 @@ abstract class AppLocalizations {
   /// No description provided for @statsVerdictNone.
   ///
   /// In en, this message translates to:
-  /// **'No data yet this week'**
+  /// **'No data yet'**
   String get statsVerdictNone;
 
   /// No description provided for @statsVerdictSubStrong.
@@ -917,19 +929,19 @@ abstract class AppLocalizations {
   /// No description provided for @statsWeeklyTargetLabel.
   ///
   /// In en, this message translates to:
-  /// **'NEW PLACES THIS WEEK'**
+  /// **'THIS WEEK'**
   String get statsWeeklyTargetLabel;
 
   /// No description provided for @statsWeeklyTargetComplete.
   ///
   /// In en, this message translates to:
-  /// **'Weekly goal reached'**
+  /// **'Goal reached'**
   String get statsWeeklyTargetComplete;
 
   /// No description provided for @statsWeeklyTargetRemaining.
   ///
   /// In en, this message translates to:
-  /// **'{count} more to reach your weekly goal'**
+  /// **'{count} more'**
   String statsWeeklyTargetRemaining(int count);
 
   /// No description provided for @statsDetailTitle.
@@ -977,13 +989,13 @@ abstract class AppLocalizations {
   /// No description provided for @statsZoneExplainer.
   ///
   /// In en, this message translates to:
-  /// **'Each place is roughly one city block. Your phone scanned it as you passed through.'**
+  /// **'One city block scanned as you passed through.'**
   String get statsZoneExplainer;
 
   /// No description provided for @statsUploadExplainer.
   ///
   /// In en, this message translates to:
-  /// **'Each scan captures what your phone sensed at that moment: brightness, how much you were moving, and air pressure.'**
+  /// **'Light, movement and pressure captured at that moment.'**
   String get statsUploadExplainer;
 
   /// No description provided for @statsTabCore.
@@ -1003,6 +1015,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Last 30 days'**
   String get statsInDepth30Days;
+
+  /// No description provided for @statsHeatmapLess.
+  ///
+  /// In en, this message translates to:
+  /// **'less'**
+  String get statsHeatmapLess;
+
+  /// No description provided for @statsHeatmapMore.
+  ///
+  /// In en, this message translates to:
+  /// **'more'**
+  String get statsHeatmapMore;
+
+  /// No description provided for @statsHeatmapDayDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'{date} · {count} syncs'**
+  String statsHeatmapDayDetail(String date, int count);
 
   /// No description provided for @statsInDepthHabits.
   ///
@@ -1813,6 +1843,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Usage terms and conditions'**
   String get settingsTermsOfServiceDesc;
+
+  /// No description provided for @settingsDataTransparency.
+  ///
+  /// In en, this message translates to:
+  /// **'Data Transparency'**
+  String get settingsDataTransparency;
 
   /// No description provided for @settingsDataDeletion.
   ///
@@ -2917,6 +2953,96 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'TOTAL'**
   String get sessionStatTotal;
+
+  /// No description provided for @sessionStatUploads.
+  ///
+  /// In en, this message translates to:
+  /// **'SYNCS'**
+  String get sessionStatUploads;
+
+  /// No description provided for @sessionStatAreaExplain.
+  ///
+  /// In en, this message translates to:
+  /// **'Total area you\'ve mapped this session, based on the zones covered.'**
+  String get sessionStatAreaExplain;
+
+  /// No description provided for @sessionStatDurationExplain.
+  ///
+  /// In en, this message translates to:
+  /// **'How long tracking was active during this session.'**
+  String get sessionStatDurationExplain;
+
+  /// No description provided for @sessionStatUploadsExplain.
+  ///
+  /// In en, this message translates to:
+  /// **'Number of times your sensor data was uploaded during this session.'**
+  String get sessionStatUploadsExplain;
+
+  /// No description provided for @sessionStatTotalExplain.
+  ///
+  /// In en, this message translates to:
+  /// **'Total unique zones you\'ve ever mapped across all sessions.'**
+  String get sessionStatTotalExplain;
+
+  /// No description provided for @homeSessionPill.
+  ///
+  /// In en, this message translates to:
+  /// **'{uploads} synced'**
+  String homeSessionPill(int uploads);
+
+  /// No description provided for @statsUploadsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'uploads'**
+  String get statsUploadsHint;
+
+  /// No description provided for @statsKpiTodayExplain.
+  ///
+  /// In en, this message translates to:
+  /// **'Syncs sent today.'**
+  String get statsKpiTodayExplain;
+
+  /// No description provided for @statsKpiWeekExplain.
+  ///
+  /// In en, this message translates to:
+  /// **'Syncs sent this week.'**
+  String get statsKpiWeekExplain;
+
+  /// No description provided for @statsKpiBestDayExplain.
+  ///
+  /// In en, this message translates to:
+  /// **'Most syncs in a single day.'**
+  String get statsKpiBestDayExplain;
+
+  /// No description provided for @statsKpiAvgExplain.
+  ///
+  /// In en, this message translates to:
+  /// **'Average syncs on active days.'**
+  String get statsKpiAvgExplain;
+
+  /// No description provided for @profileTileUploadsExplain.
+  ///
+  /// In en, this message translates to:
+  /// **'Total syncs sent to our servers.'**
+  String get profileTileUploadsExplain;
+
+  /// No description provided for @profileTileDaysExplain.
+  ///
+  /// In en, this message translates to:
+  /// **'Days you\'ve contributed at least once.'**
+  String get profileTileDaysExplain;
+
+  /// No description provided for @profileTileAreaExplain.
+  ///
+  /// In en, this message translates to:
+  /// **'Area mapped across all your sessions.'**
+  String profileTileAreaExplain(String area);
+
+  /// No description provided for @profileStreakExplain.
+  ///
+  /// In en, this message translates to:
+  /// **'Consecutive days with at least one sync.'**
+  String get profileStreakExplain;
 
   /// No description provided for @statsMilestoneTarget.
   ///

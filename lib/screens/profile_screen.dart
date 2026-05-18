@@ -1,9 +1,10 @@
 import 'dart:async';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:shimmer/shimmer.dart';
 import '../core/extensions/context_extensions.dart';
 import '../core/events/app_events.dart';
 import '../services/network/backend_client.dart';
@@ -13,14 +14,9 @@ import '../l10n/app_localizations.dart';
 import '../core/app_preferences.dart';
 import '../services/auth/auth_service.dart';
 import '../utils/app_snackbars.dart';
-import '../core/services/time_ago_service.dart';
 import '../widgets/referral_invite_card.dart';
 import 'settings_screen.dart';
 
-// ── Profile layout constants ──────────────────────────────────────────────────
-const _kAvatarRadius         = 48.0;           // 96px diameter — prominent header
-const _kAvatarFallbackSize   = AppIconSizes.xl;
-const _kAvatarRingWidth      = 2.5;            // gradient ring around avatar
 
 /// Profile screen showing user information and quick stats
 /// REDESIGNED: Compact layout that fits without scrolling
@@ -225,153 +221,268 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildSignedInState(User user, ThemeData theme, bool isDark, AppLocalizations l10n) {
+    final topPad = MediaQuery.paddingOf(context).top;
     final navBottom = MediaQuery.paddingOf(context).bottom + AppTheme.floatingNavHeight + AppTheme.spaceSm;
+    final name = user.displayName ?? l10n.profileUserFallback;
+    final initial = name.isNotEmpty ? name[0].toUpperCase() : '?';
 
-    return CustomScrollView(
-      slivers: [
-        SliverAppBar(
-          expandedHeight: 265,
-          pinned: true,
-          actions: [_settingsButton(context, l10n)],
-          flexibleSpace: FlexibleSpaceBar(
-            collapseMode: CollapseMode.pin,
-            background: SafeArea(
-              bottom: false,
-              child: _buildCompactUserHeader(user, theme, isDark, l10n),
-            ),
-          ),
-        ),
-        SliverPadding(
-          padding: EdgeInsets.fromLTRB(
-            AppTheme.spaceLg,
-            AppTheme.spaceMd,
-            AppTheme.spaceLg,
-            navBottom,
-          ),
-          sliver: SliverList(
-            delegate: SliverChildListDelegate([
-              _ProfileSectionLabel(l10n.profileImpactSection, isDark: isDark),
-              const SizedBox(height: AppTheme.spaceXs),
+    return Stack(
+      children: [
+        RefreshIndicator(
+          onRefresh: _loadProfileStats,
+          color: AppColors.primary,
+          child: ListView(
+            padding: EdgeInsets.fromLTRB(
+                AppTheme.spaceLg, topPad + AppTheme.spaceXxl + AppTheme.spaceSm, AppTheme.spaceLg, navBottom),
+            children: [
+              // ── Avatar + identity ─────────────────────────────────────
+              Center(
+                child: Column(
+                  children: [
+                    Container(
+                      width: 72,
+                      height: 72,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: AppColors.primary.withValues(alpha: 0.10),
+                        border: Border.all(color: AppColors.primary, width: 2.5),
+                      ),
+                      child: ClipOval(
+                        child: user.photoURL != null
+                            ? CachedNetworkImage(
+                                imageUrl: user.photoURL!,
+                                width: 72,
+                                height: 72,
+                                fit: BoxFit.cover,
+                                placeholder: (_, __) => Shimmer.fromColors(
+                                  baseColor: AppColors.shimmerBase(isDark),
+                                  highlightColor: AppColors.shimmerHighlight(isDark),
+                                  child: Container(color: Colors.white),
+                                ),
+                                errorWidget: (_, __, ___) => Center(
+                                  child: Text(
+                                    initial,
+                                    style: theme.textTheme.headlineMedium?.copyWith(
+                                      color: AppColors.primary,
+                                      fontWeight: AppFontWeights.bold,
+                                      height: 1.0,
+                                    ),
+                                  ),
+                                ),
+                              )
+                            : Center(
+                                child: Text(
+                                  initial,
+                                  style: theme.textTheme.headlineMedium?.copyWith(
+                                    color: AppColors.primary,
+                                    fontWeight: AppFontWeights.bold,
+                                    height: 1.0,
+                                  ),
+                                ),
+                              ),
+                      ),
+                    ),
+                    const SizedBox(height: AppTheme.spaceSm),
+                    Text(
+                      name,
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        fontWeight: AppFontWeights.bold,
+                        letterSpacing: -0.4,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    if (user.metadata.creationTime != null) ...[
+                      const SizedBox(height: AppTheme.spaceXxs),
+                      Text(
+                        l10n.profileMemberSince(_formatDate(user.metadata.creationTime!)),
+                        style: TextStyle(
+                          fontSize: AppTheme.fontSizeXs,
+                          color: AppColors.primary,
+                          fontWeight: AppFontWeights.semibold,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              const SizedBox(height: AppTheme.spaceXl),
+
+              // ── Streak hero ────────────────────────────────────────────
+              _buildStreakHero(theme, isDark, l10n),
+              const SizedBox(height: AppTheme.spaceSm),
+
+              // ── Impact stats row ───────────────────────────────────────
               _buildImpactRow(theme, isDark, l10n),
-              if (_currentStreak != null || _longestStreak != null) ...[
-                const SizedBox(height: AppTheme.spaceSm),
-                _buildStreakRow(theme, isDark, l10n),
-              ],
               const SizedBox(height: AppTheme.spaceMd),
+
+              // ── Referral ───────────────────────────────────────────────
               ReferralInviteCard(
                 user: user,
                 neighborhoodName: AppPreferences.instance.territoryLabel,
               ),
-              const SizedBox(height: AppTheme.spaceXl),
-              const SizedBox(height: AppTheme.spaceMd),
-            ]),
+            ],
+          ),
+        ),
+        // Settings gear — pinned top-right, always visible
+        Positioned(
+          top: topPad + AppTheme.spaceXxs,
+          right: AppTheme.spaceXs,
+          child: Material(
+            color: AppColors.surfaceElevated(isDark),
+            borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+            child: InkWell(
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const SettingsScreen()),
+              ),
+              borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+              child: Padding(
+                padding: const EdgeInsets.all(AppTheme.spaceXs),
+                child: Icon(
+                  Icons.settings_outlined,
+                  size: AppIconSizes.sm,
+                  color: AppColors.textSecondary(isDark),
+                ),
+              ),
+            ),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildStreakRow(ThemeData theme, bool isDark, AppLocalizations l10n) {
+  void _showProfileDetail({required String title, required String value, required String explain, required Color color}) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.surface(isDark),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(AppTheme.radiusLg)),
+      ),
+      builder: (_) {
+        final bottomPad = MediaQuery.paddingOf(context).bottom + AppTheme.spaceMd;
+        return Padding(
+          padding: EdgeInsets.fromLTRB(AppTheme.spaceLg, AppTheme.spaceMd, AppTheme.spaceLg, bottomPad),
+          child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Center(child: Container(
+              width: 36, height: 4,
+              decoration: BoxDecoration(
+                color: AppColors.textTertiary(isDark).withValues(alpha: 0.4),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            )),
+            const SizedBox(height: AppTheme.spaceMd),
+            Text(value, style: theme.textTheme.displaySmall?.copyWith(
+              fontWeight: AppFontWeights.bold,
+              letterSpacing: -1.0,
+              height: 1.0,
+              color: color,
+            )),
+            const SizedBox(height: AppTheme.spaceXxxs),
+            Text(title, style: TextStyle(
+              fontSize: AppTheme.fontSizeBody,
+              fontWeight: AppFontWeights.semibold,
+              color: AppColors.textSecondary(isDark),
+              letterSpacing: 0.6,
+            )),
+            const SizedBox(height: AppTheme.spaceMd),
+            Text(explain, style: theme.textTheme.bodyMedium?.copyWith(
+              color: AppColors.textSecondary(isDark),
+              height: 1.5,
+            )),
+            const SizedBox(height: AppTheme.spaceMd),
+          ]),
+        );
+      },
+    );
+  }
+
+  Widget _buildStreakHero(ThemeData theme, bool isDark, AppLocalizations l10n) {
     final current = _currentStreak ?? 0;
     final longest = _longestStreak ?? 0;
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppTheme.spaceMd,
-        vertical: AppTheme.spaceSm,
+    final active = current > 0;
+
+    return GestureDetector(
+      onTap: () => _showProfileDetail(
+        title: l10n.statsCurrentStreakLabel,
+        value: '$current ${l10n.statsDaysUnit}',
+        explain: l10n.profileStreakExplain,
+        color: active ? AppColors.primary : AppColors.textSecondary(isDark),
       ),
+      child: Container(
+      padding: const EdgeInsets.all(AppTheme.spaceMd),
       decoration: BoxDecoration(
-        color: AppColors.surfaceElevated(isDark),
+        color: active
+            ? AppColors.primary.withValues(alpha: 0.08)
+            : AppColors.surfaceElevated(isDark),
         borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-        border: Border.all(color: AppColors.border(isDark)),
+        border: Border.all(
+          color: active ? AppColors.primary.withValues(alpha: 0.40) : AppColors.border(isDark),
+          width: active ? 1.5 : 0.5,
+        ),
       ),
-      child: IntrinsicHeight(
-        child: Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    l10n.statsCurrentStreakLabel.toUpperCase(),
-                    style: TextStyle(
-                      fontSize: AppTheme.fontSizeXs,
-                      fontWeight: AppFontWeights.semibold,
-                      color: AppColors.textSecondary(isDark),
-                      letterSpacing: 0.5,
-                    ),
+      child: Row(
+        children: [
+          // Big streak number
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  l10n.statsCurrentStreakLabel.toUpperCase(),
+                  style: TextStyle(
+                    fontSize: AppTheme.fontSizeXs,
+                    fontWeight: AppFontWeights.semibold,
+                    color: active ? AppColors.primary : AppColors.textSecondary(isDark),
+                    letterSpacing: 1.0,
                   ),
-                  const SizedBox(height: AppTheme.spaceXxxs),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.baseline,
-                    textBaseline: TextBaseline.alphabetic,
-                    children: [
-                      Text(
-                        '$current',
-                        style: theme.textTheme.titleLarge?.copyWith(
-                          fontWeight: AppFontWeights.bold,
-                          color: current > 0 ? AppColors.primary : AppColors.textPrimary(isDark),
-                          letterSpacing: -0.5,
-                          height: 1.0,
-                        ),
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        l10n.statsDaysUnit,
-                        style: TextStyle(
-                          fontSize: AppTheme.fontSizeSm,
-                          color: AppColors.textSecondary(isDark),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            Container(width: 1, color: AppColors.border(isDark)),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.only(left: AppTheme.spaceMd),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                ),
+                const SizedBox(height: AppTheme.spaceXxs),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.baseline,
+                  textBaseline: TextBaseline.alphabetic,
                   children: [
                     Text(
-                      l10n.statsLongestLabel.toUpperCase(),
-                      style: TextStyle(
-                        fontSize: AppTheme.fontSizeXs,
-                        fontWeight: AppFontWeights.semibold,
-                        color: AppColors.textSecondary(isDark),
-                        letterSpacing: 0.5,
+                      '$current',
+                      style: theme.textTheme.displayMedium?.copyWith(
+                        fontWeight: AppFontWeights.bold,
+                        color: active ? AppColors.primary : AppColors.textPrimary(isDark),
+                        letterSpacing: -1.5,
+                        height: 1.0,
                       ),
                     ),
-                    const SizedBox(height: AppTheme.spaceXxxs),
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.baseline,
-                      textBaseline: TextBaseline.alphabetic,
-                      children: [
-                        Text(
-                          '$longest',
-                          style: theme.textTheme.titleLarge?.copyWith(
-                            fontWeight: AppFontWeights.bold,
-                            letterSpacing: -0.5,
-                            height: 1.0,
-                          ),
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          l10n.statsDaysUnit,
-                          style: TextStyle(
-                            fontSize: AppTheme.fontSizeSm,
-                            color: AppColors.textSecondary(isDark),
-                          ),
-                        ),
-                      ],
+                    const SizedBox(width: AppTheme.spaceXs),
+                    Text(
+                      l10n.statsDaysUnit,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: active ? AppColors.primary.withValues(alpha: 0.7) : AppColors.textSecondary(isDark),
+                      ),
                     ),
                   ],
                 ),
-              ),
+                if (longest > 0) ...[
+                  const SizedBox(height: AppTheme.spaceXxs),
+                  Text(
+                    '${l10n.statsLongestLabel}: $longest ${l10n.statsDaysUnit}',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: AppColors.textSecondary(isDark),
+                    ),
+                  ),
+                ],
+              ],
             ),
-          ],
-        ),
+          ),
+          // Decorative bolt icon
+          Icon(
+            Icons.bolt_rounded,
+            size: 56,
+            color: active
+                ? AppColors.primary.withValues(alpha: 0.22)
+                : AppColors.textTertiary(isDark).withValues(alpha: 0.15),
+          ),
+        ],
+      ),
       ),
     );
   }
@@ -385,16 +496,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
         value: _totalUploads != null ? '$_totalUploads' : '—',
         label: l10n.statsDataPtsLabel.toUpperCase(),
         color: AppColors.pressure,
+        icon: Icons.cloud_upload_outlined,
       ),
       (
         value: _daysActive != null ? '$_daysActive' : '—',
         label: l10n.statsDaysActive.toUpperCase(),
         color: AppColors.movement,
+        icon: Icons.calendar_today_outlined,
       ),
       (
         value: kmDisplay,
         label: l10n.statsKmMapped.toUpperCase(),
         color: AppColors.quality,
+        icon: Icons.map_outlined,
       ),
     ];
 
@@ -413,25 +527,32 @@ class _ProfileScreenState extends State<ProfileScreen> {
           fontWeight: AppFontWeights.bold,
           letterSpacing: -0.5,
           height: 1.0,
+          color: tile.color,
         );
+        const textAlign = TextAlign.center;
+        final isKm2 = i == 2;
         return Expanded(
           child: Padding(
             padding: EdgeInsets.only(right: i < tiles.length - 1 ? AppTheme.spaceSm : 0),
-            child: Container(
-              padding: const EdgeInsets.fromLTRB(
-                AppTheme.spaceSm + AppTheme.spaceXxs,
-                AppTheme.spaceSm + AppTheme.spaceXxs,
-                AppTheme.spaceSm,
-                AppTheme.spaceSm + AppTheme.spaceXxs,
-              ),
+            child: GestureDetector(
+              onTap: isKm2 && km2 != null && km2 > 0 ? () => _showProfileDetail(
+                title: l10n.statsKmMapped.toUpperCase(),
+                value: kmDisplay,
+                explain: l10n.profileTileAreaExplain(kmDisplay),
+                color: AppColors.quality,
+              ) : null,
+              child: Container(
+              padding: const EdgeInsets.all(AppTheme.spaceMd),
               decoration: BoxDecoration(
                 color: AppColors.surfaceElevated(isDark),
                 borderRadius: BorderRadius.circular(AppTheme.radiusMd),
                 border: Border.all(color: AppColors.border(isDark)),
               ),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
+                  Icon(tile.icon, size: AppIconSizes.xs, color: tile.color),
+                  const SizedBox(height: AppTheme.spaceXxs),
                   if (numeric != null && numeric > 0)
                     TweenAnimationBuilder<double>(
                       key: ValueKey(numeric),
@@ -447,11 +568,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         final display = i == 2
                             ? (v < 1.0 ? v.toStringAsFixed(2) : v.toStringAsFixed(1))
                             : v.round().toString();
-                        return Text(display, style: valueStyle);
+                        return Text(display, style: valueStyle, textAlign: textAlign);
                       },
                     )
+                  else if (numericValues[i] == null)
+                    Shimmer.fromColors(
+                      baseColor: AppColors.shimmerBase(isDark),
+                      highlightColor: AppColors.shimmerHighlight(isDark),
+                      child: Container(
+                        width: 40, height: 20,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(AppTheme.radiusMin),
+                        ),
+                      ),
+                    )
                   else
-                    Text(tile.value, style: valueStyle),
+                    Text(tile.value, style: valueStyle, textAlign: textAlign),
                   const SizedBox(height: AppTheme.spaceXxxs),
                   Text(
                     tile.label,
@@ -462,9 +595,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
                   ),
                 ],
               ),
+            ),
             ),
           ),
         );
@@ -472,117 +607,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  /// Premium centered user header with gradient avatar ring
-  Widget _buildCompactUserHeader(User user, ThemeData theme, bool isDark, AppLocalizations l10n) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: AppTheme.spaceMd),
-      child: Column(
-        children: [
-          // Avatar with subtle ring
-          Container(
-            padding: const EdgeInsets.all(_kAvatarRingWidth),
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: AppColors.primary.withValues(alpha: 0.40),
-            ),
-            child: user.photoURL != null
-                ? CircleAvatar(
-                    radius: _kAvatarRadius,
-                    backgroundImage: CachedNetworkImageProvider(user.photoURL!),
-                  )
-                : CircleAvatar(
-                    radius: _kAvatarRadius,
-                    child: const Icon(Icons.person, size: _kAvatarFallbackSize),
-                  ),
-          ),
-          const SizedBox(height: AppTheme.spaceMd),
-
-          Text(
-            user.displayName ?? l10n.profileUserFallback,
-            style: theme.textTheme.titleLarge?.copyWith(
-              fontWeight: AppFontWeights.bold,
-              letterSpacing: -0.3,
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-          if (user.email != null) ...[
-            const SizedBox(height: AppTheme.spaceXxxs),
-            Text(
-              user.email!,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: AppColors.textSecondary(isDark),
-              ),
-            ),
-          ],
-          if (user.metadata.creationTime != null) ...[
-            const SizedBox(height: AppTheme.spaceXs),
-            Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppTheme.spaceSm,
-                vertical: AppTheme.spaceTiny,
-              ),
-              decoration: BoxDecoration(
-                color: AppColors.primaryAlpha(0.10),
-                borderRadius: BorderRadius.circular(AppTheme.radiusPill),
-              ),
-              child: Text(
-                l10n.profileMemberSince(_formatDate(user.metadata.creationTime!)),
-                style: theme.textTheme.labelSmall?.copyWith(
-                  color: AppColors.primary,
-                  fontWeight: AppFontWeights.semibold,
-                  letterSpacing: 0.3,
-                ),
-              ),
-            ),
-          ],
-          Builder(builder: (context) {
-            final lastUpload = AppPreferences.instance.lastUploadAt;
-            if (lastUpload == null) return const SizedBox.shrink();
-            final ago = _timeAgoShort(lastUpload);
-            return Padding(
-              padding: const EdgeInsets.only(top: AppTheme.spaceXxs + 2),
-              child: Text(
-                l10n.profileLastMapped(ago),
-                style: theme.textTheme.labelSmall?.copyWith(
-                  color: AppColors.textSecondary(isDark),
-                ),
-              ),
-            );
-          }),
-        ],
-      ),
-    );
-  }
 
   String _formatDate(DateTime date) {
     final locale = Localizations.localeOf(context).toString();
     return DateFormat('MMM y', locale).format(date);
   }
-
-  String _timeAgoShort(DateTime t) {
-    final locale = Localizations.localeOf(context).languageCode;
-    return TimeAgoService.format(t, locale: locale);
-  }
-
 }
 
-class _ProfileSectionLabel extends StatelessWidget {
-  const _ProfileSectionLabel(this.text, {required this.isDark});
-  final String text;
-  final bool isDark;
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      text,
-      style: TextStyle(
-        fontSize: AppTheme.fontSizeXs,
-        fontWeight: AppFontWeights.semibold,
-        color: AppColors.textSecondary(isDark),
-        letterSpacing: 0.8,
-      ),
-    );
-  }
-}
 

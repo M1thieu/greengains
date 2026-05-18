@@ -89,6 +89,16 @@ class AppLocalizationsFr extends AppLocalizations {
       'Marche où tu veux — ton téléphone lit la lumière, la pression et le mouvement.';
 
   @override
+  String homeStatPlaces(int count) {
+    return '$count endroits';
+  }
+
+  @override
+  String homeStatStreak(int count) {
+    return '$count jours d\'affilée';
+  }
+
+  @override
   String get homeActionStart => 'Commencer';
 
   @override
@@ -485,7 +495,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get statsVerdictSlow => 'Semaine calme';
 
   @override
-  String get statsVerdictNone => 'Pas encore de données cette semaine';
+  String get statsVerdictNone => 'Pas encore';
 
   @override
   String statsVerdictSubStrong(int days) {
@@ -507,14 +517,14 @@ class AppLocalizationsFr extends AppLocalizations {
       'Ouvre la carte et appuie sur Commencer pour contribuer.';
 
   @override
-  String get statsWeeklyTargetLabel => 'NOUVEAUX ENDROITS CETTE SEMAINE';
+  String get statsWeeklyTargetLabel => 'CETTE SEMAINE';
 
   @override
-  String get statsWeeklyTargetComplete => 'Objectif hebdomadaire atteint';
+  String get statsWeeklyTargetComplete => 'Objectif atteint';
 
   @override
   String statsWeeklyTargetRemaining(int count) {
-    return '$count de plus pour atteindre ton objectif';
+    return '$count de plus';
   }
 
   @override
@@ -541,12 +551,11 @@ class AppLocalizationsFr extends AppLocalizations {
   String get statsRecordFirstDay => 'Premier jour de cartographie';
 
   @override
-  String get statsZoneExplainer =>
-      'Chaque endroit fait environ un pâté de maisons. Ton téléphone l\'a scanné en passant.';
+  String get statsZoneExplainer => 'Un pâté de maisons scanné en passant.';
 
   @override
   String get statsUploadExplainer =>
-      'Chaque scan capture ce que ton téléphone a perçu à cet instant : luminosité, mouvement et pression atmosphérique.';
+      'Luminosité, mouvement et pression capturés à cet instant.';
 
   @override
   String get statsTabCore => 'Aperçu';
@@ -556,6 +565,17 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get statsInDepth30Days => '30 derniers jours';
+
+  @override
+  String get statsHeatmapLess => 'moins';
+
+  @override
+  String get statsHeatmapMore => 'plus';
+
+  @override
+  String statsHeatmapDayDetail(String date, int count) {
+    return '$date · $count syncs';
+  }
 
   @override
   String get statsInDepthHabits => 'Vos habitudes';
@@ -1023,6 +1043,9 @@ class AppLocalizationsFr extends AppLocalizations {
       'Conditions générales d\'utilisation';
 
   @override
+  String get settingsDataTransparency => 'Transparence des données';
+
+  @override
   String get settingsDataDeletion => 'Demande de suppression des données';
 
   @override
@@ -1048,7 +1071,7 @@ class AppLocalizationsFr extends AppLocalizations {
       'Chaque voisin complète ce que tu n\'as pas encore atteint.';
 
   @override
-  String get layerMine => 'Les miennes';
+  String get layerMine => 'Miennes';
 
   @override
   String get layerAll => 'Tout';
@@ -1723,6 +1746,60 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get sessionStatTotal => 'TOTAL';
+
+  @override
+  String get sessionStatUploads => 'SYNCS';
+
+  @override
+  String get sessionStatAreaExplain =>
+      'Surface totale cartographiée cette session, selon les zones couvertes.';
+
+  @override
+  String get sessionStatDurationExplain =>
+      'Durée pendant laquelle le suivi était actif lors de cette session.';
+
+  @override
+  String get sessionStatUploadsExplain =>
+      'Nombre d\'envois de données pendant cette session.';
+
+  @override
+  String get sessionStatTotalExplain =>
+      'Total des zones uniques cartographiées sur toutes tes sessions.';
+
+  @override
+  String homeSessionPill(int uploads) {
+    return '$uploads synchros';
+  }
+
+  @override
+  String get statsUploadsHint => 'envois';
+
+  @override
+  String get statsKpiTodayExplain => 'Syncs envoyés aujourd\'hui.';
+
+  @override
+  String get statsKpiWeekExplain => 'Syncs envoyés cette semaine.';
+
+  @override
+  String get statsKpiBestDayExplain => 'Maximum de syncs en une journée.';
+
+  @override
+  String get statsKpiAvgExplain => 'Moyenne de syncs les jours actifs.';
+
+  @override
+  String get profileTileUploadsExplain =>
+      'Total des syncs envoyés à nos serveurs.';
+
+  @override
+  String get profileTileDaysExplain => 'Jours avec au moins une contribution.';
+
+  @override
+  String profileTileAreaExplain(String area) {
+    return 'Surface cartographiée sur toutes tes sessions.';
+  }
+
+  @override
+  String get profileStreakExplain => 'Jours consécutifs avec au moins un sync.';
 
   @override
   String statsMilestoneTarget(int target) {

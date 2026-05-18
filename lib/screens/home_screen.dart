@@ -20,7 +20,6 @@ import '../core/events/app_events.dart';
 import '../utils/app_snackbars.dart';
 import '../core/app_preferences.dart';
 import '../widgets/coverage_map_widget.dart';
-import '../widgets/tracking_status_chip.dart';
 import '../widgets/sensor_section.dart';
 import '../data/repositories/contribution_repository.dart';
 
@@ -28,19 +27,6 @@ import '../data/repositories/contribution_repository.dart';
 const _kLocationBtnSize = AppTheme.minTouchTarget; // 48
 
 const _kMilestones = [5, 10, 25, 50, 100, 250, 500, 1000];
-
-String _luxLabel(int lux, AppLocalizations l10n) {
-  if (lux < 50)    return l10n.sensorLuxDark;
-  if (lux < 500)   return l10n.sensorLuxIndoor;
-  if (lux < 10000) return l10n.sensorLuxBright;
-  return l10n.sensorLuxDirect;
-}
-
-String _hpaLabel(double hpa, AppLocalizations l10n) {
-  if (hpa > 1010) return l10n.sensorHpaLow;
-  if (hpa > 990)  return l10n.sensorHpaMid;
-  return l10n.sensorHpaHigh;
-}
 
 // H3 resolution for live cell highlight (res 9 ≈ 174m edge length — city block scale)
 const _kLiveCellResolution = 9;
@@ -112,17 +98,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   int get _claimedTileCount => _h3Tiles.where((t) => t.boundary != null).length;
   /// Current streak — loaded after session ends, shown in session summary sheet.
   int _currentStreak = 0;
-  /// True when streak dropped to 0 since last app open — shows one-time banner.
-  bool _streakReset = false;
+  /// Upload count during the current tracking session — shown in the live pill and summary sheet.
+  int _sessionUploadCount = 0;
   /// Whether community tiles are visible on the map.
   bool _showCommunity = true;
-  /// Neighborhood name from reverse geocoding — shown below zone count.
-  String? _neighborhoodName;
-
-  // Return-delta card: shown once per app-open when zones were gained since last session.
-  // Dismissed by user tap or auto-dismissed after tracking starts.
-  int _returnDeltaZones = 0;
-  bool _returnDeltaDismissed = false;
 
   @override
   void initState() {
@@ -133,8 +112,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     _setupUploadSuccessListener();
     _checkBatteryOptimization();
     unawaited(_checkPermissionHealth());
-    // Seed neighborhood name from prefs — shown instantly before any geocoding.
-    _neighborhoodName = _prefs.territoryLabel;
     // Load cached tiles off the main thread — map shows last known state before network.
     unawaited(_loadCachedTiles());
     // Prefetch Firebase token before tile requests fire — avoids token latency
@@ -166,35 +143,26 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     // after the session summary was already shown) but less than 24h ago.
     final age = DateTime.now().difference(endAt);
     if (age < const Duration(minutes: 10) || age > const Duration(hours: 24)) return;
-    setState(() => _returnDeltaZones = zones);
+    // return-delta removed from UI — no-op
   }
 
   Future<void> _loadStreak() async {
     try {
       final stats = await ContributionRepository().getStats();
       if (!mounted) return;
-      final prev = _prefs.lastKnownStreak;
       final next = stats.currentStreak;
-      final reset = prev > 0 && next == 0;
       await _prefs.setLastKnownStreak(next);
-      setState(() {
-        _currentStreak = next;
-        if (reset) _streakReset = true;
-      });
+      setState(() { _currentStreak = next; });
     } catch (_) {}
   }
 
   void _handleServiceRunningChange() {
     if (_locationService.isRunning.value) {
-      // Snapshot zone count so we can show "+N new" delta during this session.
       _sessionStartZoneCount = _claimedTileCount;
       _sessionStartTime = DateTime.now();
+      _sessionUploadCount = 0;
       _checkBatteryOptimization();
       _maybeShowFirstStart();
-      // Auto-dismiss return-delta card when user starts mapping.
-      if (_returnDeltaZones > 0 && !_returnDeltaDismissed) {
-        setState(() => _returnDeltaDismissed = true);
-      }
     } else {
       // Tracking stopped — persist session data for return hint.
       final gained = _claimedTileCount - _sessionStartZoneCount;
@@ -208,6 +176,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       final worthSummary = sessionDuration >= const Duration(minutes: 2);
       if (worthSummary && _sessionStartZoneCount >= 0 && mounted) {
         final total = _claimedTileCount;
+        final uploads = _sessionUploadCount;
         Future.delayed(AppDurations.fast, () {
           if (!mounted || !context.mounted) return;
           showModalBottomSheet(
@@ -219,6 +188,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               sessionDuration: sessionDuration,
               streak: _currentStreak,
               isPersonalBest: isPersonalBest,
+              uploadsInSession: uploads,
               onViewStats: widget.onGoToStats,
             ),
           );
@@ -226,6 +196,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       }
       _sessionStartZoneCount = 0;
       _sessionStartTime = null;
+      _sessionUploadCount = 0;
     }
   }
 
@@ -376,6 +347,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   void _onUploadSuccess(UploadSuccessEvent event) {
     if (!mounted) return;
+    if (_locationService.isRunning.value) {
+      setState(() => _sessionUploadCount++);
+    }
     // Mark pending immediately — if the app goes to background before the sheet
     // shows, the resumed check in didChangeAppLifecycleState will pick it up.
     if (!_prefs.firstUploadCelebrated) {
@@ -641,7 +615,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         best!.centroid!.latitude, best.centroid!.longitude);
     if (name != null && name.isNotEmpty && mounted) {
       await _prefs.setTerritoryLabel(name);
-      setState(() => _neighborhoodName = name);
     }
   }
 
@@ -812,9 +785,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             // ── 0b. Cold-start hint — shown after 8s if still loading ───
             if (_showSlowLoadHint)
               Positioned(
-                top: topPadding + AppTheme.spaceMd + 48,
-                left: 0,
-                right: 0,
+                bottom: bottomPadding + AppTheme.floatingNavHeight + AppTheme.spaceXxl,
+                left: 0, right: 0,
                 child: Center(
                   child: Container(
                     padding: const EdgeInsets.symmetric(
@@ -827,7 +799,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                       context.l10n.serverWakingUp,
                       style: const TextStyle(
                         color: Colors.white60,
-                        fontSize: 12,
+                        fontSize: AppTheme.fontSizeBody,
                         fontWeight: AppFontWeights.medium,
                       ),
                     ),
@@ -835,238 +807,174 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 ),
               ),
 
-            // ── 0c. Contextual hint ─────────────────────────────────────
-            // Active tracking → top-center under chip: "+N new places · MM:SS"
-            // Idle/first-use → bottom above FAB: onboarding or return CTA
-            ListenableBuilder(
-              listenable: Listenable.merge([
-                _locationService.isRunning,
-                _locationService.isPaused,
-              ]),
-              builder: (context, _) {
-                final isRunning = _locationService.isRunning.value;
-                final isPaused  = _locationService.isPaused.value;
-                final isActive  = isRunning && !isPaused;
+            // ── Overlays ──────────────────────────────────────────────────
+            SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: AppTheme.floatingNavHeight),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
 
-                // Running (active or paused) — show zone delta + live conditions
-                if (isRunning && _sessionStartTime != null) {
-                  return Positioned(
-                    top: topPadding + AppTheme.spaceMd + 36,
-                    left: 0, right: 0,
-                    child: Center(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
+                    // Top bar: Mine/All left — stats right
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: AppTheme.spaceMd, vertical: AppTheme.spaceSm),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          _TrackingHintPill(
-                            newZones: (_claimedTileCount - _sessionStartZoneCount).clamp(0, 999),
-                            totalZones: _claimedTileCount,
-                            isPaused: isPaused,
+                          // Mine / All toggle
+                          _MineAllToggle(
+                            showCommunity: _showCommunity,
+                            onChanged: (val) =>
+                                setState(() => _showCommunity = val),
                           ),
-                          const SizedBox(height: 6),
-                          _LiveConditionsLine(
-                            conditionsNotifier: _locationService.liveConditions,
+                          const Spacer(),
+                          // Stats pills stacked top-right — tap navigates to Stats
+                          GestureDetector(
+                            onTap: widget.onGoToStats != null ? () {
+                              HapticFeedback.lightImpact();
+                              widget.onGoToStats!();
+                            } : null,
+                            behavior: HitTestBehavior.opaque,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                if (_claimedTileCount > 0)
+                                  _StatPill(
+                                    icon: Icons.place_rounded,
+                                    label: context.l10n.homeStatPlaces(_claimedTileCount),
+                                  ),
+                                if (_currentStreak > 0) ...[
+                                  const SizedBox(height: AppTheme.spaceXxs),
+                                  _StatPill(
+                                    icon: Icons.bolt_rounded,
+                                    label: context.l10n.homeStatStreak(_currentStreak),
+                                  ),
+                                ],
+                              ],
+                            ),
                           ),
                         ],
                       ),
                     ),
-                  );
-                }
 
-                if (isActive) return const SizedBox.shrink();
+                    const Spacer(),
 
-                // Idle only — top-center below chip (mirrors design top: 74)
-                return Positioned(
-                  top: topPadding + AppTheme.spaceXs + 44,
-                  left: 0, right: 0,
-                  child: Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        GestureDetector(
-                          onTap: _claimedTileCount > 0 ? widget.onGoToStats : null,
-                          child: _IdlePill(
-                            hasTiles: _h3Tiles.isNotEmpty,
-                            currentZones: _claimedTileCount,
-                            neighborhoodName: _neighborhoodName,
+                    // Live session counter pill
+                    ListenableBuilder(
+                      listenable: Listenable.merge([
+                        _locationService.isRunning,
+                        _locationService.isPaused,
+                      ]),
+                      builder: (context, _) {
+                        final active = _locationService.isRunning.value && !_locationService.isPaused.value;
+                        final show = active && _sessionUploadCount > 0;
+                        return AnimatedSwitcher(
+                          duration: AppDurations.medium,
+                          transitionBuilder: (child, anim) => FadeTransition(
+                            opacity: anim,
+                            child: SlideTransition(
+                              position: Tween<Offset>(
+                                begin: const Offset(0, 0.3),
+                                end: Offset.zero,
+                              ).animate(CurvedAnimation(parent: anim, curve: Curves.easeOut)),
+                              child: child,
+                            ),
                           ),
-                        ),
-                        if (_returnDeltaZones > 0 && !_returnDeltaDismissed) ...[
-                          const SizedBox(height: 6),
-                          _ReturnDeltaCard(
-                            zones: _returnDeltaZones,
-                            onDismiss: () => setState(() => _returnDeltaDismissed = true),
-                          ),
-                        ],
-                        if (_streakReset) ...[
-                          const SizedBox(height: 6),
-                          _StreakResetBanner(
-                            onDismiss: () => setState(() => _streakReset = false),
-                          ),
-                        ],
-                        GestureDetector(
-                          onTap: _openSensorSheet,
-                          child: _AmbientDataPill(
-                            currentH3Index: _currentH3Index,
-                            personalTiles: _h3Tiles,
-                            globalTiles: _globalTiles,
-                            userLocation: _userLocationNotifier.value,
-                          ),
-                        ),
-                      ],
+                          child: show ? Padding(
+                            key: ValueKey(_sessionUploadCount),
+                            padding: const EdgeInsets.only(bottom: AppTheme.spaceXs),
+                            child: Center(
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: AppTheme.spaceMd, vertical: AppTheme.spaceXxs + 2),
+                                decoration: BoxDecoration(
+                                  color: AppColors.primary.withValues(alpha: 0.12),
+                                  borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+                                  border: Border.all(color: AppColors.primary.withValues(alpha: 0.25)),
+                                ),
+                                child: Text(
+                                  context.l10n.homeSessionPill(_sessionUploadCount),
+                                  style: const TextStyle(
+                                    fontSize: AppTheme.fontSizeSm,
+                                    fontWeight: AppFontWeights.semibold,
+                                    color: AppColors.primary,
+                                    letterSpacing: -0.1,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ) : const SizedBox.shrink(key: ValueKey('pill_hidden')),
+                        );
+                      },
                     ),
-                  ),
-                );
-              },
-            ),
 
-
-            // ── 0d. Top bar — brand mark idle only (clean, no buttons) ──
-            ListenableBuilder(
-              listenable: Listenable.merge([_locationService.isRunning, _locationService.isPaused]),
-              builder: (context, _) {
-                final isRunning = _locationService.isRunning.value;
-                final isPaused  = _locationService.isPaused.value;
-                if (isRunning || isPaused) return const SizedBox.shrink();
-                return Positioned(
-                  top: topPadding,
-                  left: 0, right: 0,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: AppTheme.spaceMd, vertical: AppTheme.spaceXs),
-                    child: Row(
-                      children: [
-                        const _BrandMark(size: 18),
-                        const SizedBox(width: AppTheme.spaceXs),
-                        Text(
-                          context.l10n.homeTitle,
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: AppFontWeights.medium,
-                            color: Colors.white.withValues(alpha: 0.7),
-                            letterSpacing: 0.3,
-                          ),
+                    // Permission lost banner
+                    if (_permissionLost)
+                      Padding(
+                        padding: const EdgeInsets.only(
+                            left: AppTheme.spaceMd,
+                            right: AppTheme.spaceMd,
+                            bottom: AppTheme.spaceSm),
+                        child: _PermissionLostCard(
+                          onFix: () async {
+                            await Geolocator.openAppSettings();
+                          },
                         ),
-                      ],
+                      ),
+
+                    // Bottom row — floating buttons, no container
+                    Padding(
+                      padding: const EdgeInsets.only(
+                          left: AppTheme.spaceMd,
+                          right: AppTheme.spaceMd,
+                          bottom: AppTheme.spaceMd),
+                      child: ListenableBuilder(
+                        listenable: Listenable.merge([
+                          _locationService.isRunning,
+                          _locationService.isPaused,
+                          _userLocationNotifier,
+                        ]),
+                        builder: (context, _) {
+                          final isRunning = _locationService.isRunning.value;
+                          final isPaused  = _locationService.isPaused.value;
+                          final hasLoc    = _userLocationNotifier.value != null;
+                          return Row(
+                            children: [
+                              _InfoButton(onTap: _openSensorSheet),
+                              Expanded(
+                                child: Center(
+                                  child: _HomeActionBar(
+                                    isRunning: isRunning,
+                                    isPaused: isPaused,
+                                    isActive: isRunning && !isPaused,
+                                    isBusy: _actionBusy,
+                                    onStart: _actionStart,
+                                    onPause: _actionPause,
+                                    onResume: _actionResume,
+                                    onStop: _actionStop,
+                                  ),
+                                ),
+                              ),
+                              if (hasLoc)
+                                Semantics(
+                                  button: true,
+                                  label: context.l10n.semanticsCenterOnMe,
+                                  child: _MyLocationButton(
+                                    onPressed: () => _recenterTrigger.value++,
+                                    followModeNotifier: _followModeNotifier,
+                                  ),
+                                )
+                              else
+                                const SizedBox(width: _kLocationBtnSize),
+                            ],
+                          );
+                        },
+                      ),
                     ),
-                  ),
-                );
-              },
-            ),
-
-
-            // ── 1. Status chip (intrinsic width, left-aligned) ────────────
-            Positioned(
-              top: topPadding + AppTheme.spaceXs,
-              left: AppTheme.spaceMd,
-              child: ListenableBuilder(
-                listenable: Listenable.merge([
-                  _locationService.isRunning,
-                  _locationService.isPaused,
-                  _locationService.uploadStatus,
-                  _locationService.pendingReadings,
-                ]),
-                builder: (context, _) {
-                  final svc = _locationService;
-                  final isRunning = svc.isRunning.value;
-                  final isPaused  = svc.isPaused.value;
-                  // Hide chip when fully idle — design only shows it when tracking/paused
-                  if (!isRunning && !isPaused) return const SizedBox.shrink();
-                  final status = svc.uploadStatus.value;
-                  return TrackingStatusChip(
-                    isTracking: isRunning && !isPaused,
-                    isPaused: isRunning && isPaused,
-                    lastUpload: status.lastUpload,
-                    tileCount: _claimedTileCount,
-                    isUploading: status.isUploading,
-                    pendingReadings: svc.pendingReadings.value,
-                    onTap: _openSensorSheet,
-                  );
-                },
-              ),
-            ),
-
-            // ── 1b. Permission lost banner ────────────────────────────────────
-            if (_permissionLost)
-              Positioned(
-                left: AppTheme.spaceMd,
-                right: AppTheme.spaceMd,
-                bottom: bottomPadding + AppTheme.floatingNavHeight + _kActionBarHeight + AppTheme.spaceMd,
-                child: _PermissionLostCard(
-                  onFix: () async {
-                    await Geolocator.openAppSettings();
-                  },
+                  ],
                 ),
               ),
-
-            // ── 2. Bottom action bar ──────────────────────────────────────
-            Positioned(
-              left: AppTheme.spaceMd,
-              right: AppTheme.spaceMd,
-              bottom: bottomPadding + AppTheme.floatingNavHeight + AppTheme.spaceSm,
-              child: ListenableBuilder(
-                listenable: Listenable.merge([
-                  _locationService.isRunning,
-                  _locationService.isPaused,
-                ]),
-                builder: (context, _) {
-                  final isRunning = _locationService.isRunning.value;
-                  final isPaused  = _locationService.isPaused.value;
-                  final isActive  = isRunning && !isPaused;
-                  return _HomeActionBar(
-                    isRunning: isRunning,
-                    isPaused: isPaused,
-                    isActive: isActive,
-                    isBusy: _actionBusy,
-                    hasTiles: _h3Tiles.isNotEmpty,
-                    showCommunity: _showCommunity,
-                    hasGlobalTiles: _globalTiles.isNotEmpty,
-                    onLayerToggle: (val) => setState(() => _showCommunity = val),
-                    onStart: _actionStart,
-                    onPause: _actionPause,
-                    onResume: _actionResume,
-                    onStop: _actionStop,
-                  );
-                },
-              ),
-            ),
-
-            // ── 2b. Streak badge (top-right, idle only, streak > 0) ──────
-            if (_currentStreak > 0)
-              ListenableBuilder(
-                listenable: Listenable.merge([_locationService.isRunning, _locationService.isPaused]),
-                builder: (context, _) {
-                  final isRunning = _locationService.isRunning.value;
-                  final isPaused  = _locationService.isPaused.value;
-                  if (isRunning || isPaused) return const SizedBox.shrink();
-                  return Positioned(
-                    top: topPadding + AppTheme.spaceXs,
-                    right: AppTheme.spaceMd,
-                    child: GestureDetector(
-                      onTap: widget.onGoToStats,
-                      child: _StreakBadge(streak: _currentStreak),
-                    ),
-                  );
-                },
-              ),
-
-            // ── 3. My Location button (bottom-left, above action bar) ─────
-            ValueListenableBuilder<LatLng?>(
-              valueListenable: _userLocationNotifier,
-              builder: (context, userLocation, _) {
-                if (userLocation == null) return const SizedBox.shrink();
-                return Positioned(
-                  left: AppTheme.spaceMd,
-                  bottom: bottomPadding + AppTheme.floatingNavHeight + _kActionBarHeight + AppTheme.spaceSm,
-                  child: Semantics(
-                    button: true,
-                    label: context.l10n.semanticsCenterOnMe,
-                    child: _MyLocationButton(
-                      onPressed: () => _recenterTrigger.value++,
-                      followModeNotifier: _followModeNotifier,
-                    ),
-                  ),
-                );
-              },
             ),
           ],
         ),
@@ -1077,9 +985,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
-// Approximate height of the action bar content (gradient + buttons).
-// Used to position overlapping controls (My Location, permission banner) above it.
-const _kActionBarHeight = 90.0; // button(~44) + layerToggle(~32) + spaceXs(8) + shadow
 
 // ─── Bottom action bar ────────────────────────────────────────────────────────
 
@@ -1089,10 +994,6 @@ class _HomeActionBar extends StatelessWidget {
     required this.isPaused,
     required this.isActive,
     required this.isBusy,
-    required this.hasTiles,
-    required this.showCommunity,
-    required this.hasGlobalTiles,
-    required this.onLayerToggle,
     required this.onStart,
     required this.onPause,
     required this.onResume,
@@ -1103,10 +1004,6 @@ class _HomeActionBar extends StatelessWidget {
   final bool isPaused;
   final bool isActive;
   final bool isBusy;
-  final bool hasTiles;
-  final bool showCommunity;
-  final bool hasGlobalTiles;
-  final ValueChanged<bool> onLayerToggle;
   final VoidCallback onStart;
   final VoidCallback onPause;
   final VoidCallback onResume;
@@ -1116,46 +1013,43 @@ class _HomeActionBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
 
-    return Column(
+    // Primary label/icon changes per state — layout never shifts
+    final String primaryLabel;
+    final IconData primaryIcon;
+    final VoidCallback primaryAction;
+
+    if (!isRunning) {
+      primaryLabel  = l10n.homeActionStart;
+      primaryIcon   = Icons.play_arrow_rounded;
+      primaryAction = onStart;
+    } else if (isPaused) {
+      primaryLabel  = l10n.homeActionResume;
+      primaryIcon   = Icons.play_arrow_rounded;
+      primaryAction = onResume;
+    } else {
+      primaryLabel  = l10n.homeActionPause;
+      primaryIcon   = Icons.pause_rounded;
+      primaryAction = onPause;
+    }
+
+    return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        if (hasGlobalTiles && !isRunning) ...[
-          _LayerToggle(showCommunity: showCommunity, onChanged: onLayerToggle),
-          const SizedBox(height: AppTheme.spaceXs),
-        ],
-        if (!isRunning)
-          _ActionButton.primary(
-            label: l10n.homeActionStart,
-            icon: Icons.radio_button_checked,
+        _ActionButton.primary(
+          label: primaryLabel,
+          icon: primaryIcon,
+          busy: isBusy,
+          onPressed: primaryAction,
+        ),
+        if (isRunning) ...[
+          const SizedBox(width: AppTheme.spaceXs),
+          _ActionButton.danger(
+            label: l10n.homeActionStop,
+            icon: Icons.stop_rounded,
             busy: isBusy,
-            onPressed: onStart,
-          )
-        else
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              isPaused
-                  ? _ActionButton.primary(
-                      label: l10n.homeActionResume,
-                      icon: Icons.play_arrow_rounded,
-                      busy: isBusy,
-                      onPressed: onResume,
-                    )
-                  : _ActionButton.secondary(
-                      label: l10n.homeActionPause,
-                      icon: Icons.pause_rounded,
-                      busy: isBusy,
-                      onPressed: onPause,
-                    ),
-              const SizedBox(width: AppTheme.spaceXs),
-              _ActionButton.danger(
-                label: l10n.homeActionStop,
-                icon: Icons.stop_rounded,
-                busy: isBusy,
-                onPressed: onStop,
-              ),
-            ],
+            onPressed: onStop,
           ),
+        ],
       ],
     );
   }
@@ -1168,18 +1062,18 @@ class _ActionButton extends StatelessWidget {
     required this.busy,
     required this.onPressed,
     required this.style,
+    this.disabled = false,
   });
 
   factory _ActionButton.primary({required String label, required IconData icon, required bool busy, required VoidCallback onPressed}) =>
       _ActionButton._(label: label, icon: icon, busy: busy, onPressed: onPressed, style: _ActionBtnStyle.primary);
-  factory _ActionButton.secondary({required String label, required IconData icon, required bool busy, required VoidCallback onPressed}) =>
-      _ActionButton._(label: label, icon: icon, busy: busy, onPressed: onPressed, style: _ActionBtnStyle.secondary);
-  factory _ActionButton.danger({required String label, required IconData icon, required bool busy, required VoidCallback onPressed}) =>
-      _ActionButton._(label: label, icon: icon, busy: busy, onPressed: onPressed, style: _ActionBtnStyle.danger);
+  factory _ActionButton.danger({required String label, required IconData icon, required bool busy, required VoidCallback onPressed, bool disabled = false}) =>
+      _ActionButton._(label: label, icon: icon, busy: busy, onPressed: onPressed, style: _ActionBtnStyle.danger, disabled: disabled);
 
   final String label;
   final IconData icon;
   final bool busy;
+  final bool disabled;
   final VoidCallback onPressed;
   final _ActionBtnStyle style;
 
@@ -1189,11 +1083,11 @@ class _ActionButton extends StatelessWidget {
 
     final bgColor = switch (style) {
       _ActionBtnStyle.primary   => AppColors.primary,
-      _ActionBtnStyle.secondary => const Color(0xFF1c2f2a),
-      _ActionBtnStyle.danger    => const Color(0xFF2a1c1c),
+      _ActionBtnStyle.secondary => AppColors.actionSecondaryBg,
+      _ActionBtnStyle.danger    => AppColors.actionDangerBg,
     };
     final fgColor = switch (style) {
-      _ActionBtnStyle.primary   => const Color(0xFF04221a),
+      _ActionBtnStyle.primary   => AppColors.actionPrimaryFg,
       _ActionBtnStyle.secondary => Colors.white,
       _ActionBtnStyle.danger    => AppColors.error,
     };
@@ -1203,42 +1097,50 @@ class _ActionButton extends StatelessWidget {
       _ActionBtnStyle.danger    => AppColors.error.withValues(alpha: 0.25),
     };
 
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: busy ? null : onPressed,
-        borderRadius: BorderRadius.circular(AppTheme.radiusPill),
-        child: Ink(
-          decoration: BoxDecoration(
-            color: bgColor,
-            borderRadius: BorderRadius.circular(AppTheme.radiusPill),
-            border: Border.all(color: borderColor, width: 1),
-            boxShadow: style == _ActionBtnStyle.primary
-                ? [BoxShadow(color: AppColors.primary.withValues(alpha: 0.3), blurRadius: 12, offset: const Offset(0, 3))]
-                : [BoxShadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 8, offset: const Offset(0, 2))],
-          ),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 11),
-            child: busy
-                ? SizedBox(
-                    width: 18, height: 18,
-                    child: CircularProgressIndicator(strokeWidth: 2, color: fgColor),
-                  )
-                : Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(icon, size: 16, color: fgColor),
-                      const SizedBox(width: 6),
-                      Text(
-                        label,
-                        style: theme.textTheme.labelLarge?.copyWith(
-                          color: fgColor,
-                          fontWeight: AppFontWeights.semibold,
-                          letterSpacing: -0.1,
+    return Opacity(
+      opacity: disabled ? 0.35 : 1.0,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: (busy || disabled) ? null : onPressed,
+          borderRadius: BorderRadius.circular(AppTheme.radiusPill),
+          child: Ink(
+            decoration: BoxDecoration(
+              color: bgColor,
+              borderRadius: BorderRadius.circular(AppTheme.radiusPill),
+              border: Border.all(color: borderColor, width: 1),
+              boxShadow: style == _ActionBtnStyle.primary
+                  ? [BoxShadow(color: AppColors.primary.withValues(alpha: 0.3), blurRadius: 12, offset: const Offset(0, 3))]
+                  : [BoxShadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 8, offset: const Offset(0, 2))],
+            ),
+            child: Padding(
+              // Danger button is icon-only (compact) — primary keeps full label
+              padding: style == _ActionBtnStyle.danger
+                  ? const EdgeInsets.all(AppTheme.spaceSm)
+                  : const EdgeInsets.symmetric(horizontal: AppTheme.spaceLg, vertical: AppTheme.spaceSm),
+              child: busy
+                  ? SizedBox(
+                      width: 18, height: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2, color: fgColor),
+                    )
+                  : style == _ActionBtnStyle.danger
+                      ? Icon(icon, size: AppIconSizes.sm, color: fgColor)
+                      : Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(icon, size: AppIconSizes.xs, color: fgColor),
+                            const SizedBox(width: AppTheme.spaceXs),
+                            Text(
+                              label,
+                              style: theme.textTheme.labelLarge?.copyWith(
+                                color: fgColor,
+                                fontWeight: AppFontWeights.semibold,
+                                letterSpacing: -0.1,
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
-                    ],
-                  ),
+            ),
           ),
         ),
       ),
@@ -1249,436 +1151,6 @@ class _ActionButton extends StatelessWidget {
 enum _ActionBtnStyle { primary, secondary, danger }
 
 // ─── Private widgets ────────────────────────────────────────────────────────
-
-/// Single idle pill — merges hint + status into one surface.
-/// States (priority order):
-///   gain  → "+N new places · 🔥 streak" (green tint, pulsing)
-// ─── Streak-reset banner ─────────────────────────────────────────────────────
-// Shown once per app-open when the streak dropped to 0 since last open.
-// Warm amber tint — informational, not alarming. Dismissed by tap.
-class _StreakResetBanner extends StatefulWidget {
-  const _StreakResetBanner({required this.onDismiss});
-  final VoidCallback onDismiss;
-
-  @override
-  State<_StreakResetBanner> createState() => _StreakResetBannerState();
-}
-
-class _StreakResetBannerState extends State<_StreakResetBanner>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _ctrl;
-  late Animation<double> _fadeAnim;
-
-  @override
-  void initState() {
-    super.initState();
-    _ctrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 300));
-    _fadeAnim = CurvedAnimation(parent: _ctrl, curve: Curves.easeOut);
-    _ctrl.forward();
-  }
-
-  @override
-  void dispose() {
-    _ctrl.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    const amber = Color(0xFFfbbf24);
-    return FadeTransition(
-      opacity: _fadeAnim,
-      child: GestureDetector(
-        onTap: widget.onDismiss,
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(AppTheme.radiusPill),
-          child: BackdropFilter(
-            filter: ui.ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-            child: Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppTheme.spaceMd,
-                vertical: AppTheme.spaceXs,
-              ),
-              decoration: BoxDecoration(
-                color: amber.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(AppTheme.radiusPill),
-                border: Border.all(color: amber.withValues(alpha: 0.28)),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.local_fire_department_rounded,
-                      size: 14, color: amber.withValues(alpha: 0.80)),
-                  const SizedBox(width: 6),
-                  Flexible(
-                    child: Text(
-                      context.l10n.streakResetBanner,
-                      style: TextStyle(
-                        fontSize: AppTheme.fontSizeXs,
-                        color: Colors.white.withValues(alpha: 0.75),
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-// ─── Return-delta card ───────────────────────────────────────────────────────
-// Shown once per app-open when the user comes back after a session ended >10min
-// ago. Reveals how many zones the background service captured while they were
-// gone. Slides in from above, dismissed by tap.
-// TODO(lucky-pot): replace this with the daily reward card on days where the
-// lucky-pot mechanic is active — same position, same dismiss pattern.
-class _ReturnDeltaCard extends StatefulWidget {
-  const _ReturnDeltaCard({required this.zones, required this.onDismiss});
-  final int zones;
-  final VoidCallback onDismiss;
-
-  @override
-  State<_ReturnDeltaCard> createState() => _ReturnDeltaCardState();
-}
-
-class _ReturnDeltaCardState extends State<_ReturnDeltaCard>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _ctrl;
-  late Animation<double> _slideAnim;
-  late Animation<double> _fadeAnim;
-
-  @override
-  void initState() {
-    super.initState();
-    _ctrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 380));
-    _slideAnim = Tween<double>(begin: -12, end: 0).animate(
-      CurvedAnimation(parent: _ctrl, curve: Curves.easeOut),
-    );
-    _fadeAnim = CurvedAnimation(parent: _ctrl, curve: Curves.easeOut);
-    _ctrl.forward();
-  }
-
-  @override
-  void dispose() {
-    _ctrl.dispose();
-    super.dispose();
-  }
-
-  void _dismiss() {
-    _ctrl.reverse().then((_) => widget.onDismiss());
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = context.l10n;
-    return AnimatedBuilder(
-      animation: _ctrl,
-      builder: (_, __) => Transform.translate(
-        offset: Offset(0, _slideAnim.value),
-        child: Opacity(
-          opacity: _fadeAnim.value,
-          child: GestureDetector(
-            onTap: _dismiss,
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(AppTheme.radiusPill),
-              child: BackdropFilter(
-                filter: ui.ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppTheme.spaceMd,
-                    vertical: AppTheme.spaceXs,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppColors.primary.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(AppTheme.radiusPill),
-                    border: Border.all(
-                      color: AppColors.primary.withValues(alpha: 0.30),
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      TweenAnimationBuilder<int>(
-                        tween: IntTween(begin: 0, end: widget.zones),
-                        duration: const Duration(milliseconds: 700),
-                        curve: Curves.easeOut,
-                        builder: (_, v, __) => Text(
-                          '+$v',
-                          style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: AppFontWeights.bold,
-                            color: AppColors.primary,
-                            letterSpacing: -0.3,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-                      Flexible(
-                        child: Text(
-                          l10n.returnDeltaTitle(widget.zones),
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: AppFontWeights.medium,
-                            color: Colors.white.withValues(alpha: 0.80),
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        l10n.returnDeltaDismiss,
-                        style: TextStyle(
-                          fontSize: AppTheme.fontSizeXs,
-                          fontWeight: AppFontWeights.semibold,
-                          color: AppColors.primary.withValues(alpha: 0.75),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-///   places → "N places · 🔥 streak" or "N places on your map"
-///   fresh → "Tap to start mapping" (pulsing, no data yet)
-class _IdlePill extends StatefulWidget {
-  const _IdlePill({
-    required this.hasTiles,
-    required this.currentZones,
-    this.neighborhoodName,
-  });
-  final bool hasTiles;
-  final int currentZones;
-  final String? neighborhoodName;
-
-  @override
-  State<_IdlePill> createState() => _IdlePillState();
-}
-
-class _IdlePillState extends State<_IdlePill>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _ctrl = AnimationController(
-    vsync: this,
-    duration: const Duration(milliseconds: 2200),
-  )..repeat(reverse: true);
-  late final Animation<double> _opacity = Tween<double>(begin: 0.65, end: 1.0)
-      .animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut));
-
-  @override
-  void dispose() {
-    _ctrl.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = context.l10n;
-    final hasZones = widget.currentZones > 0;
-
-    return FadeTransition(
-      opacity: _opacity,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(AppTheme.radiusPill),
-        child: BackdropFilter(
-          filter: ui.ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-          child: Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppTheme.spaceMd,
-              vertical: AppTheme.spaceXs,
-            ),
-            decoration: BoxDecoration(
-              color: AppColors.mapOverlayDark,
-              borderRadius: BorderRadius.circular(AppTheme.radiusPill),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.10)),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.my_location_outlined,
-                  size: 12,
-                  color: AppColors.primary.withValues(alpha: 0.8),
-                ),
-                const SizedBox(width: 5),
-                Text(
-                  hasZones
-                      ? l10n.homeZonesOnYourMap(widget.currentZones)
-                      : widget.hasTiles
-                          ? l10n.chipTapStart
-                          : l10n.chipTapStartFirst,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: AppFontWeights.semibold,
-                    color: Colors.white,
-                    letterSpacing: -0.1,
-                  ),
-                ),
-                if (hasZones && widget.neighborhoodName != null) ...[
-                  const SizedBox(width: 5),
-                  Container(width: 1, height: 10, color: Colors.white24),
-                  const SizedBox(width: 5),
-                  Text(
-                    widget.neighborhoodName!,
-                    style: const TextStyle(
-                      fontSize: AppTheme.fontSizeXs,
-                      fontWeight: AppFontWeights.regular,
-                      color: Colors.white70,
-                      letterSpacing: -0.1,
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Compact two-option toggle: "Mine" / "All" — shown above FAB when community tiles exist.
-class _LayerToggle extends StatelessWidget {
-  const _LayerToggle({required this.showCommunity, required this.onChanged});
-  final bool showCommunity;
-  final ValueChanged<bool> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.mapOverlayMid,
-        borderRadius: BorderRadius.circular(AppTheme.radiusPill),
-      ),
-      padding: const EdgeInsets.all(AppTheme.spaceTiny),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _Pill(label: context.l10n.layerMine,  active: !showCommunity, onTap: () => onChanged(false)),
-          _Pill(label: context.l10n.layerAll,   active: showCommunity,  onTap: () => onChanged(true)),
-        ],
-      ),
-    );
-  }
-}
-
-class _Pill extends StatelessWidget {
-  const _Pill({required this.label, required this.active, required this.onTap});
-  final String label;
-  final bool active;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        onTap();
-      },
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 180),
-        curve: Curves.easeOut,
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-        decoration: BoxDecoration(
-          color: active ? AppColors.primary.withValues(alpha: 0.18) : Colors.transparent,
-          borderRadius: BorderRadius.circular(AppTheme.radiusPill),
-          border: active ? Border.all(color: AppColors.primary.withValues(alpha: 0.5), width: 1) : null,
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: active ? AppFontWeights.semibold : AppFontWeights.medium,
-            color: active ? AppColors.primary : Colors.white.withValues(alpha: 0.55),
-            letterSpacing: 0.1,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Ambient sensor line — shown on idle home when not tracking.
-/// Single line of live conditions shown below the tracking hint pill.
-/// Icon + label per sensor — colored icons make each word legible without text labels.
-class _LiveConditionsLine extends StatelessWidget {
-  const _LiveConditionsLine({required this.conditionsNotifier});
-  final ValueNotifier<({int? lux, double? hpa, double? rms})> conditionsNotifier;
-
-  static String _rmsLabel(double rms, AppLocalizations l10n) {
-    if (rms < 10.5) return l10n.sensorMovementLow;
-    if (rms < 11.5) return l10n.sensorMovementMid;
-    return l10n.sensorMovementHigh;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = context.l10n;
-    return ValueListenableBuilder(
-      valueListenable: conditionsNotifier,
-      builder: (_, snap, __) {
-        final chips = <({IconData icon, Color color, String label})>[
-          if (snap.lux != null)
-            (icon: Icons.light_mode_outlined, color: AppColors.light, label: _luxLabel(snap.lux!, l10n)),
-          if (snap.hpa != null)
-            (icon: Icons.compress_outlined, color: AppColors.pressure, label: _hpaLabel(snap.hpa!, l10n)),
-          if (snap.rms != null)
-            (icon: Icons.vibration_outlined, color: AppColors.movement, label: _rmsLabel(snap.rms!, l10n)),
-        ];
-        if (chips.isEmpty) return const SizedBox.shrink();
-        return ClipRRect(
-          borderRadius: BorderRadius.circular(AppTheme.radiusPill),
-          child: BackdropFilter(
-            filter: ui.ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-            child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-          decoration: BoxDecoration(
-            color: AppColors.mapOverlayGreen,
-            borderRadius: BorderRadius.circular(AppTheme.radiusPill),
-            border: Border.all(color: AppColors.primary.withValues(alpha: 0.25)),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              for (int i = 0; i < chips.length; i++) ...[
-                if (i > 0) ...[
-                  const SizedBox(width: 6),
-                  Container(width: 1, height: 10, color: Colors.white.withValues(alpha: 0.12)),
-                  const SizedBox(width: 6),
-                ],
-                Icon(chips[i].icon, size: 12, color: chips[i].color),
-                const SizedBox(width: 3),
-                Flexible(
-                  child: Text(
-                    chips[i].label,
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 1,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: Colors.white,
-                      fontWeight: AppFontWeights.medium,
-                      letterSpacing: -0.1,
-                    ),
-                  ),
-                ),
-              ],
-            ],
-          ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-}
 
 /// Flat-top hex brand mark — matches design's SVG exactly.
 class _BrandMark extends StatelessWidget {
@@ -1728,53 +1200,6 @@ class _BrandMarkPainter extends CustomPainter {
 }
 
 
-
-class _StreakBadge extends StatelessWidget {
-  const _StreakBadge({required this.streak});
-  final int streak;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = context.l10n;
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppTheme.spaceSm,
-        vertical: AppTheme.spaceXxxs + 2,
-      ),
-      decoration: BoxDecoration(
-        color: AppColors.darkBackground.withValues(alpha: 0.75),
-        borderRadius: BorderRadius.circular(AppTheme.radiusPill),
-        border: Border.all(
-          color: AppColors.primary.withValues(alpha: 0.35),
-          width: 1,
-        ),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            Icons.local_fire_department_rounded,
-            color: AppColors.primary,
-            size: 14,
-          ),
-          const SizedBox(width: 4),
-          Text(
-            l10n.homeStreakBadge(streak),
-            style: const TextStyle(
-              fontSize: 12,
-              fontWeight: AppFontWeights.semibold,
-              color: AppColors.primary,
-              letterSpacing: 0.2,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// My Location button — standard map UX (Google Maps / Waze / Apple Maps pattern).
-/// 48×48 circular dark button.
 /// Shows gps_fixed (primary tint) when follow mode is active, gps_not_fixed otherwise.
 class _MyLocationButton extends StatelessWidget {
   const _MyLocationButton({required this.onPressed, this.followModeNotifier});
@@ -2052,7 +1477,7 @@ class _FirstUploadSheetState extends State<_FirstUploadSheet> {
                 Text(
                   context.l10n.firstUploadBadge,
                   style: const TextStyle(
-                    fontSize: AppTheme.fontSizeXs,
+                    fontSize: AppTheme.fontSizeBody,
                     fontWeight: AppFontWeights.semibold,
                     color: AppColors.primary,
                     letterSpacing: 1.4,
@@ -2062,10 +1487,10 @@ class _FirstUploadSheetState extends State<_FirstUploadSheet> {
                 const SizedBox(height: AppTheme.spaceXs),
                 Text(
                   context.l10n.firstUploadHeadline,
-                  style: const TextStyle(
-                    fontSize: 24,
+                  style: TextStyle(
+                    fontSize: AppTheme.spaceXl,
                     fontWeight: AppFontWeights.semibold,
-                    color: Color(0xF5FFFFFF),
+                    color: Colors.white.withValues(alpha: 0.96),
                     letterSpacing: -0.6,
                     height: 1.2,
                   ),
@@ -2097,22 +1522,22 @@ class _FirstUploadSheetState extends State<_FirstUploadSheet> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(context.l10n.firstUploadSensorsLabel, style: TextStyle(
-                            fontSize: 10, fontWeight: AppFontWeights.semibold,
+                            fontSize: AppTheme.fontSizeNavLabel, fontWeight: AppFontWeights.semibold,
                             color: Colors.white.withValues(alpha: 0.4), letterSpacing: 0.5)),
                           const SizedBox(height: 2),
-                          Text(context.l10n.firstUploadSensorsValue, style: const TextStyle(
-                            fontSize: 12, color: Color(0xD9FFFFFF))),
+                          Text(context.l10n.firstUploadSensorsValue, style: TextStyle(
+                            fontSize: AppTheme.fontSizeBody, color: Colors.white.withValues(alpha: 0.85))),
                         ],
                       ),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
                           Text(context.l10n.firstUploadPrivacyLabel, style: TextStyle(
-                            fontSize: 10, fontWeight: AppFontWeights.semibold,
+                            fontSize: AppTheme.fontSizeNavLabel, fontWeight: AppFontWeights.semibold,
                             color: Colors.white.withValues(alpha: 0.4), letterSpacing: 0.5)),
                           const SizedBox(height: 2),
                           Text(context.l10n.firstUploadPrivacyValue, style: const TextStyle(
-                            fontSize: 12, color: AppColors.primary, fontWeight: AppFontWeights.semibold)),
+                            fontSize: AppTheme.fontSizeBody, color: AppColors.primary, fontWeight: AppFontWeights.semibold)),
                         ],
                       ),
                     ],
@@ -2122,7 +1547,7 @@ class _FirstUploadSheetState extends State<_FirstUploadSheet> {
                 Text(
                   context.l10n.firstUploadKeepMappingCta,
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: AppTheme.fontSizeBody,
                     color: Colors.white.withValues(alpha: 0.35),
                   ),
                   textAlign: TextAlign.center,
@@ -2155,7 +1580,7 @@ class _CelebrationHex extends StatelessWidget {
             color: AppColors.primaryAlpha(0.15),
             shape: BoxShape.circle,
           ),
-          child: const Icon(Icons.hexagon_outlined, color: AppColors.primary, size: 36),
+          child: const Icon(Icons.hexagon_outlined, color: AppColors.primary, size: AppIconSizes.lg),
         ),
       ),
     );
@@ -2237,145 +1662,6 @@ class _SensorLiveSheet extends StatelessWidget {
 
 // ── Live sensor ticker ────────────────────────────────────────────────────────
 
-/// Live sensor panel — bar charts for light, motion, and pressure.
-// ─── Tracking hint pill — top-center during active session ──────────────────
-class _TrackingHintPill extends StatefulWidget {
-  const _TrackingHintPill({
-    required this.newZones,
-    required this.totalZones,
-    this.isPaused = false,
-  });
-  final int newZones;
-  final int totalZones;
-  final bool isPaused;
-
-  @override
-  State<_TrackingHintPill> createState() => _TrackingHintPillState();
-}
-
-class _TrackingHintPillState extends State<_TrackingHintPill>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _bounceCtrl;
-  late Animation<double> _bounceAnim;
-  bool _showPlusOne = false;
-  int _lastGainDelta = 1;
-
-  @override
-  void initState() {
-    super.initState();
-    _bounceCtrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 420),
-    );
-    _bounceAnim = Tween<double>(begin: 1.0, end: 1.0).animate(_bounceCtrl);
-  }
-
-  @override
-  void didUpdateWidget(_TrackingHintPill old) {
-    super.didUpdateWidget(old);
-    if (widget.newZones > old.newZones && widget.newZones > 0) {
-      _lastGainDelta = widget.newZones - old.newZones;
-      _bounceAnim = TweenSequence<double>([
-        TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.18), weight: 30),
-        TweenSequenceItem(
-            tween: Tween(begin: 1.18, end: 1.0)
-                .chain(CurveTween(curve: Curves.elasticOut)),
-            weight: 70),
-      ]).animate(_bounceCtrl);
-      _bounceCtrl.forward(from: 0);
-      setState(() => _showPlusOne = true);
-      Future.delayed(const Duration(milliseconds: 700), () {
-        if (mounted) setState(() => _showPlusOne = false);
-      });
-      HapticFeedback.lightImpact();
-    }
-  }
-
-  @override
-  void dispose() {
-    _bounceCtrl.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = context.l10n;
-    final hasZones = widget.newZones > 0;
-    final color = widget.isPaused ? AppColors.warning
-        : (hasZones ? AppColors.primary : null);
-    final bgAlpha = widget.isPaused ? 0.12 : (hasZones ? 0.18 : 0.0);
-    final borderAlpha = widget.isPaused ? 0.30 : (hasZones ? 0.35 : 0.06);
-
-    final label = widget.isPaused
-        ? (hasZones ? l10n.homeSessionZones(widget.newZones) : l10n.chipPaused)
-        : l10n.homeSessionZones(widget.newZones);
-
-    return Stack(
-      alignment: Alignment.topCenter,
-      clipBehavior: Clip.none,
-      children: [
-        AnimatedBuilder(
-          animation: _bounceAnim,
-          builder: (_, child) => Transform.scale(scale: _bounceAnim.value, child: child),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(AppTheme.radiusPill),
-            child: BackdropFilter(
-              filter: ui.ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppTheme.spaceMd,
-                  vertical: AppTheme.spaceXs - 1,
-                ),
-                decoration: BoxDecoration(
-                  color: color != null
-                      ? color.withValues(alpha: bgAlpha)
-                      : AppColors.mapOverlayLight,
-                  borderRadius: BorderRadius.circular(AppTheme.radiusPill),
-                  border: Border.all(
-                    color: color != null
-                        ? color.withValues(alpha: borderAlpha)
-                        : Colors.white.withValues(alpha: 0.06),
-                  ),
-                ),
-                child: Text(
-                  label,
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: AppFontWeights.semibold,
-                    color: color ?? Colors.white60,
-                    letterSpacing: -0.05,
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
-        if (_showPlusOne)
-          Positioned(
-            top: -20,
-            child: TweenAnimationBuilder<double>(
-              tween: Tween(begin: 0.0, end: 1.0),
-              duration: const Duration(milliseconds: 700),
-              builder: (_, t, __) => Transform.translate(
-                offset: Offset(0, -18 * t),
-                child: Opacity(
-                  opacity: t < 0.6 ? 1.0 : (1.0 - (t - 0.6) / 0.4),
-                  child: Text(
-                    '+$_lastGainDelta',
-                    style: TextStyle(
-                      fontSize: AppTheme.fontSizeSm,
-                      fontWeight: AppFontWeights.bold,
-                      color: AppColors.primary,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-      ],
-    );
-  }
-}
 
 
 class _NextMilestoneBar extends StatelessWidget {
@@ -2405,7 +1691,7 @@ class _NextMilestoneBar extends StatelessWidget {
             Text(
               l10n.statsMilestoneLabel,
               style: TextStyle(
-                fontSize: AppTheme.fontSizeXs,
+                fontSize: AppTheme.fontSizeBody,
                 fontWeight: AppFontWeights.semibold,
                 letterSpacing: 0.8,
                 color: AppColors.textSecondary(isDark),
@@ -2414,14 +1700,14 @@ class _NextMilestoneBar extends StatelessWidget {
             Text(
               l10n.statsMilestoneTarget(target),
               style: TextStyle(
-                fontSize: AppTheme.fontSizeXs,
+                fontSize: AppTheme.fontSizeBody,
                 fontWeight: AppFontWeights.semibold,
                 color: AppColors.textSecondary(isDark),
               ),
             ),
           ],
         ),
-        const SizedBox(height: AppTheme.spaceXxs + 1),
+        const SizedBox(height: AppTheme.spaceTiny),
         ClipRRect(
           borderRadius: BorderRadius.circular(AppTheme.radiusMin),
           child: LinearProgressIndicator(
@@ -2435,7 +1721,7 @@ class _NextMilestoneBar extends StatelessWidget {
         Text(
           l10n.statsMilestoneRemaining(remaining),
           style: TextStyle(
-            fontSize: AppTheme.fontSizeXs,
+            fontSize: AppTheme.fontSizeBody,
             color: AppColors.textTertiary(isDark),
           ),
         ),
@@ -2463,6 +1749,7 @@ class _SessionSummarySheet extends StatefulWidget {
     this.sessionDuration = Duration.zero,
     this.streak = 0,
     this.isPersonalBest = false,
+    this.uploadsInSession = 0,
     this.onViewStats,
   });
 
@@ -2471,6 +1758,7 @@ class _SessionSummarySheet extends StatefulWidget {
   final Duration sessionDuration;
   final int streak;
   final bool isPersonalBest;
+  final int uploadsInSession;
   final VoidCallback? onViewStats;
 
   @override
@@ -2540,7 +1828,7 @@ class _SessionSummarySheetState extends State<_SessionSummarySheet> {
       ),
       child: SafeArea(
         top: false,
-        child: Padding(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(
               AppTheme.spaceLg, AppTheme.spaceMd, AppTheme.spaceLg, AppTheme.spaceLg),
           child: Column(
@@ -2554,7 +1842,7 @@ class _SessionSummarySheetState extends State<_SessionSummarySheet> {
                   Text(
                     l10n.sessionSummaryBadge,
                     style: TextStyle(
-                      fontSize: AppTheme.fontSizeXs,
+                      fontSize: AppTheme.fontSizeBody,
                       fontWeight: AppFontWeights.semibold,
                       color: Colors.white.withValues(alpha: 0.5),
                       letterSpacing: 0.8,
@@ -2564,8 +1852,8 @@ class _SessionSummarySheetState extends State<_SessionSummarySheet> {
                     onTap: () => Navigator.of(context).pop(),
                     behavior: HitTestBehavior.opaque,
                     child: Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: Icon(Icons.close, size: 18,
+                      padding: const EdgeInsets.all(AppTheme.spaceSm),
+                      child: Icon(Icons.close, size: AppIconSizes.xs,
                           color: AppColors.textSecondary(isDark)),
                     ),
                   ),
@@ -2578,7 +1866,7 @@ class _SessionSummarySheetState extends State<_SessionSummarySheet> {
                 Text(
                   l10n.sessionSummaryZonesGainedLabel,
                   style: const TextStyle(
-                    fontSize: AppTheme.fontSizeXs,
+                    fontSize: AppTheme.fontSizeBody,
                     fontWeight: AppFontWeights.semibold,
                     color: AppColors.primary,
                     letterSpacing: 0.8,
@@ -2592,7 +1880,7 @@ class _SessionSummarySheetState extends State<_SessionSummarySheet> {
                   builder: (_, value, __) => Text(
                     '+$value',
                     style: const TextStyle(
-                      fontSize: 108,
+                      fontSize: AppTheme.fontSizeDisplay,
                       fontWeight: AppFontWeights.bold,
                       color: Colors.white,
                       letterSpacing: -5,
@@ -2605,7 +1893,7 @@ class _SessionSummarySheetState extends State<_SessionSummarySheet> {
                 Text(
                   l10n.sessionSummarySubline,
                   style: TextStyle(
-                    fontSize: 14,
+                    fontSize: AppTheme.fontSizeMd,
                     color: Colors.white.withValues(alpha: 0.55),
                     letterSpacing: -0.1,
                   ),
@@ -2614,7 +1902,7 @@ class _SessionSummarySheetState extends State<_SessionSummarySheet> {
                 Text(
                   l10n.sessionSummaryNoZonesLabel,
                   style: const TextStyle(
-                    fontSize: AppTheme.fontSizeXs,
+                    fontSize: AppTheme.fontSizeBody,
                     fontWeight: AppFontWeights.semibold,
                     color: AppColors.primary,
                     letterSpacing: 0.8,
@@ -2628,7 +1916,7 @@ class _SessionSummarySheetState extends State<_SessionSummarySheet> {
                   builder: (_, value, __) => Text(
                     '$value',
                     style: const TextStyle(
-                      fontSize: 108,
+                      fontSize: AppTheme.fontSizeDisplay,
                       fontWeight: AppFontWeights.bold,
                       color: Colors.white,
                       letterSpacing: -5,
@@ -2641,7 +1929,7 @@ class _SessionSummarySheetState extends State<_SessionSummarySheet> {
                 Text(
                   l10n.sessionSummaryNoZonesSubline,
                   style: TextStyle(
-                    fontSize: 14,
+                    fontSize: AppTheme.fontSizeMd,
                     color: Colors.white.withValues(alpha: 0.55),
                     letterSpacing: -0.1,
                   ),
@@ -2652,8 +1940,8 @@ class _SessionSummarySheetState extends State<_SessionSummarySheet> {
                 const SizedBox(height: AppTheme.spaceMd),
                 Row(
                   children: [
-                    Icon(Icons.arrow_upward_rounded, size: 15, color: AppColors.primary),
-                    const SizedBox(width: 5),
+                    Icon(Icons.arrow_upward_rounded, size: AppIconSizes.xs, color: AppColors.primary),
+                    const SizedBox(width: AppTheme.spaceXxs),
                     Text(
                       l10n.sessionPersonalBest,
                       style: const TextStyle(
@@ -2673,7 +1961,7 @@ class _SessionSummarySheetState extends State<_SessionSummarySheet> {
                 _MilestoneBanner(milestone: hit, l10n: l10n),
               ],
 
-              // ── 3-stat row ───────────────────────────────────────────────
+              // ── 2×2 stat grid ────────────────────────────────────────────
               const SizedBox(height: AppTheme.spaceMd),
               IntrinsicHeight(
                 child: Row(
@@ -2683,9 +1971,17 @@ class _SessionSummarySheetState extends State<_SessionSummarySheet> {
                       value: '$km2Display km²',
                       subValue: l10n.statsCityBlocks((km2 / kKm2PerCityBlock).round()),
                     ),
-                    const VerticalDivider(width: 1, thickness: 1, color: Color(0x14FFFFFF)),
+                    VerticalDivider(width: 1, thickness: 1, color: Colors.white.withValues(alpha: 0.08)),
                     _SummaryStatCell(label: l10n.sessionStatDuration, value: _fmtDuration(widget.sessionDuration)),
-                    const VerticalDivider(width: 1, thickness: 1, color: Color(0x14FFFFFF)),
+                  ],
+                ),
+              ),
+              Divider(height: 1, thickness: 1, color: Colors.white.withValues(alpha: 0.08)),
+              IntrinsicHeight(
+                child: Row(
+                  children: [
+                    _SummaryStatCell(label: l10n.sessionStatUploads, value: widget.uploadsInSession.toString()),
+                    VerticalDivider(width: 1, thickness: 1, color: Colors.white.withValues(alpha: 0.08)),
                     _SummaryStatCell(label: l10n.sessionStatTotal, value: widget.totalZones.toString()),
                   ],
                 ),
@@ -2706,7 +2002,7 @@ class _SessionSummarySheetState extends State<_SessionSummarySheet> {
                   Text(
                     l10n.sessionSummaryWatermark,
                     style: TextStyle(
-                      fontSize: 10,
+                      fontSize: AppTheme.fontSizeNavLabel,
                       fontWeight: AppFontWeights.medium,
                       color: Colors.white.withValues(alpha: 0.35),
                       letterSpacing: 1.4,
@@ -2716,7 +2012,7 @@ class _SessionSummarySheetState extends State<_SessionSummarySheet> {
                   Text(
                     _fmtDate(),
                     style: TextStyle(
-                      fontSize: 10,
+                      fontSize: AppTheme.fontSizeNavLabel,
                       color: Colors.white.withValues(alpha: 0.35),
                       letterSpacing: 0.6,
                       fontFeatures: const [ui.FontFeature.tabularFigures()],
@@ -2731,7 +2027,7 @@ class _SessionSummarySheetState extends State<_SessionSummarySheet> {
               Text(
                 _nextHookCopy(l10n),
                 style: TextStyle(
-                  fontSize: AppTheme.fontSizeXs,
+                  fontSize: AppTheme.fontSizeBody,
                   color: Colors.white.withValues(alpha: 0.45),
                   letterSpacing: -0.1,
                 ),
@@ -2745,15 +2041,15 @@ class _SessionSummarySheetState extends State<_SessionSummarySheet> {
                   Expanded(
                     child: FilledButton.icon(
                       onPressed: () => _share(l10n, km2Display),
-                      icon: const Icon(Icons.ios_share, size: 16),
+                      icon: const Icon(Icons.ios_share, size: AppIconSizes.xs),
                       label: Text(l10n.sessionSummaryShareCta),
-                      style: FilledButton.styleFrom(minimumSize: const Size(0, 50)),
+                      style: FilledButton.styleFrom(minimumSize: const Size(0, AppTheme.minTouchTarget)),
                     ),
                   ),
                   const SizedBox(width: AppTheme.spaceSm),
                   SizedBox(
-                    width: 50,
-                    height: 50,
+                    width: AppTheme.minTouchTarget,
+                    height: AppTheme.minTouchTarget,
                     child: OutlinedButton(
                       onPressed: () {
                         Navigator.of(context).pop();
@@ -2765,7 +2061,7 @@ class _SessionSummarySheetState extends State<_SessionSummarySheet> {
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(AppTheme.radiusSm)),
                       ),
-                      child: Icon(Icons.bar_chart, size: 20,
+                      child: Icon(Icons.bar_chart, size: AppIconSizes.sm,
                           color: Colors.white.withValues(alpha: 0.8)),
                     ),
                   ),
@@ -2978,7 +2274,7 @@ class _AmbientDataPillState extends State<_AmbientDataPill> {
       child: BackdropFilter(
         filter: ui.ImageFilter.blur(sigmaX: 12, sigmaY: 12),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+          padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceSm, vertical: AppTheme.spaceTiny),
           decoration: BoxDecoration(
             color: AppColors.mapOverlayDark,
             borderRadius: BorderRadius.circular(AppTheme.radiusPill),
@@ -2990,7 +2286,7 @@ class _AmbientDataPillState extends State<_AmbientDataPill> {
               Text(
                 prefix,
                 style: TextStyle(
-                  fontSize: AppTheme.fontSizeXs,
+                  fontSize: AppTheme.fontSizeBody,
                   fontWeight: AppFontWeights.semibold,
                   color: Colors.white.withValues(alpha: 0.4),
                   letterSpacing: 0.5,
@@ -3002,7 +2298,7 @@ class _AmbientDataPillState extends State<_AmbientDataPill> {
               Text(
                 summary,
                 style: const TextStyle(
-                  fontSize: 12,
+                  fontSize: AppTheme.fontSizeBody,
                   color: Colors.white,
                   fontWeight: AppFontWeights.medium,
                   letterSpacing: -0.1,
@@ -3011,6 +2307,124 @@ class _AmbientDataPillState extends State<_AmbientDataPill> {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// Map layer toggle — switches between personal and community coverage tiles.
+/// Mine / All segmented pill toggle.
+class _MineAllToggle extends StatelessWidget {
+  const _MineAllToggle({required this.showCommunity, required this.onChanged});
+  final bool showCommunity;
+  final ValueChanged<bool> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.shadowDark(0.55),
+        borderRadius: BorderRadius.circular(AppTheme.radiusPill),
+      ),
+      padding: const EdgeInsets.all(AppTheme.spaceXxxs),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _Seg(label: context.l10n.layerMine, active: !showCommunity,
+              onTap: () => onChanged(false)),
+          _Seg(label: context.l10n.layerAll, active: showCommunity,
+              onTap: () => onChanged(true)),
+        ],
+      ),
+    );
+  }
+}
+
+class _Seg extends StatelessWidget {
+  const _Seg({required this.label, required this.active, required this.onTap});
+  final String label;
+  final bool active;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        curve: Curves.easeOut,
+        padding: const EdgeInsets.symmetric(
+            horizontal: AppTheme.spaceSm, vertical: AppTheme.spaceTiny),
+        decoration: BoxDecoration(
+          color: active ? AppColors.primary : Colors.transparent,
+          borderRadius: BorderRadius.circular(AppTheme.radiusPill),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: AppTheme.fontSizeNavLabel,
+            fontWeight: active ? AppFontWeights.bold : AppFontWeights.medium,
+            color: active ? AppColors.actionSegActiveFg : Colors.white70,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Small frosted pill showing a stat (places or streak).
+class _StatPill extends StatelessWidget {
+  const _StatPill({required this.icon, required this.label});
+  final IconData icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+          horizontal: AppTheme.spaceSm, vertical: AppTheme.spaceTiny),
+      decoration: BoxDecoration(
+        color: AppColors.shadowDark(0.55),
+        borderRadius: BorderRadius.circular(AppTheme.radiusPill),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: AppIconSizes.xs, color: AppColors.primary),
+          const SizedBox(width: AppTheme.spaceXxs),
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: AppTheme.fontSizeNavLabel,
+              fontWeight: AppFontWeights.semibold,
+              color: Colors.white,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+
+/// Small circular info button — opens sensor sheet.
+class _InfoButton extends StatelessWidget {
+  const _InfoButton({required this.onTap});
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: _kLocationBtnSize,
+        height: _kLocationBtnSize,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: AppColors.shadowDark(0.6),
+        ),
+        child: const Icon(Icons.info_outline_rounded,
+            color: Colors.white70, size: AppIconSizes.sm),
       ),
     );
   }
@@ -3033,7 +2447,7 @@ class _PermissionLostCard extends StatelessWidget {
           vertical: AppTheme.spaceSm,
         ),
         decoration: BoxDecoration(
-          color: const Color(0xFF1C1008),
+          color: AppColors.warning.withValues(alpha: 0.08),
           borderRadius: BorderRadius.circular(AppTheme.radiusMd),
           border: Border.all(color: AppColors.warning.withValues(alpha: 0.45)),
         ),
@@ -3059,7 +2473,7 @@ class _PermissionLostCard extends StatelessWidget {
                   Text(
                     l10n.permissionLostBody,
                     style: TextStyle(
-                      fontSize: 12,
+                      fontSize: AppTheme.fontSizeBody,
                       color: Colors.white.withValues(alpha: 0.55),
                     ),
                   ),
@@ -3077,7 +2491,7 @@ class _PermissionLostCard extends StatelessWidget {
               child: Text(
                 l10n.permissionLostCta,
                 style: const TextStyle(
-                  fontSize: 12,
+                  fontSize: AppTheme.fontSizeBody,
                   fontWeight: AppFontWeights.semibold,
                   color: AppColors.warning,
                 ),
@@ -3107,31 +2521,31 @@ class _SummaryStatCell extends StatelessWidget {
           children: [
             Text(
               label,
-              style: const TextStyle(
-                fontSize: AppTheme.fontSizeXs,
+              style: TextStyle(
+                fontSize: AppTheme.fontSizeBody,
                 fontWeight: AppFontWeights.medium,
-                color: Color(0x73FFFFFF),
+                color: Colors.white.withValues(alpha: 0.45),
                 letterSpacing: 0.6,
               ),
             ),
             const SizedBox(height: 4),
             Text(
               value,
-              style: const TextStyle(
-                fontSize: 20,
+              style: TextStyle(
+                fontSize: AppTheme.spaceXl,
                 fontWeight: AppFontWeights.semibold,
-                color: Color(0xF5FFFFFF),
+                color: Colors.white.withValues(alpha: 0.96),
                 letterSpacing: -0.5,
-                fontFeatures: [ui.FontFeature.tabularFigures()],
+                fontFeatures: const [ui.FontFeature.tabularFigures()],
               ),
             ),
             if (subValue != null) ...[
               const SizedBox(height: 2),
               Text(
                 subValue!,
-                style: const TextStyle(
-                  fontSize: 10,
-                  color: Color(0x55FFFFFF),
+                style: TextStyle(
+                  fontSize: AppTheme.fontSizeNavLabel,
+                  color: Colors.white.withValues(alpha: 0.33),
                   letterSpacing: -0.1,
                 ),
               ),

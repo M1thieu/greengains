@@ -303,33 +303,28 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                   onRefresh: _refresh,
                   color: AppColors.primary,
                   child: ListView(
-                    padding: AppTheme.pagePadding.copyWith(top: AppTheme.spaceMd, bottom: bottomPad),
+                    padding: AppTheme.pagePadding.copyWith(top: AppTheme.spaceSm, bottom: bottomPad),
                     children: [
-                      // Verdict headline — plain-language week summary (skip while loading)
-                      if (_weeklyData != null) ...[
-                        _withEntrance(_buildVerdictHeader(theme, isDark, l10n), 0),
-                        const SizedBox(height: AppTheme.spaceLg),
-                      ],
-                      // Hero — bare number
+                      // Hero — bare number, verdict chip inline
                       _withEntrance(_buildHeroCard(theme, isDark, l10n), 0),
                       // Weekly target — the hook: new zones this week
                       if (_weeklyTarget != null) ...[
-                        const SizedBox(height: AppTheme.spaceMd),
+                        const SizedBox(height: AppTheme.spaceSm),
                         _withEntrance(_buildWeeklyTargetCard(theme, isDark, l10n, _weeklyTarget!), 1),
                       ],
-                      const SizedBox(height: AppTheme.spaceLg),
+                      const SizedBox(height: AppTheme.spaceMd),
                       // Activity snapshot
                       _StatsSectionLabel(l10n.statsActivitySection, isDark: isDark),
-                      const SizedBox(height: AppTheme.spaceXs),
+                      const SizedBox(height: AppTheme.spaceXxs),
                       _withEntrance(_buildSupportingTrio(theme, isDark), 2),
-                      const SizedBox(height: AppTheme.spaceSm),
+                      const SizedBox(height: AppTheme.spaceXs),
                       _withEntrance(_buildStreakCard(theme, isDark, l10n), 3),
                       // Territory — milestone ring
-                      const SizedBox(height: AppTheme.spaceLg),
+                      const SizedBox(height: AppTheme.spaceMd),
                       _StatsSectionLabel(l10n.statsTerritorySection, isDark: isDark),
-                      const SizedBox(height: AppTheme.spaceXs),
+                      const SizedBox(height: AppTheme.spaceXxs),
                       _withEntrance(_buildMilestoneRow(theme, isDark, l10n), 4),
-                      const SizedBox(height: AppTheme.spaceXs),
+                      const SizedBox(height: AppTheme.spaceXxs),
                       _withEntrance(_buildTerritoryDetailsLink(theme, isDark, l10n), 5),
                     ],
                   ),
@@ -349,61 +344,51 @@ class _StatisticsScreenState extends State<StatisticsScreen>
     );
   }
 
-  // ─── Verdict header ──────────────────────────────────────────────────────────
+  // ─── Verdict chip (compact inline badge shown next to hero eyebrow) ──────────
 
-  Widget _buildVerdictHeader(ThemeData theme, bool isDark, AppLocalizations l10n) {
+  Widget _buildVerdictChip(bool isDark, AppLocalizations l10n) {
     final weekly = _weeklyData ?? [];
     final daysActive = weekly.where((v) => v > 0).length;
     final weekSum = weekly.fold(0, (a, b) => a + b);
 
-    final String headline;
-    final String sub;
+    final String label;
+    final Color color;
 
     if (weekSum == 0) {
-      headline = l10n.statsVerdictNone;
-      sub = l10n.statsVerdictSubNone;
+      label = l10n.statsVerdictNone;
+      color = AppColors.textTertiary(isDark);
     } else if (daysActive >= 5) {
-      headline = l10n.statsVerdictStrong;
-      sub = l10n.statsVerdictSubStrong(daysActive);
+      label = l10n.statsVerdictStrong;
+      color = AppColors.primary;
     } else if (daysActive >= 3) {
-      headline = l10n.statsVerdictGood;
-      sub = l10n.statsVerdictSubGood(daysActive);
+      label = l10n.statsVerdictGood;
+      color = AppColors.movement;
     } else {
-      headline = l10n.statsVerdictSlow;
-      sub = l10n.statsVerdictSubSlow(daysActive);
+      label = l10n.statsVerdictSlow;
+      color = AppColors.warning;
     }
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          l10n.statsThisWeek.toUpperCase(),
+    return ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: 160),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceXs, vertical: AppTheme.spaceXxxs + 1),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.12),
+          borderRadius: BorderRadius.circular(AppTheme.radiusSm - 2),
+          border: Border.all(color: color.withValues(alpha: 0.25)),
+        ),
+        child: Text(
+          label,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
           style: TextStyle(
             fontSize: AppTheme.fontSizeNavLabel,
             fontWeight: AppFontWeights.semibold,
-            color: AppColors.textTertiary(isDark),
-            letterSpacing: _kLetterSpacingCaps,
+            color: color,
+            letterSpacing: 0.2,
           ),
         ),
-        const SizedBox(height: AppTheme.spaceXxxs),
-        Text(
-          headline,
-          style: theme.textTheme.headlineMedium?.copyWith(
-            fontWeight: AppFontWeights.bold,
-            letterSpacing: -0.5,
-            color: AppColors.textPrimary(isDark),
-            height: 1.1,
-          ),
-        ),
-        const SizedBox(height: AppTheme.spaceXxs),
-        Text(
-          sub,
-          style: theme.textTheme.bodyMedium?.copyWith(
-            color: AppColors.textSecondary(isDark),
-            height: AppLineHeights.normal,
-          ),
-        ),
-      ],
+      ),
     );
   }
 
@@ -509,21 +494,31 @@ class _StatisticsScreenState extends State<StatisticsScreen>
     final km2 = zones * kKm2PerCell;
     final showKm2 = zones > 0;
 
-    return GestureDetector(
+    // Compact verdict chip — inline week summary
+    final verdictChip = _weeklyData != null ? _buildVerdictChip(isDark, l10n) : null;
+
+    return _PressScaleDetector(
       onTap: _showStatsDetailSheet,
-      behavior: HitTestBehavior.opaque,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Eyebrow
-          Text(
-            showKm2 ? l10n.statsKmMapped.toUpperCase() : l10n.statsDataPtsLabel.toUpperCase(),
-            style: TextStyle(
-              fontSize: AppTheme.fontSizeNavLabel,
-              fontWeight: AppFontWeights.semibold,
-              color: AppColors.textTertiary(isDark),
-              letterSpacing: _kLetterSpacingCaps,
-            ),
+          // Eyebrow row — label + verdict chip
+          Row(
+            children: [
+              Text(
+                showKm2 ? l10n.statsKmMapped.toUpperCase() : l10n.statsDataPtsLabel.toUpperCase(),
+                style: TextStyle(
+                  fontSize: AppTheme.fontSizeNavLabel,
+                  fontWeight: AppFontWeights.semibold,
+                  color: AppColors.textTertiary(isDark),
+                  letterSpacing: _kLetterSpacingCaps,
+                ),
+              ),
+              if (verdictChip != null) ...[
+                const SizedBox(width: AppTheme.spaceSm),
+                verdictChip,
+              ],
+            ],
           ),
           const SizedBox(height: AppTheme.spaceXxxs),
           // Hero number
@@ -655,73 +650,93 @@ class _StatisticsScreenState extends State<StatisticsScreen>
     final isRecord = streak > 0 && streak >= longest && longest > 0;
     final hairline = AppColors.textTertiary(isDark).withValues(alpha: 0.12);
 
-    return IntrinsicHeight(
-      child: Row(children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(crossAxisAlignment: CrossAxisAlignment.baseline, textBaseline: TextBaseline.alphabetic, children: [
-                Text('$streak', style: theme.textTheme.headlineMedium?.copyWith(
-                  fontWeight: AppFontWeights.bold,
-                  color: AppColors.primary,
-                  height: _kLineHeightTight,
-                  letterSpacing: _kLetterSpacingDisplay,
-                )),
-                const SizedBox(width: 4),
-                Text(l10n.statsDaysUnit, style: theme.textTheme.bodySmall?.copyWith(
-                  color: AppColors.primary.withValues(alpha: 0.7),
-                )),
-                if (isRecord) ...[
-                  const SizedBox(width: AppTheme.spaceXs),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceXxs + 1, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: AppColors.primary.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(AppTheme.radiusMin),
+    return Container(
+      decoration: AppTheme.surfaceContainer(isDark: isDark),
+      child: IntrinsicHeight(
+        child: Row(children: [
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceMd, vertical: AppTheme.spaceSm),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(crossAxisAlignment: CrossAxisAlignment.baseline, textBaseline: TextBaseline.alphabetic, children: [
+                    TweenAnimationBuilder<int>(
+                      tween: IntTween(begin: 0, end: streak),
+                      duration: AppDurations.medium,
+                      curve: AppMotion.decelerated,
+                      builder: (_, value, __) => Text('$value', style: theme.textTheme.titleLarge?.copyWith(
+                        fontWeight: AppFontWeights.bold,
+                        color: AppColors.primary,
+                        height: _kLineHeightTight,
+                        letterSpacing: _kLetterSpacingHero,
+                      )),
                     ),
-                    child: Text(l10n.statsStreakNewRecord, style: TextStyle(
-                      fontSize: AppTheme.fontSizeNavLabel - 1,
-                      color: AppColors.primary,
-                      fontWeight: AppFontWeights.semibold,
+                    const SizedBox(width: 4),
+                    Text(l10n.statsDaysUnit, style: theme.textTheme.bodySmall?.copyWith(
+                      color: AppColors.primary.withValues(alpha: 0.7),
                     )),
-                  ),
+                    if (isRecord) ...[
+                      const SizedBox(width: AppTheme.spaceXs),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceXxs + 1, vertical: 1),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(AppTheme.radiusMin),
+                        ),
+                        child: Text(l10n.statsStreakNewRecord, style: TextStyle(
+                          fontSize: AppTheme.fontSizeNavLabel - 1,
+                          color: AppColors.primary,
+                          fontWeight: AppFontWeights.semibold,
+                        )),
+                      ),
+                    ],
+                  ]),
+                  const SizedBox(height: AppTheme.spaceXxxs),
+                  Text(l10n.statsCurrentStreakLabel, style: TextStyle(
+                    fontSize: AppTheme.fontSizeNavLabel,
+                    color: AppColors.textTertiary(isDark),
+                    fontWeight: AppFontWeights.medium,
+                  )),
                 ],
-              ]),
-              const SizedBox(height: AppTheme.spaceXxxs),
-              Text(l10n.statsCurrentStreakLabel, style: theme.textTheme.labelSmall?.copyWith(
-                color: AppColors.textSecondary(isDark),
-              )),
-            ],
-          ),
-        ),
-        Container(width: 1, color: hairline),
-        Expanded(
-          child: Padding(
-            padding: const EdgeInsets.only(left: AppTheme.spaceMd),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(crossAxisAlignment: CrossAxisAlignment.baseline, textBaseline: TextBaseline.alphabetic, children: [
-                  Text('$longest', style: theme.textTheme.headlineMedium?.copyWith(
-                    fontWeight: AppFontWeights.bold,
-                    height: _kLineHeightTight,
-                    letterSpacing: _kLetterSpacingDisplay,
-                  )),
-                  const SizedBox(width: 4),
-                  Text(l10n.statsDaysUnit, style: theme.textTheme.bodySmall?.copyWith(
-                    color: AppColors.textSecondary(isDark),
-                  )),
-                ]),
-                const SizedBox(height: AppTheme.spaceXxxs),
-                Text(l10n.statsLongestLabel, style: theme.textTheme.labelSmall?.copyWith(
-                  color: AppColors.textSecondary(isDark),
-                )),
-              ],
+              ),
             ),
           ),
-        ),
-      ]),
+          Container(width: 1, color: hairline),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceMd, vertical: AppTheme.spaceSm),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(crossAxisAlignment: CrossAxisAlignment.baseline, textBaseline: TextBaseline.alphabetic, children: [
+                    TweenAnimationBuilder<int>(
+                      tween: IntTween(begin: 0, end: longest),
+                      duration: AppDurations.medium,
+                      curve: AppMotion.decelerated,
+                      builder: (_, value, __) => Text('$value', style: theme.textTheme.titleLarge?.copyWith(
+                        fontWeight: AppFontWeights.bold,
+                        height: _kLineHeightTight,
+                        letterSpacing: _kLetterSpacingHero,
+                      )),
+                    ),
+                    const SizedBox(width: 4),
+                    Text(l10n.statsDaysUnit, style: theme.textTheme.bodySmall?.copyWith(
+                      color: AppColors.textSecondary(isDark),
+                    )),
+                  ]),
+                  const SizedBox(height: AppTheme.spaceXxxs),
+                  Text(l10n.statsLongestLabel, style: TextStyle(
+                    fontSize: AppTheme.fontSizeNavLabel,
+                    color: AppColors.textTertiary(isDark),
+                    fontWeight: AppFontWeights.medium,
+                  )),
+                ],
+              ),
+            ),
+          ),
+        ]),
+      ),
     );
   }
 
@@ -764,7 +779,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
     final achieved = _kMilestones.where((m) => m <= total).toList();
 
     return Container(
-        padding: const EdgeInsets.all(AppTheme.spaceMd),
+        padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceMd, vertical: AppTheme.spaceSm + 2),
         decoration: AppTheme.kpiCard(isDark: isDark, accentColor: AppColors.warning, radius: AppTheme.radiusLg),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -832,51 +847,50 @@ class _StatisticsScreenState extends State<StatisticsScreen>
     final accent = complete ? AppColors.primary : AppColors.warning;
 
     return Container(
-      padding: const EdgeInsets.all(AppTheme.spaceMd),
+      padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceMd, vertical: AppTheme.spaceXs + 2),
       decoration: AppTheme.surfaceContainer(isDark: isDark),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Row(children: [
-          Icon(complete ? Icons.check_circle : Icons.flag_outlined, size: AppIconSizes.xs, color: accent),
-          const SizedBox(width: AppTheme.spaceXs),
-          Text(
-            l10n.statsWeeklyTargetLabel,
-            style: theme.textTheme.labelSmall?.copyWith(
-              color: AppColors.textSecondary(isDark),
-              letterSpacing: _kLetterSpacingCaps,
+      child: Row(children: [
+        Icon(complete ? Icons.check_circle : Icons.flag_outlined, size: AppIconSizes.xs, color: accent),
+        const SizedBox(width: AppTheme.spaceXs),
+        Expanded(
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Row(children: [
+              Flexible(
+                child: Text(
+                  l10n.statsWeeklyTargetLabel,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: AppColors.textSecondary(isDark),
+                    letterSpacing: _kLetterSpacingCaps,
+                  ),
+                ),
+              ),
+              const SizedBox(width: AppTheme.spaceXs),
+              Text(
+                '$done / $total',
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: accent,
+                  fontWeight: AppFontWeights.semibold,
+                ),
+              ),
+            ]),
+            const SizedBox(height: AppTheme.spaceXxxs + 1),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(AppTheme.radiusMin),
+              child: TweenAnimationBuilder<double>(
+                tween: Tween(begin: 0, end: pct),
+                duration: AppDurations.medium,
+                curve: AppMotion.decelerated,
+                builder: (_, value, __) => LinearProgressIndicator(
+                  value: value,
+                  minHeight: 3,
+                  backgroundColor: hairline,
+                  valueColor: AlwaysStoppedAnimation(accent),
+                ),
+              ),
             ),
-          ),
-          const Spacer(),
-          Text(
-            '$done / $total',
-            style: theme.textTheme.labelSmall?.copyWith(
-              color: accent,
-              fontWeight: AppFontWeights.semibold,
-            ),
-          ),
-        ]),
-        const SizedBox(height: AppTheme.spaceSm),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(AppTheme.radiusMin),
-          child: TweenAnimationBuilder<double>(
-            tween: Tween(begin: 0, end: pct),
-            duration: AppDurations.medium,
-            curve: AppMotion.decelerated,
-            builder: (_, value, __) => LinearProgressIndicator(
-              value: value,
-              minHeight: 4,
-              backgroundColor: hairline,
-              valueColor: AlwaysStoppedAnimation(accent),
-            ),
-          ),
-        ),
-        const SizedBox(height: AppTheme.spaceXs),
-        Text(
-          complete
-              ? l10n.statsWeeklyTargetComplete
-              : l10n.statsWeeklyTargetRemaining(total - done),
-          style: theme.textTheme.bodySmall?.copyWith(
-            color: AppColors.textSecondary(isDark),
-          ),
+          ]),
         ),
       ]),
     );
@@ -1111,11 +1125,15 @@ class _StatisticsScreenState extends State<StatisticsScreen>
               children: [
                 Row(
                   children: [
-                    Text(
-                      fullDate,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: AppColors.textSecondary(isDark),
-                        fontWeight: AppFontWeights.medium,
+                    Flexible(
+                      child: Text(
+                        fullDate,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: AppColors.textSecondary(isDark),
+                          fontWeight: AppFontWeights.medium,
+                        ),
                       ),
                     ),
                     if (badge != null) ...[
@@ -1128,6 +1146,8 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                         ),
                         child: Text(
                           badge,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                           style: TextStyle(fontSize: AppTheme.fontSizeNavLabel, color: AppColors.primary, fontWeight: AppFontWeights.semibold),
                         ),
                       ),
@@ -1252,9 +1272,8 @@ class _StatisticsScreenState extends State<StatisticsScreen>
   Widget _buildTerritoryDetailsLink(ThemeData theme, bool isDark, AppLocalizations l10n) {
     final zones = _coverageCells ?? 0;
     if (zones == 0) return const SizedBox.shrink();
-    return GestureDetector(
+    return _PressScaleDetector(
       onTap: () => _showTerritorySheet(l10n),
-      behavior: HitTestBehavior.opaque,
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: AppTheme.spaceXs),
         child: Row(
@@ -1584,7 +1603,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
               )),
               Text(l10n.statsLast30DaysUnit, style: theme.textTheme.labelSmall?.copyWith(color: AppColors.textSecondary(isDark))),
               const SizedBox(height: AppTheme.spaceXxxs + 1),
-              Text(l10n.statsInDepthActiveDays, style: TextStyle(
+              Text(l10n.statsInDepthActiveDays, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(
                 fontSize: AppTheme.fontSizeNavLabel,
                 color: AppColors.textTertiary(isDark),
               )),
@@ -1598,7 +1617,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
               )),
               Text(l10n.statsUploadsUnit, style: theme.textTheme.labelSmall?.copyWith(color: AppColors.textSecondary(isDark))),
               const SizedBox(height: AppTheme.spaceXxxs + 1),
-              Text(l10n.statsInDepthAvgPerDay, style: TextStyle(
+              Text(l10n.statsInDepthAvgPerDay, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(
                 fontSize: AppTheme.fontSizeNavLabel,
                 color: AppColors.textTertiary(isDark),
               )),
@@ -1612,7 +1631,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                 )),
                 Text('${l10n.statsAvgPrefix} $bestWeekdayAvg', style: theme.textTheme.labelSmall?.copyWith(color: AppColors.textSecondary(isDark))),
                 const SizedBox(height: AppTheme.spaceXxxs + 1),
-                Text(l10n.statsInDepthBestWeekday, style: TextStyle(
+                Text(l10n.statsInDepthBestWeekday, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(
                   fontSize: AppTheme.fontSizeNavLabel,
                   color: AppColors.textTertiary(isDark),
                 )),
@@ -1668,7 +1687,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                         fontWeight: AppFontWeights.bold,
                         color: AppColors.primary,
                       )),
-                      Text(l10n.statsInDepthAvgPerDay, style: theme.textTheme.labelSmall?.copyWith(
+                      Text(l10n.statsInDepthAvgPerDay, maxLines: 1, overflow: TextOverflow.ellipsis, style: theme.textTheme.labelSmall?.copyWith(
                         color: AppColors.textSecondary(isDark),
                       )),
                     ],
@@ -1707,9 +1726,11 @@ class _StatisticsScreenState extends State<StatisticsScreen>
 
         // ── Map CTA ───────────────────────────────────────────────────────
         if (widget.onGoToHome != null)
-          GestureDetector(
-            onTap: widget.onGoToHome,
-            behavior: HitTestBehavior.opaque,
+          _PressScaleDetector(
+            onTap: () {
+              HapticFeedback.lightImpact();
+              widget.onGoToHome!();
+            },
             child: Container(
               padding: const EdgeInsets.all(AppTheme.spaceMd),
               decoration: AppTheme.surfaceContainer(isDark: isDark),
@@ -1914,27 +1935,78 @@ class _SensorTypesRow extends StatelessWidget {
   }
 }
 
+// ── Press-scale tap detector — subtle 0.97 scale on press ─────────────────────
+
+class _PressScaleDetector extends StatefulWidget {
+  const _PressScaleDetector({required this.onTap, required this.child});
+  final VoidCallback onTap;
+  final Widget child;
+
+  @override
+  State<_PressScaleDetector> createState() => _PressScaleDetectorState();
+}
+
+class _PressScaleDetectorState extends State<_PressScaleDetector> {
+  bool _pressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: widget.onTap,
+      onTapDown: (_) => setState(() => _pressed = true),
+      onTapUp: (_) => setState(() => _pressed = false),
+      onTapCancel: () => setState(() => _pressed = false),
+      behavior: HitTestBehavior.opaque,
+      child: AnimatedScale(
+        scale: _pressed ? 0.97 : 1.0,
+        duration: const Duration(milliseconds: 80),
+        curve: Curves.easeOut,
+        child: widget.child,
+      ),
+    );
+  }
+}
+
 // ── 30-day calendar heatmap ───────────────────────────────────────────────────
 
-class _CalendarHeatmap extends StatelessWidget {
+class _CalendarHeatmap extends StatefulWidget {
   const _CalendarHeatmap({required this.dailyCounts, required this.isDark});
   final Map<String, int> dailyCounts;
   final bool isDark;
 
   @override
+  State<_CalendarHeatmap> createState() => _CalendarHeatmapState();
+}
+
+class _CalendarHeatmapState extends State<_CalendarHeatmap> {
+  String? _selectedKey;
+
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = widget.isDark;
+    final l10n = context.l10n;
     final today = DateTime.now();
+    final todayKey = DateFormat('yyyy-MM-dd').format(today);
     final days = List.generate(30, (i) => today.subtract(Duration(days: 29 - i)));
-    final maxCount = dailyCounts.values.fold(0, max);
+    final maxCount = widget.dailyCounts.values.fold(0, max);
+    final locale = Localizations.localeOf(context).toString();
 
-    // Group into rows of 7 (oldest first, left-to-right, top-to-bottom)
+    // Localized Mon-Sun single-char headers
+    final dayHeaders = List.generate(7, (i) {
+      final d = DateTime(2024, 1, 1 + i); // Jan 1 2024 = Monday
+      return DateFormat('E', locale).format(d)[0].toUpperCase();
+    });
+
+    // Group into rows of 7
     final rows = <List<DateTime>>[];
     for (var i = 0; i < days.length; i += 7) {
       rows.add(days.sublist(i, (i + 7).clamp(0, days.length)));
     }
 
-    final locale = Localizations.localeOf(context).toString();
+    // Selected day detail
+    final selCount = _selectedKey != null ? (widget.dailyCounts[_selectedKey!] ?? 0) : null;
+    final selDate = _selectedKey != null ? DateTime.parse(_selectedKey!) : null;
 
     return Container(
       padding: const EdgeInsets.all(AppTheme.spaceMd),
@@ -1942,16 +2014,49 @@ class _CalendarHeatmap extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            DateFormat('MMM', locale).format(days.first) == DateFormat('MMM', locale).format(today)
-                ? DateFormat('MMMM yyyy', locale).format(today)
-                : '${DateFormat('MMM', locale).format(days.first)} – ${DateFormat('MMM yyyy', locale).format(today)}',
-            style: theme.textTheme.titleSmall?.copyWith(fontWeight: AppFontWeights.semibold),
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  DateFormat('MMM', locale).format(days.first) == DateFormat('MMM', locale).format(today)
+                      ? DateFormat('MMMM yyyy', locale).format(today)
+                      : '${DateFormat('MMM', locale).format(days.first)} – ${DateFormat('MMM yyyy', locale).format(today)}',
+                  style: theme.textTheme.titleSmall?.copyWith(fontWeight: AppFontWeights.semibold),
+                ),
+              ),
+              // Selected day chip
+              AnimatedSwitcher(
+                duration: AppDurations.fast,
+                child: selCount != null && selDate != null
+                    ? Container(
+                        key: ValueKey(_selectedKey),
+                        padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceXs, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: selCount > 0
+                              ? AppColors.primary.withValues(alpha: 0.12)
+                              : AppColors.primaryAlpha(0.06),
+                          borderRadius: BorderRadius.circular(AppTheme.radiusMin),
+                        ),
+                        child: Text(
+                          selCount > 0
+                              ? l10n.statsHeatmapDayDetail(
+                                  DateFormat('EEE d', locale).format(selDate), selCount)
+                              : DateFormat('EEE d', locale).format(selDate),
+                          style: TextStyle(
+                            fontSize: AppTheme.fontSizeNavLabel,
+                            color: selCount > 0 ? AppColors.primary : AppColors.textTertiary(isDark),
+                            fontWeight: AppFontWeights.semibold,
+                          ),
+                        ),
+                      )
+                    : const SizedBox.shrink(),
+              ),
+            ],
           ),
           const SizedBox(height: AppTheme.spaceSm),
-          // Day-of-week header
+          // Localized day-of-week header
           Row(
-            children: ['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((d) => Expanded(
+            children: dayHeaders.map((d) => Expanded(
               child: Center(
                 child: Text(
                   d,
@@ -1969,7 +2074,6 @@ class _CalendarHeatmap extends StatelessWidget {
             padding: const EdgeInsets.only(bottom: 4),
             child: Row(
               children: [
-                // Pad start of first row to align with correct weekday (Mon=0)
                 if (week == rows.first)
                   ...List.generate(
                     (week.first.weekday - 1) % 7,
@@ -1977,8 +2081,9 @@ class _CalendarHeatmap extends StatelessWidget {
                   ),
                 ...week.map((day) {
                   final key = DateFormat('yyyy-MM-dd').format(day);
-                  final count = dailyCounts[key] ?? 0;
-                  final isToday = key == DateFormat('yyyy-MM-dd').format(today);
+                  final count = widget.dailyCounts[key] ?? 0;
+                  final isToday = key == todayKey;
+                  final isSelected = key == _selectedKey;
                   final intensity = maxCount > 0 ? count / maxCount : 0.0;
 
                   Color dotColor;
@@ -1993,22 +2098,30 @@ class _CalendarHeatmap extends StatelessWidget {
                   }
 
                   return Expanded(
-                    child: Center(
-                      child: Container(
-                        width: 22,
-                        height: 22,
-                        decoration: BoxDecoration(
-                          color: dotColor,
-                          borderRadius: BorderRadius.circular(5),
-                          border: isToday
-                              ? Border.all(color: AppColors.primary, width: 1.5)
-                              : null,
+                    child: GestureDetector(
+                      onTap: () {
+                        HapticFeedback.selectionClick();
+                        setState(() => _selectedKey = isSelected ? null : key);
+                      },
+                      child: Center(
+                        child: AnimatedContainer(
+                          duration: AppDurations.fast,
+                          width: 22,
+                          height: 22,
+                          decoration: BoxDecoration(
+                            color: dotColor,
+                            borderRadius: BorderRadius.circular(5),
+                            border: isSelected
+                                ? Border.all(color: AppColors.primary, width: 2)
+                                : isToday
+                                    ? Border.all(color: AppColors.primary, width: 1.5)
+                                    : null,
+                          ),
                         ),
                       ),
                     ),
                   );
                 }),
-                // Pad end of last row
                 if (week == rows.last)
                   ...List.generate(
                     (7 - week.length) % 7,
@@ -2018,12 +2131,11 @@ class _CalendarHeatmap extends StatelessWidget {
             ),
           )),
           const SizedBox(height: AppTheme.spaceXxs),
-          // Legend
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
               Text(
-                'less',
+                l10n.statsHeatmapLess,
                 style: TextStyle(fontSize: AppTheme.fontSizeNavLabel, color: AppColors.textTertiary(isDark)),
               ),
               const SizedBox(width: AppTheme.spaceXxs),
@@ -2036,7 +2148,7 @@ class _CalendarHeatmap extends StatelessWidget {
                 ),
               )),
               Text(
-                'more',
+                l10n.statsHeatmapMore,
                 style: TextStyle(fontSize: AppTheme.fontSizeNavLabel, color: AppColors.textTertiary(isDark)),
               ),
             ],
@@ -2273,21 +2385,25 @@ class _KpiCell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceMd, vertical: AppTheme.spaceSm + 2),
+      padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceMd, vertical: AppTheme.spaceSm),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          value != null
-              ? Text(value!, style: theme.textTheme.titleLarge?.copyWith(
-                  fontWeight: AppFontWeights.bold,
-                  height: _kLineHeightTight,
-                  letterSpacing: _kLetterSpacingHero,
-                ))
-              : SizedBox(width: 36, height: 22, child: LinearProgressIndicator(
-                  borderRadius: BorderRadius.circular(2),
-                  backgroundColor: AppColors.textTertiary(isDark).withValues(alpha: 0.12),
-                  color: AppColors.primary.withValues(alpha: 0.4),
-                )),
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 280),
+            switchInCurve: Curves.easeOut,
+            child: value != null
+                ? Text(value!, key: ValueKey(value), style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: AppFontWeights.bold,
+                    height: _kLineHeightTight,
+                    letterSpacing: _kLetterSpacingHero,
+                  ))
+                : SizedBox(key: const ValueKey('loading'), width: 36, height: 22, child: LinearProgressIndicator(
+                    borderRadius: BorderRadius.circular(2),
+                    backgroundColor: AppColors.textTertiary(isDark).withValues(alpha: 0.12),
+                    color: AppColors.primary.withValues(alpha: 0.4),
+                  )),
+          ),
           const SizedBox(height: AppTheme.spaceXxxs),
           Text(label, style: TextStyle(
             fontSize: AppTheme.fontSizeNavLabel,

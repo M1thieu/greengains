@@ -314,12 +314,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 children: [
                   Text(
                     l10n.onboardingWelcomeTitle,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 30,
                       fontWeight: AppFontWeights.semibold,
                       letterSpacing: -0.8,
                       height: 1.12,
-                      color: Color(0xF5FFFFFF),
+                      color: Colors.white.withValues(alpha: 0.96),
                     ),
                   ),
                   const SizedBox(height: AppTheme.spaceSm),
@@ -670,10 +670,10 @@ class _FeatureRow extends StatelessWidget {
               children: [
                 Text(
                   title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14,
                     fontWeight: AppFontWeights.semibold,
-                    color: Color(0xEBFFFFFF),
+                    color: Colors.white.withValues(alpha: 0.92),
                     letterSpacing: -0.1,
                   ),
                 ),

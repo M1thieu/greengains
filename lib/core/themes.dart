@@ -195,6 +195,12 @@ class AppColors {
       ? primary.withValues(alpha: 0.05)
       : primary.withValues(alpha: 0.02);
 
+  // Action button colors — home screen floating controls
+  static const Color actionPrimaryFg  = Color(0xFF04221a); // dark forest on green bg
+  static const Color actionSecondaryBg = Color(0xFF1c2f2a); // dark green surface
+  static const Color actionDangerBg    = Color(0xFF2a1c1c); // dark red surface
+  static const Color actionSegActiveFg = Color(0xFF04221a); // segment active fg (same as primary)
+
   // Map overlay tints — frosted glass pills that float above the dark map.
   // Always rendered on a dark background, so these use darkBackground as the tint color.
   // Use these instead of hardcoded hex Color(0x??111927) values.
@@ -415,8 +421,11 @@ class AppTheme {
   static const double fontSizeNavLabel  = 10.0; // sub-caption, below bodySmall(12)
 
   // Sub-body font sizes (below Material bodySmall=12)
-  static const double fontSizeXs = 11.0; // labelSmall equivalent — captions, badges
-  static const double fontSizeSm = 13.0; // between bodySmall(12) and bodyMedium(14)
+  static const double fontSizeXs   = 11.0; // labelSmall equivalent — captions, badges
+  static const double fontSizeBody  = 12.0; // bodySmall (M3 spec)
+  static const double fontSizeSm      = 13.0; // between bodySmall(12) and bodyMedium(14)
+  static const double fontSizeMd      = 14.0; // bodyMedium (M3 spec)
+  static const double fontSizeDisplay = 80.0; // hero display number (session summary)
 
   // Glass UI constants (BackdropFilter + frosted container)
   static const double glassBlurSigma = 16.0; // consistent across all glass overlays

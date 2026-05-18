@@ -89,6 +89,16 @@ class AppLocalizationsEn extends AppLocalizations {
       'Walk anywhere — your phone reads light, pressure, and motion.';
 
   @override
+  String homeStatPlaces(int count) {
+    return '$count places';
+  }
+
+  @override
+  String homeStatStreak(int count) {
+    return '$count-day streak';
+  }
+
+  @override
   String get homeActionStart => 'Start mapping';
 
   @override
@@ -483,7 +493,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get statsVerdictSlow => 'Slow week';
 
   @override
-  String get statsVerdictNone => 'No data yet this week';
+  String get statsVerdictNone => 'No data yet';
 
   @override
   String statsVerdictSubStrong(int days) {
@@ -504,14 +514,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get statsVerdictSubNone => 'Open the map and tap Start to contribute.';
 
   @override
-  String get statsWeeklyTargetLabel => 'NEW PLACES THIS WEEK';
+  String get statsWeeklyTargetLabel => 'THIS WEEK';
 
   @override
-  String get statsWeeklyTargetComplete => 'Weekly goal reached';
+  String get statsWeeklyTargetComplete => 'Goal reached';
 
   @override
   String statsWeeklyTargetRemaining(int count) {
-    return '$count more to reach your weekly goal';
+    return '$count more';
   }
 
   @override
@@ -539,11 +549,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get statsZoneExplainer =>
-      'Each place is roughly one city block. Your phone scanned it as you passed through.';
+      'One city block scanned as you passed through.';
 
   @override
   String get statsUploadExplainer =>
-      'Each scan captures what your phone sensed at that moment: brightness, how much you were moving, and air pressure.';
+      'Light, movement and pressure captured at that moment.';
 
   @override
   String get statsTabCore => 'Overview';
@@ -553,6 +563,17 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get statsInDepth30Days => 'Last 30 days';
+
+  @override
+  String get statsHeatmapLess => 'less';
+
+  @override
+  String get statsHeatmapMore => 'more';
+
+  @override
+  String statsHeatmapDayDetail(String date, int count) {
+    return '$date · $count syncs';
+  }
 
   @override
   String get statsInDepthHabits => 'Your habits';
@@ -1011,6 +1032,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsTermsOfServiceDesc => 'Usage terms and conditions';
+
+  @override
+  String get settingsDataTransparency => 'Data Transparency';
 
   @override
   String get settingsDataDeletion => 'Request Data Deletion';
@@ -1704,6 +1728,60 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get sessionStatTotal => 'TOTAL';
+
+  @override
+  String get sessionStatUploads => 'SYNCS';
+
+  @override
+  String get sessionStatAreaExplain =>
+      'Total area you\'ve mapped this session, based on the zones covered.';
+
+  @override
+  String get sessionStatDurationExplain =>
+      'How long tracking was active during this session.';
+
+  @override
+  String get sessionStatUploadsExplain =>
+      'Number of times your sensor data was uploaded during this session.';
+
+  @override
+  String get sessionStatTotalExplain =>
+      'Total unique zones you\'ve ever mapped across all sessions.';
+
+  @override
+  String homeSessionPill(int uploads) {
+    return '$uploads synced';
+  }
+
+  @override
+  String get statsUploadsHint => 'uploads';
+
+  @override
+  String get statsKpiTodayExplain => 'Syncs sent today.';
+
+  @override
+  String get statsKpiWeekExplain => 'Syncs sent this week.';
+
+  @override
+  String get statsKpiBestDayExplain => 'Most syncs in a single day.';
+
+  @override
+  String get statsKpiAvgExplain => 'Average syncs on active days.';
+
+  @override
+  String get profileTileUploadsExplain => 'Total syncs sent to our servers.';
+
+  @override
+  String get profileTileDaysExplain =>
+      'Days you\'ve contributed at least once.';
+
+  @override
+  String profileTileAreaExplain(String area) {
+    return 'Area mapped across all your sessions.';
+  }
+
+  @override
+  String get profileStreakExplain => 'Consecutive days with at least one sync.';
 
   @override
   String statsMilestoneTarget(int target) {

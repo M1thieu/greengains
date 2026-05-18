@@ -245,17 +245,23 @@ class ForegroundLocationService {
 
   /// Check if the foreground service is currently running
   Future<bool> isServiceRunning() async {
-    // If we are currently toggling the service (e.g. start() is in progress),
-    // do not let this background check overwrite the state.
+    // A state change is in progress (start/stop/pause/resume): treat as running and
+    // skip the isTrackingPaused query — racing it would overwrite the in-flight change.
     if (_isChangingState) {
-      return _isRunningNotifier.value;
+      return true;
     }
 
     try {
       final result = await _fgChannel.invokeMethod<bool>('isForegroundServiceRunning');
       _isRunningNotifier.value = result ?? false;
-      final paused = await _fgChannel.invokeMethod<bool>('isTrackingPaused');
-      _isPausedNotifier.value = paused ?? false;
+      // Only query paused state if the service is actually running — avoids a stale
+      // false overwriting an in-flight pauseTracking/resumeTracking result.
+      if (result == true) {
+        final paused = await _fgChannel.invokeMethod<bool>('isTrackingPaused');
+        _isPausedNotifier.value = paused ?? false;
+      } else {
+        _isPausedNotifier.value = false;
+      }
       return result ?? false;
     } catch (e) {
       debugPrint('Error checking service status: $e');

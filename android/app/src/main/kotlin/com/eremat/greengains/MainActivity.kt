@@ -61,6 +61,14 @@ class MainActivity : FlutterActivity() {
         )
         ForegroundService.methodChannel = sensorTriggerChannel
 
+        // Re-sync service state to Flutter after a START_STICKY restart or process death.
+        // Without this, Flutter's isRunning/isPaused are stale until the next natural event.
+        if (ForegroundService.running) {
+            sensorTriggerChannel.invokeMethod("onTrackingPaused", ForegroundService.trackingPaused)
+        } else {
+            sensorTriggerChannel.invokeMethod("onServiceStopped", null)
+        }
+
         // Foreground service control channel.
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "greengains/foreground")
             .setMethodCallHandler { call, result ->
@@ -256,12 +264,18 @@ class MainActivity : FlutterActivity() {
     }
 
     private fun stopFgService(): Boolean {
-        return try {
-            val intent = Intent(this, ForegroundService::class.java)
-            stopService(intent)
-            true
-        } catch (_: Exception) {
-            false
+        // Route through ACTION_STOP_SERVICE so onStartCommand handles the stop while
+        // the method channel is still alive — ensures onServiceStopped reaches Flutter.
+        // If the service is not running, fall back to stopService() to clean up.
+        return if (ForegroundService.running) {
+            sendServiceAction(ForegroundService.ACTION_STOP_SERVICE)
+        } else {
+            try {
+                stopService(Intent(this, ForegroundService::class.java))
+                true
+            } catch (_: Exception) {
+                false
+            }
         }
     }
 

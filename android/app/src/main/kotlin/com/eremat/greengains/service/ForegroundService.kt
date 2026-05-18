@@ -469,6 +469,10 @@ class ForegroundService : Service() {
         // Flush FIFO buffers before stopping to avoid losing last 60s of data
         stopTracking()
 
+        // Signal Flutter before stopSelf() so the method channel is still valid.
+        // This lets the UI update isRunning/isPaused even when stopped from the notification.
+        methodChannel?.invokeMethod("onServiceStopped", null)
+
         stopForeground(true)
         stopSelf()
     }

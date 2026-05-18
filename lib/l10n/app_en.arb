@@ -33,6 +33,10 @@
   "homeTitle": "GreenGains",
   "homeIdleTagline": "Your neighborhood, mapped by you",
   "homeIdleSubtitle": "Walk anywhere — your phone reads light, pressure, and motion.",
+  "homeStatPlaces": "{count} places",
+  "@homeStatPlaces": { "placeholders": { "count": { "type": "int" } } },
+  "homeStatStreak": "{count}-day streak",
+  "@homeStatStreak": { "placeholders": { "count": { "type": "int" } } },
   "homeActionStart": "Start mapping",
   "homeActionPause": "Pause",
   "homeActionResume": "Resume",
@@ -202,7 +206,7 @@
   "statsVerdictStrong": "Strong week",
   "statsVerdictGood": "Good week",
   "statsVerdictSlow": "Slow week",
-  "statsVerdictNone": "No data yet this week",
+  "statsVerdictNone": "No data yet",
   "statsVerdictSubStrong": "You mapped {days} of 7 days — keep it up.",
   "@statsVerdictSubStrong": { "placeholders": { "days": { "type": "int" } } },
   "statsVerdictSubGood": "You mapped {days} of 7 days.",
@@ -210,9 +214,9 @@
   "statsVerdictSubSlow": "Only {days} day this week. A short walk helps.",
   "@statsVerdictSubSlow": { "placeholders": { "days": { "type": "int" } } },
   "statsVerdictSubNone": "Open the map and tap Start to contribute.",
-  "statsWeeklyTargetLabel": "NEW PLACES THIS WEEK",
-  "statsWeeklyTargetComplete": "Weekly goal reached",
-  "statsWeeklyTargetRemaining": "{count} more to reach your weekly goal",
+  "statsWeeklyTargetLabel": "THIS WEEK",
+  "statsWeeklyTargetComplete": "Goal reached",
+  "statsWeeklyTargetRemaining": "{count} more",
   "@statsWeeklyTargetRemaining": { "placeholders": { "count": { "type": "int" } } },
   "statsDetailTitle": "Your data",
   "statsCityBlocks": "~{count} city blocks covered",
@@ -222,11 +226,20 @@
   "statsRecordLongestStreak": "Longest streak",
   "statsRecordTotalUploads": "Total scans",
   "statsRecordFirstDay": "First mapping day",
-  "statsZoneExplainer": "Each place is roughly one city block. Your phone scanned it as you passed through.",
-  "statsUploadExplainer": "Each scan captures what your phone sensed at that moment: brightness, how much you were moving, and air pressure.",
+  "statsZoneExplainer": "One city block scanned as you passed through.",
+  "statsUploadExplainer": "Light, movement and pressure captured at that moment.",
   "statsTabCore": "Overview",
   "statsTabInDepth": "In depth",
   "statsInDepth30Days": "Last 30 days",
+  "statsHeatmapLess": "less",
+  "statsHeatmapMore": "more",
+  "statsHeatmapDayDetail": "{date} · {count} syncs",
+  "@statsHeatmapDayDetail": {
+    "placeholders": {
+      "date": { "type": "String" },
+      "count": { "type": "int" }
+    }
+  },
   "statsInDepthHabits": "Your habits",
   "statsInDepthActiveDays": "Active days",
   "statsInDepthAvgPerDay": "Avg / active day",
@@ -400,6 +413,7 @@
   "settingsLegal": "Legal",
   "settingsPrivacyPolicyDesc": "How we handle your data",
   "settingsTermsOfServiceDesc": "Usage terms and conditions",
+  "settingsDataTransparency": "Data Transparency",
   "settingsDataDeletion": "Request Data Deletion",
   "settingsDataDeletionDesc": "Erase all your recorded data",
   "settingsDataSection": "Data",
@@ -737,6 +751,29 @@
   "sessionStatArea": "AREA",
   "sessionStatDuration": "TIME",
   "sessionStatTotal": "TOTAL",
+  "sessionStatUploads": "SYNCS",
+  "sessionStatAreaExplain": "Total area you've mapped this session, based on the zones covered.",
+  "sessionStatDurationExplain": "How long tracking was active during this session.",
+  "sessionStatUploadsExplain": "Number of times your sensor data was uploaded during this session.",
+  "sessionStatTotalExplain": "Total unique zones you've ever mapped across all sessions.",
+  "homeSessionPill": "{uploads} synced",
+  "@homeSessionPill": {
+    "placeholders": {
+      "uploads": { "type": "int" }
+    }
+  },
+  "statsUploadsHint": "uploads",
+  "statsKpiTodayExplain": "Syncs sent today.",
+  "statsKpiWeekExplain": "Syncs sent this week.",
+  "statsKpiBestDayExplain": "Most syncs in a single day.",
+  "statsKpiAvgExplain": "Average syncs on active days.",
+  "profileTileUploadsExplain": "Total syncs sent to our servers.",
+  "profileTileDaysExplain": "Days you've contributed at least once.",
+  "profileTileAreaExplain": "Area mapped across all your sessions.",
+  "@profileTileAreaExplain": {
+    "placeholders": { "area": { "type": "String" } }
+  },
+  "profileStreakExplain": "Consecutive days with at least one sync.",
 
   "statsMilestoneTarget": "{target} places",
   "@statsMilestoneTarget": {

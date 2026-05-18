@@ -108,7 +108,6 @@ const _kLayerGridFill   = 'gg-grid-fill';
 const _kLayerGridLines  = 'gg-grid-lines';
 const _kLayerTilesFill  = 'gg-tiles-fill';
 const _kLayerTilesLine  = 'gg-tiles-line';
-const _kLayerTilesLabel = 'gg-tiles-label';
 const _kLayerLiveFill   = 'gg-live-fill';
 const _kLayerLiveGlow   = 'gg-live-glow';   // wide translucent ring — hex halo effect
 const _kLayerLiveLine   = 'gg-live-line';
@@ -464,15 +463,15 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> {
   }
 
   static double _fillOpacity(H3Tile tile) {
-    if (tile.isGlobal) return 0.16;
+    if (tile.isGlobal) return 0.18;
     final q = _qualityPct(tile);
-    double base = q >= 75 ? 0.28 : q >= 50 ? 0.24 : 0.20;
-    // Freshness decay — older tiles fade to motivate re-coverage (Hivemapper pattern).
+    // Bold fill — personal territory should read as clearly "owned"
+    double base = q >= 75 ? 0.55 : q >= 50 ? 0.45 : 0.35;
+    // Mild freshness decay — motivates re-coverage without making tiles disappear
     if (tile.lastUpdate != null) {
       final age = DateTime.now().difference(tile.lastUpdate!).inDays;
-      if (age > 7) { base *= 0.50; }
-      else if (age > 3) { base *= 0.70; }
-      else if (age > 1) { base *= 0.85; }
+      if (age > 7) { base *= 0.70; }
+      else if (age > 3) { base *= 0.85; }
     }
     return base;
   }
@@ -480,12 +479,11 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> {
   static double _strokeOpacity(H3Tile tile) {
     if (tile.isGlobal) return 0.0;
     final q = _qualityPct(tile);
-    double base = q >= 75 ? 0.90 : q >= 50 ? 0.75 : 0.60;
+    double base = q >= 75 ? 0.95 : q >= 50 ? 0.80 : 0.65;
     if (tile.lastUpdate != null) {
       final age = DateTime.now().difference(tile.lastUpdate!).inDays;
-      if (age > 7) { base *= 0.50; }
-      else if (age > 3) { base *= 0.70; }
-      else if (age > 1) { base *= 0.85; }
+      if (age > 7) { base *= 0.70; }
+      else if (age > 3) { base *= 0.85; }
     }
     return base;
   }
@@ -559,7 +557,7 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> {
       _kLayerGridFill,
       const FillLayerProperties(
         fillColor: '#1a3a52',  // dark blue-teal, clearly distinct from #111927 base
-        fillOpacity: 0.65,
+        fillOpacity: 0.40,
       ),
       minzoom: 9.0,
     );
@@ -569,8 +567,8 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> {
       _kLayerGridLines,
       const LineLayerProperties(
         lineColor: '#ffffff',
-        lineOpacity: 0.10,
-        lineWidth: 0.6,
+        lineOpacity: 0.06,
+        lineWidth: 0.5,
       ),
       minzoom: 9.0,
     );
@@ -599,22 +597,7 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> {
       minzoom: 9.0,
     );
 
-    // ── Hex quality labels — shown at zoom ≥ 12, personal tiles only ──
-    await ctrl.addSymbolLayer(
-      'gg-tile-labels',
-      _kLayerTilesLabel,
-      const SymbolLayerProperties(
-        textField: ['get', 'label'],
-        textColor: '#ffffff',
-        textSize: 11.0,
-        textFont: ['Noto Sans Bold'],
-        textHaloColor: '#000000',
-        textHaloWidth: 1.2,
-        textAllowOverlap: false,
-        textIgnorePlacement: false,
-      ),
-      minzoom: 12.0,
-    );
+    // Quality labels removed — noisy at tile density, detail available via tap → TileInfoSheet
 
     // ── Live cell — primary green fill + glow halo + sharp inner outline ──
     // Color matches the user dot (primaryHex) so the current cell reads as "yours"
@@ -624,7 +607,7 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> {
       _kLayerLiveFill,
       const FillLayerProperties(
         fillColor: AppColors.primaryHex,
-        fillOpacity: 0.12,
+        fillOpacity: 0.22,
       ),
     );
     // Outer glow — wide, translucent, blurs into the hex shape
@@ -633,19 +616,19 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> {
       _kLayerLiveGlow,
       const LineLayerProperties(
         lineColor: AppColors.primaryHex,
-        lineOpacity: 0.30,
-        lineWidth: 6.0,
-        lineBlur: 4.0,
+        lineOpacity: 0.40,
+        lineWidth: 8.0,
+        lineBlur: 5.0,
       ),
     );
-    // Inner edge — crisp 1.5px border to anchor the glow
+    // Inner edge — crisp 2px border to anchor the glow
     await ctrl.addLineLayer(
       _kSourceLiveCell,
       _kLayerLiveLine,
       const LineLayerProperties(
         lineColor: AppColors.primaryHex,
-        lineOpacity: 0.90,
-        lineWidth: 1.5,
+        lineOpacity: 1.0,
+        lineWidth: 2.0,
       ),
     );
 

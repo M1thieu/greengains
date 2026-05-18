@@ -108,8 +108,12 @@ internal object NotificationsHelper {
             action = if (isPaused) ForegroundService.ACTION_RESUME_TRACKING
                      else          ForegroundService.ACTION_PAUSE_TRACKING
         }
+        // Use distinct request codes for pause vs resume so Android doesn't return the
+        // cached PendingIntent with the wrong action when the state flips (FLAG_IMMUTABLE
+        // prevents updates to existing intents sharing the same request code).
+        val pauseResumeRequestCode = if (isPaused) 3 else 2
         val pauseResumePending = PendingIntent.getService(
-            context, 0, pauseResumeIntent, PendingIntent.FLAG_IMMUTABLE)
+            context, pauseResumeRequestCode, pauseResumeIntent, PendingIntent.FLAG_IMMUTABLE)
         val pauseResumeIcon = if (isPaused) R.drawable.ic_notif_play else R.drawable.ic_notif_pause
         val pauseResumeLabel = if (isPaused) context.getString(R.string.notification_action_resume)
                                else          context.getString(R.string.notification_action_pause)
@@ -187,7 +191,7 @@ internal object NotificationsHelper {
             .setForegroundServiceBehavior(NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE)
             .setContentIntent(
                 PendingIntent.getActivity(
-                    context, 0,
+                    context, 4, // distinct from service notification (requestCode=0)
                     Intent(context, MainActivity::class.java),
                     PendingIntent.FLAG_IMMUTABLE
                 )
