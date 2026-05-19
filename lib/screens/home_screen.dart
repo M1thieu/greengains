@@ -20,6 +20,7 @@ import '../core/events/app_events.dart';
 import '../utils/app_snackbars.dart';
 import '../core/app_preferences.dart';
 import '../widgets/coverage_map_widget.dart';
+import '../widgets/press_scale_detector.dart';
 import '../widgets/sensor_section.dart';
 import '../data/repositories/contribution_repository.dart';
 
@@ -830,12 +831,11 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                           ),
                           const Spacer(),
                           // Stats pills stacked top-right — tap navigates to Stats
-                          GestureDetector(
-                            onTap: widget.onGoToStats != null ? () {
+                          PressScaleDetector(
+                            onTap: () {
                               HapticFeedback.lightImpact();
-                              widget.onGoToStats!();
-                            } : null,
-                            behavior: HitTestBehavior.opaque,
+                              widget.onGoToStats?.call();
+                            },
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.end,
                               children: [
@@ -2348,7 +2348,7 @@ class _Seg extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return PressScaleDetector(
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 180),
@@ -2414,7 +2414,7 @@ class _InfoButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return PressScaleDetector(
       onTap: onTap,
       child: Container(
         width: _kLocationBtnSize,
@@ -2439,7 +2439,7 @@ class _PermissionLostCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    return GestureDetector(
+    return PressScaleDetector(
       onTap: onFix,
       child: Container(
         padding: const EdgeInsets.symmetric(

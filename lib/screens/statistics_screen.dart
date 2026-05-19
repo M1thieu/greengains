@@ -13,6 +13,7 @@ import '../core/constants.dart';
 import '../core/events/app_events.dart';
 import '../core/app_preferences.dart';
 import '../services/stats/stats_service.dart';
+import '../widgets/press_scale_detector.dart';
 
 // ── Chart / skeleton layout constants ────────────────────────────────────────
 // Named so that any future change touches ONE place, not scattered literals.
@@ -1935,37 +1936,8 @@ class _SensorTypesRow extends StatelessWidget {
   }
 }
 
-// ── Press-scale tap detector — subtle 0.97 scale on press ─────────────────────
-
-class _PressScaleDetector extends StatefulWidget {
-  const _PressScaleDetector({required this.onTap, required this.child});
-  final VoidCallback onTap;
-  final Widget child;
-
-  @override
-  State<_PressScaleDetector> createState() => _PressScaleDetectorState();
-}
-
-class _PressScaleDetectorState extends State<_PressScaleDetector> {
-  bool _pressed = false;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: widget.onTap,
-      onTapDown: (_) => setState(() => _pressed = true),
-      onTapUp: (_) => setState(() => _pressed = false),
-      onTapCancel: () => setState(() => _pressed = false),
-      behavior: HitTestBehavior.opaque,
-      child: AnimatedScale(
-        scale: _pressed ? 0.97 : 1.0,
-        duration: const Duration(milliseconds: 80),
-        curve: Curves.easeOut,
-        child: widget.child,
-      ),
-    );
-  }
-}
+// Re-export shared widget under the private name used throughout this file.
+typedef _PressScaleDetector = PressScaleDetector;
 
 // ── 30-day calendar heatmap ───────────────────────────────────────────────────
 

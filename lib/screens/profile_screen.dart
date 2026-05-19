@@ -6,6 +6,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:shimmer/shimmer.dart';
 import '../core/extensions/context_extensions.dart';
+import '../widgets/press_scale_detector.dart';
 import '../core/events/app_events.dart';
 import '../services/network/backend_client.dart';
 import '../core/constants.dart';
@@ -403,7 +404,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final longest = _longestStreak ?? 0;
     final active = current > 0;
 
-    return GestureDetector(
+    return PressScaleDetector(
       onTap: () => _showProfileDetail(
         title: l10n.statsCurrentStreakLabel,
         value: '$current ${l10n.statsDaysUnit}',
@@ -534,7 +535,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         return Expanded(
           child: Padding(
             padding: EdgeInsets.only(right: i < tiles.length - 1 ? AppTheme.spaceSm : 0),
-            child: GestureDetector(
+            child: PressScaleDetector(
               onTap: isKm2 && km2 != null && km2 > 0 ? () => _showProfileDetail(
                 title: l10n.statsKmMapped.toUpperCase(),
                 value: kmDisplay,

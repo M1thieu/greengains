@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import '../core/extensions/context_extensions.dart';
 import '../core/themes.dart';
@@ -9,6 +10,7 @@ import '../core/app_preferences.dart';
 import '../services/location/foreground_location_service.dart';
 import 'diagnostics_screen.dart';
 import 'webview_screen.dart';
+import '../widgets/press_scale_detector.dart';
 
 const _kPrivacyPolicyUrl    = 'https://greengains.eremat.org/legal/privacy-policy';
 const _kTermsUrl            = 'https://greengains.eremat.org/legal/terms-of-service';
@@ -253,7 +255,7 @@ class _LegalLink extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = context.isDarkMode;
-    return GestureDetector(
+    return PressScaleDetector(
       onTap: onTap,
       child: Text(
         label,
@@ -367,7 +369,10 @@ class _ToggleRow extends StatelessWidget {
         const SizedBox(width: AppTheme.spaceXs),
         Switch(
           value: value,
-          onChanged: onChanged,
+          onChanged: onChanged == null ? null : (v) {
+            HapticFeedback.lightImpact();
+            onChanged!(v);
+          },
         ),
       ],
     );
@@ -396,9 +401,11 @@ class _NavRow extends StatelessWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final titleColor = danger ? AppColors.error : AppColors.textPrimary(isDark);
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+    return PressScaleDetector(
+      onTap: () {
+        HapticFeedback.lightImpact();
+        onTap();
+      },
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: AppTheme.spaceXs),
         child: Row(

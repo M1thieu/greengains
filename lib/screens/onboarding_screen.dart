@@ -44,7 +44,6 @@ class OnboardingScreen extends StatefulWidget {
 }
 
 class _OnboardingScreenState extends State<OnboardingScreen> {
-  late final PageController _pageController;
   late int _currentPage;
   bool _signingIn = false;
   bool _startingTracking = false;
@@ -57,7 +56,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   void initState() {
     super.initState();
     _currentPage = widget.initialPage;
-    _pageController = PageController(initialPage: widget.initialPage);
     _fetchMapperCount();
   }
 
@@ -71,18 +69,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   @override
   void dispose() {
-    _pageController.dispose();
     _codeController.dispose();
     super.dispose();
   }
 
   void _nextPage() {
-    if (_currentPage < 1) {
-      _pageController.nextPage(
-        duration: AppDurations.fast,
-        curve: AppMotion.standard,
-      );
-    }
+    if (_currentPage < 1) setState(() => _currentPage++);
   }
 
   Future<void> _handleGoogleSignIn() async {
@@ -129,10 +121,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       if (widget.initialPage > 0) {
         widget.onComplete();
       } else {
-        _pageController.nextPage(
-          duration: AppDurations.fast,
-          curve: AppMotion.standard,
-        );
+        if (mounted) setState(() => _currentPage++);
       }
     } catch (e) {
       debugPrint('Sign-in error: $e');
@@ -228,18 +217,29 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     return Scaffold(
       body: Stack(
         children: [
-          // PageView — Welcome → Sign In → Start Mapping (first-time only)
-          PageView(
-            controller: _pageController,
-            physics: const NeverScrollableScrollPhysics(), // navigation is programmatic
-            onPageChanged: (index) {
-              setState(() => _currentPage = index);
-            },
-            children: [
-              if (widget.initialPage == 0) _buildWelcomePage(theme, isDark, l10n),
-              _buildSignInPage(theme, isDark, l10n),
-              if (widget.initialPage == 0) _buildStartPage(theme, isDark, l10n),
-            ],
+          // Page switcher — Welcome → Sign In → Start Mapping (first-time only)
+          AnimatedSwitcher(
+            duration: AppDurations.medium,
+            switchInCurve: Curves.easeOut,
+            switchOutCurve: Curves.easeIn,
+            transitionBuilder: (child, animation) => FadeTransition(
+              opacity: animation,
+              child: SlideTransition(
+                position: Tween<Offset>(
+                  begin: const Offset(0, 0.04),
+                  end: Offset.zero,
+                ).animate(animation),
+                child: child,
+              ),
+            ),
+            child: KeyedSubtree(
+              key: ValueKey(_currentPage),
+              child: switch (_currentPage) {
+                0 => _buildWelcomePage(theme, isDark, l10n),
+                1 => _buildSignInPage(theme, isDark, l10n),
+                _ => _buildStartPage(theme, isDark, l10n),
+              },
+            ),
           ),
 
           // Bottom navigation — dots + conditional full-width CTA
