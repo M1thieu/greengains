@@ -69,6 +69,9 @@ object AppPrefs {
     /** Total personal mapped zones — written by Flutter after tile load, shown in notification. */
     const val ZONES_TOTAL_COUNT = "flutter.flutter.last_known_zone_count"
 
+    /** Human-readable territory label (neighbourhood/city) — written by Flutter after reverse-geocode. */
+    const val TERRITORY_LABEL = "flutter.flutter.territory_label"
+
     // ── Streak (written by Flutter after profile fetch, read by StreakAlertWorker) ──
     /** Current consecutive-days streak — written by Flutter via AppPreferences.setCurrentStreak(). */
     const val CURRENT_STREAK = "flutter.flutter.current_streak"

@@ -519,6 +519,34 @@ class AppTheme {
     );
   }
 
+  /// Standard content card — elevated surface with hairline border.
+  /// Use for any card that holds data (stat tiles, KPI cells, sensor cards, sheet stats).
+  static BoxDecoration contentCard({required bool isDark, Color? accentBorder}) =>
+      BoxDecoration(
+        color: AppColors.surfaceElevated(isDark),
+        borderRadius: BorderRadius.circular(radiusMd),
+        border: accentBorder != null
+            ? Border.all(color: accentBorder, width: AppBorderWidths.thin)
+            : Border.all(color: AppColors.border(isDark), width: AppBorderWidths.hairline),
+      );
+
+  /// Standard section eyebrow label — ALL CAPS, small, muted.
+  /// Use above charts, KPI rows, and data sections.
+  static TextStyle eyebrowLabel(bool isDark) => TextStyle(
+        fontSize: fontSizeXs,
+        fontWeight: AppFontWeights.semibold,
+        color: AppColors.textTertiary(isDark),
+        letterSpacing: 0.8,
+      );
+
+  /// Label below a big stat number — consistent across all stat cells.
+  static TextStyle statLabel(bool isDark) => TextStyle(
+        fontSize: fontSizeXs,
+        color: AppColors.textTertiary(isDark),
+        fontWeight: AppFontWeights.medium,
+        height: AppLineHeights.snug,
+      );
+
   /// KPI card decoration — flat surface with a colored left-border accent.
   static BoxDecoration kpiCard({
     required bool isDark,

@@ -99,13 +99,7 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get homeActionStart => 'Commencer';
-
-  @override
-  String get homeActionPause => 'Pause';
-
-  @override
-  String get homeActionResume => 'Reprendre';
+  String get homeActionStart => 'Démarrer';
 
   @override
   String get homeActionStop => 'Arrêter';
@@ -1531,37 +1525,37 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get sensorLuxDark => 'Très sombre';
+  String get sensorLuxDark => 'Sombre';
 
   @override
-  String get sensorLuxIndoor => 'Dim · intérieur';
+  String get sensorLuxIndoor => 'Tamisé';
 
   @override
-  String get sensorLuxBright => 'Lumineux dehors';
+  String get sensorLuxBright => 'Lumineux';
 
   @override
   String get sensorLuxDirect => 'Plein soleil';
 
   @override
-  String get sensorMovementLow => 'Endroit calme';
+  String get sensorMovementLow => 'Calme';
 
   @override
-  String get sensorMovementMid => 'Endroit actif';
+  String get sensorMovementMid => 'Actif';
 
   @override
-  String get sensorMovementHigh => 'Couloir animé';
+  String get sensorMovementHigh => 'Animé';
 
   @override
-  String get sensorMovementIntense => 'Transit / forte circulation';
+  String get sensorMovementIntense => 'Très fréquenté';
 
   @override
-  String get sensorHpaLow => 'Ciel dégagé';
+  String get sensorHpaLow => 'Air dégagé';
 
   @override
-  String get sensorHpaMid => 'Pression stable';
+  String get sensorHpaMid => 'Stable';
 
   @override
-  String get sensorHpaHigh => 'Temps variable';
+  String get sensorHpaHigh => 'Air lourd';
 
   @override
   String get sensorAccelStill => 'À peine en mouvement';
@@ -1797,6 +1791,12 @@ class AppLocalizationsFr extends AppLocalizations {
   String profileTileAreaExplain(String area) {
     return 'Surface cartographiée sur toutes tes sessions.';
   }
+
+  @override
+  String get profileTileAreaCells => 'zones explorées';
+
+  @override
+  String get profileStatCityBlocks => 'îlots de ville';
 
   @override
   String get profileStreakExplain => 'Jours consécutifs avec au moins un sync.';

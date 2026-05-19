@@ -257,20 +257,8 @@ abstract class AppLocalizations {
   /// No description provided for @homeActionStart.
   ///
   /// In en, this message translates to:
-  /// **'Start mapping'**
+  /// **'Start'**
   String get homeActionStart;
-
-  /// No description provided for @homeActionPause.
-  ///
-  /// In en, this message translates to:
-  /// **'Pause'**
-  String get homeActionPause;
-
-  /// No description provided for @homeActionResume.
-  ///
-  /// In en, this message translates to:
-  /// **'Resume'**
-  String get homeActionResume;
 
   /// No description provided for @homeActionStop.
   ///
@@ -2561,67 +2549,67 @@ abstract class AppLocalizations {
   /// No description provided for @sensorLuxDark.
   ///
   /// In en, this message translates to:
-  /// **'Pitch dark'**
+  /// **'Dark'**
   String get sensorLuxDark;
 
   /// No description provided for @sensorLuxIndoor.
   ///
   /// In en, this message translates to:
-  /// **'Dim · indoors'**
+  /// **'Dim'**
   String get sensorLuxIndoor;
 
   /// No description provided for @sensorLuxBright.
   ///
   /// In en, this message translates to:
-  /// **'Bright outdoors'**
+  /// **'Bright'**
   String get sensorLuxBright;
 
   /// No description provided for @sensorLuxDirect.
   ///
   /// In en, this message translates to:
-  /// **'Full sunlight'**
+  /// **'In sunlight'**
   String get sensorLuxDirect;
 
   /// No description provided for @sensorMovementLow.
   ///
   /// In en, this message translates to:
-  /// **'Quiet area'**
+  /// **'Calm'**
   String get sensorMovementLow;
 
   /// No description provided for @sensorMovementMid.
   ///
   /// In en, this message translates to:
-  /// **'Active area'**
+  /// **'Active'**
   String get sensorMovementMid;
 
   /// No description provided for @sensorMovementHigh.
   ///
   /// In en, this message translates to:
-  /// **'Busy corridor'**
+  /// **'Busy'**
   String get sensorMovementHigh;
 
   /// No description provided for @sensorMovementIntense.
   ///
   /// In en, this message translates to:
-  /// **'Transit / heavy traffic'**
+  /// **'Heavy traffic'**
   String get sensorMovementIntense;
 
   /// No description provided for @sensorHpaLow.
   ///
   /// In en, this message translates to:
-  /// **'Clear skies'**
+  /// **'Clear air'**
   String get sensorHpaLow;
 
   /// No description provided for @sensorHpaMid.
   ///
   /// In en, this message translates to:
-  /// **'Stable pressure'**
+  /// **'Stable'**
   String get sensorHpaMid;
 
   /// No description provided for @sensorHpaHigh.
   ///
   /// In en, this message translates to:
-  /// **'Unsettled weather'**
+  /// **'Heavy air'**
   String get sensorHpaHigh;
 
   /// No description provided for @sensorAccelStill.
@@ -3037,6 +3025,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Area mapped across all your sessions.'**
   String profileTileAreaExplain(String area);
+
+  /// No description provided for @profileTileAreaCells.
+  ///
+  /// In en, this message translates to:
+  /// **'zones explored'**
+  String get profileTileAreaCells;
+
+  /// No description provided for @profileStatCityBlocks.
+  ///
+  /// In en, this message translates to:
+  /// **'city blocks'**
+  String get profileStatCityBlocks;
 
   /// No description provided for @profileStreakExplain.
   ///

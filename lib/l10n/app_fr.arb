@@ -37,9 +37,7 @@
   "@homeStatPlaces": { "placeholders": { "count": { "type": "int" } } },
   "homeStatStreak": "{count} jours d'affilée",
   "@homeStatStreak": { "placeholders": { "count": { "type": "int" } } },
-  "homeActionStart": "Commencer",
-  "homeActionPause": "Pause",
-  "homeActionResume": "Reprendre",
+  "homeActionStart": "Démarrer",
   "homeActionStop": "Arrêter",
   "startTracking": "Démarrer le suivi",
   "stopTracking": "Arrêter le suivi",
@@ -642,19 +640,19 @@
   "sensorMovementLabel": "{val}",
   "@sensorMovementLabel": { "placeholders": { "val": { "type": "String" } } },
 
-  "sensorLuxDark": "Très sombre",
-  "sensorLuxIndoor": "Dim · intérieur",
-  "sensorLuxBright": "Lumineux dehors",
+  "sensorLuxDark": "Sombre",
+  "sensorLuxIndoor": "Tamisé",
+  "sensorLuxBright": "Lumineux",
   "sensorLuxDirect": "Plein soleil",
 
-  "sensorMovementLow": "Endroit calme",
-  "sensorMovementMid": "Endroit actif",
-  "sensorMovementHigh": "Couloir animé",
-  "sensorMovementIntense": "Transit / forte circulation",
+  "sensorMovementLow": "Calme",
+  "sensorMovementMid": "Actif",
+  "sensorMovementHigh": "Animé",
+  "sensorMovementIntense": "Très fréquenté",
 
-  "sensorHpaLow": "Ciel dégagé",
-  "sensorHpaMid": "Pression stable",
-  "sensorHpaHigh": "Temps variable",
+  "sensorHpaLow": "Air dégagé",
+  "sensorHpaMid": "Stable",
+  "sensorHpaHigh": "Air lourd",
 
   "sensorAccelStill": "À peine en mouvement",
   "sensorAccelWalk": "Marche",
@@ -773,6 +771,8 @@
   "@profileTileAreaExplain": {
     "placeholders": { "area": { "type": "String" } }
   },
+  "profileTileAreaCells": "zones explorées",
+  "profileStatCityBlocks": "îlots de ville",
   "profileStreakExplain": "Jours consécutifs avec au moins un sync.",
 
   "statsMilestoneTarget": "{target} endroits",

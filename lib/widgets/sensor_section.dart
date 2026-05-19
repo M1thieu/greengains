@@ -153,6 +153,9 @@ class _SensorSectionState extends State<SensorSection> {
                 value: light != null
                     ? _getLightDescription(light.lux, l10n)
                     : null,
+                rawValue: light != null
+                    ? '${light.lux.toStringAsFixed(0)} lux'
+                    : null,
                 unit: '',
                 enabled: isLive,
                 statusLabel: _sensorStatus(
@@ -178,6 +181,9 @@ class _SensorSectionState extends State<SensorSection> {
                 title: l10n.sensorMagneticField,
                 value: mag != null
                     ? _getMagneticDescription(mag.magnitude, l10n)
+                    : null,
+                rawValue: mag != null
+                    ? '${mag.magnitude.toStringAsFixed(1)} µT'
                     : null,
                 unit: '',
                 enabled: isLive,
@@ -214,6 +220,9 @@ class _SensorSectionState extends State<SensorSection> {
                 value: accel != null
                     ? _getAccelDescription(accel.magnitude, l10n)
                     : null,
+                rawValue: accel != null
+                    ? '${accel.magnitude.toStringAsFixed(1)} m/s²'
+                    : null,
                 unit: '',
                 enabled: isLive,
                 statusLabel: _sensorStatus(
@@ -240,6 +249,9 @@ class _SensorSectionState extends State<SensorSection> {
                 value: gyro != null
                     ? _getGyroDescription(gyro.magnitude, l10n)
                     : null,
+                rawValue: gyro != null
+                    ? '${gyro.magnitude.toStringAsFixed(2)} rad/s'
+                    : null,
                 unit: '',
                 enabled: isLive,
                 statusLabel: _sensorStatus(
@@ -265,6 +277,9 @@ class _SensorSectionState extends State<SensorSection> {
                 title: l10n.sensorAirPressure,
                 value: data != null
                     ? _getPressureDescription(data.hPa, l10n)
+                    : null,
+                rawValue: data != null
+                    ? '${data.hPa.toStringAsFixed(1)} hPa'
                     : null,
                 unit: '',
                 enabled: isLive,

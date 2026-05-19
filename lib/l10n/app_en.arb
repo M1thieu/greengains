@@ -37,9 +37,7 @@
   "@homeStatPlaces": { "placeholders": { "count": { "type": "int" } } },
   "homeStatStreak": "{count}-day streak",
   "@homeStatStreak": { "placeholders": { "count": { "type": "int" } } },
-  "homeActionStart": "Start mapping",
-  "homeActionPause": "Pause",
-  "homeActionResume": "Resume",
+  "homeActionStart": "Start",
   "homeActionStop": "Stop",
   "startTracking": "Start Tracking",
   "stopTracking": "Stop Tracking",
@@ -642,19 +640,19 @@
   "sensorMovementLabel": "{val}",
   "@sensorMovementLabel": { "placeholders": { "val": { "type": "String" } } },
 
-  "sensorLuxDark": "Pitch dark",
-  "sensorLuxIndoor": "Dim · indoors",
-  "sensorLuxBright": "Bright outdoors",
-  "sensorLuxDirect": "Full sunlight",
+  "sensorLuxDark": "Dark",
+  "sensorLuxIndoor": "Dim",
+  "sensorLuxBright": "Bright",
+  "sensorLuxDirect": "In sunlight",
 
-  "sensorMovementLow": "Quiet area",
-  "sensorMovementMid": "Active area",
-  "sensorMovementHigh": "Busy corridor",
-  "sensorMovementIntense": "Transit / heavy traffic",
+  "sensorMovementLow": "Calm",
+  "sensorMovementMid": "Active",
+  "sensorMovementHigh": "Busy",
+  "sensorMovementIntense": "Heavy traffic",
 
-  "sensorHpaLow": "Clear skies",
-  "sensorHpaMid": "Stable pressure",
-  "sensorHpaHigh": "Unsettled weather",
+  "sensorHpaLow": "Clear air",
+  "sensorHpaMid": "Stable",
+  "sensorHpaHigh": "Heavy air",
 
   "sensorAccelStill": "Barely moving",
   "sensorAccelWalk": "Walking",
@@ -773,6 +771,8 @@
   "@profileTileAreaExplain": {
     "placeholders": { "area": { "type": "String" } }
   },
+  "profileTileAreaCells": "zones explored",
+  "profileStatCityBlocks": "city blocks",
   "profileStreakExplain": "Consecutive days with at least one sync.",
 
   "statsMilestoneTarget": "{target} places",

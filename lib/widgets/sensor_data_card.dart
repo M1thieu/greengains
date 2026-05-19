@@ -20,6 +20,7 @@ class SensorDataCard extends StatefulWidget {
   final IconData icon;
   final String title;
   final String? value;
+  final String? rawValue;
   final String unit;
   final bool enabled;
   final String statusLabel;
@@ -31,6 +32,7 @@ class SensorDataCard extends StatefulWidget {
     required this.icon,
     required this.title,
     required this.value,
+    this.rawValue,
     required this.unit,
     required this.enabled,
     required this.statusLabel,
@@ -185,14 +187,17 @@ class _SensorDataCardState extends State<SensorDataCard>
                             ),
                           )
                         : _ShimmerLoading(isDark: isDark),
-                    const SizedBox(height: 2),
-                    Text(
-                      widget.unit,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: AppColors.textSecondary(isDark),
-                        height: _kSensorUnitLineH,
+                    if (widget.rawValue != null) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        widget.rawValue!,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: AppColors.textTertiary(isDark),
+                          height: _kSensorUnitLineH,
+                          fontFeatures: const [FontFeature.tabularFigures()],
+                        ),
                       ),
-                    ),
+                    ],
                     // Timestamp display
                     if (widget.updatedAt != null) ...[
                       const SizedBox(height: AppTheme.spaceXxxs),

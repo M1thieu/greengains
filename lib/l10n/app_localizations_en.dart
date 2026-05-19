@@ -99,13 +99,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get homeActionStart => 'Start mapping';
-
-  @override
-  String get homeActionPause => 'Pause';
-
-  @override
-  String get homeActionResume => 'Resume';
+  String get homeActionStart => 'Start';
 
   @override
   String get homeActionStop => 'Stop';
@@ -1514,37 +1508,37 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get sensorLuxDark => 'Pitch dark';
+  String get sensorLuxDark => 'Dark';
 
   @override
-  String get sensorLuxIndoor => 'Dim · indoors';
+  String get sensorLuxIndoor => 'Dim';
 
   @override
-  String get sensorLuxBright => 'Bright outdoors';
+  String get sensorLuxBright => 'Bright';
 
   @override
-  String get sensorLuxDirect => 'Full sunlight';
+  String get sensorLuxDirect => 'In sunlight';
 
   @override
-  String get sensorMovementLow => 'Quiet area';
+  String get sensorMovementLow => 'Calm';
 
   @override
-  String get sensorMovementMid => 'Active area';
+  String get sensorMovementMid => 'Active';
 
   @override
-  String get sensorMovementHigh => 'Busy corridor';
+  String get sensorMovementHigh => 'Busy';
 
   @override
-  String get sensorMovementIntense => 'Transit / heavy traffic';
+  String get sensorMovementIntense => 'Heavy traffic';
 
   @override
-  String get sensorHpaLow => 'Clear skies';
+  String get sensorHpaLow => 'Clear air';
 
   @override
-  String get sensorHpaMid => 'Stable pressure';
+  String get sensorHpaMid => 'Stable';
 
   @override
-  String get sensorHpaHigh => 'Unsettled weather';
+  String get sensorHpaHigh => 'Heavy air';
 
   @override
   String get sensorAccelStill => 'Barely moving';
@@ -1779,6 +1773,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String profileTileAreaExplain(String area) {
     return 'Area mapped across all your sessions.';
   }
+
+  @override
+  String get profileTileAreaCells => 'zones explored';
+
+  @override
+  String get profileStatCityBlocks => 'city blocks';
 
   @override
   String get profileStreakExplain => 'Consecutive days with at least one sync.';

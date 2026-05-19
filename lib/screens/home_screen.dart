@@ -1060,10 +1060,10 @@ class _ActionButton extends StatelessWidget {
               // Danger button is icon-only (compact) — primary keeps full label
               padding: style == _ActionBtnStyle.danger
                   ? const EdgeInsets.all(AppTheme.spaceSm)
-                  : const EdgeInsets.symmetric(horizontal: AppTheme.spaceLg, vertical: AppTheme.spaceSm),
+                  : const EdgeInsets.symmetric(horizontal: AppTheme.spaceLg, vertical: AppTheme.spaceMd),
               child: busy
                   ? SizedBox(
-                      width: 18, height: 18,
+                      width: 20, height: 20,
                       child: CircularProgressIndicator(strokeWidth: 2, color: fgColor),
                     )
                   : style == _ActionBtnStyle.danger
@@ -1071,14 +1071,14 @@ class _ActionButton extends StatelessWidget {
                       : Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(icon, size: AppIconSizes.xs, color: fgColor),
-                            const SizedBox(width: AppTheme.spaceXs),
+                            Icon(icon, size: AppIconSizes.sm, color: fgColor),
+                            const SizedBox(width: AppTheme.spaceSm),
                             Text(
                               label,
-                              style: theme.textTheme.labelLarge?.copyWith(
+                              style: theme.textTheme.titleSmall?.copyWith(
                                 color: fgColor,
-                                fontWeight: AppFontWeights.semibold,
-                                letterSpacing: -0.1,
+                                fontWeight: AppFontWeights.bold,
+                                letterSpacing: -0.2,
                               ),
                             ),
                           ],
@@ -2088,167 +2088,6 @@ class _MilestoneBannerState extends State<_MilestoneBanner>
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-/// Ambient data pill — shown idle, no taps needed.
-/// Stable: resolves once then only re-resolves after 10s cooldown to avoid flicker.
-class _AmbientDataPill extends StatefulWidget {
-  const _AmbientDataPill({
-    required this.currentH3Index,
-    required this.personalTiles,
-    required this.globalTiles,
-    required this.userLocation,
-  });
-
-  final BigInt? currentH3Index;
-  final List<H3Tile> personalTiles;
-  final List<H3Tile> globalTiles;
-  final LatLng? userLocation;
-
-  @override
-  State<_AmbientDataPill> createState() => _AmbientDataPillState();
-}
-
-class _AmbientDataPillState extends State<_AmbientDataPill> {
-  static const _kNearbyMaxM = 600.0;
-  static const _kRefreshCooldown = Duration(seconds: 10);
-
-  ({H3Tile tile, bool isExact})? _cached;
-  DateTime? _lastResolved;
-
-  static bool _hasSensorData(H3Tile t) =>
-      t.avgLux != null || t.avgHpa != null || t.avgMovement != null;
-
-  ({H3Tile tile, bool isExact})? _resolve() {
-    // 1. Exact personal cell match
-    if (widget.currentH3Index != null) {
-      final hex = widget.currentH3Index!.toRadixString(16).toLowerCase();
-      for (final t in widget.personalTiles) {
-        if (t.h3Index.toLowerCase() == hex && _hasSensorData(t)) {
-          return (tile: t, isExact: true);
-        }
-      }
-    }
-    if (widget.userLocation == null) return null;
-
-    final dist = const Distance();
-    H3Tile? best;
-    double bestM = _kNearbyMaxM;
-
-    // 2. Nearest personal tile
-    for (final t in widget.personalTiles) {
-      if (!_hasSensorData(t) || t.centroid == null) continue;
-      final d = dist.as(LengthUnit.Meter, widget.userLocation!,
-          LatLng(t.centroid!.latitude, t.centroid!.longitude));
-      if (d < bestM) { bestM = d; best = t; }
-    }
-    if (best != null) return (tile: best, isExact: false);
-
-    // 3. Nearest global tile
-    for (final t in widget.globalTiles) {
-      if (!_hasSensorData(t) || t.centroid == null) continue;
-      final d = dist.as(LengthUnit.Meter, widget.userLocation!,
-          LatLng(t.centroid!.latitude, t.centroid!.longitude));
-      if (d < bestM) { bestM = d; best = t; }
-    }
-    return best != null ? (tile: best, isExact: false) : null;
-  }
-
-  @override
-  void didUpdateWidget(_AmbientDataPill old) {
-    super.didUpdateWidget(old);
-    final now = DateTime.now();
-    // Only re-resolve if we have no cache yet, or cooldown elapsed
-    if (_cached == null ||
-        _lastResolved == null ||
-        now.difference(_lastResolved!) >= _kRefreshCooldown) {
-      final next = _resolve();
-      if (next?.tile.h3Index != _cached?.tile.h3Index || (next == null) != (_cached == null)) {
-        _cached = next;
-        _lastResolved = now;
-      }
-    }
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _cached = _resolve();
-    _lastResolved = DateTime.now();
-  }
-
-  String _luxLabel(int lux, l10n) => lux < 50 ? l10n.sensorLuxDark
-      : lux < 500 ? l10n.sensorLuxIndoor
-      : lux < 10000 ? l10n.sensorLuxBright
-      : l10n.sensorLuxDirect;
-
-  String _movLabel(double rms, l10n) => rms < 0.5 ? l10n.sensorMovementLow
-      : rms < 2.0 ? l10n.sensorMovementMid
-      : l10n.sensorMovementHigh;
-
-  String _hpaLabel(double hpa, l10n) => hpa > 1010 ? l10n.sensorHpaLow
-      : hpa > 990 ? l10n.sensorHpaMid
-      : l10n.sensorHpaHigh;
-
-  @override
-  Widget build(BuildContext context) {
-    final resolved = _cached;
-    if (resolved == null) return const SizedBox.shrink();
-
-    final tile = resolved.tile;
-    final l10n = context.l10n;
-
-    // Build a single compact text: "Dim · Still · Clear skies"
-    final parts = <String>[];
-    if (tile.avgLux != null) parts.add(_luxLabel(tile.avgLux!, l10n));
-    if (tile.avgMovement != null) parts.add(_movLabel(tile.avgMovement!, l10n));
-    if (tile.avgHpa != null) parts.add(_hpaLabel(tile.avgHpa!, l10n));
-    if (parts.isEmpty) return const SizedBox.shrink();
-
-    final summary = parts.join(' · ');
-    final prefix = resolved.isExact ? l10n.ambientHereLabel : l10n.ambientNearbyLabel;
-
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(AppTheme.radiusPill),
-      child: BackdropFilter(
-        filter: ui.ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceSm, vertical: AppTheme.spaceTiny),
-          decoration: BoxDecoration(
-            color: AppColors.mapOverlayDark,
-            borderRadius: BorderRadius.circular(AppTheme.radiusPill),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                prefix,
-                style: TextStyle(
-                  fontSize: AppTheme.fontSizeBody,
-                  fontWeight: AppFontWeights.semibold,
-                  color: Colors.white.withValues(alpha: 0.4),
-                  letterSpacing: 0.5,
-                ),
-              ),
-              const SizedBox(width: 6),
-              Container(width: 1, height: 10, color: Colors.white.withValues(alpha: 0.12)),
-              const SizedBox(width: 6),
-              Text(
-                summary,
-                style: const TextStyle(
-                  fontSize: AppTheme.fontSizeBody,
-                  color: Colors.white,
-                  fontWeight: AppFontWeights.medium,
-                  letterSpacing: -0.1,
-                ),
-              ),
-            ],
-          ),
         ),
       ),
     );

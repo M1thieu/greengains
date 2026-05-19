@@ -16,6 +16,7 @@ import '../core/app_preferences.dart';
 import '../services/auth/auth_service.dart';
 import '../utils/app_snackbars.dart';
 import '../widgets/referral_invite_card.dart';
+import '../widgets/stat_cell.dart';
 import 'settings_screen.dart';
 
 
@@ -352,7 +353,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  void _showProfileDetail({required String title, required String value, required String explain, required Color color}) {
+  void _showProfileDetail({
+    required String title,
+    required String value,
+    required Color color,
+    List<({String label, String val})> stats = const [],
+  }) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     showModalBottomSheet(
@@ -362,7 +368,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(AppTheme.radiusLg)),
       ),
       builder: (_) {
-        final bottomPad = MediaQuery.paddingOf(context).bottom + AppTheme.spaceMd;
+        final bottomPad = MediaQuery.paddingOf(context).bottom + AppTheme.spaceLg;
         return Padding(
           padding: EdgeInsets.fromLTRB(AppTheme.spaceLg, AppTheme.spaceMd, AppTheme.spaceLg, bottomPad),
           child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -373,7 +379,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 borderRadius: BorderRadius.circular(2),
               ),
             )),
-            const SizedBox(height: AppTheme.spaceMd),
+            const SizedBox(height: AppTheme.spaceLg),
             Text(value, style: theme.textTheme.displaySmall?.copyWith(
               fontWeight: AppFontWeights.bold,
               letterSpacing: -1.0,
@@ -387,11 +393,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
               color: AppColors.textSecondary(isDark),
               letterSpacing: 0.6,
             )),
-            const SizedBox(height: AppTheme.spaceMd),
-            Text(explain, style: theme.textTheme.bodyMedium?.copyWith(
-              color: AppColors.textSecondary(isDark),
-              height: 1.5,
-            )),
+            if (stats.isNotEmpty) ...[
+              const SizedBox(height: AppTheme.spaceLg),
+              Row(
+                children: [
+                  for (int i = 0; i < stats.length; i++) ...[
+                    if (i > 0) const SizedBox(width: AppTheme.spaceSm),
+                    Expanded(child: StatCell(value: stats[i].val, label: stats[i].label)),
+                  ],
+                ],
+              ),
+            ],
             const SizedBox(height: AppTheme.spaceMd),
           ]),
         );
@@ -403,87 +415,143 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final current = _currentStreak ?? 0;
     final longest = _longestStreak ?? 0;
     final active = current > 0;
+    // Next streak milestone: 7 → 14 → 30 → 60 → 90 → 180 → 365
+    final milestones = [7, 14, 30, 60, 90, 180, 365];
+    final nextMilestone = milestones.firstWhere((m) => m > current, orElse: () => milestones.last);
+    final prevMilestone = milestones.lastWhere((m) => m <= current, orElse: () => 0);
+    final progress = active
+        ? ((current - prevMilestone) / (nextMilestone - prevMilestone)).clamp(0.0, 1.0)
+        : 0.0;
 
     return PressScaleDetector(
-      onTap: () => _showProfileDetail(
-        title: l10n.statsCurrentStreakLabel,
+      onTap: current > 0 ? () => _showProfileDetail(
+        title: l10n.statsCurrentStreakLabel.toUpperCase(),
         value: '$current ${l10n.statsDaysUnit}',
-        explain: l10n.profileStreakExplain,
-        color: active ? AppColors.primary : AppColors.textSecondary(isDark),
-      ),
+        color: AppColors.primary,
+        stats: [
+          (label: l10n.statsLongestLabel, val: '$longest ${l10n.statsDaysUnit}'),
+        ],
+      ) : null,
       child: Container(
-      padding: const EdgeInsets.all(AppTheme.spaceMd),
-      decoration: BoxDecoration(
-        color: active
-            ? AppColors.primary.withValues(alpha: 0.08)
-            : AppColors.surfaceElevated(isDark),
-        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-        border: Border.all(
-          color: active ? AppColors.primary.withValues(alpha: 0.40) : AppColors.border(isDark),
-          width: active ? 1.5 : 0.5,
+        padding: const EdgeInsets.all(AppTheme.spaceMd),
+        decoration: BoxDecoration(
+          color: active
+              ? AppColors.primary.withValues(alpha: 0.10)
+              : AppColors.surfaceElevated(isDark),
+          borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+          border: Border.all(
+            color: active ? AppColors.primary.withValues(alpha: 0.45) : AppColors.border(isDark),
+            width: active ? 1.5 : 0.5,
+          ),
         ),
-      ),
-      child: Row(
-        children: [
-          // Big streak number
-          Expanded(
-            child: Column(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  l10n.statsCurrentStreakLabel.toUpperCase(),
-                  style: TextStyle(
-                    fontSize: AppTheme.fontSizeXs,
-                    fontWeight: AppFontWeights.semibold,
-                    color: active ? AppColors.primary : AppColors.textSecondary(isDark),
-                    letterSpacing: 1.0,
+                // Big streak number
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        l10n.statsCurrentStreakLabel,
+                        style: TextStyle(
+                          fontSize: AppTheme.fontSizeXs,
+                          fontWeight: AppFontWeights.semibold,
+                          color: active ? AppColors.primary : AppColors.textSecondary(isDark),
+                          letterSpacing: 0.6,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.baseline,
+                        textBaseline: TextBaseline.alphabetic,
+                        children: [
+                          TweenAnimationBuilder<int>(
+                            tween: IntTween(begin: 0, end: current),
+                            duration: const Duration(milliseconds: 600),
+                            curve: Curves.easeOut,
+                            builder: (_, v, __) => Text(
+                              '$v',
+                              style: theme.textTheme.displayLarge?.copyWith(
+                                fontWeight: AppFontWeights.bold,
+                                color: active ? AppColors.primary : AppColors.textPrimary(isDark),
+                                letterSpacing: -2.0,
+                                height: 1.0,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: AppTheme.spaceXs),
+                          Text(
+                            l10n.statsDaysUnit,
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              color: active
+                                  ? AppColors.primary.withValues(alpha: 0.7)
+                                  : AppColors.textSecondary(isDark),
+                              fontWeight: AppFontWeights.medium,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(height: AppTheme.spaceXxs),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.baseline,
-                  textBaseline: TextBaseline.alphabetic,
-                  children: [
-                    Text(
-                      '$current',
-                      style: theme.textTheme.displayMedium?.copyWith(
-                        fontWeight: AppFontWeights.bold,
-                        color: active ? AppColors.primary : AppColors.textPrimary(isDark),
-                        letterSpacing: -1.5,
-                        height: 1.0,
-                      ),
-                    ),
-                    const SizedBox(width: AppTheme.spaceXs),
-                    Text(
-                      l10n.statsDaysUnit,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: active ? AppColors.primary.withValues(alpha: 0.7) : AppColors.textSecondary(isDark),
-                      ),
-                    ),
-                  ],
+                // Fire icon
+                Icon(
+                  Icons.local_fire_department_rounded,
+                  size: 48,
+                  color: active
+                      ? AppColors.primary.withValues(alpha: 0.30)
+                      : AppColors.textTertiary(isDark).withValues(alpha: 0.12),
                 ),
-                if (longest > 0) ...[
-                  const SizedBox(height: AppTheme.spaceXxs),
-                  Text(
-                    '${l10n.statsLongestLabel}: $longest ${l10n.statsDaysUnit}',
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: AppColors.textSecondary(isDark),
-                    ),
-                  ),
-                ],
               ],
             ),
-          ),
-          // Decorative bolt icon
-          Icon(
-            Icons.bolt_rounded,
-            size: 56,
-            color: active
-                ? AppColors.primary.withValues(alpha: 0.22)
-                : AppColors.textTertiary(isDark).withValues(alpha: 0.15),
-          ),
-        ],
-      ),
+            if (active) ...[
+              const SizedBox(height: AppTheme.spaceSm),
+              // Progress bar toward next milestone
+              ClipRRect(
+                borderRadius: BorderRadius.circular(AppTheme.radiusMin),
+                child: LinearProgressIndicator(
+                  value: progress,
+                  minHeight: 4,
+                  backgroundColor: AppColors.primary.withValues(alpha: 0.12),
+                  valueColor: AlwaysStoppedAnimation(AppColors.primary),
+                ),
+              ),
+              const SizedBox(height: AppTheme.spaceXxs),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    '$current / $nextMilestone ${l10n.statsDaysUnit}',
+                    style: TextStyle(
+                      fontSize: AppTheme.fontSizeXs,
+                      color: AppColors.textTertiary(isDark),
+                    ),
+                  ),
+                  if (longest > 0)
+                    Text(
+                      '${l10n.statsLongestLabel}: $longest ${l10n.statsDaysUnit}',
+                      style: TextStyle(
+                        fontSize: AppTheme.fontSizeXs,
+                        color: AppColors.textTertiary(isDark),
+                      ),
+                    ),
+                ],
+              ),
+            ] else if (longest > 0) ...[
+              const SizedBox(height: AppTheme.spaceXxs),
+              Text(
+                '${l10n.statsLongestLabel}: $longest ${l10n.statsDaysUnit}',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: AppColors.textSecondary(isDark),
+                ),
+              ),
+            ],
+          ],
+        ),
       ),
     );
   }
@@ -495,19 +563,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final tiles = [
       (
         value: _totalUploads != null ? '$_totalUploads' : '—',
-        label: l10n.statsDataPtsLabel.toUpperCase(),
+        label: l10n.statsDataPtsLabel,
         color: AppColors.pressure,
         icon: Icons.cloud_upload_outlined,
       ),
       (
         value: _daysActive != null ? '$_daysActive' : '—',
-        label: l10n.statsDaysActive.toUpperCase(),
+        label: l10n.statsDaysActive,
         color: AppColors.movement,
         icon: Icons.calendar_today_outlined,
       ),
       (
         value: kmDisplay,
-        label: l10n.statsKmMapped.toUpperCase(),
+        label: l10n.statsKmMapped,
         color: AppColors.quality,
         icon: Icons.map_outlined,
       ),
@@ -536,19 +604,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
           child: Padding(
             padding: EdgeInsets.only(right: i < tiles.length - 1 ? AppTheme.spaceSm : 0),
             child: PressScaleDetector(
-              onTap: isKm2 && km2 != null && km2 > 0 ? () => _showProfileDetail(
-                title: l10n.statsKmMapped.toUpperCase(),
-                value: kmDisplay,
-                explain: l10n.profileTileAreaExplain(kmDisplay),
-                color: AppColors.quality,
-              ) : null,
+              onTap: isKm2 && km2 != null && km2 > 0 ? () {
+                final cells = _coverageCells!;
+                final blocks = (km2 / kKm2PerCityBlock).round();
+                _showProfileDetail(
+                  title: l10n.statsKmMapped.toUpperCase(),
+                  value: kmDisplay,
+                  color: AppColors.quality,
+                  stats: [
+                    (label: l10n.profileTileAreaCells, val: '$cells'),
+                    (label: l10n.profileStatCityBlocks, val: '~$blocks'),
+                  ],
+                );
+              } : null,
               child: Container(
               padding: const EdgeInsets.all(AppTheme.spaceMd),
-              decoration: BoxDecoration(
-                color: AppColors.surfaceElevated(isDark),
-                borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-                border: Border.all(color: AppColors.border(isDark)),
-              ),
+              decoration: AppTheme.contentCard(isDark: isDark),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
@@ -589,13 +660,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   const SizedBox(height: AppTheme.spaceXxxs),
                   Text(
                     tile.label,
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      fontSize: AppTheme.fontSizeXs,
-                      color: AppColors.textSecondary(isDark),
-                      letterSpacing: 0.4,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                    style: AppTheme.statLabel(isDark),
+                    maxLines: 2,
+                    softWrap: true,
                     textAlign: TextAlign.center,
                   ),
                 ],

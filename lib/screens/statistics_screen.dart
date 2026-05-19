@@ -14,6 +14,7 @@ import '../core/events/app_events.dart';
 import '../core/app_preferences.dart';
 import '../services/stats/stats_service.dart';
 import '../widgets/press_scale_detector.dart';
+import '../widgets/section_header.dart';
 
 // ── Chart / skeleton layout constants ────────────────────────────────────────
 // Named so that any future change touches ONE place, not scattered literals.
@@ -315,14 +316,14 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                       ],
                       const SizedBox(height: AppTheme.spaceMd),
                       // Activity snapshot
-                      _StatsSectionLabel(l10n.statsActivitySection, isDark: isDark),
+                      SectionHeader(l10n.statsActivitySection),
                       const SizedBox(height: AppTheme.spaceXxs),
                       _withEntrance(_buildSupportingTrio(theme, isDark), 2),
                       const SizedBox(height: AppTheme.spaceXs),
                       _withEntrance(_buildStreakCard(theme, isDark, l10n), 3),
                       // Territory — milestone ring
                       const SizedBox(height: AppTheme.spaceMd),
-                      _StatsSectionLabel(l10n.statsTerritorySection, isDark: isDark),
+                      SectionHeader(l10n.statsTerritorySection),
                       const SizedBox(height: AppTheme.spaceXxs),
                       _withEntrance(_buildMilestoneRow(theme, isDark, l10n), 4),
                       const SizedBox(height: AppTheme.spaceXxs),
@@ -507,13 +508,8 @@ class _StatisticsScreenState extends State<StatisticsScreen>
           Row(
             children: [
               Text(
-                showKm2 ? l10n.statsKmMapped.toUpperCase() : l10n.statsDataPtsLabel.toUpperCase(),
-                style: TextStyle(
-                  fontSize: AppTheme.fontSizeNavLabel,
-                  fontWeight: AppFontWeights.semibold,
-                  color: AppColors.textTertiary(isDark),
-                  letterSpacing: _kLetterSpacingCaps,
-                ),
+                showKm2 ? l10n.statsKmMapped : l10n.statsDataPtsLabel,
+                style: AppTheme.eyebrowLabel(isDark),
               ),
               if (verdictChip != null) ...[
                 const SizedBox(width: AppTheme.spaceSm),
@@ -694,11 +690,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                     ],
                   ]),
                   const SizedBox(height: AppTheme.spaceXxxs),
-                  Text(l10n.statsCurrentStreakLabel, style: TextStyle(
-                    fontSize: AppTheme.fontSizeNavLabel,
-                    color: AppColors.textTertiary(isDark),
-                    fontWeight: AppFontWeights.medium,
-                  )),
+                  Text(l10n.statsCurrentStreakLabel, style: AppTheme.statLabel(isDark)),
                 ],
               ),
             ),
@@ -727,11 +719,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                     )),
                   ]),
                   const SizedBox(height: AppTheme.spaceXxxs),
-                  Text(l10n.statsLongestLabel, style: TextStyle(
-                    fontSize: AppTheme.fontSizeNavLabel,
-                    color: AppColors.textTertiary(isDark),
-                    fontWeight: AppFontWeights.medium,
-                  )),
+                  Text(l10n.statsLongestLabel, style: AppTheme.statLabel(isDark)),
                 ],
               ),
             ),
@@ -1337,14 +1325,14 @@ class _StatisticsScreenState extends State<StatisticsScreen>
             Row(
               children: [
                 _SheetStat(
-                  label: l10n.statsKmMapped.toUpperCase(),
+                  label: l10n.statsKmMapped,
                   value: '$km2Str km²',
                   color: AppColors.primary,
                   isDark: isDark,
                 ),
                 const SizedBox(width: AppTheme.spaceSm),
                 _SheetStat(
-                  label: l10n.statsTerritoryZones(zones).toUpperCase(),
+                  label: l10n.statsTerritoryZones(zones),
                   value: '$zones',
                   color: AppColors.quality,
                   isDark: isDark,
@@ -1444,7 +1432,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _StatsSectionLabel(l10n.statsQualitySection, isDark: isDark),
+        SectionHeader(l10n.statsQualitySection),
         const SizedBox(height: AppTheme.spaceXs),
         Row(children: [
           Text('$pct%', style: theme.textTheme.headlineMedium?.copyWith(
@@ -1548,13 +1536,13 @@ class _StatisticsScreenState extends State<StatisticsScreen>
       children: [
         // ── 30-day activity heatmap ───────────────────────────────────────
         if (_dailyCounts != null) ...[
-          _StatsSectionLabel(l10n.statsInDepth30Days.toUpperCase(), isDark: isDark),
+          SectionHeader(l10n.statsInDepth30Days),
           const SizedBox(height: AppTheme.spaceXs),
           _CalendarHeatmap(dailyCounts: _dailyCounts!, isDark: isDark),
           const SizedBox(height: AppTheme.spaceLg),
         ],
         // ── All-time: side-by-side bare numbers with hairline ─────────────
-        _StatsSectionLabel(l10n.statsAllTimeSection, isDark: isDark),
+        SectionHeader(l10n.statsAllTimeSection),
         const SizedBox(height: AppTheme.spaceXs),
         IntrinsicHeight(child: Row(children: [
           Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -1593,7 +1581,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
 
         // ── Habits: 3-column hairline grid ───────────────────────────────
         if (counts30 != null) ...[
-          _StatsSectionLabel(l10n.statsInDepthHabits.toUpperCase(), isDark: isDark),
+          SectionHeader(l10n.statsInDepthHabits),
           const SizedBox(height: AppTheme.spaceXs),
           IntrinsicHeight(child: Row(children: [
             Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -1604,10 +1592,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
               )),
               Text(l10n.statsLast30DaysUnit, style: theme.textTheme.labelSmall?.copyWith(color: AppColors.textSecondary(isDark))),
               const SizedBox(height: AppTheme.spaceXxxs + 1),
-              Text(l10n.statsInDepthActiveDays, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(
-                fontSize: AppTheme.fontSizeNavLabel,
-                color: AppColors.textTertiary(isDark),
-              )),
+              Text(l10n.statsInDepthActiveDays, maxLines: 1, overflow: TextOverflow.ellipsis, style: AppTheme.statLabel(isDark)),
             ])),
             Container(width: 1, margin: const EdgeInsets.symmetric(horizontal: AppTheme.spaceSm), color: hairline),
             Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -1618,10 +1603,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
               )),
               Text(l10n.statsUploadsUnit, style: theme.textTheme.labelSmall?.copyWith(color: AppColors.textSecondary(isDark))),
               const SizedBox(height: AppTheme.spaceXxxs + 1),
-              Text(l10n.statsInDepthAvgPerDay, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(
-                fontSize: AppTheme.fontSizeNavLabel,
-                color: AppColors.textTertiary(isDark),
-              )),
+              Text(l10n.statsInDepthAvgPerDay, maxLines: 1, overflow: TextOverflow.ellipsis, style: AppTheme.statLabel(isDark)),
             ])),
             if (bestWeekday != null) ...[
               Container(width: 1, margin: const EdgeInsets.symmetric(horizontal: AppTheme.spaceSm), color: hairline),
@@ -1632,10 +1614,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                 )),
                 Text('${l10n.statsAvgPrefix} $bestWeekdayAvg', style: theme.textTheme.labelSmall?.copyWith(color: AppColors.textSecondary(isDark))),
                 const SizedBox(height: AppTheme.spaceXxxs + 1),
-                Text(l10n.statsInDepthBestWeekday, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(
-                  fontSize: AppTheme.fontSizeNavLabel,
-                  color: AppColors.textTertiary(isDark),
-                )),
+                Text(l10n.statsInDepthBestWeekday, maxLines: 1, overflow: TextOverflow.ellipsis, style: AppTheme.statLabel(isDark)),
               ])),
             ],
           ])),
@@ -1643,7 +1622,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
         ],
 
         // ── Weekly chart ─────────────────────────────────────────────────
-        _StatsSectionLabel(l10n.statsActivityTrend.toUpperCase(), isDark: isDark),
+        SectionHeader(l10n.statsActivityTrend),
         const SizedBox(height: AppTheme.spaceXs),
         _buildActivityChart(theme, isDark, l10n),
         const SizedBox(height: AppTheme.spaceLg),
@@ -1700,7 +1679,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
         ],
 
         // ── Personal records: bare list with colored dots ─────────────────
-        _StatsSectionLabel(l10n.statsPersonalRecords.toUpperCase(), isDark: isDark),
+        SectionHeader(l10n.statsPersonalRecords),
         const SizedBox(height: AppTheme.spaceXs),
         Column(children: [
           _RecordRow(dot: AppColors.primary, label: l10n.statsRecordLongestStreak, value: '$longest', unit: l10n.statsDaysUnit, isDark: isDark),
@@ -1716,7 +1695,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
         const SizedBox(height: AppTheme.spaceLg),
 
         // ── Sensors: chips ────────────────────────────────────────────────
-        _StatsSectionLabel(l10n.statsTerritoryWhatRecorded.toUpperCase(), isDark: isDark),
+        SectionHeader(l10n.statsTerritoryWhatRecorded),
         const SizedBox(height: AppTheme.spaceXs),
         Wrap(spacing: AppTheme.spaceXs, runSpacing: AppTheme.spaceXxs, children: [
           _SensorChip(icon: Icons.wb_sunny_outlined, label: l10n.statsTerritoryLightLabel, color: AppColors.light),
@@ -1863,17 +1842,19 @@ class _SheetStat extends StatelessWidget {
     final theme = Theme.of(context);
     return Expanded(
       child: Container(
-        padding: const EdgeInsets.all(AppTheme.spaceSm),
-        decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.08),
-          borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-          border: Border.all(color: color.withValues(alpha: 0.18)),
-        ),
+        padding: const EdgeInsets.all(AppTheme.spaceMd),
+        decoration: AppTheme.contentCard(isDark: isDark, accentBorder: color.withValues(alpha: 0.30)),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(value, style: theme.textTheme.titleLarge?.copyWith(fontWeight: AppFontWeights.bold, color: color)),
-            Text(label, style: theme.textTheme.labelSmall?.copyWith(color: AppColors.textSecondary(isDark))),
+            Text(value, style: theme.textTheme.titleLarge?.copyWith(
+              fontWeight: AppFontWeights.bold,
+              color: color,
+              letterSpacing: -0.5,
+              height: AppLineHeights.tight,
+            )),
+            const SizedBox(height: 2),
+            Text(label, style: AppTheme.statLabel(isDark), maxLines: 2, softWrap: true),
           ],
         ),
       ),
@@ -2202,25 +2183,6 @@ class _ExplainerRow extends StatelessWidget {
   }
 }
 
-class _StatsSectionLabel extends StatelessWidget {
-  const _StatsSectionLabel(this.text, {required this.isDark});
-  final String text;
-  final bool isDark;
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      text,
-      style: TextStyle(
-        fontSize: AppTheme.fontSizeXs,
-        fontWeight: AppFontWeights.semibold,
-        color: AppColors.textSecondary(isDark),
-        letterSpacing: 0.8,
-      ),
-    );
-  }
-}
-
 // ── Milestone progress ring ───────────────────────────────────────────────────
 
 class _MilestoneRing extends StatelessWidget {
@@ -2377,11 +2339,7 @@ class _KpiCell extends StatelessWidget {
                   )),
           ),
           const SizedBox(height: AppTheme.spaceXxxs),
-          Text(label, style: TextStyle(
-            fontSize: AppTheme.fontSizeNavLabel,
-            color: AppColors.textTertiary(isDark),
-            fontWeight: AppFontWeights.medium,
-          )),
+          Text(label, style: AppTheme.statLabel(isDark)),
         ],
       ),
     );
@@ -2577,11 +2535,7 @@ class _LockedSensorRow extends StatelessWidget {
         horizontal: AppTheme.spaceMd,
         vertical: AppTheme.spaceXs,
       ),
-      decoration: BoxDecoration(
-        color: AppColors.surfaceElevated(isDark),
-        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-        border: Border.all(color: AppColors.textTertiary(isDark).withValues(alpha: 0.10)),
-      ),
+      decoration: AppTheme.contentCard(isDark: isDark),
       child: Row(
         children: [
           Icon(icon, size: AppIconSizes.sm, color: color.withValues(alpha: 0.35)),

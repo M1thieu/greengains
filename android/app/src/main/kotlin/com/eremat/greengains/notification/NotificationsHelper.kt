@@ -58,12 +58,17 @@ internal object NotificationsHelper {
             if (elapsed >= 60_000L) formatDuration(context, elapsed) else null
         }
 
-        // ── Title: one word, warm, state-aware ────────────────────────────────
-        val title = when {
+        // ── Title: state + optional neighbourhood ────────────────────────────
+        val territory = context
+            .getSharedPreferences(AppPrefs.NAME, Context.MODE_PRIVATE)
+            .getString(AppPrefs.TERRITORY_LABEL, null)
+            ?.takeIf { it.isNotBlank() }
+        val baseTitle = when {
             isPaused -> context.getString(R.string.notification_paused_title)
             isMoving -> context.getString(R.string.notif_title_contributing)
             else     -> context.getString(R.string.notif_title_standby)
         }
+        val title = if (territory != null) "$baseTitle · $territory" else baseTitle
 
         // ── Plain-language environment verdict ────────────────────────────────
         val lightStr = lux?.let {

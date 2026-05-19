@@ -204,27 +204,42 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ],
             ],
           ),
-          const SizedBox(height: AppTheme.spaceXl),
+          const SizedBox(height: _kSectionSpacing),
 
-          // ── Legal footer ──────────────────────────────────────────────────
-          Padding(
-            padding: const EdgeInsets.only(bottom: AppTheme.spaceXl),
-            child: Wrap(
-              alignment: WrapAlignment.center,
-              spacing: AppTheme.spaceMd,
-              runSpacing: AppTheme.spaceXxs,
-              children: [
-                _LegalLink(label: l10n.privacyPolicy,
-                    onTap: () => _openWebView(context, _kPrivacyPolicyUrl, l10n.privacyPolicy)),
-                _LegalLink(label: l10n.termsOfService,
-                    onTap: () => _openWebView(context, _kTermsUrl, l10n.termsOfService)),
-                _LegalLink(label: l10n.settingsDataTransparency,
-                    onTap: () => _openWebView(context, _kDataTransparencyUrl, l10n.settingsDataTransparency)),
-                _LegalLink(label: l10n.settingsDataDeletion,
-                    onTap: () => _openWebView(context, _kDataDeletionUrl, l10n.settingsDataDeletion)),
-              ],
-            ),
+          // ── Legal ─────────────────────────────────────────────────────────
+          _SectionCard(
+            label: l10n.settingsLegal,
+            children: [
+              _NavRow(
+                icon: Icons.shield_outlined,
+                iconColor: AppColors.textSecondary(isDark),
+                title: l10n.privacyPolicy,
+                onTap: () => _openWebView(context, _kPrivacyPolicyUrl, l10n.privacyPolicy),
+              ),
+              _divider(isDark),
+              _NavRow(
+                icon: Icons.description_outlined,
+                iconColor: AppColors.textSecondary(isDark),
+                title: l10n.termsOfService,
+                onTap: () => _openWebView(context, _kTermsUrl, l10n.termsOfService),
+              ),
+              _divider(isDark),
+              _NavRow(
+                icon: Icons.visibility_outlined,
+                iconColor: AppColors.textSecondary(isDark),
+                title: l10n.settingsDataTransparency,
+                onTap: () => _openWebView(context, _kDataTransparencyUrl, l10n.settingsDataTransparency),
+              ),
+              _divider(isDark),
+              _NavRow(
+                icon: Icons.delete_outline_rounded,
+                iconColor: AppColors.error,
+                title: l10n.settingsDataDeletion,
+                onTap: () => _openWebView(context, _kDataDeletionUrl, l10n.settingsDataDeletion),
+              ),
+            ],
           ),
+          const SizedBox(height: AppTheme.spaceXl),
         ],
       ),
     );
@@ -244,32 +259,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
 }
 
-// ── Section card ──────────────────────────────────────────────────────────────
-
-/// Inline text link for legal footer — matches iOS/Android app store convention.
-class _LegalLink extends StatelessWidget {
-  const _LegalLink({required this.label, required this.onTap});
-  final String label;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = context.isDarkMode;
-    return PressScaleDetector(
-      onTap: onTap,
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize: AppTheme.fontSizeXs,
-          color: AppColors.textTertiary(isDark),
-          decoration: TextDecoration.underline,
-          decorationColor: AppColors.textTertiary(isDark),
-        ),
-      ),
-    );
-  }
-}
-
 class _SectionCard extends StatelessWidget {
   const _SectionCard({required this.label, required this.children});
 
@@ -285,21 +274,10 @@ class _SectionCard extends StatelessWidget {
       children: [
         Padding(
           padding: const EdgeInsets.only(left: AppTheme.spaceXxs, bottom: AppTheme.spaceXs),
-          child: Text(
-            label.toUpperCase(),
-            style: theme.textTheme.labelSmall?.copyWith(
-              color: AppColors.textTertiary(isDark),
-              letterSpacing: 1.2,
-              fontWeight: AppFontWeights.semibold,
-            ),
-          ),
+          child: Text(label.toUpperCase(), style: AppTheme.eyebrowLabel(isDark)),
         ),
         Container(
-          decoration: BoxDecoration(
-            color: AppColors.surface(isDark),
-            borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-            border: Border.all(color: AppColors.border(isDark), width: 0.5),
-          ),
+          decoration: AppTheme.contentCard(isDark: isDark),
           padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceMd, vertical: AppTheme.spaceMd),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -318,7 +296,7 @@ class _ToggleRow extends StatelessWidget {
   const _ToggleRow({
     required this.icon,
     required this.title,
-    required this.subtitle,
+    this.subtitle,
     required this.value,
     required this.onChanged,
     this.iconColor,
@@ -326,7 +304,7 @@ class _ToggleRow extends StatelessWidget {
 
   final IconData icon;
   final String title;
-  final String subtitle;
+  final String? subtitle;
   final bool value;
   final ValueChanged<bool>? onChanged;
   final Color? iconColor;
@@ -356,13 +334,15 @@ class _ToggleRow extends StatelessWidget {
                   color: disabled ? AppColors.textSecondary(isDark) : AppColors.textPrimary(isDark),
                 ),
               ),
-              const SizedBox(height: AppTheme.spaceXxs),
-              Text(
-                subtitle,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: AppColors.textSecondary(isDark),
+              if (subtitle != null) ...[
+                const SizedBox(height: AppTheme.spaceXxs),
+                Text(
+                  subtitle!,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: AppColors.textSecondary(isDark),
+                  ),
                 ),
-              ),
+              ],
             ],
           ),
         ),
@@ -383,15 +363,15 @@ class _NavRow extends StatelessWidget {
   const _NavRow({
     required this.icon,
     required this.title,
-    required this.subtitle,
     required this.onTap,
+    this.subtitle,
     this.iconColor,
     this.danger = false,
   });
 
   final IconData icon;
   final String title;
-  final String subtitle;
+  final String? subtitle;
   final VoidCallback onTap;
   final Color? iconColor;
   final bool danger;
@@ -421,8 +401,8 @@ class _NavRow extends StatelessWidget {
                     fontWeight: AppFontWeights.semibold,
                     color: titleColor,
                   )),
-                  if (subtitle.isNotEmpty)
-                    Text(subtitle, style: theme.textTheme.bodySmall?.copyWith(
+                  if (subtitle != null && subtitle!.isNotEmpty)
+                    Text(subtitle!, style: theme.textTheme.bodySmall?.copyWith(
                       color: danger ? AppColors.error.withValues(alpha: 0.6) : AppColors.textSecondary(isDark),
                     )),
                 ],
