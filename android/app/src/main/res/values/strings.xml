@@ -75,12 +75,13 @@
     <string name="notification_weekly_body_growth">+%1$d new zones — %2$d total on your map</string>
     <!-- %1$d = total (no change week-over-week) -->
     <string name="notification_weekly_body_stable">%1$d zones mapped so far</string>
-    <string name="sensor_lux_dark">Pitch dark</string>
+    <string name="sensor_lux_dark">Dark</string>
     <string name="sensor_lux_indoor">Dim</string>
-    <string name="sensor_lux_bright">Bright outdoors</string>
-    <string name="sensor_lux_direct">Full sunlight</string>
-    <string name="sensor_hpa_low">Clear skies</string>
-    <string name="sensor_hpa_mid">Stable pressure</string>
-    <string name="sensor_hpa_high">Unsettled weather</string>
+    <string name="sensor_lux_bright">Bright</string>
+    <string name="sensor_lux_direct">In sunlight</string>
+    <string name="notif_motion_still">Still</string>
+    <string name="notif_motion_light">Light activity</string>
+    <string name="notif_motion_active">On the move</string>
+    <string name="notif_body_measuring">Measuring your surroundings</string>
 
 </resources>

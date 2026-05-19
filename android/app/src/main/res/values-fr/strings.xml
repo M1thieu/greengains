@@ -67,12 +67,13 @@
     <string name="notification_weekly_body_growth">+%1$d nouvelles zones — %2$d au total sur votre carte</string>
     <!-- %1$d = total (pas de changement) -->
     <string name="notification_weekly_body_stable">%1$d zones cartographiées jusqu\'ici</string>
-    <string name="sensor_lux_dark">Très sombre</string>
-    <string name="sensor_lux_indoor">Faible</string>
+    <string name="sensor_lux_dark">Sombre</string>
+    <string name="sensor_lux_indoor">Tamisé</string>
     <string name="sensor_lux_bright">Lumineux</string>
     <string name="sensor_lux_direct">Plein soleil</string>
-    <string name="sensor_hpa_low">Ciel dégagé</string>
-    <string name="sensor_hpa_mid">Pression stable</string>
-    <string name="sensor_hpa_high">Temps instable</string>
+    <string name="notif_motion_still">Immobile</string>
+    <string name="notif_motion_light">Légère activité</string>
+    <string name="notif_motion_active">En mouvement</string>
+    <string name="notif_body_measuring">Mesure de votre environnement</string>
 
 </resources>

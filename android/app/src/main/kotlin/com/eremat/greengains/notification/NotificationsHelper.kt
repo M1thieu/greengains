@@ -65,43 +65,31 @@ internal object NotificationsHelper {
             else     -> context.getString(R.string.notif_title_standby)
         }
 
-        // ── Sync indicator — prefixed with ↑ arrow, appended inline ──────────
-        val syncStr = when {
-            isPaused       -> null
-            isUploadingNow -> "↑ ${context.getString(R.string.notification_sync_uploading)}"
-            lastUploadMillis != null ->
-                "↑ ${context.getString(R.string.notification_sync_uploaded,
-                    formatElapsedUpload(context, lastUploadMillis))}"
-            else -> null
-        }
-
-        // ── Collapsed body: zones · ↑ sync — no duration, users don't care ─────
-        val body = when {
-            isPaused && zonesTotal > 0 ->
-                context.getString(R.string.notif_body_paused_compact, zonesTotal)
-            isPaused ->
-                context.getString(R.string.notification_paused_body)
-            else -> {
-                val parts = listOfNotNull(
-                    if (zonesTotal > 0) "$zonesTotal zones" else null,
-                    syncStr,
-                )
-                parts.joinToString("  ·  ").ifEmpty {
-                    context.getString(R.string.notif_body_starting)
-                }
+        // ── Plain-language environment verdict ────────────────────────────────
+        val lightStr = lux?.let {
+            when {
+                it < 5f    -> context.getString(R.string.sensor_lux_dark)
+                it < 50f   -> context.getString(R.string.sensor_lux_indoor)
+                it < 2000f -> context.getString(R.string.sensor_lux_bright)
+                else       -> context.getString(R.string.sensor_lux_direct)
             }
         }
-
-        // ── Expanded: same body + sync on its own line if long ────────────────
-        val bigText = if (isPaused) {
-            body
-        } else {
-            val summaryLine = listOfNotNull(
-                if (zonesTotal > 0) "$zonesTotal zones" else null,
-                durationStr,
-            ).joinToString("  ·  ").ifEmpty { context.getString(R.string.notif_body_starting) }
-            listOfNotNull(summaryLine, syncStr).joinToString("\n")
+        val motionStr = when (motionState) {
+            "STATIONARY" -> context.getString(R.string.notif_motion_still)
+            "LIGHT"      -> context.getString(R.string.notif_motion_light)
+            "ACTIVE"     -> context.getString(R.string.notif_motion_active)
+            else         -> null
         }
+
+        // ── Collapsed body ────────────────────────────────────────────────────
+        val body = when {
+            isPaused -> context.getString(R.string.notification_paused_body)
+            else -> listOfNotNull(lightStr, motionStr)
+                .joinToString(" · ")
+                .ifEmpty { context.getString(R.string.notif_body_measuring) }
+        }
+
+        val bigText = body
 
         // ── Actions with icons ─────────────────────────────────────────────────
         val pauseResumeIntent = Intent(context, ForegroundService::class.java).apply {

@@ -259,28 +259,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     }
   }
 
-  Future<void> _actionPause() async {
-    if (_actionBusy) return;
-    setState(() => _actionBusy = true);
-    try {
-      HapticFeedback.lightImpact();
-      await _locationService.pauseTracking();
-    } finally {
-      if (mounted) setState(() => _actionBusy = false);
-    }
-  }
-
-  Future<void> _actionResume() async {
-    if (_actionBusy) return;
-    setState(() => _actionBusy = true);
-    try {
-      HapticFeedback.lightImpact();
-      await _locationService.resumeTracking();
-    } finally {
-      if (mounted) setState(() => _actionBusy = false);
-    }
-  }
-
   Future<void> _actionStop() async {
     if (_actionBusy) return;
     setState(() => _actionBusy = true);
@@ -932,12 +910,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                       child: ListenableBuilder(
                         listenable: Listenable.merge([
                           _locationService.isRunning,
-                          _locationService.isPaused,
                           _userLocationNotifier,
                         ]),
                         builder: (context, _) {
                           final isRunning = _locationService.isRunning.value;
-                          final isPaused  = _locationService.isPaused.value;
                           final hasLoc    = _userLocationNotifier.value != null;
                           return Row(
                             children: [
@@ -946,12 +922,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                 child: Center(
                                   child: _HomeActionBar(
                                     isRunning: isRunning,
-                                    isPaused: isPaused,
-                                    isActive: isRunning && !isPaused,
                                     isBusy: _actionBusy,
                                     onStart: _actionStart,
-                                    onPause: _actionPause,
-                                    onResume: _actionResume,
                                     onStop: _actionStop,
                                   ),
                                 ),
@@ -991,65 +963,36 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 class _HomeActionBar extends StatelessWidget {
   const _HomeActionBar({
     required this.isRunning,
-    required this.isPaused,
-    required this.isActive,
     required this.isBusy,
     required this.onStart,
-    required this.onPause,
-    required this.onResume,
     required this.onStop,
   });
 
   final bool isRunning;
-  final bool isPaused;
-  final bool isActive;
   final bool isBusy;
   final VoidCallback onStart;
-  final VoidCallback onPause;
-  final VoidCallback onResume;
   final VoidCallback onStop;
 
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-
-    // Primary label/icon changes per state — layout never shifts
-    final String primaryLabel;
-    final IconData primaryIcon;
-    final VoidCallback primaryAction;
-
     if (!isRunning) {
-      primaryLabel  = l10n.homeActionStart;
-      primaryIcon   = Icons.play_arrow_rounded;
-      primaryAction = onStart;
-    } else if (isPaused) {
-      primaryLabel  = l10n.homeActionResume;
-      primaryIcon   = Icons.play_arrow_rounded;
-      primaryAction = onResume;
-    } else {
-      primaryLabel  = l10n.homeActionPause;
-      primaryIcon   = Icons.pause_rounded;
-      primaryAction = onPause;
+      return _ActionButton.primary(
+        label: l10n.homeActionStart,
+        icon: Icons.play_arrow_rounded,
+        busy: isBusy,
+        onPressed: onStart,
+      );
     }
-
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        _ActionButton.primary(
-          label: primaryLabel,
-          icon: primaryIcon,
+        _ActionButton.danger(
+          label: l10n.homeActionStop,
+          icon: Icons.stop_rounded,
           busy: isBusy,
-          onPressed: primaryAction,
+          onPressed: onStop,
         ),
-        if (isRunning) ...[
-          const SizedBox(width: AppTheme.spaceXs),
-          _ActionButton.danger(
-            label: l10n.homeActionStop,
-            icon: Icons.stop_rounded,
-            busy: isBusy,
-            onPressed: onStop,
-          ),
-        ],
       ],
     );
   }
