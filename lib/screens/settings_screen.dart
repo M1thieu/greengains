@@ -207,24 +207,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
           // ── Legal + version footer ─────────────────────────────────────────
           Padding(
             padding: const EdgeInsets.only(bottom: AppTheme.spaceXl),
-            child: Wrap(
-              spacing: AppTheme.spaceSm,
-              runSpacing: AppTheme.spaceXxs,
-              crossAxisAlignment: WrapCrossAlignment.center,
-              children: [
-                if (_version.isNotEmpty)
-                  Text(
-                    l10n.settingsVersion(_version),
-                    style: TextStyle(fontSize: AppTheme.fontSizeXs, color: AppColors.textTertiary(isDark)),
-                  ),
-                if (_version.isNotEmpty)
-                  Text('·', style: TextStyle(fontSize: AppTheme.fontSizeXs, color: AppColors.textTertiary(isDark))),
-                _LegalLink(label: l10n.privacyPolicy, onTap: () => _openWebView(context, _kPrivacyPolicyUrl, l10n.privacyPolicy)),
-                Text('·', style: TextStyle(fontSize: AppTheme.fontSizeXs, color: AppColors.textTertiary(isDark))),
-                _LegalLink(label: l10n.termsOfService, onTap: () => _openWebView(context, _kTermsUrl, l10n.termsOfService)),
-                Text('·', style: TextStyle(fontSize: AppTheme.fontSizeXs, color: AppColors.textTertiary(isDark))),
-                _LegalLink(label: l10n.settingsDataTransparency, onTap: () => _openWebView(context, _kDataTransparencyUrl, l10n.settingsDataTransparency)),
-              ],
+            child: Opacity(
+              opacity: 0.45,
+              child: Wrap(
+                spacing: AppTheme.spaceSm,
+                runSpacing: AppTheme.spaceXxs,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  if (_version.isNotEmpty)
+                    Text(l10n.settingsVersion(_version),
+                        style: TextStyle(fontSize: AppTheme.fontSizeNavLabel, color: AppColors.textTertiary(isDark))),
+                  if (_version.isNotEmpty)
+                    Text('·', style: TextStyle(fontSize: AppTheme.fontSizeNavLabel, color: AppColors.textTertiary(isDark))),
+                  _LegalLink(label: l10n.privacyPolicy, onTap: () => _openWebView(context, _kPrivacyPolicyUrl, l10n.privacyPolicy)),
+                  Text('·', style: TextStyle(fontSize: AppTheme.fontSizeNavLabel, color: AppColors.textTertiary(isDark))),
+                  _LegalLink(label: l10n.termsOfService, onTap: () => _openWebView(context, _kTermsUrl, l10n.termsOfService)),
+                  Text('·', style: TextStyle(fontSize: AppTheme.fontSizeNavLabel, color: AppColors.textTertiary(isDark))),
+                  _LegalLink(label: l10n.settingsDataTransparency, onTap: () => _openWebView(context, _kDataTransparencyUrl, l10n.settingsDataTransparency)),
+                ],
+              ),
             ),
           ),
         ],
@@ -292,7 +293,7 @@ class _LegalLink extends StatelessWidget {
       child: Text(
         label,
         style: TextStyle(
-          fontSize: AppTheme.fontSizeXs,
+          fontSize: AppTheme.fontSizeNavLabel,
           color: AppColors.textTertiary(isDark),
           decoration: TextDecoration.underline,
           decorationColor: AppColors.textTertiary(isDark).withValues(alpha: 0.5),
