@@ -175,6 +175,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 onTap: _signOut,
                 danger: true,
               ),
+              _divider(isDark),
+              _NavRow(
+                icon: Icons.delete_outline_rounded,
+                iconColor: AppColors.error,
+                title: l10n.settingsDataDeletion,
+                onTap: () => _openWebView(context, _kDataDeletionUrl, l10n.settingsDataDeletion),
+                danger: true,
+              ),
             ],
           ),
           const SizedBox(height: _kSectionSpacing),
@@ -192,31 +200,30 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   MaterialPageRoute(builder: (_) => const DiagnosticsScreen()),
                 ),
               ),
-              if (_version.isNotEmpty) ...[
-                _divider(isDark),
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: AppTheme.spaceXs),
-                  child: Text(
-                    l10n.settingsVersion(_version),
-                    style: theme.textTheme.bodySmall?.copyWith(color: AppColors.textTertiary(isDark)),
-                  ),
-                ),
-              ],
             ],
           ),
-          const SizedBox(height: _kSectionSpacing),
+          const SizedBox(height: AppTheme.spaceLg),
 
-          // ── Legal footer ──────────────────────────────────────────────────
+          // ── Legal + version footer ─────────────────────────────────────────
           Padding(
-            padding: const EdgeInsets.only(top: AppTheme.spaceSm, bottom: AppTheme.spaceXl),
+            padding: const EdgeInsets.only(bottom: AppTheme.spaceXl),
             child: Wrap(
-              spacing: AppTheme.spaceMd,
-              runSpacing: AppTheme.spaceXs,
+              spacing: AppTheme.spaceSm,
+              runSpacing: AppTheme.spaceXxs,
+              crossAxisAlignment: WrapCrossAlignment.center,
               children: [
+                if (_version.isNotEmpty)
+                  Text(
+                    l10n.settingsVersion(_version),
+                    style: TextStyle(fontSize: AppTheme.fontSizeXs, color: AppColors.textTertiary(isDark)),
+                  ),
+                if (_version.isNotEmpty)
+                  Text('·', style: TextStyle(fontSize: AppTheme.fontSizeXs, color: AppColors.textTertiary(isDark))),
                 _LegalLink(label: l10n.privacyPolicy, onTap: () => _openWebView(context, _kPrivacyPolicyUrl, l10n.privacyPolicy)),
+                Text('·', style: TextStyle(fontSize: AppTheme.fontSizeXs, color: AppColors.textTertiary(isDark))),
                 _LegalLink(label: l10n.termsOfService, onTap: () => _openWebView(context, _kTermsUrl, l10n.termsOfService)),
+                Text('·', style: TextStyle(fontSize: AppTheme.fontSizeXs, color: AppColors.textTertiary(isDark))),
                 _LegalLink(label: l10n.settingsDataTransparency, onTap: () => _openWebView(context, _kDataTransparencyUrl, l10n.settingsDataTransparency)),
-                _LegalLink(label: l10n.settingsDataDeletion, onTap: () => _openWebView(context, _kDataDeletionUrl, l10n.settingsDataDeletion), danger: true),
               ],
             ),
           ),
@@ -273,10 +280,9 @@ class _SectionCard extends StatelessWidget {
 // ── Legal footer link ─────────────────────────────────────────────────────────
 
 class _LegalLink extends StatelessWidget {
-  const _LegalLink({required this.label, required this.onTap, this.danger = false});
+  const _LegalLink({required this.label, required this.onTap});
   final String label;
   final VoidCallback onTap;
-  final bool danger;
 
   @override
   Widget build(BuildContext context) {
@@ -287,9 +293,9 @@ class _LegalLink extends StatelessWidget {
         label,
         style: TextStyle(
           fontSize: AppTheme.fontSizeXs,
-          color: danger ? AppColors.error.withValues(alpha: 0.7) : AppColors.textTertiary(isDark),
+          color: AppColors.textTertiary(isDark),
           decoration: TextDecoration.underline,
-          decorationColor: danger ? AppColors.error.withValues(alpha: 0.4) : AppColors.textTertiary(isDark).withValues(alpha: 0.5),
+          decorationColor: AppColors.textTertiary(isDark).withValues(alpha: 0.5),
         ),
       ),
     );
