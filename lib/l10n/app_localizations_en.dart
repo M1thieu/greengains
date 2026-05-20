@@ -897,6 +897,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sensorAroundYou => 'Around You';
 
   @override
+  String get sensorPressure => 'Pressure';
+
+  @override
   String get sensorMovement => 'Movement';
 
   @override

@@ -363,6 +363,7 @@
   "sensorPausedSubtitle": "Reprenez le suivi pour continuer à enregistrer",
   "sensorCollectingFirst": "Démarrage…",
   "sensorAroundYou": "Autour de vous",
+  "sensorPressure": "Pression",
   "sensorMovement": "Mouvement",
   "sensorAcceleration": "Accélération",
   "sensorLight": "Lumière",

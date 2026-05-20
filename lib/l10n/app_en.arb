@@ -363,6 +363,7 @@
   "sensorPausedSubtitle": "Resume to see live readings.",
   "sensorCollectingFirst": "Starting up…",
   "sensorAroundYou": "Around You",
+  "sensorPressure": "Pressure",
   "sensorMovement": "Movement",
   "sensorAcceleration": "Acceleration",
   "sensorLight": "Light",

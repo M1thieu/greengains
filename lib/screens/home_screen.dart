@@ -869,6 +869,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
                     const Spacer(),
 
+
                     // Live session counter pill
                     ListenableBuilder(
                       listenable: Listenable.merge([
@@ -1190,10 +1191,12 @@ class _MyLocationButton extends StatelessWidget {
     return ValueListenableBuilder<bool>(
       valueListenable: followModeNotifier ?? ValueNotifier(false),
       builder: (context, isFollowing, _) {
+        // Always green — location is known. Icon distinguishes follow vs. free-pan.
+        // Pattern: Google Maps / Apple Maps — button is never dark when location available.
         return Material(
           color: isFollowing
-              ? AppColors.primary.withValues(alpha: 0.85)
-              : AppColors.shadowDark(0.65),
+              ? AppColors.primary.withValues(alpha: 0.92)
+              : AppColors.primary.withValues(alpha: 0.55),
           shape: const CircleBorder(),
           child: InkWell(
             onTap: () {

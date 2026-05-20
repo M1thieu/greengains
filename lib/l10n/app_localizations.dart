@@ -1592,6 +1592,12 @@ abstract class AppLocalizations {
   /// **'Around You'**
   String get sensorAroundYou;
 
+  /// No description provided for @sensorPressure.
+  ///
+  /// In en, this message translates to:
+  /// **'Pressure'**
+  String get sensorPressure;
+
   /// No description provided for @sensorMovement.
   ///
   /// In en, this message translates to:

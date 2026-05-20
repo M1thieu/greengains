@@ -705,6 +705,23 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> {
     );
     _startHaloPulse();
 
+    // ── Hex quality % labels — visible at zoom ≥13, one number per cell ──
+    // Only personal tiles get labels (global = too many, too dense).
+    // Text halo keeps the % readable over both light and dark hex fills.
+    await ctrl.addSymbolLayer(
+      'gg-tile-labels',
+      'gg-tile-labels-sym',
+      const SymbolLayerProperties(
+        textField: '{label}',
+        textSize: 11.0,
+        textColor: '#ffffff',
+        textOpacity: 0.90,
+        textHaloColor: '#000000',
+        textHaloWidth: 1.5,
+      ),
+      minzoom: 11.0,
+    );
+
     // ── Carto labels on top — street names / city names float above hexagons ──
     // Only needed for the CartoDB raster fallback (no Protomaps key).
     // The source is already in the style JSON; we add the layer here so it
