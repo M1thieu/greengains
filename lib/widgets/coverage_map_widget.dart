@@ -103,6 +103,7 @@ const _kGridDebounce = Duration(milliseconds: 500);
 const _kSourceGrid      = 'gg-grid';
 const _kSourceTiles     = 'gg-tiles';
 const _kSourceLiveCell  = 'gg-live';
+const _kSourcePending   = 'gg-pending';
 const _kSourceUserDot   = 'gg-user';
 const _kLayerGridFill   = 'gg-grid-fill';
 const _kLayerGridLines  = 'gg-grid-lines';
@@ -111,6 +112,8 @@ const _kLayerTilesLine  = 'gg-tiles-line';
 const _kLayerLiveFill   = 'gg-live-fill';
 const _kLayerLiveGlow   = 'gg-live-glow';   // wide translucent ring — hex halo effect
 const _kLayerLiveLine   = 'gg-live-line';
+const _kLayerPendingFill = 'gg-pending-fill';
+const _kLayerPendingLine = 'gg-pending-line';
 const _kLayerUserHalo   = 'gg-user-halo';
 const _kLayerUserDot    = 'gg-user-dot';
 
@@ -179,6 +182,10 @@ class CoverageMapWidget extends StatefulWidget {
   /// as "new" — making the map feel alive between sessions.
   final DateTime? lastSessionAt;
 
+  /// H3 cell boundaries visited this session but not yet confirmed by backend.
+  /// Rendered as optimistic "pending" tiles so the map feels instant.
+  final List<List<ll.LatLng>> pendingCellBoundaries;
+
   const CoverageMapWidget({
     super.key,
     required this.tiles,
@@ -195,6 +202,7 @@ class CoverageMapWidget extends StatefulWidget {
     this.controlsPadding = EdgeInsets.zero,
     this.followModeNotifier,
     this.lastSessionAt,
+    this.pendingCellBoundaries = const [],
   });
 
   @override
@@ -402,6 +410,25 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> {
     };
   }
 
+  Map<String, dynamic> _pendingCellsGeoJson() {
+    final boundaries = widget.pendingCellBoundaries;
+    if (boundaries.isEmpty) return _kEmptyFC;
+    return {
+      'type': 'FeatureCollection',
+      'features': boundaries.map((ring) => {
+        'type': 'Feature',
+        'properties': {},
+        'geometry': {
+          'type': 'Polygon',
+          'coordinates': [[
+            ...ring.map((p) => [p.longitude, p.latitude]),
+            [ring.first.longitude, ring.first.latitude],
+          ]],
+        },
+      }).toList(),
+    };
+  }
+
   Map<String, dynamic> _userDotGeoJson() {
     final loc = widget.userLocation;
     if (loc == null) return _kEmptyFC;
@@ -537,6 +564,7 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> {
     await Future.wait([
       ctrl.addGeoJsonSource(_kSourceGrid, _kEmptyFC),
       ctrl.addGeoJsonSource(_kSourceTiles, _kEmptyFC),
+      ctrl.addGeoJsonSource(_kSourcePending, _kEmptyFC),
       ctrl.addGeoJsonSource(_kSourceLiveCell, _kEmptyFC),
       ctrl.addGeoJsonSource(_kSourceUserDot, _kEmptyFC),
       ctrl.addGeoJsonSource('gg-tile-labels', _kEmptyFC),
@@ -597,7 +625,28 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> {
       minzoom: 9.0,
     );
 
-    // Quality labels removed — noisy at tile density, detail available via tap → TileInfoSheet
+    // ── Pending cells — session tiles not yet confirmed by backend ──
+    // Slightly lower opacity than confirmed tiles; dashed border signals "in-flight".
+    await ctrl.addFillLayer(
+      _kSourcePending,
+      _kLayerPendingFill,
+      const FillLayerProperties(
+        fillColor: AppColors.primaryHex,
+        fillOpacity: 0.18,
+      ),
+      minzoom: 9.0,
+    );
+    await ctrl.addLineLayer(
+      _kSourcePending,
+      _kLayerPendingLine,
+      const LineLayerProperties(
+        lineColor: AppColors.primaryHex,
+        lineOpacity: 0.55,
+        lineWidth: 1.5,
+        lineDasharray: [3.0, 2.0],
+      ),
+      minzoom: 9.0,
+    );
 
     // ── Live cell — primary green fill + glow halo + sharp inner outline ──
     // Color matches the user dot (primaryHex) so the current cell reads as "yours"
@@ -696,6 +745,7 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> {
     await Future.wait([
       ctrl.setGeoJsonSource(_kSourceTiles, _tilesToGeoJson()),
       ctrl.setGeoJsonSource('gg-tile-labels', _tileLabelsGeoJson()),
+      ctrl.setGeoJsonSource(_kSourcePending, _pendingCellsGeoJson()),
       ctrl.setGeoJsonSource(_kSourceLiveCell, _liveCellGeoJson()),
       ctrl.setGeoJsonSource(_kSourceUserDot, _userDotGeoJson()),
       ctrl.setLayerProperties(_kLayerLiveFill, FillLayerProperties(fillOpacity: liveFillOpacity)),

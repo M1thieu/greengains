@@ -86,6 +86,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   List<LatLng>? _currentH3Boundary;
   /// Last committed H3 cell index — the one currently rendered on the map.
   BigInt? _currentH3Index;
+  /// Cells visited this session — shown as optimistic pending tiles before backend confirms.
+  final Set<BigInt> _sessionVisitedCells = {};
+  List<List<LatLng>> _pendingCellBoundaries = [];
   /// Candidate cell waiting for stability confirmation.
   BigInt? _pendingH3Index;
   /// How many consecutive GPS readings have landed in [_pendingH3Index].
@@ -162,6 +165,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       _sessionStartZoneCount = _claimedTileCount;
       _sessionStartTime = DateTime.now();
       _sessionUploadCount = 0;
+      _sessionVisitedCells.clear();
+      _pendingCellBoundaries = [];
       _checkBatteryOptimization();
       _maybeShowFirstStart();
     } else {
@@ -339,6 +344,20 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       if (!mounted) return;
       _loadH3Tiles(force: true).then((_) {
         if (!mounted) return;
+        // Remove newly confirmed cells from the pending set.
+        final confirmedIndices = _h3Tiles
+            .where((t) => t.h3Index.isNotEmpty)
+            .map((t) => BigInt.tryParse(t.h3Index, radix: 16))
+            .whereType<BigInt>()
+            .toSet();
+        _sessionVisitedCells.removeAll(confirmedIndices);
+        setState(() {
+          _pendingCellBoundaries = _sessionVisitedCells.map((idx) {
+            try {
+              return _h3.cellToBoundary(idx).map((c) => LatLng(c.lat, c.lon)).toList();
+            } catch (_) { return <LatLng>[]; }
+          }).where((b) => b.isNotEmpty).toList();
+        });
         final newCount = _claimedTileCount;
         final gained = newCount - prevCount;
         if (gained > 0) HapticFeedback.mediumImpact();
@@ -697,6 +716,17 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           .cellToBoundary(cellIndex)
           .map((c) => LatLng(c.lat, c.lon))
           .toList();
+      // Add to session visited cells if not already confirmed by backend.
+      final alreadyConfirmed = _h3Tiles.any((t) =>
+          t.h3Index.isNotEmpty && BigInt.tryParse(t.h3Index, radix: 16) == cellIndex);
+      if (!alreadyConfirmed && _locationService.isRunning.value) {
+        _sessionVisitedCells.add(cellIndex);
+        _pendingCellBoundaries = _sessionVisitedCells.map((idx) {
+          try {
+            return _h3.cellToBoundary(idx).map((c) => LatLng(c.lat, c.lon)).toList();
+          } catch (_) { return <LatLng>[]; }
+        }).where((b) => b.isNotEmpty).toList();
+      }
       if (mounted) setState(() => _currentH3Boundary = boundary);
     } catch (_) {}
   }
@@ -745,6 +775,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                   tiles: [...(_showCommunity ? _globalTiles : <H3Tile>[]), ..._h3Tiles],
                   userLocation: _userLocationNotifier.value,
                   currentH3Boundary: _currentH3Boundary,
+                  pendingCellBoundaries: _pendingCellBoundaries,
                   isTracking: isTracking,
                   onTileTap: _onTileTap,
                   onTileLongPress: _onTileTap,
