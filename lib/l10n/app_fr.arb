@@ -760,6 +760,13 @@
       "uploads": { "type": "int" }
     }
   },
+  "homeSessionPillWithZones": "{uploads} synchros · +{zones} zones",
+  "@homeSessionPillWithZones": {
+    "placeholders": {
+      "uploads": { "type": "int" },
+      "zones": { "type": "int" }
+    }
+  },
   "statsUploadsHint": "envois",
   "statsKpiTodayExplain": "Syncs envoyés aujourd'hui.",
   "statsKpiWeekExplain": "Syncs envoyés cette semaine.",

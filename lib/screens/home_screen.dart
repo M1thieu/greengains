@@ -847,6 +847,11 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                       builder: (context, _) {
                         final active = _locationService.isRunning.value && !_locationService.isPaused.value;
                         final show = active && _sessionUploadCount > 0;
+                        final zonesGained = (_claimedTileCount - _sessionStartZoneCount).clamp(0, 9999);
+                        final l10n = context.l10n;
+                        final pillText = zonesGained > 0
+                            ? l10n.homeSessionPillWithZones(_sessionUploadCount, zonesGained)
+                            : l10n.homeSessionPill(_sessionUploadCount);
                         return AnimatedSwitcher(
                           duration: AppDurations.medium,
                           transitionBuilder: (child, anim) => FadeTransition(
@@ -860,7 +865,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                             ),
                           ),
                           child: show ? Padding(
-                            key: ValueKey(_sessionUploadCount),
+                            key: ValueKey('$_sessionUploadCount-$zonesGained'),
                             padding: const EdgeInsets.only(bottom: AppTheme.spaceXs),
                             child: Center(
                               child: Container(
@@ -872,7 +877,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                   border: Border.all(color: AppColors.primary.withValues(alpha: 0.25)),
                                 ),
                                 child: Text(
-                                  context.l10n.homeSessionPill(_sessionUploadCount),
+                                  pillText,
                                   style: const TextStyle(
                                     fontSize: AppTheme.fontSizeSm,
                                     fontWeight: AppFontWeights.semibold,

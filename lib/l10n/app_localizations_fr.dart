@@ -1766,6 +1766,11 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String homeSessionPillWithZones(int uploads, int zones) {
+    return '$uploads synchros · +$zones zones';
+  }
+
+  @override
   String get statsUploadsHint => 'envois';
 
   @override

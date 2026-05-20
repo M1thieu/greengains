@@ -1748,6 +1748,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String homeSessionPillWithZones(int uploads, int zones) {
+    return '$uploads synced · +$zones zones';
+  }
+
+  @override
   String get statsUploadsHint => 'uploads';
 
   @override

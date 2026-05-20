@@ -2978,6 +2978,12 @@ abstract class AppLocalizations {
   /// **'{uploads} synced'**
   String homeSessionPill(int uploads);
 
+  /// No description provided for @homeSessionPillWithZones.
+  ///
+  /// In en, this message translates to:
+  /// **'{uploads} synced · +{zones} zones'**
+  String homeSessionPillWithZones(int uploads, int zones);
+
   /// No description provided for @statsUploadsHint.
   ///
   /// In en, this message translates to:
