@@ -206,40 +206,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           const SizedBox(height: _kSectionSpacing),
 
-          // ── Legal ─────────────────────────────────────────────────────────
-          _SectionCard(
-            label: l10n.settingsLegal,
-            children: [
-              _NavRow(
-                icon: Icons.shield_outlined,
-                iconColor: AppColors.textSecondary(isDark),
-                title: l10n.privacyPolicy,
-                onTap: () => _openWebView(context, _kPrivacyPolicyUrl, l10n.privacyPolicy),
-              ),
-              _divider(isDark),
-              _NavRow(
-                icon: Icons.description_outlined,
-                iconColor: AppColors.textSecondary(isDark),
-                title: l10n.termsOfService,
-                onTap: () => _openWebView(context, _kTermsUrl, l10n.termsOfService),
-              ),
-              _divider(isDark),
-              _NavRow(
-                icon: Icons.visibility_outlined,
-                iconColor: AppColors.textSecondary(isDark),
-                title: l10n.settingsDataTransparency,
-                onTap: () => _openWebView(context, _kDataTransparencyUrl, l10n.settingsDataTransparency),
-              ),
-              _divider(isDark),
-              _NavRow(
-                icon: Icons.delete_outline_rounded,
-                iconColor: AppColors.error,
-                title: l10n.settingsDataDeletion,
-                onTap: () => _openWebView(context, _kDataDeletionUrl, l10n.settingsDataDeletion),
-              ),
-            ],
+          // ── Legal footer ──────────────────────────────────────────────────
+          Padding(
+            padding: const EdgeInsets.only(top: AppTheme.spaceSm, bottom: AppTheme.spaceXl),
+            child: Wrap(
+              spacing: AppTheme.spaceMd,
+              runSpacing: AppTheme.spaceXs,
+              children: [
+                _LegalLink(label: l10n.privacyPolicy, onTap: () => _openWebView(context, _kPrivacyPolicyUrl, l10n.privacyPolicy)),
+                _LegalLink(label: l10n.termsOfService, onTap: () => _openWebView(context, _kTermsUrl, l10n.termsOfService)),
+                _LegalLink(label: l10n.settingsDataTransparency, onTap: () => _openWebView(context, _kDataTransparencyUrl, l10n.settingsDataTransparency)),
+                _LegalLink(label: l10n.settingsDataDeletion, onTap: () => _openWebView(context, _kDataDeletionUrl, l10n.settingsDataDeletion), danger: true),
+              ],
+            ),
           ),
-          const SizedBox(height: AppTheme.spaceXl),
         ],
       ),
     );
@@ -289,6 +269,32 @@ class _SectionCard extends StatelessWidget {
   }
 }
 
+
+// ── Legal footer link ─────────────────────────────────────────────────────────
+
+class _LegalLink extends StatelessWidget {
+  const _LegalLink({required this.label, required this.onTap, this.danger = false});
+  final String label;
+  final VoidCallback onTap;
+  final bool danger;
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = context.isDarkMode;
+    return GestureDetector(
+      onTap: onTap,
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: AppTheme.fontSizeXs,
+          color: danger ? AppColors.error.withValues(alpha: 0.7) : AppColors.textTertiary(isDark),
+          decoration: TextDecoration.underline,
+          decorationColor: danger ? AppColors.error.withValues(alpha: 0.4) : AppColors.textTertiary(isDark).withValues(alpha: 0.5),
+        ),
+      ),
+    );
+  }
+}
 
 // ── Row variants ──────────────────────────────────────────────────────────────
 
