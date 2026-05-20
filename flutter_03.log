@@ -1,0 +1,67 @@
+Flutter crash report.
+Please report a bug at https://github.com/flutter/flutter/issues.
+
+## command
+
+flutter analyze
+
+## exception
+
+_Exception: Exception: analysis server exited with code -1073740791 and output:
+[stderr] ../../runtime/vm/heap/pages.cc: 1533: error: Out of memory.
+[stderr] version=3.10.7 (stable) (Tue Dec 23 00:01:57 2025 -0800) on "windows_x64"
+[stderr] pid=24356, thread=10532, isolate_group=main(000001824BCAB4A0), isolate=main(000001824BC8D990)
+[stderr] os=windows, arch=x64, comp=no, sim=no
+[stderr] isolate_instructions=1824f1a0000, vm_instructions=7ff6eaca8080
+[stderr] fp=3c6c2fe740, sp=3c6c2fe6f8, pc=7ff6eaf8dce3
+[stderr]   pc 0x00007ff6eaf8dce3 fp 0x0000003c6c2fe740 Dart_DetectNullSafety+0x2dd5d3
+[stderr] -- End of DumpStackTrace
+
+```
+```
+
+## flutter doctor
+
+```
+[!] Flutter (Channel stable, 3.38.7, on Microsoft Windows [Version 10.0.26200.8457], locale en-GB) [1,726ms]
+    • Flutter version 3.38.7 on channel stable at C:\Users\mathi\flutter
+    ! The flutter binary is not on your path. Consider adding C:\Users\mathi\flutter\bin to your path.
+    ! The dart binary is not on your path. Consider adding C:\Users\mathi\flutter\bin to your path.
+    • Upstream repository https://github.com/flutter/flutter.git
+    • Framework revision 3b62efc2a3 (4 months ago), 2026-01-13 13:47:42 -0800
+    • Engine revision 78fc3012e4
+    • Dart version 3.10.7
+    • DevTools version 2.51.1
+    • Feature flags: enable-web, enable-linux-desktop, enable-macos-desktop, enable-windows-desktop, enable-android, enable-ios, cli-animations, enable-native-assets, omit-legacy-version-file, enable-lldb-debugging
+    • If those were intentional, you can disregard the above warnings; however it is recommended to use "git" directly to perform update checks and upgrades.
+
+[✓] Windows Version (11 Home 64-bit, 25H2, 2009) [9.4s]
+
+[✓] Android toolchain - develop for Android devices (Android SDK version 36.0.0) [25.3s]
+    • Android SDK at C:\Users\mathi\AppData\Local\Android\sdk
+    • Emulator version 35.2.10.0 (build_id 12414864) (CL:N/A)
+    • Platform android-36, build-tools 36.0.0
+    • Java binary at: C:\Program Files\Common Files\Oracle\Java\javapath\java.exe
+      This JDK was found in the system PATH.
+      To manually set the JDK path, use: `flutter config --jdk-dir="path/to/jdk"`.
+    • Java version Java(TM) SE Runtime Environment (build 22.0.1+8-16)
+    • All Android licenses accepted.
+
+[✗] Chrome - develop for the web (Cannot find Chrome executable at .\Google\Chrome\Application\chrome.exe) [675ms]
+    ! Cannot find Chrome. Try setting CHROME_EXECUTABLE to a Chrome executable.
+
+[✓] Visual Studio - develop Windows apps (Visual Studio Community 2022 17.14.16) [667ms]
+    • Visual Studio at C:\Program Files\Microsoft Visual Studio\2022\Community
+    • Visual Studio Community 2022 version 17.14.36518.9
+    • Windows 10 SDK version 10.0.26100.0
+
+[✓] Connected device (3 available) [8.0s]
+    • Pixel 7 (mobile)  • 29081FDH200BGW • android-arm64  • Android 16 (API 36)
+    • Windows (desktop) • windows        • windows-x64    • Microsoft Windows [Version 10.0.26200.8457]
+    • Edge (web)        • edge           • web-javascript • Microsoft Edge 148.0.3967.70
+
+[✓] Network resources [2.2s]
+    • All expected network resources are available.
+
+! Doctor found issues in 2 categories.
+```

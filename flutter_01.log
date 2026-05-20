@@ -1,0 +1,78 @@
+Flutter crash report.
+Please report a bug at https://github.com/flutter/flutter/issues.
+
+## command
+
+flutter analyze
+
+## exception
+
+_Exception: Exception: analysis server exited with code -1073740791 and output:
+[stderr] os=windows, arch=x64, comp=no, sim=no
+[stderr] isolate_instructions=2239cab0000, vm_instructions=7ff7e07b8080
+[stderr] fp=54014fe2d0, sp=54014fe288, pc=7ff7e0a9dce3
+[stderr]   pc 0x00007ff7e0a9dce3 fp 0x00000054014fe2d0 Dart_DetectNullSafety+0x2dd5d3
+[stderr] -- End of DumpStackTrace
+[stderr]   pc 0x0000000000000000 fp 0x00000054014fece0 sp 0x0000000000000000 [Stub] CallBootstrapNative+0xfffffddc622fd2a0
+[stderr]   pc 0x000002239ce0b0b3 fp 0x00000054014fed38 sp 0x00000054014fecf0 [Unoptimized] _Directory@15069316._fillWithDirectoryListing@15069316+0x53
+[stderr]   pc 0x000002239ce0b878 fp 0x00000054014fedc0 sp 0x00000054014fed48 [Unoptimized] _Directory@15069316.listSync+0x298
+[stderr]   pc 0x000002239ce0b9d0 fp 0x00000054014fee48 sp 0x00000054014fedd0 [Unoptimized] EvictingFileByteStore._cleanUpFolder@156111204+0x110
+[stderr]   pc 0x000002239ce0c25b fp 0x00000054014fee88 sp 0x00000054014fee58 [Unoptimized] EvictingFileByteStore._cacheCleanUpFunction@156111204.<anonymous closure>+0xdb
+[stderr]   pc 0x000002239cb91cb3 fp 0x00000054014fef08 sp 0x00000054014fee98 [Unoptimized] _RootZone@5048458.runUnaryGuarded+0x143
+[stderr]   pc 0x000002239cb9205f fp 0x00000054014fef58 sp 0x00000054014fef18 [Optimized] _BufferingStreamSubscription@5048458._sendData@5048458+0x16f
+[stderr]   pc 0x000002239cb981f7 fp 0x00000054014fef98 sp 0x00000054014fef68 [Unoptimized] _BufferingStreamSubscription@5048458._add@5048458+0x1e7
+[stderr]   pc 0x000002239cb9843d fp 0x00000054014fefd8 sp 0x00000054014fefa8 [Unoptimized] _SyncStreamController@5048458._sendData@5048458+0x17d
+[stderr]   pc 0x000002239cb98632 fp 0x00000054014ff018 sp 0x00000054014fefe8 [Unoptimized] _StreamController@5048458._add@5048458+0x192
+[stderr]   pc 0x000002239cb98924 fp 0x00000054014ff058 sp 0x00000054014ff028 [Unoptimized] _StreamController@5048458.add+0x1c4
+[stderr]   pc 0x000002239cb989f9 fp 0x00000054014ff098 sp 0x00000054014ff068 [Unoptimized] _StreamController@5048458.add+0x79
+[stderr]   pc 0x000002239cb1b855 fp 0x00000054014ff180 sp 0x00000054014ff0a8 [Optimized] _Closure@0150898.dyn:call+0x165
+[stderr]   pc 0x000002239d7c590d fp 0x00000054014ff1c8 sp 0x00000054014ff190 [Optimized] _RawReceivePort@1026248._handleMessage@1026248+0xdd
+[stderr]   pc 0x000002239dd0318f fp 0x00000054014ff2f0 sp 0x00000054014ff1d8 [Stub] InvokeDartCode+0xdf
+
+```
+```
+
+## flutter doctor
+
+```
+[!] Flutter (Channel stable, 3.38.7, on Microsoft Windows [Version 10.0.26200.8246], locale en-GB) [1,568ms]
+    • Flutter version 3.38.7 on channel stable at C:\Users\mathi\flutter
+    ! The flutter binary is not on your path. Consider adding C:\Users\mathi\flutter\bin to your path.
+    ! The dart binary is not on your path. Consider adding C:\Users\mathi\flutter\bin to your path.
+    • Upstream repository https://github.com/flutter/flutter.git
+    • Framework revision 3b62efc2a3 (3 months ago), 2026-01-13 13:47:42 -0800
+    • Engine revision 78fc3012e4
+    • Dart version 3.10.7
+    • DevTools version 2.51.1
+    • Feature flags: enable-web, enable-linux-desktop, enable-macos-desktop, enable-windows-desktop, enable-android, enable-ios, cli-animations, enable-native-assets, omit-legacy-version-file, enable-lldb-debugging
+    • If those were intentional, you can disregard the above warnings; however it is recommended to use "git" directly to perform update checks and upgrades.
+
+[✓] Windows Version (11 Famille 64-bit, 25H2, 2009) [11.4s]
+
+[!] Android toolchain - develop for Android devices (Android SDK version 36.0.0) [7.8s]
+    • Android SDK at C:\Users\mathi\AppData\Local\Android\sdk
+    • Emulator version 35.2.10.0 (build_id 12414864) (CL:N/A)
+    • Platform android-36, build-tools 36.0.0
+    • Java binary at: C:\Program Files\Common Files\Oracle\Java\javapath\java.exe
+      This JDK was found in the system PATH.
+      To manually set the JDK path, use: `flutter config --jdk-dir="path/to/jdk"`.
+    ✗ Could not determine java version
+
+[✗] Chrome - develop for the web (Cannot find Chrome executable at .\Google\Chrome\Application\chrome.exe) [537ms]
+    ! Cannot find Chrome. Try setting CHROME_EXECUTABLE to a Chrome executable.
+
+[✓] Visual Studio - develop Windows apps (Visual Studio Community 2022 17.14.16) [534ms]
+    • Visual Studio at C:\Program Files\Microsoft Visual Studio\2022\Community
+    • Visual Studio Community 2022 version 17.14.36518.9
+    • Windows 10 SDK version 10.0.26100.0
+
+[✓] Connected device (3 available) [7.7s]
+    • Pixel 7 (mobile)  • 29081FDH200BGW • android-arm64  • Android 16 (API 36)
+    • Windows (desktop) • windows        • windows-x64    • Microsoft Windows [Version 10.0.26200.8246]
+    • Edge (web)        • edge           • web-javascript • Microsoft Edge 147.0.3912.72
+
+[✓] Network resources [2.0s]
+    • All expected network resources are available.
+
+! Doctor found issues in 3 categories.
+```

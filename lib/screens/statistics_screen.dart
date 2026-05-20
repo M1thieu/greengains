@@ -15,6 +15,7 @@ import '../core/app_preferences.dart';
 import '../services/stats/stats_service.dart';
 import '../widgets/press_scale_detector.dart';
 import '../widgets/section_header.dart';
+import '../widgets/stat_cell.dart';
 
 // ── Chart / skeleton layout constants ────────────────────────────────────────
 // Named so that any future change touches ONE place, not scattered literals.
@@ -460,24 +461,23 @@ class _StatisticsScreenState extends State<StatisticsScreen>
               const SizedBox(height: AppTheme.spaceXs),
               Row(
                 children: [
-                  _SheetStat(label: l10n.statsRecordBestDay, value: '$bestDay', color: AppColors.light, isDark: isDark),
+                  Expanded(child: StatCell(label: l10n.statsRecordBestDay, value: '$bestDay', color: AppColors.light)),
                   const SizedBox(width: AppTheme.spaceSm),
-                  _SheetStat(label: l10n.statsRecordLongestStreak, value: '${longest}d', color: AppColors.warning, isDark: isDark),
+                  Expanded(child: StatCell(label: l10n.statsRecordLongestStreak, value: '${longest}d', color: AppColors.warning)),
                 ],
               ),
               const SizedBox(height: AppTheme.spaceSm),
               Row(
                 children: [
-                  _SheetStat(label: l10n.statsRecordTotalUploads, value: '$totalUploads', color: AppColors.quality, isDark: isDark),
+                  Expanded(child: StatCell(label: l10n.statsRecordTotalUploads, value: '$totalUploads', color: AppColors.quality)),
                   const SizedBox(width: AppTheme.spaceSm),
-                  _SheetStat(
+                  Expanded(child: StatCell(
                     label: l10n.statsRecordFirstDay,
                     value: firstDate != null
                         ? DateFormat('MMM d, yyyy', Localizations.localeOf(context).toString()).format(firstDate)
                         : '—',
                     color: AppColors.movement,
-                    isDark: isDark,
-                  ),
+                  )),
                 ],
               ),
               const SizedBox(height: AppTheme.spaceMd),
@@ -1324,19 +1324,9 @@ class _StatisticsScreenState extends State<StatisticsScreen>
             // Key metrics row
             Row(
               children: [
-                _SheetStat(
-                  label: l10n.statsKmMapped,
-                  value: '$km2Str km²',
-                  color: AppColors.primary,
-                  isDark: isDark,
-                ),
+                Expanded(child: StatCell(label: l10n.statsKmMapped, value: '$km2Str km²', color: AppColors.primary)),
                 const SizedBox(width: AppTheme.spaceSm),
-                _SheetStat(
-                  label: l10n.statsTerritoryZones(zones),
-                  value: '$zones',
-                  color: AppColors.quality,
-                  isDark: isDark,
-                ),
+                Expanded(child: StatCell(label: l10n.statsTerritoryZones(zones), value: '$zones', color: AppColors.quality)),
               ],
             ),
             const SizedBox(height: AppTheme.spaceMd),
@@ -1828,39 +1818,6 @@ class _Tab extends StatelessWidget {
   }
 }
 
-// ── Territory sheet sub-widgets ───────────────────────────────────────────────
-
-class _SheetStat extends StatelessWidget {
-  const _SheetStat({required this.label, required this.value, required this.color, required this.isDark});
-  final String label;
-  final String value;
-  final Color color;
-  final bool isDark;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.all(AppTheme.spaceMd),
-        decoration: AppTheme.contentCard(isDark: isDark, accentBorder: color.withValues(alpha: 0.30)),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(value, style: theme.textTheme.titleLarge?.copyWith(
-              fontWeight: AppFontWeights.bold,
-              color: color,
-              letterSpacing: -0.5,
-              height: AppLineHeights.tight,
-            )),
-            const SizedBox(height: 2),
-            Text(label, style: AppTheme.statLabel(isDark), maxLines: 2, softWrap: true),
-          ],
-        ),
-      ),
-    );
-  }
-}
 
 class _SensorTypesRow extends StatelessWidget {
   const _SensorTypesRow({required this.isDark, required this.l10n});

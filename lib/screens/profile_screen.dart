@@ -464,7 +464,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           letterSpacing: 0.6,
                         ),
                       ),
-                      const SizedBox(height: 2),
+                      const SizedBox(height: AppTheme.spaceXxxs),
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.baseline,
                         textBaseline: TextBaseline.alphabetic,
@@ -526,18 +526,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 children: [
                   Text(
                     '$current / $nextMilestone ${l10n.statsDaysUnit}',
-                    style: TextStyle(
-                      fontSize: AppTheme.fontSizeXs,
-                      color: AppColors.textTertiary(isDark),
-                    ),
+                    style: AppTheme.statLabel(isDark),
                   ),
                   if (longest > 0)
                     Text(
                       '${l10n.statsLongestLabel}: $longest ${l10n.statsDaysUnit}',
-                      style: TextStyle(
-                        fontSize: AppTheme.fontSizeXs,
-                        color: AppColors.textTertiary(isDark),
-                      ),
+                      style: AppTheme.statLabel(isDark),
                     ),
                 ],
               ),
