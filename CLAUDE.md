@@ -4,10 +4,10 @@
 
 | Layer | Tech | Deploy |
 |---|---|---|
-| Backend | Fastify + TypeScript | Render (auto on push to master) |
+| Backend | Fastify + TypeScript | Railway (auto on push to master) |
 | Mobile | Flutter (com.eremat.greengains) | Manual APK / Play Store |
 | Dashboard | React + Vite + TypeScript (`dashboard-web/`) | Manual |
-| DB | Supabase (PostgreSQL) | Managed |
+| DB | Neon (PostgreSQL) | Managed |
 | Auth | Firebase | Managed |
 
 ## CRITICAL: Flutter Run Command
@@ -25,8 +25,9 @@ flutter run --dart-define-from-file=dart_defines.json
 
 ## Backend
 
-- **Root dir on Render:** `backend/`
-- **Push to master → auto-deploys** (M1thieu/greengains, not erematorg/greengains)
+- **Root dir on Railway:** `backend/` (railway.json at repo root)
+- **Push to master → auto-deploys on Railway** (M1thieu/greengains, not erematorg/greengains)
+- **App URL:** https://greengains-production.up.railway.app
 - **Type check:** `cd backend && npx tsc --noEmit`
 - **All DB queries must be parameterized** — no string interpolation in SQL
 - **Rate limiting is DB-based** (sensor_batches.created_at sliding window) — scales horizontally
