@@ -18,6 +18,8 @@ android/app/google-services.json
 **/*.iml
 android/hs_err_*.log
 android/replay_*.log
+android/.kotlin/
+android/app/.cxx/
 *.apk
 *.jks
 *-keystore.jks
@@ -64,10 +66,17 @@ __pycache__/
 *.pyc
 .python-version
 
+# Claude Code
+.claude/worktrees/
+.claude/scheduled_tasks.lock
+
 # Logs
 uvicorn.log
 uvicorn_err.log
 upload_monitor.log
+flutter_*.log
+hs_err_pid*.log
+bash.exe.stackdump
 *.txt
 \!SETUP*.txt
 \!README.txt
