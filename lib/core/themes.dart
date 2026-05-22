@@ -430,6 +430,7 @@ class AppTheme {
   static const double fontSizeSm      = 14.0; // primary body, comfortable reading
   static const double fontSizeMd      = 15.0; // emphasis body, sheet titles
   static const double fontSizeLg      = 22.0; // card headlines, weekly goal title
+  static const double fontSizeHero    = 30.0; // onboarding / section hero titles
   static const double fontSizeDisplay = 80.0; // hero display number (session summary)
 
   // Glass UI constants (BackdropFilter + frosted container)

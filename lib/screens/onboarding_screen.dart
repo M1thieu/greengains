@@ -315,7 +315,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   Text(
                     l10n.onboardingWelcomeTitle,
                     style: TextStyle(
-                      fontSize: 30,
+                      fontSize: AppTheme.fontSizeHero,
                       fontWeight: AppFontWeights.semibold,
                       letterSpacing: -0.8,
                       height: 1.12,
@@ -538,8 +538,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           ],
                         ),
                         child: const SizedBox(
-                          width: 24,
-                          height: 24,
+                          width: AppIconSizes.md,
+                          height: AppIconSizes.md,
                           child: CircularProgressIndicator(
                             strokeWidth: 3,
                             valueColor: AlwaysStoppedAnimation(AppColors.primary),
