@@ -874,6 +874,55 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
                     const Spacer(),
 
+                    // Zero-state — shown once to new users before first zone
+                    if (_h3Tiles.isEmpty && !_h3TilesLoading && !_locationService.isRunning.value)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: AppTheme.spaceLg, vertical: AppTheme.spaceSm),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: AppTheme.spaceMd, vertical: AppTheme.spaceSm),
+                          decoration: BoxDecoration(
+                            color: AppColors.mapOverlayMid,
+                            borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                            border: Border.all(
+                                color: AppColors.primary.withValues(alpha: 0.25)),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.hexagon_outlined,
+                                  size: AppIconSizes.sm, color: AppColors.primary),
+                              const SizedBox(width: AppTheme.spaceSm),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      context.l10n.mapZeroStateTitle,
+                                      style: const TextStyle(
+                                        fontSize: AppTheme.fontSizeSm,
+                                        fontWeight: AppFontWeights.semibold,
+                                        color: AppColors.darkTextPrimary,
+                                        letterSpacing: -0.1,
+                                      ),
+                                    ),
+                                    const SizedBox(height: AppTheme.spaceXxxs),
+                                    Text(
+                                      context.l10n.mapZeroStateBody,
+                                      style: const TextStyle(
+                                        fontSize: AppTheme.fontSizeBody,
+                                        color: AppColors.darkTextSecondary,
+                                        height: 1.4,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
 
                     // Live session counter pill
                     ListenableBuilder(

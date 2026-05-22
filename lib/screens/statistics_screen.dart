@@ -333,7 +333,11 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                   ),
                 ),
                 // ── Tab 2: In-depth ──────────────────────────────────────────
-                _buildInDepthTab(theme, isDark, l10n, bottomPad),
+                RefreshIndicator(
+                  onRefresh: _refresh,
+                  color: AppColors.primary,
+                  child: _buildInDepthTab(theme, isDark, l10n, bottomPad),
+                ),
               ],
             ),
           ),

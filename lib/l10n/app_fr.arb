@@ -854,5 +854,8 @@
 
   "profileUnlockTitle": "Ta carte est en train d'être sauvegardée.",
   "profileUnlockBody": "Connecte-toi pour la conserver et la synchroniser sur tous tes appareils.",
-  "profileUnlockCta": "Me connecter pour garder ma carte"
+  "profileUnlockCta": "Me connecter pour garder ma carte",
+
+  "mapZeroStateTitle": "Ta carte commence ici",
+  "mapZeroStateBody": "Marche n'importe où avec l'appli active — tes zones apparaissent en temps réel."
 }

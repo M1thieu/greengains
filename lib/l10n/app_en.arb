@@ -854,5 +854,8 @@
 
   "profileUnlockTitle": "Your map is saving.",
   "profileUnlockBody": "Sign in to keep it forever and sync across devices.",
-  "profileUnlockCta": "Sign in to keep my map"
+  "profileUnlockCta": "Sign in to keep my map",
+
+  "mapZeroStateTitle": "Your map starts here",
+  "mapZeroStateBody": "Walk anywhere with the app running — your zones appear in real time."
 }

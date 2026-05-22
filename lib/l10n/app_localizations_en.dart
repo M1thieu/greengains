@@ -1951,4 +1951,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get profileUnlockCta => 'Sign in to keep my map';
+
+  @override
+  String get mapZeroStateTitle => 'Your map starts here';
+
+  @override
+  String get mapZeroStateBody =>
+      'Walk anywhere with the app running — your zones appear in real time.';
 }

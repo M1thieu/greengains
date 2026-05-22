@@ -3313,6 +3313,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Sign in to keep my map'**
   String get profileUnlockCta;
+
+  /// No description provided for @mapZeroStateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your map starts here'**
+  String get mapZeroStateTitle;
+
+  /// No description provided for @mapZeroStateBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Walk anywhere with the app running — your zones appear in real time.'**
+  String get mapZeroStateBody;
 }
 
 class _AppLocalizationsDelegate

@@ -1971,4 +1971,11 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get profileUnlockCta => 'Me connecter pour garder ma carte';
+
+  @override
+  String get mapZeroStateTitle => 'Ta carte commence ici';
+
+  @override
+  String get mapZeroStateBody =>
+      'Marche n\'importe où avec l\'appli active — tes zones apparaissent en temps réel.';
 }
