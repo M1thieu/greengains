@@ -1210,6 +1210,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tileQualityFair => 'Pass here again';
 
   @override
+  String get tileQualityStaling => 'Staling';
+
+  @override
+  String tileDecayWarning(int days) {
+    return 'Data is $days days old — walk here to refresh it.';
+  }
+
+  @override
+  String tileDecayHint(int days) {
+    return 'Mapped $days days ago — score will drop soon.';
+  }
+
+  @override
   String get tileMeasuredWith => 'Recorded with';
 
   @override

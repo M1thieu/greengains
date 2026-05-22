@@ -130,7 +130,7 @@ class _TrackingStatusChipState extends State<TrackingStatusChip>
             Text(
               label,
               style: const TextStyle(
-                color: Colors.white,
+                color: AppColors.darkTextPrimary,
                 fontSize: _kChipLabelSize,
                 fontWeight: AppFontWeights.semibold,
                 letterSpacing: 0.1,
@@ -139,12 +139,12 @@ class _TrackingStatusChipState extends State<TrackingStatusChip>
             // Paused: show zone count so user knows where they left off.
             if (widget.isPaused && widget.tileCount > 0) ...[
               const SizedBox(width: AppTheme.spaceXxs + 1),
-              Text('·', style: TextStyle(color: Colors.white.withValues(alpha: 0.3), fontSize: _kChipLabelSize)),
+              Text('·', style: TextStyle(color: AppColors.darkTextSecondary.withValues(alpha: 0.5), fontSize: _kChipLabelSize)),
               const SizedBox(width: AppTheme.spaceXxs + 1),
               Text(
                 '${widget.tileCount} ${context.l10n.chipZones}',
                 style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.75),
+                  color: AppColors.darkTextSecondary,
                   fontSize: _kChipTimeSize,
                 ),
               ),
@@ -152,24 +152,24 @@ class _TrackingStatusChipState extends State<TrackingStatusChip>
             if (widget.isPaused) ...[
               if (widget.isUploading) ...[
                 const SizedBox(width: AppTheme.spaceXxs + 1),
-                Text('·', style: TextStyle(color: Colors.white.withValues(alpha: 0.3), fontSize: _kChipLabelSize)),
+                Text('·', style: TextStyle(color: AppColors.darkTextSecondary.withValues(alpha: 0.5), fontSize: _kChipLabelSize)),
                 const SizedBox(width: AppTheme.spaceXxs + 1),
                 const SizedBox(
                   width: _kChipTimeSize,
                   height: _kChipTimeSize,
                   child: CircularProgressIndicator(
                     strokeWidth: 1.5,
-                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white54),
+                    valueColor: AlwaysStoppedAnimation<Color>(AppColors.darkTextSecondary),
                   ),
                 ),
               ] else if (widget.lastUpload != null) ...[
                 const SizedBox(width: AppTheme.spaceXxs + 1),
-                Text('·', style: TextStyle(color: Colors.white.withValues(alpha: 0.3), fontSize: _kChipLabelSize)),
+                Text('·', style: TextStyle(color: AppColors.darkTextSecondary.withValues(alpha: 0.5), fontSize: _kChipLabelSize)),
                 const SizedBox(width: AppTheme.spaceXxs + 1),
                 TimeAgoText(
                   timestamp: widget.lastUpload!,
                   style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.6),
+                    color: AppColors.darkTextSecondary,
                     fontSize: _kChipTimeSize,
                   ),
                 ),

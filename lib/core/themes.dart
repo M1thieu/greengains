@@ -182,6 +182,7 @@ class AppColors {
   static const String qualityHex   = '#10b981';
   static const String communityHex = '#6366f1';
   static const String primaryHex   = '#10b981';
+  static const String warningHex   = '#f59e0b'; // amber-400 — matches AppColors.warning
 
   // Accent colors for rewards and achievements (complementary to green)
   static const Color accentMagenta = Color(0xFFE91E63); // Material pink 500
@@ -389,8 +390,8 @@ class AppLineHeights {
 
 class AppTheme {
   // Spacing scale (comprehensive)
-  static const double spaceXxxs = 2;  // Micro spacing
-  static const double spaceTiny = 3;  // Between spaceXxxs and spaceXxs (badge padding etc.)
+  static const double spaceXxxs = 2;  // Micro spacing — dot gaps, tight icon rows
+  static const double spaceTiny = 3;  // stat item inner gaps, accent strips
   static const double spaceXxs = 4;
   static const double spaceXs = 8;
   static const double spaceSm = 12;
@@ -420,11 +421,13 @@ class AppTheme {
   static const double floatingNavHeight = 64;
   static const double fontSizeNavLabel  = 10.0; // sub-caption, below bodySmall(12)
 
-  // Sub-body font sizes (below Material bodySmall=12)
-  static const double fontSizeXs   = 11.0; // labelSmall equivalent — captions, badges
-  static const double fontSizeBody  = 12.0; // bodySmall (M3 spec)
-  static const double fontSizeSm      = 13.0; // between bodySmall(12) and bodyMedium(14)
-  static const double fontSizeMd      = 14.0; // bodyMedium (M3 spec)
+  // Sub-body font sizes
+  static const double fontSizeXxs  = 10.0; // micro — nav labels only
+  static const double fontSizeXs   = 12.0; // captions, badges, secondary labels
+  static const double fontSizeBody  = 13.0; // card body copy, secondary text
+  static const double fontSizeSm      = 14.0; // primary body, comfortable reading
+  static const double fontSizeMd      = 15.0; // emphasis body, sheet titles
+  static const double fontSizeLg      = 22.0; // card headlines, weekly goal title
   static const double fontSizeDisplay = 80.0; // hero display number (session summary)
 
   // Glass UI constants (BackdropFilter + frosted container)
@@ -435,10 +438,30 @@ class AppTheme {
   static const double onboardingHeroMax = 460;
   static const double onboardingHeroIconRatio = 0.46;
 
+  // Drag handle — standard across all bottom sheets
+  static const double dragHandleWidth  = 36.0;
+  static const double dragHandleHeight = 4.0;
+
+  // Sensor/stat card dot indicator
+  static const double dotSize = 6.0;
+
   // Common component sizes
   static const double tileTrailingButtonWidth = 120;
   static const double tileTrailingButtonHeight = 40;
   static const double authButtonHeight = 56;
+
+  /// Standard drag handle pill — use at the top of every bottom sheet.
+  static Widget dragHandle(bool isDark) => Center(
+        child: Container(
+          width: dragHandleWidth,
+          height: dragHandleHeight,
+          margin: const EdgeInsets.only(top: spaceSm, bottom: spaceSm),
+          decoration: BoxDecoration(
+            color: AppColors.border(isDark),
+            borderRadius: BorderRadius.circular(radiusMin),
+          ),
+        ),
+      );
 
   static String googleButtonAsset(Brightness b) => b == Brightness.dark
       ? 'assets/brands/google_button_dark.svg'

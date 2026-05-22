@@ -266,7 +266,7 @@ class _ShareBtnState extends State<_ShareBtn> {
           widget.label,
           style: Theme.of(context).textTheme.labelSmall?.copyWith(
             fontWeight: AppFontWeights.semibold,
-            color: active ? Colors.white : AppColors.primaryAlpha(0.50),
+            color: active ? AppColors.darkTextPrimary : AppColors.primaryAlpha(0.50),
           ),
         ),
       ),

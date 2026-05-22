@@ -188,7 +188,7 @@ class _SensorDataCardState extends State<SensorDataCard>
                           )
                         : _ShimmerLoading(isDark: isDark),
                     if (widget.rawValue != null) ...[
-                      const SizedBox(height: 2),
+                      const SizedBox(height: AppTheme.spaceXxs),
                       Text(
                         widget.rawValue!,
                         style: theme.textTheme.bodySmall?.copyWith(

@@ -591,7 +591,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                     child: Row(mainAxisSize: MainAxisSize.min, children: [
                       Text(l10n.statsViewOnMap, style: theme.textTheme.labelSmall?.copyWith(
                         color: AppColors.primary, fontWeight: AppFontWeights.semibold)),
-                      const SizedBox(width: 2),
+                      const SizedBox(width: AppTheme.spaceXxxs),
                       Icon(Icons.arrow_forward, size: AppIconSizes.xxs, color: AppColors.primary),
                     ]),
                   ),
@@ -669,7 +669,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                         letterSpacing: _kLetterSpacingHero,
                       )),
                     ),
-                    const SizedBox(width: 4),
+                    const SizedBox(width: AppTheme.spaceXxs),
                     Text(l10n.statsDaysUnit, style: theme.textTheme.bodySmall?.copyWith(
                       color: AppColors.primary.withValues(alpha: 0.7),
                     )),
@@ -713,7 +713,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                         letterSpacing: _kLetterSpacingHero,
                       )),
                     ),
-                    const SizedBox(width: 4),
+                    const SizedBox(width: AppTheme.spaceXxs),
                     Text(l10n.statsDaysUnit, style: theme.textTheme.bodySmall?.copyWith(
                       color: AppColors.textSecondary(isDark),
                     )),
@@ -1143,7 +1143,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                     ],
                   ],
                 ),
-                const SizedBox(height: 2),
+                const SizedBox(height: AppTheme.spaceXxxs),
                 Text(
                   l10n.statsBarCalloutUploads(count),
                   style: theme.textTheme.bodySmall?.copyWith(
@@ -1275,7 +1275,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                 fontWeight: AppFontWeights.semibold,
               ),
             ),
-            const SizedBox(width: 2),
+            const SizedBox(width: AppTheme.spaceXxxs),
             Icon(Icons.arrow_forward, size: AppIconSizes.xxs, color: AppColors.primary),
           ],
         ),
@@ -1810,7 +1810,7 @@ class _Tab extends StatelessWidget {
           style: TextStyle(
             fontSize: AppTheme.fontSizeNavLabel,
             fontWeight: selected ? AppFontWeights.semibold : AppFontWeights.medium,
-            color: selected ? Colors.white : AppColors.textSecondary(isDark),
+            color: selected ? AppColors.darkTextPrimary : AppColors.textSecondary(isDark),
           ),
         ),
       ),
@@ -2170,7 +2170,7 @@ class _MilestoneRing extends StatelessWidget {
               Text(
                 '$total',
                 style: const TextStyle(
-                  fontSize: AppTheme.fontSizeSm + 2,
+                  fontSize: AppTheme.fontSizeSm,
                   fontWeight: AppFontWeights.bold,
                   color: AppColors.warning,
                   height: 1.0,
@@ -2209,8 +2209,8 @@ class _MilestoneBadge extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.check_circle, size: 10, color: AppColors.warning),
-          const SizedBox(width: 3),
+          Icon(Icons.check_circle, size: AppTheme.fontSizeXxs, color: AppColors.warning),
+          const SizedBox(width: AppTheme.spaceTiny),
           Text(
             '$value',
             style: TextStyle(
@@ -2442,7 +2442,7 @@ class _WeeklyGoalCelebrationState extends State<_WeeklyGoalCelebration>
               Text(
                 l10n.weeklyGoalTitle,
                 style: const TextStyle(
-                  fontSize: 22,
+                  fontSize: AppTheme.fontSizeLg,
                   fontWeight: AppFontWeights.bold,
                   letterSpacing: -0.5,
                 ),

@@ -53,6 +53,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   final _prefs = AppPreferences.instance;
   final _h3 = const h3f.H3Factory().load();
   late final _userLocationNotifier = ValueNotifier<LatLng?>(_cachedLocation());
+  final _userAccuracyNotifier = ValueNotifier<double?>(null);
   /// Incrementing recenter triggers CoverageMapWidget to move camera to user.
   final _recenterTrigger = ValueNotifier<int>(0);
 
@@ -432,6 +433,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     _locationService.isRunning.removeListener(_handleServiceRunningChange);
     _recenterTrigger.dispose();
     _userLocationNotifier.dispose();
+    _userAccuracyNotifier.dispose();
     _followModeNotifier.dispose();
     super.dispose();
   }
@@ -678,6 +680,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       if (!mounted) return;
       final pos = LatLng(locationData.latitude, locationData.longitude);
       _userLocationNotifier.value = pos;
+      _userAccuracyNotifier.value = locationData.accuracy;
       _updateCurrentH3Cell(pos);
       // Persist so next cold start opens at correct location
       _prefs.saveLastPosition(locationData.latitude, locationData.longitude);
@@ -765,6 +768,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             ListenableBuilder(
               listenable: Listenable.merge([
                 _userLocationNotifier,
+                _userAccuracyNotifier,
                 _locationService.isRunning,
                 _locationService.isPaused,
               ]),
@@ -774,6 +778,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 return CoverageMapWidget(
                   tiles: [...(_showCommunity ? _globalTiles : <H3Tile>[]), ..._h3Tiles],
                   userLocation: _userLocationNotifier.value,
+                  userAccuracy: _userAccuracyNotifier.value,
                   currentH3Boundary: _currentH3Boundary,
                   pendingCellBoundaries: _pendingCellBoundaries,
                   isTracking: isTracking,
@@ -1088,7 +1093,7 @@ class _ActionButton extends StatelessWidget {
             decoration: BoxDecoration(
               color: bgColor,
               borderRadius: BorderRadius.circular(AppTheme.radiusPill),
-              border: Border.all(color: borderColor, width: 1),
+              border: Border.all(color: borderColor, width: AppBorderWidths.thin),
               boxShadow: style == _ActionBtnStyle.primary
                   ? [BoxShadow(color: AppColors.primary.withValues(alpha: 0.3), blurRadius: 12, offset: const Offset(0, 3))]
                   : [BoxShadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 8, offset: const Offset(0, 2))],
@@ -1100,7 +1105,7 @@ class _ActionButton extends StatelessWidget {
                   : const EdgeInsets.symmetric(horizontal: AppTheme.spaceLg, vertical: AppTheme.spaceMd),
               child: busy
                   ? SizedBox(
-                      width: 20, height: 20,
+                      width: AppIconSizes.sm, height: AppIconSizes.sm,
                       child: CircularProgressIndicator(strokeWidth: 2, color: fgColor),
                     )
                   : style == _ActionBtnStyle.danger
@@ -1191,24 +1196,22 @@ class _MyLocationButton extends StatelessWidget {
     return ValueListenableBuilder<bool>(
       valueListenable: followModeNotifier ?? ValueNotifier(false),
       builder: (context, isFollowing, _) {
-        // Always green — location is known. Icon distinguishes follow vs. free-pan.
-        // Pattern: Google Maps / Apple Maps — button is never dark when location available.
+        // Standard pattern (Google Maps / Apple Maps):
+        // Button background stays white always — icon color signals state.
         return Material(
-          color: isFollowing
-              ? AppColors.primary.withValues(alpha: 0.92)
-              : AppColors.primary.withValues(alpha: 0.55),
+          color: AppColors.mapOverlayDark,
           shape: const CircleBorder(),
           child: InkWell(
-            onTap: () {
-              onPressed();
-            },
+            onTap: onPressed,
             customBorder: const CircleBorder(),
             child: SizedBox(
               width: _kLocationBtnSize,
               height: _kLocationBtnSize,
               child: Icon(
                 isFollowing ? Icons.gps_fixed : Icons.gps_not_fixed,
-                color: Colors.white,
+                color: isFollowing
+                    ? AppColors.primary
+                    : Colors.white.withValues(alpha: 0.55),
                 size: AppIconSizes.sm,
               ),
             ),

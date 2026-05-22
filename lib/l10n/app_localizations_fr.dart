@@ -1222,6 +1222,19 @@ class AppLocalizationsFr extends AppLocalizations {
   String get tileQualityFair => 'Repasse ici';
 
   @override
+  String get tileQualityStaling => 'Données vieillissantes';
+
+  @override
+  String tileDecayWarning(int days) {
+    return 'Données vieilles de $days jours — repasse ici pour les rafraîchir.';
+  }
+
+  @override
+  String tileDecayHint(int days) {
+    return 'Cartographié il y a $days jours — le score va bientôt baisser.';
+  }
+
+  @override
   String get tileMeasuredWith => 'Enregistré avec';
 
   @override

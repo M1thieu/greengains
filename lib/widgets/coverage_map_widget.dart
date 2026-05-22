@@ -114,8 +114,10 @@ const _kLayerLiveGlow   = 'gg-live-glow';   // wide translucent ring — hex hal
 const _kLayerLiveLine   = 'gg-live-line';
 const _kLayerPendingFill = 'gg-pending-fill';
 const _kLayerPendingLine = 'gg-pending-line';
-const _kLayerUserHalo   = 'gg-user-halo';
-const _kLayerUserDot    = 'gg-user-dot';
+const _kLayerUserHalo    = 'gg-user-halo';
+const _kLayerUserDot     = 'gg-user-dot';
+const _kSourceAccuracy   = 'gg-accuracy';
+const _kLayerAccuracyRing = 'gg-accuracy-ring';
 
 /// H3 resolution for the ghost grid at a given map zoom.
 ///
@@ -185,11 +187,14 @@ class CoverageMapWidget extends StatefulWidget {
   /// H3 cell boundaries visited this session but not yet confirmed by backend.
   /// Rendered as optimistic "pending" tiles so the map feels instant.
   final List<List<ll.LatLng>> pendingCellBoundaries;
+  /// GPS accuracy radius in metres — renders a faint accuracy ring around user dot.
+  final double? userAccuracy;
 
   const CoverageMapWidget({
     super.key,
     required this.tiles,
     this.userLocation,
+    this.userAccuracy,
     this.currentH3Boundary,
     this.isTracking = false,
     this.onTileTap,
@@ -241,9 +246,6 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> {
   // Cached H3 instance — loading the native lib is expensive, reuse across calls.
   late final h3f.H3 _h3 = const h3f.H3Factory().load();
 
-  // Timestamp of last programmatic camera move — used to suppress false
-  // positives in _onCameraMove (animateCamera also triggers onCameraMove).
-  DateTime _lastProgrammaticMove = DateTime.fromMillisecondsSinceEpoch(0);
 
   // ── Style URL / JSON ────────────────────────────────────────────────────────
 
@@ -290,7 +292,12 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> {
       {'id': 'carto-base', 'type': 'raster', 'source': 'carto-base'},
       // Labels layer is added AFTER hex layers via addLayer so it appears on top
     ];
-    return jsonEncode({'version': 8, 'sources': sources, 'layers': layers});
+    return jsonEncode({
+      'version': 8,
+      'glyphs': 'https://protomaps.github.io/basemaps-assets/fonts/{fontstack}/{range}.pbf',
+      'sources': sources,
+      'layers': layers,
+    });
   }
 
   // ── GeoJSON builders ────────────────────────────────────────────────────────
@@ -358,7 +365,7 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> {
   }
 
   /// Separate point GeoJSON for hex labels — MapLibre symbol layers need Point geometry.
-  Map<String, dynamic> _tileLabelsGeoJson() {
+  Map<String, dynamic> _labelsGeoJson() {
     final features = <Map<String, dynamic>>[];
     for (final tile in widget.tiles) {
       if (tile.isGlobal || tile.boundary == null || tile.boundary!.isEmpty) continue;
@@ -366,16 +373,24 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> {
       final lngs = tile.boundary!.map((p) => p.longitude);
       final cLat = lats.reduce((a, b) => a + b) / tile.boundary!.length;
       final cLng = lngs.reduce((a, b) => a + b) / tile.boundary!.length;
+      final opacity = _fillOpacity(tile);
+      final ageDays = tile.lastUpdate != null
+          ? DateTime.now().difference(tile.lastUpdate!).inDays
+          : null;
+      final isStaling = ageDays != null && ageDays > 21;
+      final labelText = isStaling
+          ? '${_qualityPct(tile)}%·${ageDays}d'
+          : '${_qualityPct(tile)}%';
+      // Staling tiles get amber label regardless of quality score
+      final labelColor = isStaling ? AppColors.warningHex : _colorHex(tile);
       features.add({
         'type': 'Feature',
         'properties': {
-          'label': '${_qualityPct(tile)}%',
-          'color': _colorHex(tile),
+          'label': labelText,
+          'color': labelColor,
+          'labelOpacity': (opacity * 1.4).clamp(0.5, 1.0),
         },
-        'geometry': {
-          'type': 'Point',
-          'coordinates': [cLng, cLat],
-        },
+        'geometry': {'type': 'Point', 'coordinates': [cLng, cLat]},
       });
     }
     return {'type': 'FeatureCollection', 'features': features};
@@ -429,6 +444,41 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> {
     };
   }
 
+  /// Builds a GeoJSON circle polygon for the GPS accuracy ring.
+  /// Uses lat/lng offsets so the ring scales with zoom in real-world metres.
+  Map<String, dynamic> _accuracyRingGeoJson() {
+    final loc = widget.userLocation;
+    final acc = widget.userAccuracy;
+    if (loc == null || acc == null || acc <= 0) return _kEmptyFC;
+    const steps = 32;
+    const degPerMetre = 1.0 / 111320.0;
+    final latRadius = acc * degPerMetre;
+    final lngRadius = acc * degPerMetre / cos(loc.latitude * pi / 180);
+    final ring = List.generate(steps, (i) {
+      final angle = 2 * pi * i / steps;
+      return [
+        loc.longitude + lngRadius * cos(angle),
+        loc.latitude  + latRadius * sin(angle),
+      ];
+    })..add([
+      loc.longitude + lngRadius,
+      loc.latitude,
+    ]);
+    return {
+      'type': 'FeatureCollection',
+      'features': [
+        {
+          'type': 'Feature',
+          'properties': {},
+          'geometry': {
+            'type': 'Polygon',
+            'coordinates': [ring],
+          },
+        },
+      ],
+    };
+  }
+
   Map<String, dynamic> _userDotGeoJson() {
     final loc = widget.userLocation;
     if (loc == null) return _kEmptyFC;
@@ -462,10 +512,10 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> {
   }
 
   /// Returns the effective quality score (0–100) for a tile.
-  /// Uses qualityScore when available (global tiles), confidence otherwise.
   static int _qualityPct(H3Tile tile) {
-    if (tile.qualityScore != null) return (tile.qualityScore! * 100).round();
-    return (tile.confidence * 100).round();
+    if (tile.qualityRatio != null) return (tile.qualityRatio! * 100).round().clamp(0, 100);
+    if (tile.qualityScore != null) return (tile.qualityScore! * 100).round().clamp(0, 100);
+    return (tile.confidence * 100).round().clamp(0, 100);
   }
 
   static String _colorHex(H3Tile tile) {
@@ -492,13 +542,12 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> {
   static double _fillOpacity(H3Tile tile) {
     if (tile.isGlobal) return 0.18;
     final q = _qualityPct(tile);
-    // Bold fill — personal territory should read as clearly "owned"
     double base = q >= 75 ? 0.55 : q >= 50 ? 0.45 : 0.35;
-    // Mild freshness decay — motivates re-coverage without making tiles disappear
     if (tile.lastUpdate != null) {
       final age = DateTime.now().difference(tile.lastUpdate!).inDays;
-      if (age > 7) { base *= 0.70; }
-      else if (age > 3) { base *= 0.85; }
+      // Two-step decay: fresh → aging → stale
+      if (age > 21)     { base *= 0.45; }
+      else if (age > 7) { base *= 0.72; }
     }
     return base;
   }
@@ -509,8 +558,8 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> {
     double base = q >= 75 ? 0.95 : q >= 50 ? 0.80 : 0.65;
     if (tile.lastUpdate != null) {
       final age = DateTime.now().difference(tile.lastUpdate!).inDays;
-      if (age > 7) { base *= 0.70; }
-      else if (age > 3) { base *= 0.85; }
+      if (age > 21)     { base *= 0.45; }
+      else if (age > 7) { base *= 0.72; }
     }
     return base;
   }
@@ -530,7 +579,6 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> {
   void _onRecenter() {
     if (widget.userLocation == null || _ctrl == null) return;
     _followMode = true;
-    _lastProgrammaticMove = DateTime.now();
     _ctrl!.animateCamera(
       CameraUpdate.newLatLng(
         LatLng(widget.userLocation!.latitude, widget.userLocation!.longitude),
@@ -538,15 +586,7 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> {
     );
   }
 
-  void _onCameraMove(CameraPosition _) {
-    // If the camera started moving more than 800 ms after the last programmatic
-    // move, it's the user panning — exit follow mode.
-    if (_followMode &&
-        DateTime.now().difference(_lastProgrammaticMove) >
-            const Duration(milliseconds: 800)) {
-      _followMode = false;
-    }
-  }
+  void _onCameraMove(CameraPosition _) {}
 
   Future<void> _onStyleLoaded() async {
     final ctrl = _ctrl;
@@ -567,7 +607,7 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> {
       ctrl.addGeoJsonSource(_kSourcePending, _kEmptyFC),
       ctrl.addGeoJsonSource(_kSourceLiveCell, _kEmptyFC),
       ctrl.addGeoJsonSource(_kSourceUserDot, _kEmptyFC),
-      ctrl.addGeoJsonSource('gg-tile-labels', _kEmptyFC),
+      ctrl.addGeoJsonSource(_kSourceAccuracy, _kEmptyFC),
     ]);
 
     // ── Ghost grid fill — choropleth base layer ──
@@ -681,6 +721,16 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> {
       ),
     );
 
+    // ── GPS accuracy ring — faint fill shows fix quality in real-world metres ──
+    await ctrl.addFillLayer(
+      _kSourceAccuracy,
+      _kLayerAccuracyRing,
+      const FillLayerProperties(
+        fillColor: AppColors.primaryHex,
+        fillOpacity: 0.08,
+      ),
+    );
+
     // ── User location — halo ring + solid dot ──
     await ctrl.addCircleLayer(
       _kSourceUserDot,
@@ -705,23 +755,6 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> {
     );
     _startHaloPulse();
 
-    // ── Hex quality % labels — visible at zoom ≥13, one number per cell ──
-    // Only personal tiles get labels (global = too many, too dense).
-    // Text halo keeps the % readable over both light and dark hex fills.
-    await ctrl.addSymbolLayer(
-      'gg-tile-labels',
-      'gg-tile-labels-sym',
-      const SymbolLayerProperties(
-        textField: '{label}',
-        textSize: 11.0,
-        textColor: '#ffffff',
-        textOpacity: 0.90,
-        textHaloColor: '#000000',
-        textHaloWidth: 1.5,
-      ),
-      minzoom: 11.0,
-    );
-
     // ── Carto labels on top — street names / city names float above hexagons ──
     // Only needed for the CartoDB raster fallback (no Protomaps key).
     // The source is already in the style JSON; we add the layer here so it
@@ -738,13 +771,35 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> {
       }
     }
 
+    // ── Hex quality % labels — native MapLibre symbol layer ──────────────
+    // Uses Protomaps-hosted Noto Sans Regular (confirmed available).
+    // Symbol layers are rendered natively — they track map coordinates perfectly.
+    await ctrl.addGeoJsonSource('gg-labels', _kEmptyFC);
+    await ctrl.addSymbolLayer(
+      'gg-labels',
+      'gg-labels-sym',
+      SymbolLayerProperties(
+        textField: ['get', 'label'],
+        textFont: ['Noto Sans Regular'],
+        // Zoom-responsive size: small at z11, comfortable at z14+
+        textSize: ['interpolate', ['linear'], ['zoom'], 11.0, 9.0, 13.0, 12.0, 15.0, 14.0],
+        // Color matches tile fill — reads as part of the hex, not overlaid text
+        textColor: ['get', 'color'],
+        // Dark map bg as halo — soft separation without harsh black ring
+        textHaloColor: '#111927',
+        textHaloWidth: 1.2,
+        textOpacity: ['get', 'labelOpacity'],
+        textAllowOverlap: true,
+        textIgnorePlacement: true,
+        textAnchor: 'center',
+        textLetterSpacing: 0.02,
+      ),
+      minzoom: 11.0,
+    );
+
     debugPrint('MapLibre: all layers added — populating sources...');
-    // Mark ready only after all layers exist so _refreshAllSources calls from
-    // didUpdateWidget during setup don't hit LAYER_NOT_FOUND.
     _styleLoaded = true;
-    // ── Populate sources ──
     await _refreshAllSources();
-    // Wait for MapLibre camera + viewport to fully settle before grid
     await Future<void>.delayed(AppDurations.medium);
     await _refreshGrid();
     debugPrint('MapLibre: initial grid + sources populated');
@@ -761,10 +816,11 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> {
 
     await Future.wait([
       ctrl.setGeoJsonSource(_kSourceTiles, _tilesToGeoJson()),
-      ctrl.setGeoJsonSource('gg-tile-labels', _tileLabelsGeoJson()),
+      ctrl.setGeoJsonSource('gg-labels', _labelsGeoJson()),
       ctrl.setGeoJsonSource(_kSourcePending, _pendingCellsGeoJson()),
       ctrl.setGeoJsonSource(_kSourceLiveCell, _liveCellGeoJson()),
       ctrl.setGeoJsonSource(_kSourceUserDot, _userDotGeoJson()),
+      ctrl.setGeoJsonSource(_kSourceAccuracy, _accuracyRingGeoJson()),
       ctrl.setLayerProperties(_kLayerLiveFill, FillLayerProperties(fillOpacity: liveFillOpacity)),
       ctrl.setLayerProperties(_kLayerLiveGlow, LineLayerProperties(lineOpacity: liveGlowOpacity)),
       ctrl.setLayerProperties(_kLayerLiveLine, LineLayerProperties(lineOpacity: liveLineOpacity)),
@@ -796,7 +852,6 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> {
     // Add ~20% padding around the bounding box
     final latPad = (maxLat - minLat) * 0.3 + 0.005;
     final lngPad = (maxLng - minLng) * 0.3 + 0.005;
-    _lastProgrammaticMove = DateTime.now();
     ctrl.animateCamera(
       CameraUpdate.newLatLngBounds(
         LatLngBounds(
@@ -868,10 +923,15 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> {
     debugPrint('MapLibre: grid ${(geojson["features"] as List).length} cells at res $res (zoom ${zoom.toStringAsFixed(1)})');
   }
 
+  void _onCameraIdle() {
+    _scheduleGridRefresh();
+  }
+
   void _scheduleGridRefresh() {
     _gridTimer?.cancel();
     _gridTimer = Timer(_kGridDebounce, _refreshGrid);
   }
+
 
   void _startHaloPulse() {
     _haloTimer?.cancel();
@@ -880,12 +940,23 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> {
       if (!_styleLoaded || _ctrl == null || !mounted) return;
       _haloPhase = (_haloPhase + 0.07) % (2 * pi);
       final t = (sin(_haloPhase) + 1) / 2; // 0..1
+      // User dot halo
       final radius = 13.0 + t * 11.0;      // 13→24
       final opacity = 0.08 + t * 0.16;     // 0.08→0.24
       _ctrl!.setLayerProperties(
         _kLayerUserHalo,
         CircleLayerProperties(circleRadius: radius, circleOpacity: opacity),
       );
+      // Live cell glow — breathes in sync with user dot
+      if (widget.isTracking) {
+        _ctrl!.setLayerProperties(
+          _kLayerLiveGlow,
+          LineLayerProperties(
+            lineOpacity: 0.22 + t * 0.28,  // 0.22→0.50
+            lineWidth: 6.0 + t * 6.0,      // 6→12
+          ),
+        );
+      }
     });
   }
 
@@ -958,7 +1029,6 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> {
     if (tilesChanged || locationChanged || liveChanged) {
       _refreshAllSources();
     }
-
     // Tracking just started → enable follow mode so the map feels alive.
     // Must be deferred — didUpdateWidget runs during build, and setting the
     // ValueNotifier here would trigger markNeedsBuild on another widget mid-frame.
@@ -976,7 +1046,6 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> {
         widget.userLocation != null &&
         _ctrl != null) {
       _hasCenteredOnUser = true;
-      _lastProgrammaticMove = DateTime.now();
       _ctrl!.animateCamera(
         CameraUpdate.newCameraPosition(CameraPosition(
           target: LatLng(
@@ -994,7 +1063,6 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> {
         locationChanged &&
         widget.userLocation != null &&
         _ctrl != null) {
-      _lastProgrammaticMove = DateTime.now();
       _ctrl!.animateCamera(
         CameraUpdate.newLatLng(
           LatLng(widget.userLocation!.latitude, widget.userLocation!.longitude),
@@ -1027,7 +1095,6 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final topInset = MediaQuery.paddingOf(context).top;
-
     final mapWidget = MapLibreMap(
       key: const ValueKey('map'), // stable key — always dark style
       initialCameraPosition: CameraPosition(
@@ -1037,7 +1104,7 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> {
       styleString: _styleUrl(isDark),
       onMapCreated: _onMapCreated,
       onStyleLoadedCallback: _onStyleLoaded,
-      onCameraIdle: _scheduleGridRefresh,
+      onCameraIdle: _onCameraIdle,
       onCameraMove: _onCameraMove,
       onMapClick: widget.showControls ? _onMapTap : null,
       onMapLongClick: widget.showControls ? _onMapLongPress : null,
@@ -1053,11 +1120,22 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> {
       zoomGesturesEnabled: widget.showControls,
       tiltGesturesEnabled: false,
       myLocationEnabled: false,
+      // No annotation manager symbols — we use custom GeoJSON symbol layers.
+      // Without this, MapLibre creates a default symbol layer that can interfere.
+      annotationOrder: const [],
+    );
+
+    // Touch on the map surface exits follow mode immediately — no timing hacks.
+    final mapWithGesture = Listener(
+      onPointerDown: (_) {
+        if (_followMode) _followMode = false;
+      },
+      child: mapWidget,
     );
 
     final mapStack = Stack(
       children: [
-        mapWidget,
+        mapWithGesture,
 
         // ── Loading overlay (all modes) ───────────────────────────────────
         if (widget.isLoading)
@@ -1074,9 +1152,7 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> {
             child: Container(
               padding: const EdgeInsets.all(AppTheme.spaceLg),
               decoration: BoxDecoration(
-                color: isDark
-                    ? Colors.black.withValues(alpha: 0.7)
-                    : Colors.white.withValues(alpha: 0.9),
+                color: AppColors.surface(isDark).withValues(alpha: 0.92),
                 borderRadius: BorderRadius.circular(AppTheme.radiusMd),
                 border: Border.all(color: AppColors.border(isDark)),
               ),
@@ -1084,21 +1160,23 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(Icons.map_outlined,
-                      size: 48, color: AppColors.textSecondary(isDark)),
+                      size: AppIconSizes.xl, color: AppColors.textSecondary(isDark)),
                   const SizedBox(height: AppTheme.spaceSm),
                   Text(
                     context.l10n.noCoverageYet,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          color: AppColors.textPrimary(isDark),
-                          fontWeight: AppFontWeights.semibold,
-                        ),
+                    style: TextStyle(
+                      fontSize: AppTheme.fontSizeMd,
+                      color: AppColors.textPrimary(isDark),
+                      fontWeight: AppFontWeights.semibold,
+                    ),
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: AppTheme.spaceXxs),
                   Text(
                     context.l10n.startTrackingToMap,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: AppColors.textSecondary(isDark),
-                        ),
+                    style: TextStyle(
+                      fontSize: AppTheme.fontSizeBody,
+                      color: AppColors.textSecondary(isDark),
+                    ),
                   ),
                 ],
               ),
@@ -1112,29 +1190,28 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> {
         // ── Tile count badge (card mode) ──────────────────────────────────
         if (!widget.fillScreen && widget.tiles.isNotEmpty)
           Positioned(
-            top: 12,
-            right: 12,
+            top: AppTheme.spaceSm,
+            right: AppTheme.spaceSm,
             child: Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              padding: const EdgeInsets.symmetric(
+                  horizontal: AppTheme.spaceSm, vertical: AppTheme.spaceXs),
               decoration: BoxDecoration(
-                color: isDark
-                    ? Colors.black.withValues(alpha: 0.7)
-                    : Colors.white.withValues(alpha: 0.9),
-                borderRadius: BorderRadius.circular(8),
+                color: AppColors.surface(isDark).withValues(alpha: 0.9),
+                borderRadius: BorderRadius.circular(AppTheme.radiusSm),
                 border: Border.all(color: AppColors.border(isDark)),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.place_outlined, size: 16, color: AppColors.primary),
-                  const SizedBox(width: 6),
+                  Icon(Icons.place_outlined, size: AppIconSizes.xs, color: AppColors.primary),
+                  const SizedBox(width: AppTheme.spaceXs - 2),
                   Text(
                     context.l10n.tilesCount(widget.tiles.length),
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: AppColors.textPrimary(isDark),
-                          fontWeight: AppFontWeights.medium,
-                        ),
+                    style: TextStyle(
+                      fontSize: AppTheme.fontSizeXs,
+                      color: AppColors.textPrimary(isDark),
+                      fontWeight: AppFontWeights.medium,
+                    ),
                   ),
                 ],
               ),
@@ -1199,20 +1276,21 @@ class _MapTapHintState extends State<_MapTapHint> {
               child: BackdropFilter(
                 filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: AppTheme.spaceMd, vertical: AppTheme.spaceXs),
                   decoration: AppColors.glassDecoration(
                       isDark: true, backgroundAlpha: 0.60, borderAlpha: 0.18),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(Icons.touch_app_rounded,
-                          size: 16, color: AppColors.primary),
-                      const SizedBox(width: 8),
+                          size: AppIconSizes.xs, color: AppColors.primary),
+                      const SizedBox(width: AppTheme.spaceXs),
                       Text(
                         AppLocalizations.of(context)!.mapTapHint,
-                        style: const TextStyle(
-                          fontSize: 13,
-                          color: Colors.white,
+                        style: TextStyle(
+                          fontSize: AppTheme.fontSizeBody,
+                          color: AppColors.darkTextPrimary,
                           fontWeight: AppFontWeights.medium,
                         ),
                       ),
@@ -1253,32 +1331,31 @@ class MapHeatmapLegend extends StatelessWidget {
               sigmaX: AppTheme.glassBlurSigma,
               sigmaY: AppTheme.glassBlurSigma),
           child: Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            padding: const EdgeInsets.symmetric(
+                horizontal: AppTheme.spaceXs, vertical: AppTheme.spaceTiny + 1),
             decoration: AppColors.glassDecoration(
                 isDark: true, backgroundAlpha: 0.50, borderAlpha: 0.12),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 _LegendDot(color: AppColors.quality),
-                const SizedBox(width: 5),
+                const SizedBox(width: AppTheme.spaceTiny),
                 _LegendDot(color: AppColors.light),
-                const SizedBox(width: 5),
+                const SizedBox(width: AppTheme.spaceTiny),
                 _LegendDot(color: AppColors.heatmapHot),
                 if (hasCommunityTiles) ...[
                   Container(
-                      width: 1,
-                      height: 10,
-                      color: Colors.white24,
-                      margin:
-                          const EdgeInsets.symmetric(horizontal: 6)),
+                      width: AppBorderWidths.hairline + 0.5,
+                      height: AppTheme.spaceXs,
+                      color: AppColors.shadowLight(0.24),
+                      margin: const EdgeInsets.symmetric(horizontal: AppTheme.spaceXs - 2)),
                   _LegendDot(
-                      color:
-                          AppColors.community.withValues(alpha: 0.7)),
+                      color: AppColors.community.withValues(alpha: 0.7)),
                 ],
-                const SizedBox(width: 5),
-                const Icon(Icons.info_outline,
-                    size: 11, color: Colors.white38),
+                const SizedBox(width: AppTheme.spaceTiny),
+                Icon(Icons.info_outline,
+                    size: AppTheme.fontSizeXxs + 1,
+                    color: AppColors.shadowLight(0.38)),
               ],
             ),
           ),
@@ -1295,8 +1372,8 @@ class _LegendDot extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 9,
-      height: 9,
+      width: AppTheme.dotSize + 3,
+      height: AppTheme.dotSize + 3,
       decoration: BoxDecoration(color: color, shape: BoxShape.circle),
     );
   }
@@ -1325,27 +1402,17 @@ class _LegendInfoSheet extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Center(
-              child: Container(
-                margin:
-                    const EdgeInsets.symmetric(vertical: AppTheme.spaceSm),
-                width: 32,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: AppColors.textSecondary(isDark)
-                      .withValues(alpha: 0.3),
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ),
+            AppTheme.dragHandle(isDark),
             Padding(
               padding: const EdgeInsets.fromLTRB(
                   AppTheme.spaceMd, 0, AppTheme.spaceMd, AppTheme.spaceSm),
               child: Text(l10n.infoTileQualityTitle,
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontWeight: AppFontWeights.semibold,
-                        color: AppColors.textPrimary(isDark),
-                      )),
+                  style: TextStyle(
+                    fontSize: AppTheme.fontSizeMd,
+                    fontWeight: AppFontWeights.semibold,
+                    color: AppColors.textPrimary(isDark),
+                    letterSpacing: -0.2,
+                  )),
             ),
             _LegendRow(
                 color: AppColors.quality,
@@ -1395,8 +1462,8 @@ class _LegendRow extends StatelessWidget {
       child: Row(
         children: [
           Container(
-            width: 10,
-            height: 10,
+            width: AppTheme.spaceXs + 2,
+            height: AppTheme.spaceXs + 2,
             decoration: BoxDecoration(color: color, shape: BoxShape.circle),
           ),
           const SizedBox(width: AppTheme.spaceSm),
@@ -1406,12 +1473,12 @@ class _LegendRow extends StatelessWidget {
               children: [
                 Text(label,
                     style: TextStyle(
-                        fontSize: 13,
+                        fontSize: AppTheme.fontSizeSm,
                         fontWeight: AppFontWeights.semibold,
                         color: AppColors.textPrimary(isDark))),
                 Text(sub,
                     style: TextStyle(
-                        fontSize: 11,
+                        fontSize: AppTheme.fontSizeXs,
                         color: AppColors.textSecondary(isDark))),
               ],
             ),
@@ -1465,7 +1532,12 @@ class _TileInfoSheetState extends State<TileInfoSheet> {
     final tile = widget.tile;
     final isDark = widget.isDark;
     final l10n = widget.l10n;
-    final theme = Theme.of(context);
+
+    final ageDays = tile.lastUpdate != null
+        ? DateTime.now().difference(tile.lastUpdate!).inDays
+        : null;
+    final isStaling = ageDays != null && ageDays > 21;
+    final isAging  = ageDays != null && ageDays > 7 && !isStaling;
 
     // Priority: personal quality ratio (weighted composite) > global quality score > confidence
     final qualityPct = tile.qualityRatio != null
@@ -1473,16 +1545,20 @@ class _TileInfoSheetState extends State<TileInfoSheet> {
         : tile.qualityScore != null
             ? (tile.qualityScore! * 100).round()
             : (tile.confidence * 100).round();
-    final qualityColor = qualityPct >= 75
-        ? AppColors.quality
-        : qualityPct >= 50
-            ? AppColors.light
-            : AppColors.error;
-    final qualityLabel = qualityPct >= 75
-        ? l10n.tileQualityExcellent
-        : qualityPct >= 50
-            ? l10n.tileQualityGood
-            : l10n.tileQualityFair;
+    final qualityColor = isStaling
+        ? AppColors.warning
+        : qualityPct >= 75
+            ? AppColors.quality
+            : qualityPct >= 50
+                ? AppColors.light
+                : AppColors.error;
+    final qualityLabel = isStaling
+        ? l10n.tileQualityStaling
+        : qualityPct >= 75
+            ? l10n.tileQualityExcellent
+            : qualityPct >= 50
+                ? l10n.tileQualityGood
+                : l10n.tileQualityFair;
 
     return Container(
       margin: const EdgeInsets.symmetric(
@@ -1500,17 +1576,8 @@ class _TileInfoSheetState extends State<TileInfoSheet> {
             mainAxisSize: MainAxisSize.min,
             children: [
               // Quality color accent strip
-              Container(height: 3, color: qualityColor),
-              // Drag handle
-              Container(
-                margin: const EdgeInsets.symmetric(vertical: AppTheme.spaceSm),
-                width: 32,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: AppColors.textSecondary(isDark).withValues(alpha: 0.3),
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
+              Container(height: AppTheme.spaceTiny, color: qualityColor),
+              AppTheme.dragHandle(isDark),
               // Header row: title + quality badge
               Padding(
                 padding: const EdgeInsets.fromLTRB(
@@ -1524,9 +1591,11 @@ class _TileInfoSheetState extends State<TileInfoSheet> {
                         children: [
                           Text(
                             isPersonal ? l10n.tileInfoPersonal : l10n.tileInfoCommunity,
-                            style: theme.textTheme.titleSmall?.copyWith(
+                            style: TextStyle(
+                              fontSize: AppTheme.fontSizeMd,
                               color: AppColors.textPrimary(isDark),
                               fontWeight: AppFontWeights.semibold,
+                              letterSpacing: -0.2,
                             ),
                           ),
                           if (isPersonal && _firstMappedAt != null) ...[
@@ -1534,7 +1603,7 @@ class _TileInfoSheetState extends State<TileInfoSheet> {
                             Text(
                               l10n.tileFirstMapped(DateFormat('MMM d, yyyy', Localizations.localeOf(context).toString()).format(_firstMappedAt!)),
                               style: TextStyle(
-                                fontSize: 12,
+                                fontSize: AppTheme.fontSizeBody,
                                 color: AppColors.primary.withValues(alpha: 0.85),
                                 fontWeight: AppFontWeights.medium,
                               ),
@@ -1556,7 +1625,7 @@ class _TileInfoSheetState extends State<TileInfoSheet> {
                                 l10n.tileOnlyYouMapped,
                                 style: TextStyle(
                                   color: AppColors.primary,
-                                  fontSize: 11,
+                                  fontSize: AppTheme.fontSizeXs,
                                   fontWeight: AppFontWeights.semibold,
                                 ),
                               ),
@@ -1577,19 +1646,17 @@ class _TileInfoSheetState extends State<TileInfoSheet> {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Container(
-                            width: 6, height: 6,
-                            decoration: BoxDecoration(
-                              color: qualityColor,
-                              shape: BoxShape.circle,
-                            ),
+                          Icon(
+                            isStaling ? Icons.warning_amber_rounded : Icons.circle,
+                            size: AppTheme.dotSize + (isStaling ? 2 : 0),
+                            color: qualityColor,
                           ),
-                          const SizedBox(width: 4),
+                          const SizedBox(width: AppTheme.spaceXxs),
                           Text(
                             qualityLabel,
                             style: TextStyle(
                               color: qualityColor,
-                              fontSize: 11,
+                              fontSize: AppTheme.fontSizeSm,
                               fontWeight: AppFontWeights.semibold,
                               letterSpacing: 0.1,
                             ),
@@ -1613,7 +1680,7 @@ class _TileInfoSheetState extends State<TileInfoSheet> {
                         Text(
                           l10n.tileInfoQualityLabel,
                           style: TextStyle(
-                            fontSize: 11,
+                            fontSize: AppTheme.fontSizeBody,
                             color: AppColors.textSecondary(isDark),
                             fontWeight: AppFontWeights.medium,
                           ),
@@ -1621,7 +1688,7 @@ class _TileInfoSheetState extends State<TileInfoSheet> {
                         Text(
                           '$qualityPct%',
                           style: TextStyle(
-                            fontSize: 11,
+                            fontSize: AppTheme.fontSizeSm,
                             color: qualityColor,
                             fontWeight: AppFontWeights.bold,
                           ),
@@ -1637,12 +1704,32 @@ class _TileInfoSheetState extends State<TileInfoSheet> {
                         borderRadius: BorderRadius.circular(AppTheme.radiusPill),
                         child: LinearProgressIndicator(
                           value: value,
-                          minHeight: 5,
+                          minHeight: AppTheme.spaceXxs + 1,
                           backgroundColor: AppColors.border(isDark),
                           valueColor: AlwaysStoppedAnimation<Color>(qualityColor),
                         ),
                       ),
                     ),
+                    if (isStaling) ...[
+                      const SizedBox(height: AppTheme.spaceXs),
+                      Text(
+                        l10n.tileDecayWarning(ageDays),
+                        style: TextStyle(
+                          fontSize: AppTheme.fontSizeXs,
+                          color: AppColors.warning,
+                          fontWeight: AppFontWeights.medium,
+                        ),
+                      ),
+                    ] else if (isAging) ...[
+                      const SizedBox(height: AppTheme.spaceXs),
+                      Text(
+                        l10n.tileDecayHint(ageDays),
+                        style: TextStyle(
+                          fontSize: AppTheme.fontSizeXs,
+                          color: AppColors.textTertiary(isDark),
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -1732,19 +1819,19 @@ class _TileInfoSheetState extends State<TileInfoSheet> {
                     child: Row(
                       children: [
                         Icon(Icons.add_location_alt_outlined,
-                            size: 15, color: AppColors.primary),
+                            size: AppIconSizes.xs, color: AppColors.primary),
                         const SizedBox(width: AppTheme.spaceXs),
                         Expanded(
                           child: Text(
                             l10n.tileCommunityClaimCta,
                             style: TextStyle(
-                              fontSize: 13,
+                              fontSize: AppTheme.fontSizeBody,
                               color: AppColors.primary,
                               fontWeight: AppFontWeights.medium,
                             ),
                           ),
                         ),
-                        Icon(Icons.chevron_right, size: 16, color: AppColors.primary),
+                        Icon(Icons.chevron_right, size: AppIconSizes.xs, color: AppColors.primary),
                       ],
                     ),
                   ),
@@ -1812,21 +1899,22 @@ class _StatItem extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 16, color: AppColors.textSecondary(isDark)),
-          const SizedBox(height: 3),
+          Icon(icon, size: AppIconSizes.xs, color: AppColors.textSecondary(isDark)),
+          const SizedBox(height: AppTheme.spaceTiny),
           Text(
             value,
-            style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  color: AppColors.textPrimary(isDark),
-                  fontWeight: AppFontWeights.semibold,
-                  letterSpacing: -0.3,
-                ),
+            style: TextStyle(
+              fontSize: AppTheme.fontSizeSm,
+              color: AppColors.textPrimary(isDark),
+              fontWeight: AppFontWeights.semibold,
+              letterSpacing: -0.3,
+            ),
           ),
-          const SizedBox(height: 2),
+          const SizedBox(height: AppTheme.spaceXxxs),
           Text(
             label,
             style: TextStyle(
-              fontSize: 10,
+              fontSize: AppTheme.fontSizeXs,
               color: AppColors.textSecondary(isDark),
             ),
           ),
@@ -1861,12 +1949,12 @@ class _TimeAgoLine extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(Icons.schedule, size: 10, color: AppColors.textSecondary(isDark)),
-        const SizedBox(width: 3),
+        Icon(Icons.schedule, size: AppTheme.fontSizeXs, color: AppColors.textSecondary(isDark)),
+        const SizedBox(width: AppTheme.spaceTiny),
         TimeAgoText(
           timestamp: timestamp,
           style: TextStyle(
-            fontSize: 11,
+            fontSize: AppTheme.fontSizeXs,
             color: AppColors.textSecondary(isDark),
           ),
         ),
@@ -1902,31 +1990,31 @@ class _SensorCard extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 18, color: color),
+          Icon(icon, size: AppIconSizes.sm, color: color),
           if (title != null) ...[
-            const SizedBox(height: 3),
+            const SizedBox(height: AppTheme.spaceTiny),
             Text(
               title!.toUpperCase(),
               textAlign: TextAlign.center,
               style: TextStyle(
-                fontSize: 9,
+                fontSize: AppTheme.fontSizeXxs,
                 color: color.withValues(alpha: 0.75),
                 fontWeight: AppFontWeights.semibold,
                 letterSpacing: 0.6,
               ),
             ),
           ],
-          const SizedBox(height: 3),
+          const SizedBox(height: AppTheme.spaceTiny),
           Text(
             label,
             textAlign: TextAlign.center,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(
-              fontSize: 11,
+              fontSize: AppTheme.fontSizeXs,
               color: AppColors.textPrimary(isDark),
               fontWeight: AppFontWeights.semibold,
-              height: 1.3,
+              height: AppLineHeights.snug,
             ),
           ),
         ],

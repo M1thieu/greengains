@@ -143,7 +143,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               color: AppColors.primaryAlpha(0.10),
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.map_outlined, size: 32, color: AppColors.primary),
+            child: const Icon(Icons.map_outlined, size: AppIconSizes.lg, color: AppColors.primary),
           ),
           const SizedBox(height: AppTheme.spaceMd),
           Text(
@@ -247,7 +247,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         color: AppColors.primary.withValues(alpha: 0.10),
-                        border: Border.all(color: AppColors.primary, width: 2.5),
+                        border: Border.all(color: AppColors.primary, width: AppBorderWidths.medium + 1),
                       ),
                       child: ClipOval(
                         child: user.photoURL != null
@@ -259,7 +259,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 placeholder: (_, __) => Shimmer.fromColors(
                                   baseColor: AppColors.shimmerBase(isDark),
                                   highlightColor: AppColors.shimmerHighlight(isDark),
-                                  child: Container(color: Colors.white),
+                                  child: Container(color: AppColors.shimmerBase(isDark)),
                                 ),
                                 errorWidget: (_, __, ___) => Center(
                                   child: Text(
@@ -372,14 +372,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
         return Padding(
           padding: EdgeInsets.fromLTRB(AppTheme.spaceLg, AppTheme.spaceMd, AppTheme.spaceLg, bottomPad),
           child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Center(child: Container(
-              width: 36, height: 4,
-              decoration: BoxDecoration(
-                color: AppColors.textTertiary(isDark).withValues(alpha: 0.4),
-                borderRadius: BorderRadius.circular(2),
-              ),
-            )),
-            const SizedBox(height: AppTheme.spaceLg),
+            AppTheme.dragHandle(isDark),
+            const SizedBox(height: AppTheme.spaceMd),
             Text(value, style: theme.textTheme.displaySmall?.copyWith(
               fontWeight: AppFontWeights.bold,
               letterSpacing: -1.0,
@@ -501,7 +495,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 // Fire icon
                 Icon(
                   Icons.local_fire_department_rounded,
-                  size: 48,
+                  size: AppIconSizes.xl,
                   color: active
                       ? AppColors.primary.withValues(alpha: 0.30)
                       : AppColors.textTertiary(isDark).withValues(alpha: 0.12),

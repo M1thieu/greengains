@@ -40,7 +40,7 @@ class StatCell extends StatelessWidget {
               height: AppLineHeights.tight,
             ),
           ),
-          const SizedBox(height: 2),
+          const SizedBox(height: AppTheme.spaceXxs),
           Text(
             label,
             style: AppTheme.statLabel(isDark),

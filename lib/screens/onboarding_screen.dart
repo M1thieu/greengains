@@ -319,16 +319,16 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       fontWeight: AppFontWeights.semibold,
                       letterSpacing: -0.8,
                       height: 1.12,
-                      color: Colors.white.withValues(alpha: 0.96),
+                      color: AppColors.darkTextPrimary,
                     ),
                   ),
                   const SizedBox(height: AppTheme.spaceSm),
                   Text(
                     l10n.onboardingWelcomeSubtitle,
                     style: TextStyle(
-                      fontSize: 15,
-                      height: 1.5,
-                      color: Colors.white.withValues(alpha: 0.58),
+                      fontSize: AppTheme.fontSizeMd,
+                      height: AppLineHeights.relaxed,
+                      color: AppColors.darkTextSecondary,
                     ),
                   ),
                   const Spacer(),
@@ -617,11 +617,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 onPressed: _startingTracking ? null : _handleStartMapping,
                 child: _startingTracking
                     ? const SizedBox(
-                        width: 20,
-                        height: 20,
+                        width: AppIconSizes.sm,
+                        height: AppIconSizes.sm,
                         child: CircularProgressIndicator(
-                          strokeWidth: 2.5,
-                          valueColor: AlwaysStoppedAnimation(Colors.white),
+                          strokeWidth: AppBorderWidths.spinner,
+                          valueColor: AlwaysStoppedAnimation(AppColors.darkTextPrimary),
                         ),
                       )
                     : Text(l10n.onboardingActivateCta),
@@ -658,22 +658,23 @@ class _FeatureRow extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         SizedBox(
-          width: 32, height: 32,
-          child: Icon(icon, size: 20, color: Colors.white.withValues(alpha: 0.7)),
+          width: AppIconSizes.lg,
+          height: AppIconSizes.lg,
+          child: Icon(icon, size: AppIconSizes.sm, color: AppColors.darkTextSecondary),
         ),
         const SizedBox(width: AppTheme.spaceSm),
         Expanded(
           child: Padding(
-            padding: const EdgeInsets.only(top: 4),
+            padding: const EdgeInsets.only(top: AppTheme.spaceXxs),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   title,
                   style: TextStyle(
-                    fontSize: 14,
+                    fontSize: AppTheme.fontSizeSm,
                     fontWeight: AppFontWeights.semibold,
-                    color: Colors.white.withValues(alpha: 0.92),
+                    color: AppColors.darkTextPrimary,
                     letterSpacing: -0.1,
                   ),
                 ),

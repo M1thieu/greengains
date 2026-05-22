@@ -272,7 +272,7 @@
   "infoMilestoneBody": "Each new area you map counts toward the next milestone.",
   "infoTileQualityTitle": "Coverage quality",
   "infoTileQualityBody": "Green = well covered, yellow = partial, red = needs more passes.",
-  "infoTilePersonalTitle": "Your area",
+"infoTilePersonalTitle": "Your area",
   "infoTilePersonalBody": "Your phone recorded here.",
   "infoTileCommunityTitle": "Community area",
   "infoTileCommunityBody": "Mapped by others. Walk here to make it yours.",
@@ -501,6 +501,11 @@
   "tileQualityExcellent": "Well covered",
   "tileQualityGood": "Good coverage",
   "tileQualityFair": "Pass here again",
+  "tileQualityStaling": "Staling",
+  "tileDecayWarning": "Data is {days} days old — walk here to refresh it.",
+  "@tileDecayWarning": { "placeholders": { "days": { "type": "int" } } },
+  "tileDecayHint": "Mapped {days} days ago — score will drop soon.",
+  "@tileDecayHint": { "placeholders": { "days": { "type": "int" } } },
 
   "tileMeasuredWith": "Recorded with",
 

@@ -2132,6 +2132,24 @@ abstract class AppLocalizations {
   /// **'Pass here again'**
   String get tileQualityFair;
 
+  /// No description provided for @tileQualityStaling.
+  ///
+  /// In en, this message translates to:
+  /// **'Staling'**
+  String get tileQualityStaling;
+
+  /// No description provided for @tileDecayWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Data is {days} days old — walk here to refresh it.'**
+  String tileDecayWarning(int days);
+
+  /// No description provided for @tileDecayHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Mapped {days} days ago — score will drop soon.'**
+  String tileDecayHint(int days);
+
   /// No description provided for @tileMeasuredWith.
   ///
   /// In en, this message translates to:

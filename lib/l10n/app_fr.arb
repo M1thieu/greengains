@@ -272,7 +272,7 @@
   "infoMilestoneBody": "Chaque nouvel endroit cartographié compte pour le prochain palier.",
   "infoTileQualityTitle": "Qualité de couverture",
   "infoTileQualityBody": "Vert = bien couvert, jaune = partiel, rouge = plus de passages nécessaires.",
-  "infoTilePersonalTitle": "Votre endroit",
+"infoTilePersonalTitle": "Votre endroit",
   "infoTilePersonalBody": "Votre téléphone a enregistré ici.",
   "infoTileCommunityTitle": "Endroit communautaire",
   "infoTileCommunityBody": "Cartographié par d'autres. Passez ici pour vous l'approprier.",
@@ -501,6 +501,11 @@
   "tileQualityExcellent": "Bien couvert",
   "tileQualityGood": "Bonne couverture",
   "tileQualityFair": "Repasse ici",
+  "tileQualityStaling": "Données vieillissantes",
+  "tileDecayWarning": "Données vieilles de {days} jours — repasse ici pour les rafraîchir.",
+  "@tileDecayWarning": { "placeholders": { "days": { "type": "int" } } },
+  "tileDecayHint": "Cartographié il y a {days} jours — le score va bientôt baisser.",
+  "@tileDecayHint": { "placeholders": { "days": { "type": "int" } } },
 
   "tileMeasuredWith": "Enregistré avec",
 
