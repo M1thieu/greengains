@@ -399,6 +399,8 @@ class AppTheme {
   static const double spaceLg = 24;
   static const double spaceXl = 32;
   static const double spaceXxl = 48;
+  static const double spaceXxxl = 72; // celebration / display circle sizes
+  static const double iconCircleMd = 56.0; // milestone / trophy icon circles
 
   // Common layout tokens
   static const double ctaGapLink = 4;

@@ -367,7 +367,7 @@ class ContributionStatsCardState extends State<ContributionStatsCard>
                     context.l10n.statsSinceDate(DateFormat('MMM yyyy', Localizations.localeOf(context).toString()).format(_stats.firstContributionAt!)),
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: AppColors.textSecondary(isDark).withValues(alpha: 0.6),
-                      fontSize: 11,
+                      fontSize: AppTheme.fontSizeXxs,
                     ),
                   )
                 else if (_stats.loadedAt != null)

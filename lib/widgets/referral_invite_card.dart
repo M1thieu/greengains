@@ -129,7 +129,7 @@ class _ReferralInviteCardState extends State<ReferralInviteCard> {
       child: Row(
         children: [
           Container(
-            width: 36, height: 36,
+            width: AppIconSizes.xl, height: AppIconSizes.xl,
             decoration: BoxDecoration(color: AppColors.primaryAlpha(0.14), shape: BoxShape.circle),
             child: Icon(
               _conversions > 0 ? Icons.people_rounded : Icons.people_outline_rounded,
@@ -204,11 +204,11 @@ class _WaitingDotsState extends State<_WaitingDots> with SingleTickerProviderSta
             final phase = ((_ctrl.value * 3) - i).clamp(0.0, 1.0);
             final opacity = (1 - (phase - 0.5).abs() * 2).clamp(0.25, 1.0);
             return Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 2),
+              padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceXxxs),
               child: Opacity(
                 opacity: opacity,
                 child: Container(
-                  width: 5, height: 5,
+                  width: AppTheme.spaceTiny + 2, height: AppTheme.spaceTiny + 2,
                   decoration: BoxDecoration(
                     color: AppColors.primary,
                     shape: BoxShape.circle,

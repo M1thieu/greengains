@@ -43,7 +43,7 @@ class AppSnackbars {
       content: Row(
         children: [
           Icon(resolvedIcon, color: textColor),
-          const SizedBox(width: 12),
+          const SizedBox(width: AppTheme.spaceSm),
           Expanded(
             child: Text(
               message,

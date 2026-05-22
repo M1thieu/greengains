@@ -49,7 +49,7 @@ class BatteryOptimizationDialog extends StatelessWidget {
         child: ListBody(
           children: <Widget>[
             Text(l10n.batteryDialogBody),
-            const SizedBox(height: 10),
+            const SizedBox(height: AppTheme.spaceXs + 2),
             Text(
               l10n.batteryDialogBodyBold,
               style: const TextStyle(fontWeight: AppFontWeights.bold),
