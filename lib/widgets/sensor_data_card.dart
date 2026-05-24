@@ -21,6 +21,7 @@ class SensorDataCard extends StatefulWidget {
   final String title;
   final String? value;
   final String? rawValue;
+  final String? hint;
   final String unit;
   final bool enabled;
   final String statusLabel;
@@ -33,6 +34,7 @@ class SensorDataCard extends StatefulWidget {
     required this.title,
     required this.value,
     this.rawValue,
+    this.hint,
     required this.unit,
     required this.enabled,
     required this.statusLabel,
@@ -195,6 +197,17 @@ class _SensorDataCardState extends State<SensorDataCard>
                           color: AppColors.textTertiary(isDark),
                           height: _kSensorUnitLineH,
                           fontFeatures: const [FontFeature.tabularFigures()],
+                        ),
+                      ),
+                    ],
+                    if (widget.hint != null) ...[
+                      const SizedBox(height: AppTheme.spaceXxxs),
+                      Text(
+                        widget.hint!,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: AppColors.textTertiary(isDark).withValues(alpha: 0.75),
+                          height: _kSensorUnitLineH,
+                          fontStyle: FontStyle.italic,
                         ),
                       ),
                     ],

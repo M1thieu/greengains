@@ -1736,6 +1736,36 @@ abstract class AppLocalizations {
   /// **'Very Bright'**
   String get lightVeryBright;
 
+  /// No description provided for @lightDarkHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Near darkness — nighttime or deep shade'**
+  String get lightDarkHint;
+
+  /// No description provided for @lightDimHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Low ambient light — away from windows'**
+  String get lightDimHint;
+
+  /// No description provided for @lightNormalHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Comfortable light — typical indoor daylight'**
+  String get lightNormalHint;
+
+  /// No description provided for @lightBrightHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Well-lit — near a window or outdoors'**
+  String get lightBrightHint;
+
+  /// No description provided for @lightVeryBrightHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Direct sunlight — peak UV exposure'**
+  String get lightVeryBrightHint;
+
   /// No description provided for @magnetVeryLow.
   ///
   /// In en, this message translates to:
@@ -1759,6 +1789,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'High. Near metal.'**
   String get magnetHighNearMetal;
+
+  /// No description provided for @magnetVeryLowHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Minimal electromagnetic interference'**
+  String get magnetVeryLowHint;
+
+  /// No description provided for @magnetNormalHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Normal background EMF'**
+  String get magnetNormalHint;
+
+  /// No description provided for @magnetElevatedHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Possible metal structures or wiring nearby'**
+  String get magnetElevatedHint;
+
+  /// No description provided for @magnetHighHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Near electrical infrastructure or heavy equipment'**
+  String get magnetHighHint;
 
   /// No description provided for @daysActive.
   ///
@@ -2642,6 +2696,30 @@ abstract class AppLocalizations {
   /// **'Heavy traffic'**
   String get sensorMovementIntense;
 
+  /// No description provided for @sensorMovementLowHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Quiet zone — minimal foot traffic'**
+  String get sensorMovementLowHint;
+
+  /// No description provided for @sensorMovementMidHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Light activity — pedestrian area'**
+  String get sensorMovementMidHint;
+
+  /// No description provided for @sensorMovementHighHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Active environment — transit or crowds'**
+  String get sensorMovementHighHint;
+
+  /// No description provided for @sensorMovementIntenseHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Strong vibration — heavy traffic or machinery'**
+  String get sensorMovementIntenseHint;
+
   /// No description provided for @sensorHpaLow.
   ///
   /// In en, this message translates to:
@@ -2659,6 +2737,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Heavy air'**
   String get sensorHpaHigh;
+
+  /// No description provided for @sensorHpaLowHint.
+  ///
+  /// In en, this message translates to:
+  /// **'High pressure — stable, dry conditions typical'**
+  String get sensorHpaLowHint;
+
+  /// No description provided for @sensorHpaMidHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Normal atmospheric pressure at this altitude'**
+  String get sensorHpaMidHint;
+
+  /// No description provided for @sensorHpaHighHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Low pressure — unsettled weather possible'**
+  String get sensorHpaHighHint;
 
   /// No description provided for @sensorAccelStill.
   ///

@@ -969,6 +969,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get lightVeryBright => 'Very Bright';
 
   @override
+  String get lightDarkHint => 'Near darkness — nighttime or deep shade';
+
+  @override
+  String get lightDimHint => 'Low ambient light — away from windows';
+
+  @override
+  String get lightNormalHint => 'Comfortable light — typical indoor daylight';
+
+  @override
+  String get lightBrightHint => 'Well-lit — near a window or outdoors';
+
+  @override
+  String get lightVeryBrightHint => 'Direct sunlight — peak UV exposure';
+
+  @override
   String get magnetVeryLow => 'Very low';
 
   @override
@@ -979,6 +994,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get magnetHighNearMetal => 'High. Near metal.';
+
+  @override
+  String get magnetVeryLowHint => 'Minimal electromagnetic interference';
+
+  @override
+  String get magnetNormalHint => 'Normal background EMF';
+
+  @override
+  String get magnetElevatedHint => 'Possible metal structures or wiring nearby';
+
+  @override
+  String get magnetHighHint =>
+      'Near electrical infrastructure or heavy equipment';
 
   @override
   String daysActive(int count) {
@@ -1560,6 +1588,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sensorMovementIntense => 'Heavy traffic';
 
   @override
+  String get sensorMovementLowHint => 'Quiet zone — minimal foot traffic';
+
+  @override
+  String get sensorMovementMidHint => 'Light activity — pedestrian area';
+
+  @override
+  String get sensorMovementHighHint => 'Active environment — transit or crowds';
+
+  @override
+  String get sensorMovementIntenseHint =>
+      'Strong vibration — heavy traffic or machinery';
+
+  @override
   String get sensorHpaLow => 'Clear air';
 
   @override
@@ -1567,6 +1608,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get sensorHpaHigh => 'Heavy air';
+
+  @override
+  String get sensorHpaLowHint =>
+      'High pressure — stable, dry conditions typical';
+
+  @override
+  String get sensorHpaMidHint => 'Normal atmospheric pressure at this altitude';
+
+  @override
+  String get sensorHpaHighHint => 'Low pressure — unsettled weather possible';
 
   @override
   String get sensorAccelStill => 'Barely moving';
