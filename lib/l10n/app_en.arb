@@ -807,6 +807,11 @@
   "profileTileAreaCells": "zones explored",
   "profileStatCityBlocks": "city blocks",
   "profileStreakExplain": "Consecutive days with at least one sync.",
+  "profileUploadsExplanation": "Each upload is a batch of ~100 sensor readings captured at one location. Your data contributes to the shared environmental map.",
+  "profileDaysExplanation": "Days where your phone contributed at least one data upload. More active days means richer, more recent coverage.",
+  "profileZonesExplanation": "Each zone is a hexagonal cell (~174 m across) where your phone recorded environmental data. Tap the map to see exactly which areas you've covered.",
+  "profileSeeInStats": "See in Stats",
+  "profileViewOnMap": "View on Map",
 
   "statsMilestoneTarget": "{target} places",
   "@statsMilestoneTarget": {

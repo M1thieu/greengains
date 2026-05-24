@@ -1892,6 +1892,24 @@ class AppLocalizationsFr extends AppLocalizations {
   String get profileStreakExplain => 'Jours consécutifs avec au moins un sync.';
 
   @override
+  String get profileUploadsExplanation =>
+      'Chaque envoi regroupe ~100 lectures de capteurs capturées à un endroit. Vos données enrichissent la carte environnementale partagée.';
+
+  @override
+  String get profileDaysExplanation =>
+      'Jours où votre téléphone a contribué au moins un envoi de données. Plus vous êtes actif, plus votre couverture est récente et riche.';
+
+  @override
+  String get profileZonesExplanation =>
+      'Chaque zone est une cellule hexagonale (~174 m) où votre téléphone a enregistré des données environnementales. Consultez la carte pour voir exactement quels endroits vous avez couverts.';
+
+  @override
+  String get profileSeeInStats => 'Voir dans les stats';
+
+  @override
+  String get profileViewOnMap => 'Voir sur la carte';
+
+  @override
   String statsMilestoneTarget(int target) {
     return '$target endroits';
   }

@@ -1868,6 +1868,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileStreakExplain => 'Consecutive days with at least one sync.';
 
   @override
+  String get profileUploadsExplanation =>
+      'Each upload is a batch of ~100 sensor readings captured at one location. Your data contributes to the shared environmental map.';
+
+  @override
+  String get profileDaysExplanation =>
+      'Days where your phone contributed at least one data upload. More active days means richer, more recent coverage.';
+
+  @override
+  String get profileZonesExplanation =>
+      'Each zone is a hexagonal cell (~174 m across) where your phone recorded environmental data. Tap the map to see exactly which areas you\'ve covered.';
+
+  @override
+  String get profileSeeInStats => 'See in Stats';
+
+  @override
+  String get profileViewOnMap => 'View on Map';
+
+  @override
   String statsMilestoneTarget(int target) {
     return '$target places';
   }

@@ -3194,6 +3194,36 @@ abstract class AppLocalizations {
   /// **'Consecutive days with at least one sync.'**
   String get profileStreakExplain;
 
+  /// No description provided for @profileUploadsExplanation.
+  ///
+  /// In en, this message translates to:
+  /// **'Each upload is a batch of ~100 sensor readings captured at one location. Your data contributes to the shared environmental map.'**
+  String get profileUploadsExplanation;
+
+  /// No description provided for @profileDaysExplanation.
+  ///
+  /// In en, this message translates to:
+  /// **'Days where your phone contributed at least one data upload. More active days means richer, more recent coverage.'**
+  String get profileDaysExplanation;
+
+  /// No description provided for @profileZonesExplanation.
+  ///
+  /// In en, this message translates to:
+  /// **'Each zone is a hexagonal cell (~174 m across) where your phone recorded environmental data. Tap the map to see exactly which areas you\'ve covered.'**
+  String get profileZonesExplanation;
+
+  /// No description provided for @profileSeeInStats.
+  ///
+  /// In en, this message translates to:
+  /// **'See in Stats'**
+  String get profileSeeInStats;
+
+  /// No description provided for @profileViewOnMap.
+  ///
+  /// In en, this message translates to:
+  /// **'View on Map'**
+  String get profileViewOnMap;
+
   /// No description provided for @statsMilestoneTarget.
   ///
   /// In en, this message translates to:

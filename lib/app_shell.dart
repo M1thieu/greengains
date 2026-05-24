@@ -90,7 +90,7 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
         children: [
           _KeepAlive(child: HomeScreen(onGoToStats: () => _onTabSelected(1), onOpenProfile: () => _onTabSelected(2))),
           _KeepAlive(child: StatisticsScreen(onGoToHome: () => _onTabSelected(0))),
-          _KeepAlive(child: ProfileScreen()),
+          _KeepAlive(child: ProfileScreen(onGoToMap: () => _onTabSelected(0), onGoToStats: () => _onTabSelected(1))),
         ],
       ),
       // Floating pill nav bar — RepaintBoundary isolates it from page rebuilds.

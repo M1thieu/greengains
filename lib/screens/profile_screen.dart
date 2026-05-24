@@ -23,7 +23,9 @@ import 'settings_screen.dart';
 /// Profile screen showing user information and quick stats
 /// REDESIGNED: Compact layout that fits without scrolling
 class ProfileScreen extends StatefulWidget {
-  const ProfileScreen({super.key});
+  const ProfileScreen({super.key, this.onGoToMap, this.onGoToStats});
+  final VoidCallback? onGoToMap;
+  final VoidCallback? onGoToStats;
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
@@ -357,7 +359,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
     required String title,
     required String value,
     required Color color,
+    String? explanation,
     List<({String label, String val})> stats = const [],
+    String? ctaLabel,
+    VoidCallback? ctaAction,
   }) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
@@ -387,6 +392,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
               color: AppColors.textSecondary(isDark),
               letterSpacing: 0.6,
             )),
+            if (explanation != null) ...[
+              const SizedBox(height: AppTheme.spaceSm),
+              Text(explanation, style: TextStyle(
+                fontSize: AppTheme.fontSizeBody,
+                color: AppColors.textSecondary(isDark),
+                height: AppLineHeights.relaxed,
+              )),
+            ],
             if (stats.isNotEmpty) ...[
               const SizedBox(height: AppTheme.spaceLg),
               Row(
@@ -396,6 +409,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     Expanded(child: StatCell(value: stats[i].val, label: stats[i].label)),
                   ],
                 ],
+              ),
+            ],
+            if (ctaLabel != null && ctaAction != null) ...[
+              const SizedBox(height: AppTheme.spaceLg),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton.icon(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    ctaAction();
+                  },
+                  icon: const Icon(Icons.arrow_forward, size: AppIconSizes.xs),
+                  label: Text(ctaLabel),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: color,
+                    padding: const EdgeInsets.symmetric(vertical: AppTheme.spaceSm),
+                  ),
+                ),
               ),
             ],
             const SizedBox(height: AppTheme.spaceMd),
@@ -587,24 +618,46 @@ class _ProfileScreenState extends State<ProfileScreen> {
           color: tile.color,
         );
         const textAlign = TextAlign.center;
-        final isKm2 = i == 2;
+        VoidCallback? onTap;
+        if (i == 0 && _totalUploads != null && _totalUploads! > 0) {
+          onTap = () => _showProfileDetail(
+            title: l10n.statsDataPtsLabel.toUpperCase(),
+            value: '$_totalUploads',
+            color: AppColors.pressure,
+            explanation: l10n.profileUploadsExplanation,
+            ctaLabel: l10n.profileSeeInStats,
+            ctaAction: widget.onGoToStats,
+          );
+        } else if (i == 1 && _daysActive != null && _daysActive! > 0) {
+          onTap = () => _showProfileDetail(
+            title: l10n.statsDaysActive.toUpperCase(),
+            value: '$_daysActive',
+            color: AppColors.movement,
+            explanation: l10n.profileDaysExplanation,
+            ctaLabel: l10n.profileSeeInStats,
+            ctaAction: widget.onGoToStats,
+          );
+        } else if (i == 2 && km2 != null && km2 > 0) {
+          final cells = _coverageCells!;
+          final blocks = (km2 / kKm2PerCityBlock).round();
+          onTap = () => _showProfileDetail(
+            title: l10n.statsKmMapped.toUpperCase(),
+            value: kmDisplay,
+            color: AppColors.quality,
+            explanation: l10n.profileZonesExplanation,
+            stats: [
+              (label: l10n.profileTileAreaCells, val: '$cells'),
+              (label: l10n.profileStatCityBlocks, val: '~$blocks'),
+            ],
+            ctaLabel: l10n.profileViewOnMap,
+            ctaAction: widget.onGoToMap,
+          );
+        }
         return Expanded(
           child: Padding(
             padding: EdgeInsets.only(right: i < tiles.length - 1 ? AppTheme.spaceSm : 0),
             child: PressScaleDetector(
-              onTap: isKm2 && km2 != null && km2 > 0 ? () {
-                final cells = _coverageCells!;
-                final blocks = (km2 / kKm2PerCityBlock).round();
-                _showProfileDetail(
-                  title: l10n.statsKmMapped.toUpperCase(),
-                  value: kmDisplay,
-                  color: AppColors.quality,
-                  stats: [
-                    (label: l10n.profileTileAreaCells, val: '$cells'),
-                    (label: l10n.profileStatCityBlocks, val: '~$blocks'),
-                  ],
-                );
-              } : null,
+              onTap: onTap,
               child: Container(
               padding: const EdgeInsets.all(AppTheme.spaceMd),
               decoration: AppTheme.contentCard(isDark: isDark),
