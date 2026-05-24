@@ -374,15 +374,8 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> {
       final cLat = lats.reduce((a, b) => a + b) / tile.boundary!.length;
       final cLng = lngs.reduce((a, b) => a + b) / tile.boundary!.length;
       final opacity = _fillOpacity(tile);
-      final ageDays = tile.lastUpdate != null
-          ? DateTime.now().difference(tile.lastUpdate!).inDays
-          : null;
-      final isStaling = ageDays != null && ageDays > 21;
-      final labelText = isStaling
-          ? '${_qualityPct(tile)}%·${ageDays}d'
-          : '${_qualityPct(tile)}%';
-      // Staling tiles get amber label regardless of quality score
-      final labelColor = isStaling ? AppColors.warningHex : _colorHex(tile);
+      final labelText = '${_qualityPct(tile)}%';
+      final labelColor = _colorHex(tile);
       features.add({
         'type': 'Feature',
         'properties': {
@@ -542,7 +535,7 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> {
   static double _fillOpacity(H3Tile tile) {
     if (tile.isGlobal) return 0.18;
     final q = _qualityPct(tile);
-    double base = q >= 75 ? 0.55 : q >= 50 ? 0.45 : 0.35;
+    double base = q >= 75 ? 0.45 : q >= 50 ? 0.36 : 0.28;
     if (tile.lastUpdate != null) {
       final age = DateTime.now().difference(tile.lastUpdate!).inDays;
       // Two-step decay: fresh → aging → stale
@@ -555,7 +548,7 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> {
   static double _strokeOpacity(H3Tile tile) {
     if (tile.isGlobal) return 0.0;
     final q = _qualityPct(tile);
-    double base = q >= 75 ? 0.95 : q >= 50 ? 0.80 : 0.65;
+    double base = q >= 75 ? 0.75 : q >= 50 ? 0.60 : 0.45;
     if (tile.lastUpdate != null) {
       final age = DateTime.now().difference(tile.lastUpdate!).inDays;
       if (age > 21)     { base *= 0.45; }
@@ -1735,15 +1728,15 @@ class _TileInfoSheetState extends State<TileInfoSheet> {
               ),
               // Sensor cards — data-driven, handles 1–N sensors gracefully
               Builder(builder: (context) {
-                final cards = <({IconData icon, Color color, String title, String label})>[
+                final cards = <({IconData icon, Color color, String title, String label, String raw})>[
                   if (tile.avgLux != null)
-                    (icon: Icons.light_mode_rounded, color: AppColors.light, title: l10n.sensorLight, label: _luxContext(tile.avgLux!, l10n)),
+                    (icon: Icons.light_mode_rounded, color: AppColors.light, title: l10n.sensorLight, label: _luxContext(tile.avgLux!, l10n), raw: '${tile.avgLux} ${l10n.sensorUnitLux}'),
                   if (tile.avgHpa != null)
-                    (icon: Icons.compress_rounded, color: AppColors.pressure, title: l10n.sensorAirPressure, label: _hpaContext(tile.avgHpa!, l10n)),
+                    (icon: Icons.compress_rounded, color: AppColors.pressure, title: l10n.sensorAirPressure, label: _hpaContext(tile.avgHpa!, l10n), raw: '${tile.avgHpa!.toStringAsFixed(0)} ${l10n.sensorUnitHpa}'),
                   if (tile.avgMovement != null)
-                    (icon: Icons.directions_walk_rounded, color: AppColors.movement, title: l10n.sensorMovement, label: _movementContext(tile.avgMovement!, l10n)),
+                    (icon: Icons.directions_walk_rounded, color: AppColors.movement, title: l10n.sensorMovement, label: _movementContext(tile.avgMovement!, l10n), raw: '${tile.avgMovement!.toStringAsFixed(1)} ${l10n.sensorUnitMovement}'),
                   if (tile.avgVibration != null)
-                    (icon: Icons.vibration_rounded, color: AppColors.movement.withValues(alpha: 0.75), title: l10n.sensorAcceleration, label: _vibrationContext(tile.avgVibration!, l10n)),
+                    (icon: Icons.vibration_rounded, color: AppColors.movement.withValues(alpha: 0.75), title: l10n.sensorAcceleration, label: _vibrationContext(tile.avgVibration!, l10n), raw: '${(tile.avgVibration! * 100).round()}${l10n.sensorUnitVibration}'),
                 ];
                 if (cards.isEmpty) return const SizedBox.shrink();
                 return Column(
@@ -1762,6 +1755,7 @@ class _TileInfoSheetState extends State<TileInfoSheet> {
                                 color: cards[i].color,
                                 title: cards[i].title,
                                 label: cards[i].label,
+                                rawValue: cards[i].raw,
                                 isDark: isDark,
                               ),
                             ),
@@ -1972,12 +1966,14 @@ class _SensorCard extends StatelessWidget {
     required this.label,
     required this.isDark,
     this.title,
+    this.rawValue,
   });
   final IconData icon;
   final Color color;
   final String label;
   final bool isDark;
   final String? title;
+  final String? rawValue;
 
   @override
   Widget build(BuildContext context) {
@@ -2017,6 +2013,18 @@ class _SensorCard extends StatelessWidget {
               height: AppLineHeights.snug,
             ),
           ),
+          if (rawValue != null) ...[
+            const SizedBox(height: AppTheme.spaceXxxs),
+            Text(
+              rawValue!,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: AppTheme.fontSizeXxs,
+                color: AppColors.textTertiary(isDark),
+                height: AppLineHeights.snug,
+              ),
+            ),
+          ],
         ],
       ),
     );

@@ -167,11 +167,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
           _SectionCard(
             label: l10n.settingsAccount,
             children: [
+              _UserIdentityRow(isDark: isDark),
+              _divider(isDark),
               _NavRow(
                 icon: Icons.logout_rounded,
                 iconColor: AppColors.error,
                 title: l10n.settingsSignOut,
-                subtitle: FirebaseAuth.instance.currentUser?.email ?? '',
                 onTap: _signOut,
                 danger: true,
               ),
@@ -200,34 +201,45 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   MaterialPageRoute(builder: (_) => const DiagnosticsScreen()),
                 ),
               ),
+              _divider(isDark),
+              _NavRow(
+                icon: Icons.privacy_tip_outlined,
+                iconColor: AppColors.primary,
+                title: l10n.privacyPolicy,
+                onTap: () => _openWebView(context, _kPrivacyPolicyUrl, l10n.privacyPolicy),
+              ),
+              _divider(isDark),
+              _NavRow(
+                icon: Icons.description_outlined,
+                iconColor: AppColors.primary,
+                title: l10n.termsOfService,
+                onTap: () => _openWebView(context, _kTermsUrl, l10n.termsOfService),
+              ),
+              _divider(isDark),
+              _NavRow(
+                icon: Icons.bar_chart_outlined,
+                iconColor: AppColors.primary,
+                title: l10n.settingsDataTransparency,
+                onTap: () => _openWebView(context, _kDataTransparencyUrl, l10n.settingsDataTransparency),
+              ),
             ],
           ),
           const SizedBox(height: AppTheme.spaceLg),
 
-          // ── Legal + version footer ─────────────────────────────────────────
-          Padding(
-            padding: const EdgeInsets.only(bottom: AppTheme.spaceXl),
-            child: Opacity(
-              opacity: 0.45,
-              child: Wrap(
-                spacing: AppTheme.spaceSm,
-                runSpacing: AppTheme.spaceXxs,
-                crossAxisAlignment: WrapCrossAlignment.center,
-                children: [
-                  if (_version.isNotEmpty)
-                    Text(l10n.settingsVersion(_version),
-                        style: TextStyle(fontSize: AppTheme.fontSizeNavLabel, color: AppColors.textTertiary(isDark))),
-                  if (_version.isNotEmpty)
-                    Text('·', style: TextStyle(fontSize: AppTheme.fontSizeNavLabel, color: AppColors.textTertiary(isDark))),
-                  _LegalLink(label: l10n.privacyPolicy, onTap: () => _openWebView(context, _kPrivacyPolicyUrl, l10n.privacyPolicy)),
-                  Text('·', style: TextStyle(fontSize: AppTheme.fontSizeNavLabel, color: AppColors.textTertiary(isDark))),
-                  _LegalLink(label: l10n.termsOfService, onTap: () => _openWebView(context, _kTermsUrl, l10n.termsOfService)),
-                  Text('·', style: TextStyle(fontSize: AppTheme.fontSizeNavLabel, color: AppColors.textTertiary(isDark))),
-                  _LegalLink(label: l10n.settingsDataTransparency, onTap: () => _openWebView(context, _kDataTransparencyUrl, l10n.settingsDataTransparency)),
-                ],
+          // ── Version footer ────────────────────────────────────────────────
+          if (_version.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(bottom: AppTheme.spaceXl),
+              child: Center(
+                child: Text(
+                  l10n.settingsVersion(_version),
+                  style: TextStyle(
+                    fontSize: AppTheme.fontSizeNavLabel,
+                    color: AppColors.textTertiary(isDark),
+                  ),
+                ),
               ),
             ),
-          ),
         ],
       ),
     );
@@ -277,31 +289,6 @@ class _SectionCard extends StatelessWidget {
   }
 }
 
-
-// ── Legal footer link ─────────────────────────────────────────────────────────
-
-class _LegalLink extends StatelessWidget {
-  const _LegalLink({required this.label, required this.onTap});
-  final String label;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = context.isDarkMode;
-    return GestureDetector(
-      onTap: onTap,
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize: AppTheme.fontSizeNavLabel,
-          color: AppColors.textTertiary(isDark),
-          decoration: TextDecoration.underline,
-          decorationColor: AppColors.textTertiary(isDark).withValues(alpha: 0.5),
-        ),
-      ),
-    );
-  }
-}
 
 // ── Row variants ──────────────────────────────────────────────────────────────
 
@@ -425,6 +412,78 @@ class _NavRow extends StatelessWidget {
               Icon(Icons.chevron_right, size: AppIconSizes.sm, color: AppColors.textTertiary(isDark)),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _UserIdentityRow extends StatelessWidget {
+  const _UserIdentityRow({required this.isDark});
+  final bool isDark;
+
+  @override
+  Widget build(BuildContext context) {
+    final user = FirebaseAuth.instance.currentUser;
+    final name = user?.displayName;
+    final email = user?.email ?? '';
+    final initials = name != null && name.isNotEmpty
+        ? name.trim().split(' ').map((p) => p[0]).take(2).join().toUpperCase()
+        : email.isNotEmpty ? email[0].toUpperCase() : '?';
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: AppTheme.spaceXs),
+      child: Row(
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: AppColors.primary.withValues(alpha: 0.15),
+              shape: BoxShape.circle,
+            ),
+            child: Center(
+              child: Text(
+                initials,
+                style: const TextStyle(
+                  fontSize: AppTheme.fontSizeMd,
+                  fontWeight: AppFontWeights.bold,
+                  color: AppColors.primary,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: AppTheme.spaceMd),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (name != null && name.isNotEmpty) ...[
+                  Text(
+                    name,
+                    style: TextStyle(
+                      fontWeight: AppFontWeights.semibold,
+                      color: AppColors.textPrimary(isDark),
+                    ),
+                  ),
+                  const SizedBox(height: AppTheme.spaceXxxs),
+                  Text(
+                    email,
+                    style: TextStyle(
+                      fontSize: AppTheme.fontSizeBody,
+                      color: AppColors.textSecondary(isDark),
+                    ),
+                  ),
+                ] else
+                  Text(
+                    email,
+                    style: TextStyle(
+                      fontWeight: AppFontWeights.semibold,
+                      color: AppColors.textPrimary(isDark),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

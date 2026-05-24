@@ -900,6 +900,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sensorPressure => 'Pressure';
 
   @override
+  String get sensorUnitLux => 'lx';
+
+  @override
+  String get sensorUnitHpa => 'hPa';
+
+  @override
+  String get sensorUnitMovement => 'm/s²';
+
+  @override
+  String get sensorUnitVibration => '%';
+
+  @override
   String get sensorMovement => 'Movement';
 
   @override

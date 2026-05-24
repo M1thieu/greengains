@@ -1598,6 +1598,30 @@ abstract class AppLocalizations {
   /// **'Pressure'**
   String get sensorPressure;
 
+  /// No description provided for @sensorUnitLux.
+  ///
+  /// In en, this message translates to:
+  /// **'lx'**
+  String get sensorUnitLux;
+
+  /// No description provided for @sensorUnitHpa.
+  ///
+  /// In en, this message translates to:
+  /// **'hPa'**
+  String get sensorUnitHpa;
+
+  /// No description provided for @sensorUnitMovement.
+  ///
+  /// In en, this message translates to:
+  /// **'m/s²'**
+  String get sensorUnitMovement;
+
+  /// No description provided for @sensorUnitVibration.
+  ///
+  /// In en, this message translates to:
+  /// **'%'**
+  String get sensorUnitVibration;
+
   /// No description provided for @sensorMovement.
   ///
   /// In en, this message translates to:
