@@ -1892,6 +1892,11 @@ class AppLocalizationsFr extends AppLocalizations {
   String get profileStreakExplain => 'Jours consécutifs avec au moins un sync.';
 
   @override
+  String profileStreakToMilestone(int days, String unit, int milestone) {
+    return '$days $unit avant le cap des $milestone $unit';
+  }
+
+  @override
   String get profileUploadsExplanation =>
       'Chaque envoi regroupe ~100 lectures de capteurs capturées à un endroit. Vos données enrichissent la carte environnementale partagée.';
 
@@ -2065,4 +2070,62 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get mapZeroStateBody =>
       'Marche n\'importe où avec l\'appli active — tes zones apparaissent en temps réel.';
+
+  @override
+  String get snapshotCardTitle => 'TON QUARTIER';
+
+  @override
+  String snapshotReadings(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count mesures',
+      one: '1 mesure',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String snapshotAcrossZones(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count zones',
+      one: '1 zone',
+    );
+    return 'sur $_temp0';
+  }
+
+  @override
+  String get snapshotLightDark => 'Sombre';
+
+  @override
+  String get snapshotLightDim => 'Peu éclairé';
+
+  @override
+  String get snapshotLightNormal => 'Bien éclairé';
+
+  @override
+  String get snapshotLightBright => 'Lumineux';
+
+  @override
+  String get snapshotLightVeryBright => 'Très lumineux';
+
+  @override
+  String get snapshotMovementCalm => 'Calme';
+
+  @override
+  String get snapshotMovementActive => 'Actif';
+
+  @override
+  String get snapshotMovementBusy => 'Animé';
+
+  @override
+  String get snapshotPressureLow => 'Basse pression';
+
+  @override
+  String get snapshotPressureStable => 'Stable';
+
+  @override
+  String get snapshotPressureHigh => 'Haute pression';
 }

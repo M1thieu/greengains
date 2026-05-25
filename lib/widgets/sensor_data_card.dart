@@ -150,6 +150,8 @@ class _SensorDataCardState extends State<SensorDataCard>
                         Expanded(
                           child: Text(
                             widget.title,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                             style: theme.textTheme.titleSmall?.copyWith(
                               fontWeight: AppFontWeights.semibold,
                               letterSpacing: 0.1,

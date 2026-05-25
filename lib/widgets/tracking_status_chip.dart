@@ -143,6 +143,7 @@ class _TrackingStatusChipState extends State<TrackingStatusChip>
               const SizedBox(width: AppTheme.spaceXxs + 1),
               Text(
                 '${widget.tileCount} ${context.l10n.chipZones}',
+                maxLines: 1, overflow: TextOverflow.ellipsis,
                 style: TextStyle(
                   color: AppColors.darkTextSecondary,
                   fontSize: _kChipTimeSize,

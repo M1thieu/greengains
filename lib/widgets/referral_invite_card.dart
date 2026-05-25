@@ -7,6 +7,7 @@ import '../core/app_preferences.dart';
 import '../core/extensions/context_extensions.dart';
 import '../core/themes.dart';
 import '../services/referral/referral_service.dart';
+import 'press_scale_detector.dart';
 
 class ReferralInviteCard extends StatefulWidget {
   const ReferralInviteCard({
@@ -147,6 +148,8 @@ class _ReferralInviteCardState extends State<ReferralInviteCard> {
                 alignment: Alignment.centerLeft,
                 child: Text(
                   bodyText,
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: _conversions > 0 ? AppColors.primary : AppColors.textPrimary(isDark),
                     fontWeight: _conversions > 0 ? AppFontWeights.semibold : AppFontWeights.medium,
@@ -223,50 +226,30 @@ class _WaitingDotsState extends State<_WaitingDots> with SingleTickerProviderSta
   }
 }
 
-class _ShareBtn extends StatefulWidget {
+class _ShareBtn extends StatelessWidget {
   const _ShareBtn({required this.label, required this.enabled, required this.onPressed});
   final String label;
   final bool enabled;
   final VoidCallback onPressed;
 
   @override
-  State<_ShareBtn> createState() => _ShareBtnState();
-}
-
-class _ShareBtnState extends State<_ShareBtn> {
-  bool _pressed = false;
-
-  @override
   Widget build(BuildContext context) {
-    final active = widget.enabled;
-    return GestureDetector(
-      onTapDown: active ? (_) => setState(() => _pressed = true) : null,
-      onTapUp: active ? (_) { setState(() => _pressed = false); widget.onPressed(); } : null,
-      onTapCancel: () => setState(() => _pressed = false),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 80),
-        curve: Curves.easeOut,
-        transform: Matrix4.translationValues(0, _pressed ? 2.5 : 0, 0),
+    return PressScaleDetector(
+      onTap: enabled ? onPressed : null,
+      child: Container(
         decoration: BoxDecoration(
-          color: active ? AppColors.primary : AppColors.primaryAlpha(0.12),
+          color: enabled ? AppColors.primary : AppColors.primaryAlpha(0.12),
           borderRadius: BorderRadius.circular(AppTheme.radiusSm),
-          boxShadow: (_pressed || !active) ? [] : [
-            BoxShadow(
-              color: AppColors.primary.withValues(alpha: 0.45),
-              offset: const Offset(0, 3),
-              blurRadius: 0,
-            ),
-          ],
         ),
         padding: const EdgeInsets.symmetric(
           horizontal: AppTheme.spaceSm + AppTheme.spaceXxxs,
           vertical: AppTheme.spaceXs,
         ),
         child: Text(
-          widget.label,
+          label,
           style: Theme.of(context).textTheme.labelSmall?.copyWith(
             fontWeight: AppFontWeights.semibold,
-            color: active ? AppColors.darkTextPrimary : AppColors.primaryAlpha(0.50),
+            color: enabled ? AppColors.darkTextPrimary : AppColors.primaryAlpha(0.50),
           ),
         ),
       ),

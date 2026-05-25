@@ -164,82 +164,86 @@ class _SettingsScreenState extends State<SettingsScreen> {
           const SizedBox(height: _kSectionSpacing),
 
           // ── Account ───────────────────────────────────────────────────────
-          _SectionCard(
-            label: l10n.settingsAccount,
+          Row(
             children: [
-              _UserIdentityRow(isDark: isDark),
-              _divider(isDark),
-              _NavRow(
-                icon: Icons.logout_rounded,
-                iconColor: AppColors.error,
-                title: l10n.settingsSignOut,
-                onTap: _signOut,
-                danger: true,
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.only(left: AppTheme.spaceXxs, bottom: AppTheme.spaceXs),
+                  child: Text(l10n.settingsAccount.toUpperCase(), style: AppTheme.eyebrowLabel(isDark)),
+                ),
               ),
-              _divider(isDark),
-              _NavRow(
-                icon: Icons.delete_outline_rounded,
-                iconColor: AppColors.error,
-                title: l10n.settingsDataDeletion,
-                onTap: () => _openWebView(context, _kDataDeletionUrl, l10n.settingsDataDeletion),
-                danger: true,
+              IconButton(
+                icon: Icon(Icons.logout_rounded, size: AppIconSizes.sm, color: AppColors.textTertiary(isDark)),
+                onPressed: _signOut,
+                tooltip: l10n.settingsSignOut,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
               ),
             ],
           ),
-          const SizedBox(height: _kSectionSpacing),
+          _UserIdentityRow(isDark: isDark),
+          const SizedBox(height: _kSectionSpacing * 2),
 
           // ── About ─────────────────────────────────────────────────────────
-          _SectionCard(
-            label: l10n.settingsAbout,
-            children: [
-              _NavRow(
-                icon: Icons.sensors_outlined,
-                iconColor: AppColors.light,
-                title: l10n.settingsDiagnostics,
-                subtitle: l10n.settingsDiagnosticsDesc,
-                onTap: () => Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const DiagnosticsScreen()),
-                ),
-              ),
-              _divider(isDark),
-              _NavRow(
-                icon: Icons.privacy_tip_outlined,
-                iconColor: AppColors.primary,
-                title: l10n.privacyPolicy,
-                onTap: () => _openWebView(context, _kPrivacyPolicyUrl, l10n.privacyPolicy),
-              ),
-              _divider(isDark),
-              _NavRow(
-                icon: Icons.description_outlined,
-                iconColor: AppColors.primary,
-                title: l10n.termsOfService,
-                onTap: () => _openWebView(context, _kTermsUrl, l10n.termsOfService),
-              ),
-              _divider(isDark),
-              _NavRow(
-                icon: Icons.bar_chart_outlined,
-                iconColor: AppColors.primary,
-                title: l10n.settingsDataTransparency,
-                onTap: () => _openWebView(context, _kDataTransparencyUrl, l10n.settingsDataTransparency),
-              ),
-            ],
+          Padding(
+            padding: const EdgeInsets.only(left: AppTheme.spaceXxs, bottom: AppTheme.spaceXs),
+            child: Text(l10n.settingsAbout.toUpperCase(), style: AppTheme.eyebrowLabel(isDark)),
           ),
-          const SizedBox(height: AppTheme.spaceLg),
-
-          // ── Version footer ────────────────────────────────────────────────
-          if (_version.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.only(bottom: AppTheme.spaceXl),
-              child: Center(
-                child: Text(
-                  l10n.settingsVersion(_version),
-                  style: TextStyle(
-                    fontSize: AppTheme.fontSizeNavLabel,
-                    color: AppColors.textTertiary(isDark),
+          PressScaleDetector(
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const DiagnosticsScreen()),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: AppTheme.spaceXs),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(l10n.settingsDiagnostics, style: theme.textTheme.bodyMedium?.copyWith(
+                          fontWeight: AppFontWeights.semibold,
+                          color: AppColors.textPrimary(isDark),
+                        )),
+                        Text(l10n.settingsDiagnosticsDesc, style: theme.textTheme.bodySmall?.copyWith(
+                          color: AppColors.textSecondary(isDark),
+                        )),
+                      ],
+                    ),
                   ),
-                ),
+                  Icon(Icons.chevron_right, size: AppIconSizes.sm, color: AppColors.textTertiary(isDark)),
+                ],
               ),
             ),
+          ),
+          const SizedBox(height: AppTheme.spaceXl),
+
+          // ── Footer: version + legal ───────────────────────────────────────
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: AppTheme.spaceXl),
+              child: Column(
+                children: [
+                  if (_version.isNotEmpty)
+                    Text(
+                      l10n.settingsVersion(_version),
+                      style: TextStyle(fontSize: AppTheme.fontSizeNavLabel, color: AppColors.textTertiary(isDark)),
+                    ),
+                  const SizedBox(height: AppTheme.spaceXs),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      _LegalLink(
+                        label: l10n.settingsLegal,
+                        isDark: isDark,
+                        onTap: () => _showLegalSheet(context, l10n, isDark),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -254,6 +258,49 @@ class _SettingsScreenState extends State<SettingsScreen> {
   void _openWebView(BuildContext context, String url, String title) {
     Navigator.of(context).push(
       MaterialPageRoute(builder: (_) => WebViewScreen(url: url, title: title)),
+    );
+  }
+
+  void _showLegalSheet(BuildContext context, dynamic l10n, bool isDark) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.surface(isDark),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(AppTheme.radiusLg)),
+      ),
+      builder: (_) {
+        final bottomPad = MediaQuery.paddingOf(context).bottom + AppTheme.spaceLg;
+        return Padding(
+          padding: EdgeInsets.fromLTRB(AppTheme.spaceLg, AppTheme.spaceMd, AppTheme.spaceLg, bottomPad),
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            AppTheme.dragHandle(isDark),
+            const SizedBox(height: AppTheme.spaceMd),
+            _legalItem(context, l10n.privacyPolicy, _kPrivacyPolicyUrl, isDark),
+            Divider(height: AppTheme.spaceLg, thickness: 0.5, color: AppColors.divider(isDark)),
+            _legalItem(context, l10n.termsOfService, _kTermsUrl, isDark),
+            Divider(height: AppTheme.spaceLg, thickness: 0.5, color: AppColors.divider(isDark)),
+            _legalItem(context, l10n.settingsDataTransparency, _kDataTransparencyUrl, isDark),
+            Divider(height: AppTheme.spaceLg, thickness: 0.5, color: AppColors.divider(isDark)),
+            _legalItem(context, l10n.settingsDataDeletion, _kDataDeletionUrl, isDark),
+          ]),
+        );
+      },
+    );
+  }
+
+  Widget _legalItem(BuildContext context, String title, String url, bool isDark) {
+    final theme = Theme.of(context);
+    return PressScaleDetector(
+      onTap: () {
+        Navigator.of(context).pop();
+        _openWebView(context, url, title);
+      },
+      child: Row(children: [
+        Expanded(child: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: theme.textTheme.bodyMedium?.copyWith(
+          color: AppColors.textPrimary(isDark),
+        ))),
+        Icon(Icons.chevron_right, size: AppIconSizes.sm, color: AppColors.textTertiary(isDark)),
+      ]),
     );
   }
 
@@ -359,64 +406,6 @@ class _ToggleRow extends StatelessWidget {
   }
 }
 
-class _NavRow extends StatelessWidget {
-  const _NavRow({
-    required this.icon,
-    required this.title,
-    required this.onTap,
-    this.subtitle,
-    this.iconColor,
-    this.danger = false,
-  });
-
-  final IconData icon;
-  final String title;
-  final String? subtitle;
-  final VoidCallback onTap;
-  final Color? iconColor;
-  final bool danger;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final titleColor = danger ? AppColors.error : AppColors.textPrimary(isDark);
-    return PressScaleDetector(
-      onTap: () {
-        HapticFeedback.lightImpact();
-        onTap();
-      },
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: AppTheme.spaceXs),
-        child: Row(
-          children: [
-            _IconBox(icon: icon, color: iconColor ?? AppColors.textTertiary(isDark)),
-            const SizedBox(width: AppTheme.spaceMd),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(title, style: theme.textTheme.bodyMedium?.copyWith(
-                    fontWeight: AppFontWeights.semibold,
-                    color: titleColor,
-                  )),
-                  if (subtitle != null && subtitle!.isNotEmpty)
-                    Text(subtitle!, style: theme.textTheme.bodySmall?.copyWith(
-                      color: danger ? AppColors.error.withValues(alpha: 0.6) : AppColors.textSecondary(isDark),
-                    )),
-                ],
-              ),
-            ),
-            if (!danger)
-              Icon(Icons.chevron_right, size: AppIconSizes.sm, color: AppColors.textTertiary(isDark)),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 class _UserIdentityRow extends StatelessWidget {
   const _UserIdentityRow({required this.isDark});
   final bool isDark;
@@ -459,6 +448,8 @@ class _UserIdentityRow extends StatelessWidget {
                 if (name != null && name.isNotEmpty) ...[
                   Text(
                     name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       fontWeight: AppFontWeights.semibold,
                       color: AppColors.textPrimary(isDark),
@@ -467,6 +458,8 @@ class _UserIdentityRow extends StatelessWidget {
                   const SizedBox(height: AppTheme.spaceXxxs),
                   Text(
                     email,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       fontSize: AppTheme.fontSizeBody,
                       color: AppColors.textSecondary(isDark),
@@ -475,6 +468,8 @@ class _UserIdentityRow extends StatelessWidget {
                 ] else
                   Text(
                     email,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       fontWeight: AppFontWeights.semibold,
                       color: AppColors.textPrimary(isDark),
@@ -485,6 +480,34 @@ class _UserIdentityRow extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _LegalLink extends StatelessWidget {
+  const _LegalLink({required this.label, required this.onTap, required this.isDark});
+  final String label;
+  final VoidCallback onTap;
+  final bool isDark;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        GestureDetector(
+          onTap: onTap,
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: AppTheme.fontSizeXs,
+              color: AppColors.textSecondary(isDark),
+              decoration: TextDecoration.underline,
+              decorationColor: AppColors.textSecondary(isDark).withValues(alpha: 0.4),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

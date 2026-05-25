@@ -807,6 +807,14 @@
   "profileTileAreaCells": "zones explorées",
   "profileStatCityBlocks": "îlots de ville",
   "profileStreakExplain": "Jours consécutifs avec au moins un sync.",
+  "profileStreakToMilestone": "{days} {unit} avant le cap des {milestone} {unit}",
+  "@profileStreakToMilestone": {
+    "placeholders": {
+      "days": { "type": "int" },
+      "unit": { "type": "String" },
+      "milestone": { "type": "int" }
+    }
+  },
   "profileUploadsExplanation": "Chaque envoi regroupe ~100 lectures de capteurs capturées à un endroit. Vos données enrichissent la carte environnementale partagée.",
   "profileDaysExplanation": "Jours où votre téléphone a contribué au moins un envoi de données. Plus vous êtes actif, plus votre couverture est récente et riche.",
   "profileZonesExplanation": "Chaque zone est une cellule hexagonale (~174 m) où votre téléphone a enregistré des données environnementales. Consultez la carte pour voir exactement quels endroits vous avez couverts.",
@@ -882,5 +890,26 @@
   "profileUnlockCta": "Me connecter pour garder ma carte",
 
   "mapZeroStateTitle": "Ta carte commence ici",
-  "mapZeroStateBody": "Marche n'importe où avec l'appli active — tes zones apparaissent en temps réel."
+  "mapZeroStateBody": "Marche n'importe où avec l'appli active — tes zones apparaissent en temps réel.",
+
+  "snapshotCardTitle": "TON QUARTIER",
+  "snapshotReadings": "{count, plural, =1{1 mesure} other{{count} mesures}}",
+  "@snapshotReadings": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "snapshotAcrossZones": "sur {count, plural, =1{1 zone} other{{count} zones}}",
+  "@snapshotAcrossZones": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "snapshotLightDark": "Sombre",
+  "snapshotLightDim": "Peu éclairé",
+  "snapshotLightNormal": "Bien éclairé",
+  "snapshotLightBright": "Lumineux",
+  "snapshotLightVeryBright": "Très lumineux",
+  "snapshotMovementCalm": "Calme",
+  "snapshotMovementActive": "Actif",
+  "snapshotMovementBusy": "Animé",
+  "snapshotPressureLow": "Basse pression",
+  "snapshotPressureStable": "Stable",
+  "snapshotPressureHigh": "Haute pression"
 }

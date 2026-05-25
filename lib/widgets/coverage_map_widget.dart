@@ -1465,11 +1465,13 @@ class _LegendRow extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(label,
+                    maxLines: 1, overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                         fontSize: AppTheme.fontSizeSm,
                         fontWeight: AppFontWeights.semibold,
                         color: AppColors.textPrimary(isDark))),
                 Text(sub,
+                    maxLines: 2, overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                         fontSize: AppTheme.fontSizeXs,
                         color: AppColors.textSecondary(isDark))),
@@ -1992,6 +1994,7 @@ class _SensorCard extends StatelessWidget {
             Text(
               title!.toUpperCase(),
               textAlign: TextAlign.center,
+              maxLines: 1, overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 fontSize: AppTheme.fontSizeXxs,
                 color: color.withValues(alpha: 0.75),
@@ -2018,6 +2021,7 @@ class _SensorCard extends StatelessWidget {
             Text(
               rawValue!,
               textAlign: TextAlign.center,
+              maxLines: 1, overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 fontSize: AppTheme.fontSizeXxs,
                 color: AppColors.textTertiary(isDark),

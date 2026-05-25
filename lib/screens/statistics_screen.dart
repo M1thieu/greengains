@@ -511,9 +511,13 @@ class _StatisticsScreenState extends State<StatisticsScreen>
           // Eyebrow row — label + verdict chip
           Row(
             children: [
-              Text(
-                showKm2 ? l10n.statsKmMapped : l10n.statsDataPtsLabel,
-                style: AppTheme.eyebrowLabel(isDark),
+              Expanded(
+                child: Text(
+                  showKm2 ? l10n.statsKmMapped : l10n.statsDataPtsLabel,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTheme.eyebrowLabel(isDark),
+                ),
               ),
               if (verdictChip != null) ...[
                 const SizedBox(width: AppTheme.spaceSm),
@@ -542,7 +546,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                     ),
                   ),
                   TextSpan(
-                    text: ' km²',
+                    text: ' ${l10n.statsKm2Unit}',
                     style: theme.textTheme.titleMedium?.copyWith(
                       color: AppColors.textSecondary(isDark),
                       fontWeight: AppFontWeights.medium,
@@ -574,22 +578,23 @@ class _StatisticsScreenState extends State<StatisticsScreen>
           const SizedBox(height: AppTheme.spaceXxxs + 2),
           // Subtitle: upload count + map link
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              if (showKm2 && totalUploads > 0)
-                Text(
-                  '$totalUploads ${l10n.statsUploadsUnit}',
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: AppColors.primary,
-                    fontWeight: AppFontWeights.medium,
-                  ),
-                )
-              else
-                const SizedBox.shrink(),
+              Expanded(
+                child: showKm2 && totalUploads > 0
+                    ? Text(
+                        '$totalUploads ${l10n.statsUploadsUnit}',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: AppColors.primary,
+                          fontWeight: AppFontWeights.medium,
+                        ),
+                      )
+                    : const SizedBox.shrink(),
+              ),
               if (widget.onGoToHome != null)
-                GestureDetector(
+                PressScaleDetector(
                   onTap: widget.onGoToHome,
-                  behavior: HitTestBehavior.opaque,
                   child: Padding(
                     padding: const EdgeInsets.symmetric(vertical: 4),
                     child: Row(mainAxisSize: MainAxisSize.min, children: [
@@ -666,11 +671,11 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                       tween: IntTween(begin: 0, end: streak),
                       duration: AppDurations.medium,
                       curve: AppMotion.decelerated,
-                      builder: (_, value, __) => Text('$value', style: theme.textTheme.titleLarge?.copyWith(
+                      builder: (_, value, __) => Text('$value', style: theme.textTheme.headlineMedium?.copyWith(
                         fontWeight: AppFontWeights.bold,
                         color: AppColors.primary,
                         height: _kLineHeightTight,
-                        letterSpacing: _kLetterSpacingHero,
+                        letterSpacing: -1.0,
                       )),
                     ),
                     const SizedBox(width: AppTheme.spaceXxs),
@@ -1029,6 +1034,8 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                           if (count > 0)
                             Text(
                               '$count',
+                              maxLines: 1,
+                              overflow: TextOverflow.visible,
                               style: TextStyle(
                                 fontSize: _kBarLabelSize,
                                 color: (isToday || isSelected)
@@ -1935,6 +1942,8 @@ class _CalendarHeatmapState extends State<_CalendarHeatmap> {
                   DateFormat('MMM', locale).format(days.first) == DateFormat('MMM', locale).format(today)
                       ? DateFormat('MMMM yyyy', locale).format(today)
                       : '${DateFormat('MMM', locale).format(days.first)} – ${DateFormat('MMM yyyy', locale).format(today)}',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: theme.textTheme.titleSmall?.copyWith(fontWeight: AppFontWeights.semibold),
                 ),
               ),
@@ -2288,10 +2297,10 @@ class _KpiCell extends StatelessWidget {
             duration: const Duration(milliseconds: 280),
             switchInCurve: Curves.easeOut,
             child: value != null
-                ? Text(value!, key: ValueKey(value), style: theme.textTheme.titleLarge?.copyWith(
+                ? Text(value!, key: ValueKey(value), style: theme.textTheme.headlineMedium?.copyWith(
                     fontWeight: AppFontWeights.bold,
                     height: _kLineHeightTight,
-                    letterSpacing: _kLetterSpacingHero,
+                    letterSpacing: -1.0,
                   ))
                 : SizedBox(key: const ValueKey('loading'), width: 36, height: 22, child: LinearProgressIndicator(
                     borderRadius: BorderRadius.circular(2),

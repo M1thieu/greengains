@@ -49,8 +49,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   void initState() {
     super.initState();
-    // One-time fetch on init — covers the case where Stats tab hasn't loaded yet.
-    // Subsequent updates (on upload) come from ProfileUpdatedEvent emitted by Stats.
     _loadProfileStats();
     _profileSub = AppEventBus.instance
         .on<ProfileUpdatedEvent>()
@@ -296,14 +294,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
+                    if (user.email != null && user.email!.isNotEmpty) ...[
+                      const SizedBox(height: AppTheme.spaceXxxs),
+                      Text(
+                        user.email!,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: AppTheme.fontSizeBody,
+                          color: AppColors.textSecondary(isDark),
+                        ),
+                      ),
+                    ],
                     if (user.metadata.creationTime != null) ...[
                       const SizedBox(height: AppTheme.spaceXxs),
                       Text(
                         l10n.profileMemberSince(_formatDate(user.metadata.creationTime!)),
                         style: TextStyle(
                           fontSize: AppTheme.fontSizeXs,
-                          color: AppColors.primary,
-                          fontWeight: AppFontWeights.semibold,
+                          color: AppColors.textSecondary(isDark),
                         ),
                       ),
                     ],
@@ -332,21 +341,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
         Positioned(
           top: topPad + AppTheme.spaceXxs,
           right: AppTheme.spaceXs,
-          child: Material(
-            color: AppColors.surfaceElevated(isDark),
-            borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-            child: InkWell(
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const SettingsScreen()),
+          child: PressScaleDetector(
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const SettingsScreen()),
+            ),
+            child: Container(
+              decoration: BoxDecoration(
+                color: AppColors.surfaceElevated(isDark),
+                borderRadius: BorderRadius.circular(AppTheme.radiusMd),
               ),
-              borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-              child: Padding(
-                padding: const EdgeInsets.all(AppTheme.spaceXs),
-                child: Icon(
-                  Icons.settings_outlined,
-                  size: AppIconSizes.sm,
-                  color: AppColors.textSecondary(isDark),
-                ),
+              padding: const EdgeInsets.all(AppTheme.spaceXs),
+              child: Icon(
+                Icons.settings_outlined,
+                size: AppIconSizes.sm,
+                color: AppColors.textSecondary(isDark),
               ),
             ),
           ),
@@ -509,13 +517,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             ),
                           ),
                           const SizedBox(width: AppTheme.spaceXs),
-                          Text(
-                            l10n.statsDaysUnit,
-                            style: theme.textTheme.titleMedium?.copyWith(
-                              color: active
-                                  ? AppColors.primary.withValues(alpha: 0.7)
-                                  : AppColors.textSecondary(isDark),
-                              fontWeight: AppFontWeights.medium,
+                          Flexible(
+                            child: Text(
+                              l10n.statsDaysUnit,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                color: active
+                                    ? AppColors.primary.withValues(alpha: 0.7)
+                                    : AppColors.textSecondary(isDark),
+                                fontWeight: AppFontWeights.medium,
+                              ),
                             ),
                           ),
                         ],
@@ -535,7 +547,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             if (active) ...[
               const SizedBox(height: AppTheme.spaceSm),
-              // Progress bar toward next milestone
               ClipRRect(
                 borderRadius: BorderRadius.circular(AppTheme.radiusMin),
                 child: LinearProgressIndicator(
@@ -549,15 +560,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    '$current / $nextMilestone ${l10n.statsDaysUnit}',
-                    style: AppTheme.statLabel(isDark),
-                  ),
-                  if (longest > 0)
-                    Text(
-                      '${l10n.statsLongestLabel}: $longest ${l10n.statsDaysUnit}',
+                  Flexible(
+                    child: Text(
+                      l10n.profileStreakToMilestone(nextMilestone - current, l10n.statsDaysUnit, nextMilestone),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: AppTheme.statLabel(isDark),
                     ),
+                  ),
+                  if (longest > current) ...[
+                    const SizedBox(width: AppTheme.spaceXs),
+                    Text(
+                      '${l10n.statsLongestLabel}: $longest',
+                      maxLines: 1,
+                      style: AppTheme.statLabel(isDark),
+                    ),
+                  ],
                 ],
               ),
             ] else if (longest > 0) ...[
@@ -611,13 +629,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
       children: tiles.indexed.map((entry) {
         final (i, tile) = entry;
         final numeric = numericValues[i];
-        final valueStyle = theme.textTheme.titleLarge?.copyWith(
-          fontWeight: AppFontWeights.bold,
-          letterSpacing: -0.5,
-          height: 1.0,
-          color: tile.color,
-        );
-        const textAlign = TextAlign.center;
         VoidCallback? onTap;
         if (i == 0 && _totalUploads != null && _totalUploads! > 0) {
           onTap = () => _showProfileDetail(
@@ -653,62 +664,100 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ctaAction: widget.onGoToMap,
           );
         }
+        final tappable = onTap != null;
         return Expanded(
           child: Padding(
             padding: EdgeInsets.only(right: i < tiles.length - 1 ? AppTheme.spaceSm : 0),
             child: PressScaleDetector(
               onTap: onTap,
               child: Container(
-              padding: const EdgeInsets.all(AppTheme.spaceMd),
-              decoration: AppTheme.contentCard(isDark: isDark),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Icon(tile.icon, size: AppIconSizes.xs, color: tile.color),
-                  const SizedBox(height: AppTheme.spaceXxs),
-                  if (numeric != null && numeric > 0)
-                    TweenAnimationBuilder<double>(
-                      key: ValueKey(numeric),
-                      tween: Tween(begin: prevValues[i], end: numeric),
-                      duration: const Duration(milliseconds: 700),
-                      curve: Curves.easeOut,
-                      onEnd: () {
-                        if (i == 0) { _prevTotalUploads = numeric; }
-                        else if (i == 1) { _prevDaysActive = numeric; }
-                        else { _prevKm2 = numeric; }
-                      },
-                      builder: (_, v, __) {
-                        final display = i == 2
-                            ? (v < 1.0 ? v.toStringAsFixed(2) : v.toStringAsFixed(1))
-                            : v.round().toString();
-                        return Text(display, style: valueStyle, textAlign: textAlign);
-                      },
-                    )
-                  else if (numericValues[i] == null)
-                    Shimmer.fromColors(
-                      baseColor: AppColors.shimmerBase(isDark),
-                      highlightColor: AppColors.shimmerHighlight(isDark),
-                      child: Container(
-                        width: 40, height: 20,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(AppTheme.radiusMin),
-                        ),
-                      ),
-                    )
-                  else
-                    Text(tile.value, style: valueStyle, textAlign: textAlign),
-                  const SizedBox(height: AppTheme.spaceXxxs),
-                  Text(
-                    tile.label,
-                    style: AppTheme.statLabel(isDark),
-                    maxLines: 2,
-                    softWrap: true,
-                    textAlign: TextAlign.center,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppTheme.spaceMd,
+                  vertical: AppTheme.spaceMd,
+                ),
+                decoration: BoxDecoration(
+                  color: tile.color.withValues(alpha: isDark ? 0.10 : 0.07),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                  border: Border.all(
+                    color: tile.color.withValues(alpha: tappable ? 0.28 : 0.14),
+                    width: 0.5,
                   ),
-                ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              if (numeric != null && numeric > 0)
+                                TweenAnimationBuilder<double>(
+                                  key: ValueKey(numeric),
+                                  tween: Tween(begin: prevValues[i], end: numeric),
+                                  duration: const Duration(milliseconds: 700),
+                                  curve: Curves.easeOut,
+                                  onEnd: () {
+                                    if (i == 0) { _prevTotalUploads = numeric; }
+                                    else if (i == 1) { _prevDaysActive = numeric; }
+                                    else { _prevKm2 = numeric; }
+                                  },
+                                  builder: (_, v, __) {
+                                    final display = i == 2
+                                        ? (v < 1.0 ? v.toStringAsFixed(2) : v.toStringAsFixed(1))
+                                        : v.round().toString();
+                                    return Text(display, style: theme.textTheme.headlineMedium?.copyWith(
+                                      fontWeight: AppFontWeights.bold,
+                                      letterSpacing: -1.0,
+                                      height: 1.0,
+                                      color: tile.color,
+                                    ));
+                                  },
+                                )
+                              else if (numericValues[i] == null)
+                                Shimmer.fromColors(
+                                  baseColor: AppColors.shimmerBase(isDark),
+                                  highlightColor: AppColors.shimmerHighlight(isDark),
+                                  child: Container(
+                                    width: 48, height: 28,
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(AppTheme.radiusMin),
+                                    ),
+                                  ),
+                                )
+                              else
+                                Text(tile.value, style: theme.textTheme.headlineMedium?.copyWith(
+                                  fontWeight: AppFontWeights.bold,
+                                  letterSpacing: -1.0,
+                                  height: 1.0,
+                                  color: tile.color,
+                                )),
+                            ],
+                          ),
+                        ),
+                        if (tappable)
+                          Icon(Icons.chevron_right_rounded, size: AppIconSizes.xs,
+                              color: tile.color.withValues(alpha: 0.45)),
+                      ],
+                    ),
+                    const SizedBox(height: AppTheme.spaceXxs),
+                    Text(
+                      tile.label,
+                      style: TextStyle(
+                        fontSize: AppTheme.fontSizeXs,
+                        fontWeight: AppFontWeights.medium,
+                        color: tile.color.withValues(alpha: 0.70),
+                        letterSpacing: 0.2,
+                      ),
+                      maxLines: 2,
+                      softWrap: true,
+                    ),
+                  ],
+                ),
               ),
-            ),
             ),
           ),
         );

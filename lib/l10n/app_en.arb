@@ -807,6 +807,14 @@
   "profileTileAreaCells": "zones explored",
   "profileStatCityBlocks": "city blocks",
   "profileStreakExplain": "Consecutive days with at least one sync.",
+  "profileStreakToMilestone": "{days} {unit} to {milestone}-{unit} streak",
+  "@profileStreakToMilestone": {
+    "placeholders": {
+      "days": { "type": "int" },
+      "unit": { "type": "String" },
+      "milestone": { "type": "int" }
+    }
+  },
   "profileUploadsExplanation": "Each upload is a batch of ~100 sensor readings captured at one location. Your data contributes to the shared environmental map.",
   "profileDaysExplanation": "Days where your phone contributed at least one data upload. More active days means richer, more recent coverage.",
   "profileZonesExplanation": "Each zone is a hexagonal cell (~174 m across) where your phone recorded environmental data. Tap the map to see exactly which areas you've covered.",
@@ -882,5 +890,26 @@
   "profileUnlockCta": "Sign in to keep my map",
 
   "mapZeroStateTitle": "Your map starts here",
-  "mapZeroStateBody": "Walk anywhere with the app running — your zones appear in real time."
+  "mapZeroStateBody": "Walk anywhere with the app running — your zones appear in real time.",
+
+  "snapshotCardTitle": "YOUR NEIGHBOURHOOD",
+  "snapshotReadings": "{count, plural, =1{1 reading} other{{count} readings}}",
+  "@snapshotReadings": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "snapshotAcrossZones": "across {count, plural, =1{1 zone} other{{count} zones}}",
+  "@snapshotAcrossZones": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "snapshotLightDark": "Dark",
+  "snapshotLightDim": "Dim",
+  "snapshotLightNormal": "Well lit",
+  "snapshotLightBright": "Bright",
+  "snapshotLightVeryBright": "Very bright",
+  "snapshotMovementCalm": "Calm",
+  "snapshotMovementActive": "Active",
+  "snapshotMovementBusy": "Busy",
+  "snapshotPressureLow": "Low pressure",
+  "snapshotPressureStable": "Stable",
+  "snapshotPressureHigh": "High pressure"
 }

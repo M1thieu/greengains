@@ -1533,29 +1533,43 @@ class _FirstUploadSheetState extends State<_FirstUploadSheet> {
                     borderRadius: BorderRadius.circular(AppTheme.radiusSm),
                   ),
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(context.l10n.firstUploadSensorsLabel, style: TextStyle(
-                            fontSize: AppTheme.fontSizeNavLabel, fontWeight: AppFontWeights.semibold,
-                            color: Colors.white.withValues(alpha: 0.60), letterSpacing: 0.5)),
-                          const SizedBox(height: AppTheme.spaceXxxs),
-                          Text(context.l10n.firstUploadSensorsValue, style: TextStyle(
-                            fontSize: AppTheme.fontSizeBody, color: Colors.white.withValues(alpha: 0.85))),
-                        ],
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(context.l10n.firstUploadSensorsLabel,
+                              maxLines: 1, overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: AppTheme.fontSizeNavLabel, fontWeight: AppFontWeights.semibold,
+                                color: Colors.white.withValues(alpha: 0.60), letterSpacing: 0.5)),
+                            const SizedBox(height: AppTheme.spaceXxxs),
+                            Text(context.l10n.firstUploadSensorsValue,
+                              maxLines: 2, overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: AppTheme.fontSizeBody, color: Colors.white.withValues(alpha: 0.85))),
+                          ],
+                        ),
                       ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Text(context.l10n.firstUploadPrivacyLabel, style: TextStyle(
-                            fontSize: AppTheme.fontSizeNavLabel, fontWeight: AppFontWeights.semibold,
-                            color: Colors.white.withValues(alpha: 0.60), letterSpacing: 0.5)),
-                          const SizedBox(height: AppTheme.spaceXxxs),
-                          Text(context.l10n.firstUploadPrivacyValue, style: const TextStyle(
-                            fontSize: AppTheme.fontSizeBody, color: AppColors.primary, fontWeight: AppFontWeights.semibold)),
-                        ],
+                      const SizedBox(width: AppTheme.spaceMd),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text(context.l10n.firstUploadPrivacyLabel,
+                              maxLines: 1, overflow: TextOverflow.ellipsis,
+                              textAlign: TextAlign.end,
+                              style: TextStyle(
+                                fontSize: AppTheme.fontSizeNavLabel, fontWeight: AppFontWeights.semibold,
+                                color: Colors.white.withValues(alpha: 0.60), letterSpacing: 0.5)),
+                            const SizedBox(height: AppTheme.spaceXxxs),
+                            Text(context.l10n.firstUploadPrivacyValue,
+                              maxLines: 1, overflow: TextOverflow.ellipsis,
+                              textAlign: TextAlign.end,
+                              style: const TextStyle(
+                                fontSize: AppTheme.fontSizeBody, color: AppColors.primary, fontWeight: AppFontWeights.semibold)),
+                          ],
+                        ),
                       ),
                     ],
                   ),

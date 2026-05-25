@@ -3194,6 +3194,12 @@ abstract class AppLocalizations {
   /// **'Consecutive days with at least one sync.'**
   String get profileStreakExplain;
 
+  /// No description provided for @profileStreakToMilestone.
+  ///
+  /// In en, this message translates to:
+  /// **'{days} {unit} to {milestone}-{unit} streak'**
+  String profileStreakToMilestone(int days, String unit, int milestone);
+
   /// No description provided for @profileUploadsExplanation.
   ///
   /// In en, this message translates to:
@@ -3475,6 +3481,90 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Walk anywhere with the app running — your zones appear in real time.'**
   String get mapZeroStateBody;
+
+  /// No description provided for @snapshotCardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'YOUR NEIGHBOURHOOD'**
+  String get snapshotCardTitle;
+
+  /// No description provided for @snapshotReadings.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 reading} other{{count} readings}}'**
+  String snapshotReadings(int count);
+
+  /// No description provided for @snapshotAcrossZones.
+  ///
+  /// In en, this message translates to:
+  /// **'across {count, plural, =1{1 zone} other{{count} zones}}'**
+  String snapshotAcrossZones(int count);
+
+  /// No description provided for @snapshotLightDark.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark'**
+  String get snapshotLightDark;
+
+  /// No description provided for @snapshotLightDim.
+  ///
+  /// In en, this message translates to:
+  /// **'Dim'**
+  String get snapshotLightDim;
+
+  /// No description provided for @snapshotLightNormal.
+  ///
+  /// In en, this message translates to:
+  /// **'Well lit'**
+  String get snapshotLightNormal;
+
+  /// No description provided for @snapshotLightBright.
+  ///
+  /// In en, this message translates to:
+  /// **'Bright'**
+  String get snapshotLightBright;
+
+  /// No description provided for @snapshotLightVeryBright.
+  ///
+  /// In en, this message translates to:
+  /// **'Very bright'**
+  String get snapshotLightVeryBright;
+
+  /// No description provided for @snapshotMovementCalm.
+  ///
+  /// In en, this message translates to:
+  /// **'Calm'**
+  String get snapshotMovementCalm;
+
+  /// No description provided for @snapshotMovementActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get snapshotMovementActive;
+
+  /// No description provided for @snapshotMovementBusy.
+  ///
+  /// In en, this message translates to:
+  /// **'Busy'**
+  String get snapshotMovementBusy;
+
+  /// No description provided for @snapshotPressureLow.
+  ///
+  /// In en, this message translates to:
+  /// **'Low pressure'**
+  String get snapshotPressureLow;
+
+  /// No description provided for @snapshotPressureStable.
+  ///
+  /// In en, this message translates to:
+  /// **'Stable'**
+  String get snapshotPressureStable;
+
+  /// No description provided for @snapshotPressureHigh.
+  ///
+  /// In en, this message translates to:
+  /// **'High pressure'**
+  String get snapshotPressureHigh;
 }
 
 class _AppLocalizationsDelegate
