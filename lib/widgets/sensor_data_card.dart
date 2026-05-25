@@ -7,7 +7,7 @@ const _kSensorIconPad     = AppTheme.spaceXs;     //  8 — icon container paddi
 const _kSensorValuePadH   = AppTheme.spaceXs;     //  8 — value pill h-padding
 const _kSensorValuePadV   = AppTheme.spaceXxxs;   //  2 — value pill v-padding
 const _kSensorValueRadius = AppTheme.radiusSm;    //  8 — value + shimmer pill radius
-const _kSensorUnitLineH   = 1.2;                  // line-height for unit text
+const _kSensorUnitLineH   = AppLineHeights.snug;  // line-height for unit/hint text
 const _kSensorTimeSize    = 11.0;                 // font size for update timestamp
 const _kShimmerW          = 120.0;               // shimmer placeholder width
 const _kShimmerH          = AppTheme.spaceLg;     // 24 — shimmer placeholder height
@@ -111,7 +111,7 @@ class _SensorDataCardState extends State<SensorDataCard>
             color: isActive
                 ? _accent.withValues(alpha: 0.35)
                 : AppColors.border(isDark),
-            width: 1,
+            width: AppBorderWidths.thin,
           ),
         ),
         child: Column(

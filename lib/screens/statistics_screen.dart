@@ -28,10 +28,8 @@ const _kBarLabelSize      = AppTheme.fontSizeXs;  // day-of-week label below eac
 const _kSkeletonTitleW    = 160.0;                // width of section-title skeleton rect
 const _kSkeletonHeroH     = 96.0;                 // height of hero card skeleton placeholder
 // ── Typography constants ──────────────────────────────────────────────────────
-const _kLetterSpacingDisplay  = -2.0;  // tight tracking for displayLarge hero number
-const _kLetterSpacingHero     = -0.5;  // tight tracking for titleLarge in tiles
 const _kLetterSpacingCaps     = 2.0;   // wide tracking for uppercase LABEL badges
-const _kLineHeightTight       = 1.0;   // tight line-height for numeric displays
+const _kBarSelectScale        = 1.04;  // selected bar lift — kept subtle, one place to tune
 
 // Zone milestones — territory achievements visible on the map.
 // Achievable cadence: 5 → 10 → 25 → 50 → 100 → 250 → 500 areas.
@@ -316,8 +314,14 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                         _withEntrance(_buildWeeklyTargetCard(theme, isDark, l10n, _weeklyTarget!), 1),
                       ],
                       const SizedBox(height: AppTheme.spaceMd),
-                      // Activity snapshot
-                      SectionHeader(l10n.statsActivitySection),
+                      // Activity snapshot — verdict chip grouped here (weekly scope)
+                      Row(
+                        children: [
+                          Expanded(child: SectionHeader(l10n.statsActivitySection, bottom: 0)),
+                          if (_weeklyData != null && _weeklyData!.fold(0, (a, b) => a + b) > 0)
+                            _buildVerdictChip(isDark, l10n),
+                        ],
+                      ),
                       const SizedBox(height: AppTheme.spaceXxs),
                       _withEntrance(_buildSupportingTrio(theme, isDark), 2),
                       const SizedBox(height: AppTheme.spaceXs),
@@ -356,15 +360,11 @@ class _StatisticsScreenState extends State<StatisticsScreen>
   Widget _buildVerdictChip(bool isDark, AppLocalizations l10n) {
     final weekly = _weeklyData ?? [];
     final daysActive = weekly.where((v) => v > 0).length;
-    final weekSum = weekly.fold(0, (a, b) => a + b);
 
     final String label;
     final Color color;
 
-    if (weekSum == 0) {
-      label = l10n.statsVerdictNone;
-      color = AppColors.textTertiary(isDark);
-    } else if (daysActive >= 5) {
+    if (daysActive >= 5) {
       label = l10n.statsVerdictStrong;
       color = AppColors.primary;
     } else if (daysActive >= 3) {
@@ -431,15 +431,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Center(
-                child: Container(
-                  width: 36, height: 4,
-                  decoration: BoxDecoration(
-                    color: AppColors.textTertiary(isDark).withValues(alpha: 0.4),
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-              ),
+              AppTheme.dragHandle(isDark),
               const SizedBox(height: AppTheme.spaceMd),
               Text(l10n.statsDetailTitle, style: theme.textTheme.titleMedium?.copyWith(fontWeight: AppFontWeights.semibold)),
               const SizedBox(height: AppTheme.spaceXxxs),
@@ -455,14 +447,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
               _ExplainerRow(icon: Icons.upload_rounded, color: AppColors.pressure, text: l10n.statsUploadExplainer, isDark: isDark),
               const SizedBox(height: AppTheme.spaceMd),
               // Personal records grid
-              Text(
-                l10n.statsPersonalRecords,
-                style: theme.textTheme.labelMedium?.copyWith(
-                  color: AppColors.textSecondary(isDark),
-                  fontWeight: AppFontWeights.semibold,
-                ),
-              ),
-              const SizedBox(height: AppTheme.spaceXs),
+              SectionHeader(l10n.statsPersonalRecords),
               Row(
                 children: [
                   Expanded(child: StatCell(label: l10n.statsRecordBestDay, value: '$bestDay', color: AppColors.light)),
@@ -500,30 +485,20 @@ class _StatisticsScreenState extends State<StatisticsScreen>
     final km2 = zones * kKm2PerCell;
     final showKm2 = zones > 0;
 
-    // Compact verdict chip — inline week summary
-    final verdictChip = _weeklyData != null ? _buildVerdictChip(isDark, l10n) : null;
-
-    return _PressScaleDetector(
+    return PressScaleDetector(
       onTap: _showStatsDetailSheet,
+      child: Container(
+        padding: const EdgeInsets.all(AppTheme.spaceMd),
+        decoration: AppTheme.surfaceContainer(isDark: isDark),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Eyebrow row — label + verdict chip
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  showKm2 ? l10n.statsKmMapped : l10n.statsDataPtsLabel,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTheme.eyebrowLabel(isDark),
-                ),
-              ),
-              if (verdictChip != null) ...[
-                const SizedBox(width: AppTheme.spaceSm),
-                verdictChip,
-              ],
-            ],
+          // Eyebrow — lifetime scope only, no weekly verdict here
+          Text(
+            showKm2 ? l10n.statsKmMapped : l10n.statsDataPtsLabel,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: AppTheme.eyebrowLabel(isDark),
           ),
           const SizedBox(height: AppTheme.spaceXxxs),
           // Hero number
@@ -540,8 +515,8 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                     text: value < 1.0 ? value.toStringAsFixed(2) : value.toStringAsFixed(1),
                     style: theme.textTheme.displayLarge?.copyWith(
                       fontWeight: AppFontWeights.bold,
-                      letterSpacing: _kLetterSpacingDisplay,
-                      height: _kLineHeightTight,
+                      letterSpacing: AppTheme.letterSpacingDisplay,
+                      height: AppLineHeights.numeric,
                       color: AppColors.textPrimary(isDark),
                     ),
                   ),
@@ -560,8 +535,8 @@ class _StatisticsScreenState extends State<StatisticsScreen>
               '$totalUploads',
               style: theme.textTheme.displayLarge?.copyWith(
                 fontWeight: AppFontWeights.bold,
-                letterSpacing: _kLetterSpacingDisplay,
-                height: _kLineHeightTight,
+                letterSpacing: AppTheme.letterSpacingDisplay,
+                height: AppLineHeights.numeric,
               ),
             ),
           // City blocks context — makes km² tangible for non-technical users
@@ -604,10 +579,13 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                       Icon(Icons.arrow_forward, size: AppIconSizes.xxs, color: AppColors.primary),
                     ]),
                   ),
-                ),
+                )
+              else
+                Icon(Icons.info_outline_rounded, size: AppIconSizes.xxs, color: AppColors.textTertiary(isDark).withValues(alpha: 0.5)),
             ],
           ),
         ],
+      ),
       ),
     );
   }
@@ -674,8 +652,8 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                       builder: (_, value, __) => Text('$value', style: theme.textTheme.headlineMedium?.copyWith(
                         fontWeight: AppFontWeights.bold,
                         color: AppColors.primary,
-                        height: _kLineHeightTight,
-                        letterSpacing: -1.0,
+                        height: AppLineHeights.numeric,
+                        letterSpacing: AppTheme.letterSpacingNumeric,
                       )),
                     ),
                     const SizedBox(width: AppTheme.spaceXxs),
@@ -716,10 +694,10 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                       tween: IntTween(begin: 0, end: longest),
                       duration: AppDurations.medium,
                       curve: AppMotion.decelerated,
-                      builder: (_, value, __) => Text('$value', style: theme.textTheme.titleLarge?.copyWith(
+                      builder: (_, value, __) => Text('$value', style: theme.textTheme.headlineMedium?.copyWith(
                         fontWeight: AppFontWeights.bold,
-                        height: _kLineHeightTight,
-                        letterSpacing: _kLetterSpacingHero,
+                        height: AppLineHeights.numeric,
+                        letterSpacing: AppTheme.letterSpacingNumeric,
                       )),
                     ),
                     const SizedBox(width: AppTheme.spaceXxs),
@@ -866,7 +844,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
               ),
               const SizedBox(width: AppTheme.spaceXs),
               Text(
-                '$done / $total',
+                complete ? l10n.statsWeeklyTargetComplete : '$done / $total',
                 style: theme.textTheme.labelSmall?.copyWith(
                   color: accent,
                   fontWeight: AppFontWeights.semibold,
@@ -1024,7 +1002,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                     },
                     behavior: HitTestBehavior.opaque,
                     child: AnimatedScale(
-                      scale: isSelected ? 1.06 : 1.0,
+                      scale: isSelected ? _kBarSelectScale : 1.0,
                       duration: AppDurations.fast,
                       curve: AppMotion.standard,
                       child: Column(
@@ -1272,7 +1250,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
   Widget _buildTerritoryDetailsLink(ThemeData theme, bool isDark, AppLocalizations l10n) {
     final zones = _coverageCells ?? 0;
     if (zones == 0) return const SizedBox.shrink();
-    return _PressScaleDetector(
+    return PressScaleDetector(
       onTap: () => _showTerritorySheet(l10n),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: AppTheme.spaceXs),
@@ -1315,17 +1293,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Grab handle
-            Center(
-              child: Container(
-                width: 36,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: AppColors.textTertiary(isDark).withValues(alpha: 0.4),
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ),
+            AppTheme.dragHandle(isDark),
             const SizedBox(height: AppTheme.spaceMd),
             Text(
               l10n.statsTerritorySheetTitle,
@@ -1439,8 +1407,8 @@ class _StatisticsScreenState extends State<StatisticsScreen>
           Text('$pct%', style: theme.textTheme.headlineMedium?.copyWith(
             fontWeight: AppFontWeights.bold,
             color: barColor,
-            height: _kLineHeightTight,
-            letterSpacing: _kLetterSpacingDisplay,
+            height: AppLineHeights.numeric,
+            letterSpacing: AppTheme.letterSpacingDisplay,
           )),
           const SizedBox(width: AppTheme.spaceSm),
           Container(
@@ -1458,7 +1426,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
         ]),
         const SizedBox(height: AppTheme.spaceXs),
         ClipRRect(
-          borderRadius: BorderRadius.circular(3),
+          borderRadius: BorderRadius.circular(AppTheme.radiusMin),
           child: TweenAnimationBuilder<double>(
             tween: Tween(begin: 0, end: pct / 100.0),
             duration: AppDurations.medium,
@@ -1533,7 +1501,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
     }
 
     return ListView(
-      padding: AppTheme.pagePadding.copyWith(top: AppTheme.spaceMd, bottom: bottomPad),
+      padding: AppTheme.pagePadding.copyWith(top: AppTheme.spaceSm, bottom: bottomPad),
       children: [
         // ── 30-day activity heatmap ───────────────────────────────────────
         if (_dailyCounts != null) ...[
@@ -1549,8 +1517,8 @@ class _StatisticsScreenState extends State<StatisticsScreen>
           Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text('$totalUploads', style: theme.textTheme.headlineLarge?.copyWith(
               fontWeight: AppFontWeights.bold,
-              height: _kLineHeightTight,
-              letterSpacing: _kLetterSpacingDisplay,
+              height: AppLineHeights.numeric,
+              letterSpacing: AppTheme.letterSpacingDisplay,
             )),
             const SizedBox(height: AppTheme.spaceXxxs),
             Text(l10n.statsUploadsUnit, style: theme.textTheme.labelSmall?.copyWith(
@@ -1562,8 +1530,8 @@ class _StatisticsScreenState extends State<StatisticsScreen>
             Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text(km2Str, style: theme.textTheme.headlineLarge?.copyWith(
                 fontWeight: AppFontWeights.bold,
-                height: _kLineHeightTight,
-                letterSpacing: _kLetterSpacingDisplay,
+                height: AppLineHeights.numeric,
+                letterSpacing: AppTheme.letterSpacingDisplay,
               )),
               const SizedBox(height: AppTheme.spaceXxxs),
               Text(l10n.statsKm2Unit, style: theme.textTheme.labelSmall?.copyWith(
@@ -1588,8 +1556,8 @@ class _StatisticsScreenState extends State<StatisticsScreen>
             Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text('$activeDays30', style: theme.textTheme.headlineMedium?.copyWith(
                 fontWeight: AppFontWeights.bold,
-                height: _kLineHeightTight,
-                letterSpacing: _kLetterSpacingDisplay,
+                height: AppLineHeights.numeric,
+                letterSpacing: AppTheme.letterSpacingDisplay,
               )),
               Text(l10n.statsLast30DaysUnit, style: theme.textTheme.labelSmall?.copyWith(color: AppColors.textSecondary(isDark))),
               const SizedBox(height: AppTheme.spaceXxxs + 1),
@@ -1599,8 +1567,8 @@ class _StatisticsScreenState extends State<StatisticsScreen>
             Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text('$avgPerActiveDay', style: theme.textTheme.headlineMedium?.copyWith(
                 fontWeight: AppFontWeights.bold,
-                height: _kLineHeightTight,
-                letterSpacing: _kLetterSpacingDisplay,
+                height: AppLineHeights.numeric,
+                letterSpacing: AppTheme.letterSpacingDisplay,
               )),
               Text(l10n.statsUploadsUnit, style: theme.textTheme.labelSmall?.copyWith(color: AppColors.textSecondary(isDark))),
               const SizedBox(height: AppTheme.spaceXxxs + 1),
@@ -1611,7 +1579,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
               Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Text(bestWeekday, style: theme.textTheme.headlineMedium?.copyWith(
                   fontWeight: AppFontWeights.bold,
-                  height: _kLineHeightTight,
+                  height: AppLineHeights.numeric,
                 )),
                 Text('${l10n.statsAvgPrefix} $bestWeekdayAvg', style: theme.textTheme.labelSmall?.copyWith(color: AppColors.textSecondary(isDark))),
                 const SizedBox(height: AppTheme.spaceXxxs + 1),
@@ -1645,8 +1613,8 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                     Text('$bestDay', style: theme.textTheme.displaySmall?.copyWith(
                       fontWeight: AppFontWeights.bold,
                       color: AppColors.primary,
-                      height: _kLineHeightTight,
-                      letterSpacing: _kLetterSpacingDisplay,
+                      height: AppLineHeights.numeric,
+                      letterSpacing: AppTheme.letterSpacingDisplay,
                     )),
                     Text(l10n.statsUploadsUnit, style: theme.textTheme.labelSmall?.copyWith(
                       color: AppColors.textSecondary(isDark),
@@ -1707,7 +1675,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
 
         // ── Map CTA ───────────────────────────────────────────────────────
         if (widget.onGoToHome != null)
-          _PressScaleDetector(
+          PressScaleDetector(
             onTap: () {
               HapticFeedback.lightImpact();
               widget.onGoToHome!();
@@ -1846,14 +1814,7 @@ class _SensorTypesRow extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          l10n.statsTerritoryWhatRecorded,
-          style: theme.textTheme.labelMedium?.copyWith(
-            color: AppColors.textSecondary(isDark),
-            fontWeight: AppFontWeights.semibold,
-          ),
-        ),
-        const SizedBox(height: AppTheme.spaceXs),
+        SectionHeader(l10n.statsTerritoryWhatRecorded),
         ...sensors.map((s) => Padding(
           padding: const EdgeInsets.only(bottom: AppTheme.spaceXs),
           child: Row(
@@ -1885,8 +1846,6 @@ class _SensorTypesRow extends StatelessWidget {
   }
 }
 
-// Re-export shared widget under the private name used throughout this file.
-typedef _PressScaleDetector = PressScaleDetector;
 
 // ── 30-day calendar heatmap ───────────────────────────────────────────────────
 
@@ -2033,7 +1992,7 @@ class _CalendarHeatmapState extends State<_CalendarHeatmap> {
                           height: 22,
                           decoration: BoxDecoration(
                             color: dotColor,
-                            borderRadius: BorderRadius.circular(5),
+                            borderRadius: BorderRadius.circular(AppTheme.radiusMin),
                             border: isSelected
                                 ? Border.all(color: AppColors.primary, width: 2)
                                 : isToday
@@ -2067,7 +2026,7 @@ class _CalendarHeatmapState extends State<_CalendarHeatmap> {
                 margin: const EdgeInsets.only(right: 3),
                 decoration: BoxDecoration(
                   color: AppColors.primary.withValues(alpha: a),
-                  borderRadius: BorderRadius.circular(2),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusXxs),
                 ),
               )),
               Text(
@@ -2134,7 +2093,7 @@ class _ExplainerRow extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
-          width: 24, height: 24,
+          width: 28, height: 28,
           decoration: BoxDecoration(
             color: color.withValues(alpha: 0.12),
             borderRadius: BorderRadius.circular(AppTheme.radiusSm),
@@ -2299,11 +2258,11 @@ class _KpiCell extends StatelessWidget {
             child: value != null
                 ? Text(value!, key: ValueKey(value), style: theme.textTheme.headlineMedium?.copyWith(
                     fontWeight: AppFontWeights.bold,
-                    height: _kLineHeightTight,
-                    letterSpacing: -1.0,
+                    height: AppLineHeights.numeric,
+                    letterSpacing: AppTheme.letterSpacingNumeric,
                   ))
                 : SizedBox(key: const ValueKey('loading'), width: 36, height: 22, child: LinearProgressIndicator(
-                    borderRadius: BorderRadius.circular(2),
+                    borderRadius: BorderRadius.circular(AppTheme.radiusXxs),
                     backgroundColor: AppColors.textTertiary(isDark).withValues(alpha: 0.12),
                     color: AppColors.primary.withValues(alpha: 0.4),
                   )),
@@ -2457,7 +2416,7 @@ class _WeeklyGoalCelebrationState extends State<_WeeklyGoalCelebration>
                 style: const TextStyle(
                   fontSize: AppTheme.fontSizeLg,
                   fontWeight: AppFontWeights.bold,
-                  letterSpacing: -0.5,
+                  letterSpacing: AppTheme.letterSpacingSubtle,
                 ),
               ),
               const SizedBox(height: AppTheme.spaceXs),

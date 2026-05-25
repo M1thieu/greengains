@@ -10,6 +10,7 @@ import '../core/app_preferences.dart';
 import '../services/location/foreground_location_service.dart';
 import 'diagnostics_screen.dart';
 import 'webview_screen.dart';
+import '../l10n/app_localizations.dart';
 import '../widgets/press_scale_detector.dart';
 
 const _kPrivacyPolicyUrl    = 'https://greengains.eremat.org/legal/privacy-policy';
@@ -17,7 +18,6 @@ const _kTermsUrl            = 'https://greengains.eremat.org/legal/terms-of-serv
 const _kDataTransparencyUrl = 'https://greengains.eremat.org/legal/data-transparency';
 const _kDataDeletionUrl     = 'https://greengains.eremat.org/legal/data-deletion';
 const _kSectionSpacing   = AppTheme.spaceSm;
-const _kIconBoxSize      = 36.0; // icon container — between spaceXl(32) and minTouchTarget(48)
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -261,7 +261,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  void _showLegalSheet(BuildContext context, dynamic l10n, bool isDark) {
+  void _showLegalSheet(BuildContext context, AppLocalizations l10n, bool isDark) {
     showModalBottomSheet(
       context: context,
       backgroundColor: AppColors.surface(isDark),
@@ -423,8 +423,8 @@ class _UserIdentityRow extends StatelessWidget {
       child: Row(
         children: [
           Container(
-            width: 44,
-            height: 44,
+            width: AppTheme.iconBoxMd,
+            height: AppTheme.iconBoxMd,
             decoration: BoxDecoration(
               color: AppColors.primary.withValues(alpha: 0.15),
               shape: BoxShape.circle,
@@ -492,22 +492,17 @@ class _LegalLink extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        GestureDetector(
-          onTap: onTap,
-          child: Text(
-            label,
-            style: TextStyle(
-              fontSize: AppTheme.fontSizeXs,
-              color: AppColors.textSecondary(isDark),
-              decoration: TextDecoration.underline,
-              decorationColor: AppColors.textSecondary(isDark).withValues(alpha: 0.4),
-            ),
-          ),
+    return PressScaleDetector(
+      onTap: onTap,
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: AppTheme.fontSizeXs,
+          color: AppColors.textSecondary(isDark),
+          decoration: TextDecoration.underline,
+          decorationColor: AppColors.textSecondary(isDark).withValues(alpha: 0.4),
         ),
-      ],
+      ),
     );
   }
 }
@@ -520,8 +515,8 @@ class _IconBox extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: _kIconBoxSize,
-      height: _kIconBoxSize,
+      width: AppTheme.iconBoxSm,
+      height: AppTheme.iconBoxSm,
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(AppTheme.radiusSm),

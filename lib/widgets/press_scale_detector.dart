@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import '../core/themes.dart';
 
-/// Subtle 0.97 scale on press — consistent tap feedback across the app.
+/// Subtle press-down scale — value and duration from AppTheme/AppDurations tokens.
 class PressScaleDetector extends StatefulWidget {
   const PressScaleDetector({super.key, required this.onTap, required this.child});
   final VoidCallback? onTap;
@@ -23,8 +24,8 @@ class _PressScaleDetectorState extends State<PressScaleDetector> {
       onTapCancel: enabled ? () => setState(() => _pressed = false) : null,
       behavior: HitTestBehavior.opaque,
       child: AnimatedScale(
-        scale: _pressed ? 0.97 : 1.0,
-        duration: const Duration(milliseconds: 80),
+        scale: _pressed ? AppTheme.pressScale : 1.0,
+        duration: AppDurations.press,
         curve: Curves.easeOut,
         child: widget.child,
       ),

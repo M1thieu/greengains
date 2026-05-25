@@ -36,7 +36,7 @@ class StatCell extends StatelessWidget {
             style: theme.textTheme.titleLarge?.copyWith(
               fontWeight: AppFontWeights.bold,
               color: color ?? AppColors.textPrimary(isDark),
-              letterSpacing: -0.5,
+              letterSpacing: AppTheme.letterSpacingSubtle,
               height: AppLineHeights.tight,
             ),
           ),

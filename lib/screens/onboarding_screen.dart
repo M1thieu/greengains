@@ -314,8 +314,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 children: [
                   Text(
                     l10n.onboardingWelcomeTitle,
-                    style: TextStyle(
-                      fontSize: AppTheme.fontSizeHero,
+                    style: Theme.of(context).textTheme.headlineLarge?.copyWith(
                       fontWeight: AppFontWeights.semibold,
                       letterSpacing: -0.8,
                       height: 1.12,
@@ -378,7 +377,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               l10n.onboardingSignInTitle,
               style: theme.textTheme.headlineLarge?.copyWith(
                 fontWeight: AppFontWeights.bold,
-                letterSpacing: -0.5,
+                letterSpacing: AppTheme.letterSpacingSubtle,
               ),
               textAlign: TextAlign.center,
             ),
@@ -583,7 +582,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               l10n.onboardingActivateTitle,
               style: theme.textTheme.headlineLarge?.copyWith(
                 fontWeight: AppFontWeights.bold,
-                letterSpacing: -0.5,
+                letterSpacing: AppTheme.letterSpacingSubtle,
               ),
             ),
             const SizedBox(height: AppTheme.spaceXs),
@@ -671,8 +670,7 @@ class _FeatureRow extends StatelessWidget {
               children: [
                 Text(
                   title,
-                  style: TextStyle(
-                    fontSize: AppTheme.fontSizeSm,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     fontWeight: AppFontWeights.semibold,
                     color: AppColors.darkTextPrimary,
                     letterSpacing: -0.1,

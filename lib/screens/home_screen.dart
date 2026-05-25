@@ -812,9 +812,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     ),
                     child: Text(
                       context.l10n.serverWakingUp,
-                      style: const TextStyle(
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: AppColors.darkTextSecondary,
-                        fontSize: AppTheme.fontSizeBody,
                         fontWeight: AppFontWeights.medium,
                       ),
                     ),
@@ -900,20 +899,18 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                   children: [
                                     Text(
                                       context.l10n.mapZeroStateTitle,
-                                      style: const TextStyle(
-                                        fontSize: AppTheme.fontSizeSm,
+                                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                         fontWeight: AppFontWeights.semibold,
                                         color: AppColors.darkTextPrimary,
-                                        letterSpacing: -0.1,
+                                        letterSpacing: AppTheme.letterSpacingSubtle,
                                       ),
                                     ),
                                     const SizedBox(height: AppTheme.spaceXxxs),
                                     Text(
                                       context.l10n.mapZeroStateBody,
-                                      style: const TextStyle(
-                                        fontSize: AppTheme.fontSizeBody,
+                                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
                                         color: AppColors.darkTextSecondary,
-                                        height: 1.4,
+                                        height: AppLineHeights.normal,
                                       ),
                                     ),
                                   ],
@@ -964,11 +961,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                 ),
                                 child: Text(
                                   pillText,
-                                  style: const TextStyle(
-                                    fontSize: AppTheme.fontSizeSm,
+                                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
                                     fontWeight: AppFontWeights.semibold,
                                     color: AppColors.primary,
-                                    letterSpacing: -0.1,
+                                    letterSpacing: AppTheme.letterSpacingSubtle,
                                   ),
                                 ),
                               ),
@@ -1493,8 +1489,7 @@ class _FirstUploadSheetState extends State<_FirstUploadSheet> {
                 const SizedBox(height: AppTheme.spaceMd),
                 Text(
                   context.l10n.firstUploadBadge,
-                  style: const TextStyle(
-                    fontSize: AppTheme.fontSizeBody,
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
                     fontWeight: AppFontWeights.semibold,
                     color: AppColors.primary,
                     letterSpacing: 1.4,
@@ -2392,7 +2387,7 @@ class _SummaryStatCell extends StatelessWidget {
                 fontSize: AppTheme.spaceXl,
                 fontWeight: AppFontWeights.semibold,
                 color: Colors.white.withValues(alpha: 0.96),
-                letterSpacing: -0.5,
+                letterSpacing: AppTheme.letterSpacingSubtle,
                 fontFeatures: const [ui.FontFeature.tabularFigures()],
               ),
             ),

@@ -216,6 +216,7 @@ class AppColors {
 class AppDurations {
   AppDurations._();
 
+  static const Duration press  = Duration(milliseconds: 80);  // press-scale feedback
   static const Duration instant = Duration(milliseconds: 100);
   static const Duration fast = Duration(milliseconds: 300);
   static const Duration medium = Duration(milliseconds: 600);
@@ -382,6 +383,7 @@ class AppIconSizes {
 class AppLineHeights {
   AppLineHeights._();
 
+  static const double numeric = 1.0; // stat numbers — no extra leading
   static const double tight   = 1.1; // display numbers, headings
   static const double snug    = 1.3; // card body copy
   static const double normal  = 1.4; // default body
@@ -409,6 +411,7 @@ class AppTheme {
   static const double onboardingLinkBottomGap = 28;
 
   // Radii
+  static const double radiusXxs = 2;   // Grab handles, progress bar end-caps
   static const double radiusMin = 4;   // Minimal radius for subtle rounding
   static const double radiusSm = 8;
   static const double radiusMd = 12;
@@ -422,6 +425,18 @@ class AppTheme {
   // Floating nav bar
   static const double floatingNavHeight = 64;
   static const double fontSizeNavLabel  = 10.0; // sub-caption, below bodySmall(12)
+
+  // Typography behaviour
+  static const double letterSpacingSubtle  = -0.5; // large titles, section headings
+  static const double letterSpacingNumeric = -1.0; // KPI / stat numbers — tight tracking
+  static const double letterSpacingDisplay = -2.0; // hero display numbers (displayLarge)
+
+  // Interaction
+  static const double pressScale = 0.97; // PressScaleDetector — uniform press-down scale
+
+  // Icon box sizes — container for icon + tinted background
+  static const double iconBoxSm = 36.0; // settings rows, list items
+  static const double iconBoxMd = 44.0; // profile header, prominent action rows
 
   // Sub-body font sizes
   static const double fontSizeXxs  = 10.0; // micro — nav labels only

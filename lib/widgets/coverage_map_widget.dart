@@ -1219,7 +1219,7 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> {
       height: MediaQuery.of(context).size.height * widget.heightFraction,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(AppTheme.radiusLg),
-        border: Border.all(color: AppColors.border(isDark), width: 1),
+        border: Border.all(color: AppColors.border(isDark), width: AppBorderWidths.thin),
         boxShadow: isDark
             ? AppColors.elevationDark(active: false)
             : AppColors.elevationLight(active: false),
@@ -1347,7 +1347,7 @@ class MapHeatmapLegend extends StatelessWidget {
                 ],
                 const SizedBox(width: AppTheme.spaceTiny),
                 Icon(Icons.info_outline,
-                    size: AppTheme.fontSizeXxs + 1,
+                    size: AppIconSizes.xxs,
                     color: AppColors.shadowLight(0.38)),
               ],
             ),
@@ -1927,8 +1927,8 @@ class _VerticalDivider extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 1,
-      height: 36,
+      width: AppBorderWidths.thin,
+      height: AppTheme.iconBoxSm,
       color: AppColors.border(isDark),
     );
   }
@@ -1945,7 +1945,7 @@ class _TimeAgoLine extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(Icons.schedule, size: AppTheme.fontSizeXs, color: AppColors.textSecondary(isDark)),
+        Icon(Icons.schedule, size: AppIconSizes.xxs, color: AppColors.textSecondary(isDark)),
         const SizedBox(width: AppTheme.spaceTiny),
         TimeAgoText(
           timestamp: timestamp,

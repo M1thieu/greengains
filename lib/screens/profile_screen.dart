@@ -389,8 +389,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
             const SizedBox(height: AppTheme.spaceMd),
             Text(value, style: theme.textTheme.displaySmall?.copyWith(
               fontWeight: AppFontWeights.bold,
-              letterSpacing: -1.0,
-              height: 1.0,
+              letterSpacing: AppTheme.letterSpacingNumeric,
+              height: AppLineHeights.numeric,
               color: color,
             )),
             const SizedBox(height: AppTheme.spaceXxxs),
@@ -511,8 +511,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               style: theme.textTheme.displayLarge?.copyWith(
                                 fontWeight: AppFontWeights.bold,
                                 color: active ? AppColors.primary : AppColors.textPrimary(isDark),
-                                letterSpacing: -2.0,
-                                height: 1.0,
+                                letterSpacing: AppTheme.letterSpacingDisplay,
+                                height: AppLineHeights.numeric,
                               ),
                             ),
                           ),
@@ -710,8 +710,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                         : v.round().toString();
                                     return Text(display, style: theme.textTheme.headlineMedium?.copyWith(
                                       fontWeight: AppFontWeights.bold,
-                                      letterSpacing: -1.0,
-                                      height: 1.0,
+                                      letterSpacing: AppTheme.letterSpacingNumeric,
+                                      height: AppLineHeights.numeric,
                                       color: tile.color,
                                     ));
                                   },
