@@ -1365,8 +1365,8 @@ class _LegendDot extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: AppTheme.dotSize + 3,
-      height: AppTheme.dotSize + 3,
+      width: AppTheme.dotSizeLg,
+      height: AppTheme.dotSizeLg,
       decoration: BoxDecoration(color: color, shape: BoxShape.circle),
     );
   }

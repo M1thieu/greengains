@@ -1127,8 +1127,9 @@ class _ActionButton extends StatelessWidget {
       _ActionBtnStyle.danger    => AppColors.error.withValues(alpha: 0.25),
     };
 
-    return Opacity(
-      opacity: disabled ? 0.35 : 1.0,
+    return AnimatedOpacity(
+      duration: AppDurations.press,
+      opacity: disabled ? 0.35 : (busy ? 0.65 : 1.0),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
@@ -1165,7 +1166,6 @@ class _ActionButton extends StatelessWidget {
                               style: theme.textTheme.titleSmall?.copyWith(
                                 color: fgColor,
                                 fontWeight: AppFontWeights.bold,
-                                letterSpacing: -0.2,
                               ),
                             ),
                           ],
@@ -1595,7 +1595,7 @@ class _CelebrationHex extends StatelessWidget {
   Widget build(BuildContext context) {
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0.4, end: 1.0),
-      duration: const Duration(milliseconds: 600),
+      duration: AppDurations.medium,
       curve: Curves.elasticOut,
       builder: (_, scale, __) => Transform.scale(
         scale: scale,
@@ -1888,7 +1888,7 @@ class _SessionSummarySheetState extends State<_SessionSummarySheet> {
                 const SizedBox(height: AppTheme.spaceXxs),
                 TweenAnimationBuilder<int>(
                   tween: IntTween(begin: 0, end: widget.zonesGained),
-                  duration: Duration(milliseconds: 600 + widget.zonesGained.clamp(0, 60) * 8),
+                  duration: AppDurations.medium + Duration(milliseconds: widget.zonesGained.clamp(0, 60) * 8),
                   curve: Curves.easeOut,
                   builder: (_, value, __) => Text(
                     '+$value',

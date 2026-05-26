@@ -1028,7 +1028,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                             const SizedBox(height: AppTheme.fontSizeXs + AppTheme.spaceXxxs),
                           const SizedBox(height: AppTheme.spaceXxxs),
                           AnimatedContainer(
-                            duration: Duration(milliseconds: AppDurations.fast.inMilliseconds + i * _kBarAnimStagger),
+                            duration: AppDurations.fast + Duration(milliseconds: i * _kBarAnimStagger),
                             curve: AppMotion.decelerated,
                             height: barH,
                             margin: const EdgeInsets.symmetric(horizontal: AppTheme.spaceXxxs),

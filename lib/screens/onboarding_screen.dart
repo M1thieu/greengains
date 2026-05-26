@@ -298,7 +298,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       children: [
         // Hex hero bleeds edge-to-edge from top (no safe area)
         const SizedBox(
-          height: 260,
+          height: AppTheme.onboardingHeroHeight,
           width: double.infinity,
           child: _OnboardingHexHero(),
         ),

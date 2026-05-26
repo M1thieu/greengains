@@ -435,8 +435,12 @@ class AppTheme {
   static const double pressScale = 0.97; // PressScaleDetector — uniform press-down scale
 
   // Icon box sizes — container for icon + tinted background
-  static const double iconBoxSm = 36.0; // settings rows, list items
-  static const double iconBoxMd = 44.0; // profile header, prominent action rows
+  static const double iconBoxSm    = 36.0; // settings rows, list items
+  static const double iconBoxMd    = 44.0; // profile header, prominent action rows
+  static const double avatarSizeSm = 64.0; // empty-state placeholder icon container
+  static const double avatarSizeMd = 72.0; // profile header avatar
+  static const double avatarBorderWidth = 2.5; // profile avatar ring
+  static const double onboardingHeroHeight = 260.0; // welcome page hex bleed
 
   // Sub-body font sizes
   static const double fontSizeXxs  = 10.0; // micro — nav labels only
@@ -461,7 +465,8 @@ class AppTheme {
   static const double dragHandleHeight = 4.0;
 
   // Sensor/stat card dot indicator
-  static const double dotSize = 6.0;
+  static const double dotSize   = 6.0;
+  static const double dotSizeLg = 9.0; // legend dot — slightly larger than map dot for legibility
 
   // Common component sizes
   static const double tileTrailingButtonWidth = 120;

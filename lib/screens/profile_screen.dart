@@ -138,7 +138,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
-            width: 64, height: 64,
+            width: AppTheme.avatarSizeSm, height: AppTheme.avatarSizeSm,
             decoration: BoxDecoration(
               color: AppColors.primaryAlpha(0.10),
               shape: BoxShape.circle,
@@ -242,19 +242,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 child: Column(
                   children: [
                     Container(
-                      width: 72,
-                      height: 72,
+                      width: AppTheme.avatarSizeMd,
+                      height: AppTheme.avatarSizeMd,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         color: AppColors.primary.withValues(alpha: 0.10),
-                        border: Border.all(color: AppColors.primary, width: AppBorderWidths.medium + 1),
+                        border: Border.all(color: AppColors.primary, width: AppTheme.avatarBorderWidth),
                       ),
                       child: ClipOval(
                         child: user.photoURL != null
                             ? CachedNetworkImage(
                                 imageUrl: user.photoURL!,
-                                width: 72,
-                                height: 72,
+                                width: AppTheme.avatarSizeMd,
+                                height: AppTheme.avatarSizeMd,
                                 fit: BoxFit.cover,
                                 placeholder: (_, __) => Shimmer.fromColors(
                                   baseColor: AppColors.shimmerBase(isDark),

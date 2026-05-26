@@ -177,7 +177,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 onPressed: _signOut,
                 tooltip: l10n.settingsSignOut,
                 padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+                constraints: const BoxConstraints(minWidth: AppTheme.iconBoxSm, minHeight: AppTheme.iconBoxSm),
               ),
             ],
           ),
