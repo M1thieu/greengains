@@ -1322,10 +1322,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Quiet when still, precise when moving. Adapts automatically.';
 
   @override
-  String get firstStartTitle => 'Building your map.';
+  String get firstStartTitle => 'Your map is building.';
 
   @override
-  String get firstStartBody => 'Move around. New places appear as you go.';
+  String get firstStartBody => 'New places appear as you move.';
 
   @override
   String get alwaysOnBannerBody =>
@@ -1340,7 +1340,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get milestoneReachedBody => 'Keep going. Your next goal is waiting.';
+  String get milestoneReachedBody => 'Keep going.';
 
   @override
   String get milestoneReachedCta => 'Keep going';
@@ -1420,7 +1420,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get statsStreakLabel => 'Streak';
 
   @override
-  String get statsStreakAtRisk => 'Map today or your streak resets';
+  String get statsStreakAtRisk => 'Map today or your streak resets.';
 
   @override
   String statsStreakDays(int count) {
@@ -1768,20 +1768,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get liveSensorPressureLabel => 'Pressure';
 
   @override
-  String get sessionSummaryBadge => 'MAP UPDATED';
+  String get sessionSummaryBadge => 'DONE';
 
   @override
   String get sessionSummaryZonesGainedLabel => 'NEW PLACES';
 
   @override
-  String get sessionSummarySubline => 'added to your map';
+  String get sessionSummarySubline => 'added';
 
   @override
   String get sessionSummaryNoZonesLabel => 'YOUR MAP';
 
   @override
-  String get sessionSummaryNoZonesSubline =>
-      'Familiar ground. Head somewhere new to grow it.';
+  String get sessionSummaryNoZonesSubline => 'Try a different route next time.';
 
   @override
   String get sessionSummaryWatermark => 'Mapped with GreenGains';
@@ -1791,15 +1790,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String sessionMilestoneHit(int milestone) {
-    return '$milestone places mapped. You earned it.';
+    return '$milestone places.';
   }
 
   @override
-  String get sessionSummaryNextHook => 'Good session.';
+  String get sessionSummaryNextHook => 'Come back tomorrow.';
 
   @override
-  String get sessionSummaryNextHookEmpty =>
-      'Walk more next time. New places appear as you move.';
+  String get sessionSummaryNextHookEmpty => 'New places appear as you move.';
 
   @override
   String get sessionStatArea => 'AREA';
@@ -1979,21 +1977,19 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get streakResetBanner => 'Your streak reset. Start a new one today.';
+  String get streakResetBanner => 'Streak reset. Start fresh today.';
 
   @override
-  String get sessionSummaryNextHookStreak => 'Your streak is alive.';
+  String get sessionSummaryNextHookStreak => 'Streak alive.';
 
   @override
-  String get sessionSummaryNextHookFirst =>
-      'Come back tomorrow to start a streak.';
+  String get sessionSummaryNextHookFirst => 'Walk tomorrow to start a streak.';
 
   @override
   String get weeklyGoalTitle => 'Week complete.';
 
   @override
-  String get weeklyGoalBody =>
-      'You mapped everything you set out to. See you next week.';
+  String get weeklyGoalBody => 'See you next week.';
 
   @override
   String get weeklyGoalDismiss => 'Nice';

@@ -62,7 +62,7 @@
     <!-- %1$d = current streak in days -->
     <string name="notification_streak_channel_name">Map Reminders</string>
     <string name="notification_streak_title">%1$d day streak at risk</string>
-    <string name="notification_streak_body">Keep your streak alive — walk anywhere.</string>
+    <string name="notification_streak_body">Walk anywhere to keep it.</string>
 
     <!-- Permission result toasts -->
     <string name="toast_location_granted">Location permission granted</string>
@@ -74,7 +74,7 @@
     <!-- %1$d = new zones, %2$d = total -->
     <string name="notification_weekly_body_growth">+%1$d new places — %2$d total</string>
     <!-- %1$d = total (no change week-over-week) -->
-    <string name="notification_weekly_body_stable">%1$d places mapped so far</string>
+    <string name="notification_weekly_body_stable">%1$d places on your map</string>
     <string name="sensor_lux_dark">Dark</string>
     <string name="sensor_lux_indoor">Dim</string>
     <string name="sensor_lux_bright">Bright</string>

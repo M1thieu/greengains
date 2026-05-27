@@ -546,8 +546,8 @@
   "settingsBatteryMode": "Smart battery",
   "settingsBatteryModeDesc": "Quiet when still, precise when moving. Adapts automatically.",
 
-  "firstStartTitle": "Building your map.",
-  "firstStartBody": "Move around. New places appear as you go.",
+  "firstStartTitle": "Your map is building.",
+  "firstStartBody": "New places appear as you move.",
 
   "alwaysOnBannerBody": "Set location to 'Always' to keep mapping in the background",
   "alwaysOnBannerFix": "Fix",
@@ -556,7 +556,7 @@
   "@milestoneReachedTitle": {
     "placeholders": { "count": { "type": "int" } }
   },
-  "milestoneReachedBody": "Keep going. Your next goal is waiting.",
+  "milestoneReachedBody": "Keep going.",
   "milestoneReachedCta": "Keep going",
 
   "firstUploadTitle": "First area mapped.",
@@ -602,7 +602,7 @@
     "placeholders": { "date": { "type": "String" } }
   },
   "statsStreakLabel": "Streak",
-  "statsStreakAtRisk": "Map today or your streak resets",
+  "statsStreakAtRisk": "Map today or your streak resets.",
   "statsStreakDays": "{count, plural, =1{1 day in a row} other{{count} days in a row}}",
   "@statsStreakDays": {
     "placeholders": { "count": { "type": "int" } }
@@ -764,21 +764,21 @@
   "liveSensorMotionLabel": "Motion",
   "liveSensorPressureLabel": "Pressure",
 
-  "sessionSummaryBadge": "MAP UPDATED",
+  "sessionSummaryBadge": "DONE",
   "sessionSummaryZonesGainedLabel": "NEW PLACES",
-  "sessionSummarySubline": "added to your map",
+  "sessionSummarySubline": "added",
   "sessionSummaryNoZonesLabel": "YOUR MAP",
-  "sessionSummaryNoZonesSubline": "Familiar ground. Head somewhere new to grow it.",
+  "sessionSummaryNoZonesSubline": "Try a different route next time.",
   "sessionSummaryWatermark": "Mapped with GreenGains",
   "sessionSummaryShareCta": "Share",
-  "sessionMilestoneHit": "{milestone} places mapped. You earned it.",
+  "sessionMilestoneHit": "{milestone} places.",
   "@sessionMilestoneHit": {
     "placeholders": {
       "milestone": { "type": "int" }
     }
   },
-  "sessionSummaryNextHook": "Good session.",
-  "sessionSummaryNextHookEmpty": "Walk more next time. New places appear as you move.",
+  "sessionSummaryNextHook": "Come back tomorrow.",
+  "sessionSummaryNextHookEmpty": "New places appear as you move.",
   "sessionStatArea": "AREA",
   "sessionStatDuration": "TIME",
   "sessionStatTotal": "TOTAL",
@@ -863,13 +863,13 @@
     "placeholders": { "count": { "type": "int" } }
   },
 
-  "streakResetBanner": "Your streak reset. Start a new one today.",
+  "streakResetBanner": "Streak reset. Start fresh today.",
 
-  "sessionSummaryNextHookStreak": "Your streak is alive.",
-  "sessionSummaryNextHookFirst": "Come back tomorrow to start a streak.",
+  "sessionSummaryNextHookStreak": "Streak alive.",
+  "sessionSummaryNextHookFirst": "Walk tomorrow to start a streak.",
 
   "weeklyGoalTitle": "Week complete.",
-  "weeklyGoalBody": "You mapped everything you set out to. See you next week.",
+  "weeklyGoalBody": "See you next week.",
   "weeklyGoalDismiss": "Nice",
 
   "statsEmptyLockLight": "Light",

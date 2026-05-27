@@ -2339,13 +2339,13 @@ abstract class AppLocalizations {
   /// No description provided for @firstStartTitle.
   ///
   /// In en, this message translates to:
-  /// **'Building your map.'**
+  /// **'Your map is building.'**
   String get firstStartTitle;
 
   /// No description provided for @firstStartBody.
   ///
   /// In en, this message translates to:
-  /// **'Move around. New places appear as you go.'**
+  /// **'New places appear as you move.'**
   String get firstStartBody;
 
   /// No description provided for @alwaysOnBannerBody.
@@ -2369,7 +2369,7 @@ abstract class AppLocalizations {
   /// No description provided for @milestoneReachedBody.
   ///
   /// In en, this message translates to:
-  /// **'Keep going. Your next goal is waiting.'**
+  /// **'Keep going.'**
   String get milestoneReachedBody;
 
   /// No description provided for @milestoneReachedCta.
@@ -2477,7 +2477,7 @@ abstract class AppLocalizations {
   /// No description provided for @statsStreakAtRisk.
   ///
   /// In en, this message translates to:
-  /// **'Map today or your streak resets'**
+  /// **'Map today or your streak resets.'**
   String get statsStreakAtRisk;
 
   /// No description provided for @statsStreakDays.
@@ -3023,7 +3023,7 @@ abstract class AppLocalizations {
   /// No description provided for @sessionSummaryBadge.
   ///
   /// In en, this message translates to:
-  /// **'MAP UPDATED'**
+  /// **'DONE'**
   String get sessionSummaryBadge;
 
   /// No description provided for @sessionSummaryZonesGainedLabel.
@@ -3035,7 +3035,7 @@ abstract class AppLocalizations {
   /// No description provided for @sessionSummarySubline.
   ///
   /// In en, this message translates to:
-  /// **'added to your map'**
+  /// **'added'**
   String get sessionSummarySubline;
 
   /// No description provided for @sessionSummaryNoZonesLabel.
@@ -3047,7 +3047,7 @@ abstract class AppLocalizations {
   /// No description provided for @sessionSummaryNoZonesSubline.
   ///
   /// In en, this message translates to:
-  /// **'Familiar ground. Head somewhere new to grow it.'**
+  /// **'Try a different route next time.'**
   String get sessionSummaryNoZonesSubline;
 
   /// No description provided for @sessionSummaryWatermark.
@@ -3065,19 +3065,19 @@ abstract class AppLocalizations {
   /// No description provided for @sessionMilestoneHit.
   ///
   /// In en, this message translates to:
-  /// **'{milestone} places mapped. You earned it.'**
+  /// **'{milestone} places.'**
   String sessionMilestoneHit(int milestone);
 
   /// No description provided for @sessionSummaryNextHook.
   ///
   /// In en, this message translates to:
-  /// **'Good session.'**
+  /// **'Come back tomorrow.'**
   String get sessionSummaryNextHook;
 
   /// No description provided for @sessionSummaryNextHookEmpty.
   ///
   /// In en, this message translates to:
-  /// **'Walk more next time. New places appear as you move.'**
+  /// **'New places appear as you move.'**
   String get sessionSummaryNextHookEmpty;
 
   /// No description provided for @sessionStatArea.
@@ -3359,19 +3359,19 @@ abstract class AppLocalizations {
   /// No description provided for @streakResetBanner.
   ///
   /// In en, this message translates to:
-  /// **'Your streak reset. Start a new one today.'**
+  /// **'Streak reset. Start fresh today.'**
   String get streakResetBanner;
 
   /// No description provided for @sessionSummaryNextHookStreak.
   ///
   /// In en, this message translates to:
-  /// **'Your streak is alive.'**
+  /// **'Streak alive.'**
   String get sessionSummaryNextHookStreak;
 
   /// No description provided for @sessionSummaryNextHookFirst.
   ///
   /// In en, this message translates to:
-  /// **'Come back tomorrow to start a streak.'**
+  /// **'Walk tomorrow to start a streak.'**
   String get sessionSummaryNextHookFirst;
 
   /// No description provided for @weeklyGoalTitle.
@@ -3383,7 +3383,7 @@ abstract class AppLocalizations {
   /// No description provided for @weeklyGoalBody.
   ///
   /// In en, this message translates to:
-  /// **'You mapped everything you set out to. See you next week.'**
+  /// **'See you next week.'**
   String get weeklyGoalBody;
 
   /// No description provided for @weeklyGoalDismiss.

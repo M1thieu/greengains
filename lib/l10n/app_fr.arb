@@ -546,8 +546,8 @@
   "settingsBatteryMode": "Batterie intelligente",
   "settingsBatteryModeDesc": "Discret à l'arrêt, précis en mouvement. S'adapte automatiquement.",
 
-  "firstStartTitle": "Cartographie en cours.",
-  "firstStartBody": "Bougez. De nouveaux endroits apparaissent au fil de vos pas.",
+  "firstStartTitle": "Votre carte se construit.",
+  "firstStartBody": "De nouveaux endroits apparaissent en marchant.",
 
   "alwaysOnBannerBody": "Définissez la localisation sur 'Toujours' pour continuer à cartographier en arrière-plan",
   "alwaysOnBannerFix": "Corriger",
@@ -556,7 +556,7 @@
   "@milestoneReachedTitle": {
     "placeholders": { "count": { "type": "int" } }
   },
-  "milestoneReachedBody": "Continuez. Le prochain objectif vous attend.",
+  "milestoneReachedBody": "Continuez.",
   "milestoneReachedCta": "Continuer",
 
   "firstUploadTitle": "Premier endroit cartographié.",
@@ -764,21 +764,21 @@
   "liveSensorMotionLabel": "Mouvement",
   "liveSensorPressureLabel": "Pression",
 
-  "sessionSummaryBadge": "CARTE MISE À JOUR",
-  "sessionSummaryZonesGainedLabel": "NOUVEAUX ENDROITS",
-  "sessionSummarySubline": "ajoutées à votre carte",
+  "sessionSummaryBadge": "TERMINÉ",
+"sessionSummaryZonesGainedLabel": "NOUVEAUX ENDROITS",
+  "sessionSummarySubline": "ajoutés",
   "sessionSummaryNoZonesLabel": "TA CARTE",
-  "sessionSummaryNoZonesSubline": "Terrain connu. Explore ailleurs pour agrandir ta carte.",
+  "sessionSummaryNoZonesSubline": "Essaie un autre itinéraire la prochaine fois.",
   "sessionSummaryWatermark": "Cartographié avec GreenGains",
   "sessionSummaryShareCta": "Partager",
-  "sessionMilestoneHit": "{milestone} endroits cartographiés. Tu l'as mérité.",
+  "sessionMilestoneHit": "{milestone} endroits.",
   "@sessionMilestoneHit": {
     "placeholders": {
       "milestone": { "type": "int" }
     }
   },
-  "sessionSummaryNextHook": "Bonne session.",
-  "sessionSummaryNextHookEmpty": "Bouge plus la prochaine fois. De nouveaux endroits apparaissent en marchant.",
+  "sessionSummaryNextHook": "Reviens demain.",
+  "sessionSummaryNextHookEmpty": "De nouveaux endroits apparaissent en marchant.",
   "sessionStatArea": "SURFACE",
   "sessionStatDuration": "TEMPS",
   "sessionStatTotal": "TOTAL",
@@ -863,13 +863,13 @@
     "placeholders": { "count": { "type": "int" } }
   },
 
-  "streakResetBanner": "Ta série a été réinitialisée. Recommence aujourd’hui.",
+  "streakResetBanner": "Série réinitialisée. Recommence aujourd’hui.",
 
-  "sessionSummaryNextHookStreak": "Ta série est toujours en vie.",
-  "sessionSummaryNextHookFirst": "Reviens demain pour commencer une série.",
+  "sessionSummaryNextHookStreak": "Série en vie.",
+  "sessionSummaryNextHookFirst": "Marche demain pour commencer une série.",
 
   "weeklyGoalTitle": "Semaine complète.",
-  "weeklyGoalBody": "Tu as cartographié tout ce que tu t'étais fixé. À la semaine prochaine.",
+  "weeklyGoalBody": "À la semaine prochaine.",
   "weeklyGoalDismiss": "Super",
 
   "statsEmptyLockLight": "Lumière",

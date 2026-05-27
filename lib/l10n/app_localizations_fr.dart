@@ -1337,11 +1337,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Discret à l\'arrêt, précis en mouvement. S\'adapte automatiquement.';
 
   @override
-  String get firstStartTitle => 'Cartographie en cours.';
+  String get firstStartTitle => 'Votre carte se construit.';
 
   @override
-  String get firstStartBody =>
-      'Bougez. De nouveaux endroits apparaissent au fil de vos pas.';
+  String get firstStartBody => 'De nouveaux endroits apparaissent en marchant.';
 
   @override
   String get alwaysOnBannerBody =>
@@ -1356,8 +1355,7 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get milestoneReachedBody =>
-      'Continuez. Le prochain objectif vous attend.';
+  String get milestoneReachedBody => 'Continuez.';
 
   @override
   String get milestoneReachedCta => 'Continuer';
@@ -1792,20 +1790,20 @@ class AppLocalizationsFr extends AppLocalizations {
   String get liveSensorPressureLabel => 'Pression';
 
   @override
-  String get sessionSummaryBadge => 'CARTE MISE À JOUR';
+  String get sessionSummaryBadge => 'TERMINÉ';
 
   @override
   String get sessionSummaryZonesGainedLabel => 'NOUVEAUX ENDROITS';
 
   @override
-  String get sessionSummarySubline => 'ajoutées à votre carte';
+  String get sessionSummarySubline => 'ajoutés';
 
   @override
   String get sessionSummaryNoZonesLabel => 'TA CARTE';
 
   @override
   String get sessionSummaryNoZonesSubline =>
-      'Terrain connu. Explore ailleurs pour agrandir ta carte.';
+      'Essaie un autre itinéraire la prochaine fois.';
 
   @override
   String get sessionSummaryWatermark => 'Cartographié avec GreenGains';
@@ -1815,15 +1813,15 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String sessionMilestoneHit(int milestone) {
-    return '$milestone endroits cartographiés. Tu l\'as mérité.';
+    return '$milestone endroits.';
   }
 
   @override
-  String get sessionSummaryNextHook => 'Bonne session.';
+  String get sessionSummaryNextHook => 'Reviens demain.';
 
   @override
   String get sessionSummaryNextHookEmpty =>
-      'Bouge plus la prochaine fois. De nouveaux endroits apparaissent en marchant.';
+      'De nouveaux endroits apparaissent en marchant.';
 
   @override
   String get sessionStatArea => 'SURFACE';
@@ -2004,21 +2002,20 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get streakResetBanner =>
-      'Ta série a été réinitialisée. Recommence aujourd’hui.';
+      'Série réinitialisée. Recommence aujourd’hui.';
 
   @override
-  String get sessionSummaryNextHookStreak => 'Ta série est toujours en vie.';
+  String get sessionSummaryNextHookStreak => 'Série en vie.';
 
   @override
   String get sessionSummaryNextHookFirst =>
-      'Reviens demain pour commencer une série.';
+      'Marche demain pour commencer une série.';
 
   @override
   String get weeklyGoalTitle => 'Semaine complète.';
 
   @override
-  String get weeklyGoalBody =>
-      'Tu as cartographié tout ce que tu t\'étais fixé. À la semaine prochaine.';
+  String get weeklyGoalBody => 'À la semaine prochaine.';
 
   @override
   String get weeklyGoalDismiss => 'Super';
