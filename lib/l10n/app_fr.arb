@@ -4,7 +4,7 @@
   "onboardingWelcomeTitle": "Enfin connaître son quartier.",
   "onboardingWelcomeSubtitle": "Votre téléphone lit la lumière, la pression et le mouvement pendant que vous marchez. Il construit une carte de tous les endroits où vous êtes allé.",
   "onboardingFeature1Title": "Rien à faire.",
-  "onboardingFeature1Description": "Lancez une fois, gardez votre téléphone. Votre carte se construit toute seule.",
+  "onboardingFeature1Description": "Lancez une fois, gardez votre téléphone. La carte se construit seule.",
   "onboardingFeature2Title": "Privé par défaut",
   "onboardingFeature2Description": "Votre trajet n'est jamais conservé. Les données sont anonymisées avant de quitter votre téléphone.",
   "onboardingFeature3Title": "Voyez jusqu'où vous êtes allé.",
@@ -120,7 +120,7 @@
   "errorGeneric": "Une erreur s'est produite. Veuillez réessayer.",
   "errorNetwork": "Pas de connexion internet",
   "errorLocationUnavailable": "Position indisponible",
-  "errorUploadFailed": "Échec de l'envoi. Nouvelle tentative plus tard.",
+  "errorUploadFailed": "Synchronisation impossible. Nouvelle tentative plus tard.",
   "errorSignInRequired": "Veuillez vous connecter pour continuer",
 
   "buttonOk": "OK",
@@ -157,7 +157,7 @@
   },
   "profileImpactSection": "VOTRE CARTE",
   "homeFirstUseHint": "Appuyez sur ▶ pour voir votre premier endroit apparaître",
-  "homeFirstTrackingHint": "Mesure la luminosité, l'activité et la météo. Le premier endroit apparaît après le premier envoi.",
+  "homeFirstTrackingHint": "Mesure la luminosité, l'activité et la météo. Premier endroit après l'envoi.",
   "homeTrackingReadings": "{count, plural, =1{1 mesure capturée} other{{count} mesures capturées}}",
   "@homeTrackingReadings": {
     "placeholders": { "count": { "type": "num", "format": "compact" } }
@@ -231,11 +231,17 @@
   "statsInDepth30Days": "30 derniers jours",
   "statsHeatmapLess": "moins",
   "statsHeatmapMore": "plus",
-  "statsHeatmapDayDetail": "{date} · {count} syncs",
+  "statsHeatmapDayDetail": "{date} · {count} passages",
   "@statsHeatmapDayDetail": {
     "placeholders": {
       "date": { "type": "String" },
       "count": { "type": "int" }
+    }
+  },
+  "statsHeatmapNoUploads": "{date} · aucun envoi",
+  "@statsHeatmapNoUploads": {
+    "placeholders": {
+      "date": { "type": "String" }
     }
   },
   "statsInDepthHabits": "Vos habitudes",
@@ -257,13 +263,13 @@
   "statsAvgPrefix": "moy.",
 
   "infoKmTitle": "Territoire cartographié",
-  "infoKmBody": "Chaque endroit sur ta carte fait environ la taille d'un pâté de maisons. C'est la part de ton quartier que tu as scannée.",
-  "infoDataPtsTitle": "Envois",
-  "infoDataPtsBody": "Chaque passage enregistre ce que cet endroit est vraiment. Plus tu y passes, plus les données sont précises.",
-  "infoTodayTitle": "Enregistrements aujourd'hui",
-  "infoTodayBody": "Mesures envoyées aujourd'hui : luminosité, météo et activité à chaque arrêt.",
+  "infoKmBody": "Chaque endroit fait environ la taille d'un pâté de maisons. C'est la part de ton quartier scannée.",
+  "infoDataPtsTitle": "Endroits cartographiés",
+  "infoDataPtsBody": "Chaque passage enregistre ce que cet endroit est vraiment. Plus de passages, plus de précision.",
+  "infoTodayTitle": "Aujourd'hui",
+  "infoTodayBody": "Lumière, météo et activité captées aujourd'hui à chaque arrêt.",
   "infoThisWeekTitle": "Cette semaine",
-  "infoThisWeekBody": "Enregistrements des 7 derniers jours. La régularité enrichit la carte.",
+  "infoThisWeekBody": "Enregistrements des 7 derniers jours.",
   "infoDaysActiveTitle": "Jours actifs",
   "infoDaysActiveBody": "Jours où vous avez contribué. Pas besoin d'être actif tous les jours.",
   "infoBestDayTitle": "Meilleur jour",
@@ -283,7 +289,7 @@
   "statsHistoryNote": "L'historique hebdomadaire apparaîtra après plusieurs jours de données",
   "statsContributionTimeline": "Historique des contributions",
   "statsStartContributing": "Rien de cartographié pour l'instant.",
-  "statsEmptyDescription": "Marche n'importe où. Ton téléphone lit ce qui t'entoure — lumière, mouvement, pression. Le premier endroit apparaît après le premier envoi.",
+  "statsEmptyDescription": "Marche n'importe où. Ton téléphone lit la lumière, le mouvement et la pression autour de toi.",
   "statsEmptyGoMap": "Commencer à cartographier",
   "statsEmptyUnlockHint": "Marche pour débloquer",
   "statsUpdatedPrefix": "Mis à jour ",
@@ -336,6 +342,7 @@
       "count": {"type": "int"}
     }
   },
+  "tileInfoNoSensorData": "Localisation uniquement. Pas de mesures pour cet endroit.",
   "tileInfoConfidence": "Confiance",
   "tileInfoQuality": "Qualité de couverture",
   "tileInfoDevices": "{count, plural, =1{1 personne} other{{count} personnes}}",
@@ -817,7 +824,7 @@
   },
   "profileUploadsExplanation": "Chaque envoi regroupe ~100 lectures de capteurs capturées à un endroit. Vos données enrichissent la carte environnementale partagée.",
   "profileDaysExplanation": "Jours où votre téléphone a contribué au moins un envoi de données. Plus vous êtes actif, plus votre couverture est récente et riche.",
-  "profileZonesExplanation": "Chaque zone est une cellule hexagonale (~174 m) où votre téléphone a enregistré des données environnementales. Consultez la carte pour voir exactement quels endroits vous avez couverts.",
+  "profileZonesExplanation": "Chaque zone fait environ la taille d'un pâté de maisons. Consultez la carte pour voir les endroits couverts.",
   "profileSeeInStats": "Voir dans les stats",
   "profileViewOnMap": "Voir sur la carte",
 

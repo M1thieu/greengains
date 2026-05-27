@@ -267,7 +267,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get errorLocationUnavailable => 'Location unavailable';
 
   @override
-  String get errorUploadFailed => 'Upload failed. Will retry later.';
+  String get errorUploadFailed => 'Couldn\'t sync. Will retry later.';
 
   @override
   String get errorSignInRequired => 'Please sign in to continue';
@@ -363,7 +363,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get homeFirstTrackingHint =>
-      'Scanning brightness, activity and weather. First place appears after the first upload.';
+      'Scanning brightness, activity and weather. First place appears after upload.';
 
   @override
   String homeTrackingReadings(num count) {
@@ -566,7 +566,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String statsHeatmapDayDetail(String date, int count) {
-    return '$date · $count syncs';
+    return '$date · $count passes';
+  }
+
+  @override
+  String statsHeatmapNoUploads(String date) {
+    return '$date · no uploads';
   }
 
   @override
@@ -626,28 +631,27 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get infoKmBody =>
-      'Each area on your map is roughly the size of a city block. This is how much of your neighborhood you have scanned.';
+      'Each area is roughly a city block. This is how much of your neighborhood you\'ve scanned.';
 
   @override
-  String get infoDataPtsTitle => 'Uploads';
+  String get infoDataPtsTitle => 'Places mapped';
 
   @override
   String get infoDataPtsBody =>
-      'Each time you map, your phone records what that spot is like. The more you pass through, the more accurate it gets.';
+      'Each pass records what that spot is like. More passes means more accuracy.';
 
   @override
-  String get infoTodayTitle => 'Recordings today';
+  String get infoTodayTitle => 'Today';
 
   @override
   String get infoTodayBody =>
-      'Sensor readings uploaded today: brightness, weather, and movement at each stop.';
+      'Light, weather, and movement captured today at each stop.';
 
   @override
   String get infoThisWeekTitle => 'This week';
 
   @override
-  String get infoThisWeekBody =>
-      'Recordings over the last 7 days. Consistency builds richer map data.';
+  String get infoThisWeekBody => 'Recordings over the last 7 days.';
 
   @override
   String get infoDaysActiveTitle => 'Days active';
@@ -714,7 +718,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get statsEmptyDescription =>
-      'Walk anywhere. Your phone reads what\'s around you — light, movement, pressure. First place appears after the first upload.';
+      'Walk anywhere. Your phone reads light, movement, and pressure around you.';
 
   @override
   String get statsEmptyGoMap => 'Start mapping';
@@ -839,6 +843,10 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get tileInfoNoSensorData =>
+      'Location only. No sensor readings for this spot.';
 
   @override
   String get tileInfoConfidence => 'Confidence';
@@ -1882,7 +1890,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get profileZonesExplanation =>
-      'Each zone is a hexagonal cell (~174 m across) where your phone recorded environmental data. Tap the map to see exactly which areas you\'ve covered.';
+      'Each zone is roughly a city block. Tap the map to see which areas you\'ve covered.';
 
   @override
   String get profileSeeInStats => 'See in Stats';

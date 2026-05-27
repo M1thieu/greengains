@@ -569,7 +569,7 @@ abstract class AppLocalizations {
   /// No description provided for @errorUploadFailed.
   ///
   /// In en, this message translates to:
-  /// **'Upload failed. Will retry later.'**
+  /// **'Couldn\'t sync. Will retry later.'**
   String get errorUploadFailed;
 
   /// No description provided for @errorSignInRequired.
@@ -719,7 +719,7 @@ abstract class AppLocalizations {
   /// No description provided for @homeFirstTrackingHint.
   ///
   /// In en, this message translates to:
-  /// **'Scanning brightness, activity and weather. First place appears after the first upload.'**
+  /// **'Scanning brightness, activity and weather. First place appears after upload.'**
   String get homeFirstTrackingHint;
 
   /// No description provided for @homeTrackingReadings.
@@ -1019,8 +1019,14 @@ abstract class AppLocalizations {
   /// No description provided for @statsHeatmapDayDetail.
   ///
   /// In en, this message translates to:
-  /// **'{date} · {count} syncs'**
+  /// **'{date} · {count} passes'**
   String statsHeatmapDayDetail(String date, int count);
+
+  /// No description provided for @statsHeatmapNoUploads.
+  ///
+  /// In en, this message translates to:
+  /// **'{date} · no uploads'**
+  String statsHeatmapNoUploads(String date);
 
   /// No description provided for @statsInDepthHabits.
   ///
@@ -1133,31 +1139,31 @@ abstract class AppLocalizations {
   /// No description provided for @infoKmBody.
   ///
   /// In en, this message translates to:
-  /// **'Each area on your map is roughly the size of a city block. This is how much of your neighborhood you have scanned.'**
+  /// **'Each area is roughly a city block. This is how much of your neighborhood you\'ve scanned.'**
   String get infoKmBody;
 
   /// No description provided for @infoDataPtsTitle.
   ///
   /// In en, this message translates to:
-  /// **'Uploads'**
+  /// **'Places mapped'**
   String get infoDataPtsTitle;
 
   /// No description provided for @infoDataPtsBody.
   ///
   /// In en, this message translates to:
-  /// **'Each time you map, your phone records what that spot is like. The more you pass through, the more accurate it gets.'**
+  /// **'Each pass records what that spot is like. More passes means more accuracy.'**
   String get infoDataPtsBody;
 
   /// No description provided for @infoTodayTitle.
   ///
   /// In en, this message translates to:
-  /// **'Recordings today'**
+  /// **'Today'**
   String get infoTodayTitle;
 
   /// No description provided for @infoTodayBody.
   ///
   /// In en, this message translates to:
-  /// **'Sensor readings uploaded today: brightness, weather, and movement at each stop.'**
+  /// **'Light, weather, and movement captured today at each stop.'**
   String get infoTodayBody;
 
   /// No description provided for @infoThisWeekTitle.
@@ -1169,7 +1175,7 @@ abstract class AppLocalizations {
   /// No description provided for @infoThisWeekBody.
   ///
   /// In en, this message translates to:
-  /// **'Recordings over the last 7 days. Consistency builds richer map data.'**
+  /// **'Recordings over the last 7 days.'**
   String get infoThisWeekBody;
 
   /// No description provided for @infoDaysActiveTitle.
@@ -1289,7 +1295,7 @@ abstract class AppLocalizations {
   /// No description provided for @statsEmptyDescription.
   ///
   /// In en, this message translates to:
-  /// **'Walk anywhere. Your phone reads what\'s around you — light, movement, pressure. First place appears after the first upload.'**
+  /// **'Walk anywhere. Your phone reads light, movement, and pressure around you.'**
   String get statsEmptyDescription;
 
   /// No description provided for @statsEmptyGoMap.
@@ -1501,6 +1507,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, =1{1 reading} other{{count} readings}}'**
   String tileInfoSamples(int count);
+
+  /// No description provided for @tileInfoNoSensorData.
+  ///
+  /// In en, this message translates to:
+  /// **'Location only. No sensor readings for this spot.'**
+  String get tileInfoNoSensorData;
 
   /// No description provided for @tileInfoConfidence.
   ///
@@ -3215,7 +3227,7 @@ abstract class AppLocalizations {
   /// No description provided for @profileZonesExplanation.
   ///
   /// In en, this message translates to:
-  /// **'Each zone is a hexagonal cell (~174 m across) where your phone recorded environmental data. Tap the map to see exactly which areas you\'ve covered.'**
+  /// **'Each zone is roughly a city block. Tap the map to see which areas you\'ve covered.'**
   String get profileZonesExplanation;
 
   /// No description provided for @profileSeeInStats.

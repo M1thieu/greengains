@@ -20,7 +20,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get onboardingFeature1Description =>
-      'Lancez une fois, gardez votre téléphone. Votre carte se construit toute seule.';
+      'Lancez une fois, gardez votre téléphone. La carte se construit seule.';
 
   @override
   String get onboardingFeature2Title => 'Privé par défaut';
@@ -269,7 +269,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get errorUploadFailed =>
-      'Échec de l\'envoi. Nouvelle tentative plus tard.';
+      'Synchronisation impossible. Nouvelle tentative plus tard.';
 
   @override
   String get errorSignInRequired => 'Veuillez vous connecter pour continuer';
@@ -365,7 +365,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get homeFirstTrackingHint =>
-      'Mesure la luminosité, l\'activité et la météo. Le premier endroit apparaît après le premier envoi.';
+      'Mesure la luminosité, l\'activité et la météo. Premier endroit après l\'envoi.';
 
   @override
   String homeTrackingReadings(num count) {
@@ -568,7 +568,12 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String statsHeatmapDayDetail(String date, int count) {
-    return '$date · $count syncs';
+    return '$date · $count passages';
+  }
+
+  @override
+  String statsHeatmapNoUploads(String date) {
+    return '$date · aucun envoi';
   }
 
   @override
@@ -628,28 +633,27 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get infoKmBody =>
-      'Chaque endroit sur ta carte fait environ la taille d\'un pâté de maisons. C\'est la part de ton quartier que tu as scannée.';
+      'Chaque endroit fait environ la taille d\'un pâté de maisons. C\'est la part de ton quartier scannée.';
 
   @override
-  String get infoDataPtsTitle => 'Envois';
+  String get infoDataPtsTitle => 'Endroits cartographiés';
 
   @override
   String get infoDataPtsBody =>
-      'Chaque passage enregistre ce que cet endroit est vraiment. Plus tu y passes, plus les données sont précises.';
+      'Chaque passage enregistre ce que cet endroit est vraiment. Plus de passages, plus de précision.';
 
   @override
-  String get infoTodayTitle => 'Enregistrements aujourd\'hui';
+  String get infoTodayTitle => 'Aujourd\'hui';
 
   @override
   String get infoTodayBody =>
-      'Mesures envoyées aujourd\'hui : luminosité, météo et activité à chaque arrêt.';
+      'Lumière, météo et activité captées aujourd\'hui à chaque arrêt.';
 
   @override
   String get infoThisWeekTitle => 'Cette semaine';
 
   @override
-  String get infoThisWeekBody =>
-      'Enregistrements des 7 derniers jours. La régularité enrichit la carte.';
+  String get infoThisWeekBody => 'Enregistrements des 7 derniers jours.';
 
   @override
   String get infoDaysActiveTitle => 'Jours actifs';
@@ -716,7 +720,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get statsEmptyDescription =>
-      'Marche n\'importe où. Ton téléphone lit ce qui t\'entoure — lumière, mouvement, pression. Le premier endroit apparaît après le premier envoi.';
+      'Marche n\'importe où. Ton téléphone lit la lumière, le mouvement et la pression autour de toi.';
 
   @override
   String get statsEmptyGoMap => 'Commencer à cartographier';
@@ -842,6 +846,10 @@ class AppLocalizationsFr extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get tileInfoNoSensorData =>
+      'Localisation uniquement. Pas de mesures pour cet endroit.';
 
   @override
   String get tileInfoConfidence => 'Confiance';
@@ -1906,7 +1914,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get profileZonesExplanation =>
-      'Chaque zone est une cellule hexagonale (~174 m) où votre téléphone a enregistré des données environnementales. Consultez la carte pour voir exactement quels endroits vous avez couverts.';
+      'Chaque zone fait environ la taille d\'un pâté de maisons. Consultez la carte pour voir les endroits couverts.';
 
   @override
   String get profileSeeInStats => 'Voir dans les stats';

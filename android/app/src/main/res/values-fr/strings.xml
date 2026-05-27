@@ -2,26 +2,22 @@
 <resources>
     <string name="app_name">GreenGains</string>
 
-    <!-- Foreground service notification — title = statut, body = progression (zones en priorité) -->
-    <string name="notification_status_collecting">Cartographie de votre quartier</string>
-    <string name="notification_status_stationary">Actif en arrière-plan</string>
+    <!-- Foreground service notification -->
+    <string name="notification_status_collecting">Votre carte grandit</string>
+    <string name="notification_status_stationary">À l\'écoute de votre environnement</string>
     <string name="notification_paused_title">En pause</string>
-    <string name="notification_paused_body">Reprenez pour continuer à cartographier</string>
+    <string name="notification_paused_body">Reprenez pour continuer à construire votre carte</string>
     <string name="notification_collecting_no_upload">Bougez pour commencer à cartographier</string>
-    <!-- Textes de corps axés sur les zones — affichés quand zonesTotal > 0 -->
-    <string name="notification_body_zones_uploading">%1$d zones · envoi en cours</string>
-    <string name="notification_body_zones_collecting">%1$d zones cartographiées</string>
-    <string name="notification_body_stationary">%1$d zones · en veille</string>
-    <string name="notification_body_paused_zones">%1$d zones sur votre carte</string>
+    <string name="notification_body_zones_uploading">%1$d endroits sur votre carte</string>
+    <string name="notification_body_zones_collecting">%1$d endroits cartographiés</string>
+    <string name="notification_body_stationary">%1$d endroits · en veille</string>
+    <string name="notification_body_paused_zones">%1$d endroits sur votre carte</string>
+    <string name="notification_readings_uploading">Premier endroit en cours…</string>
 
-    <!-- Fallback quand pas encore de zones — nombre de mesures -->
-    <string name="notification_readings_uploading">%d mesures · envoi en cours</string>
-
-    <!-- Ligne de statut étendue — "Synchronisé il y a 5 min  ·  en mouvement" -->
-    <string name="notification_sync_uploading">Synchronisation en cours</string>
-    <!-- %s = temps écoulé ex. "il y a 5min" -->
-    <string name="notification_sync_uploaded">Synchronisé %s</string>
-    <string name="notification_sync_none">Pas encore synchronisé</string>
+    <!-- Ligne de statut étendue -->
+    <string name="notification_sync_uploading">Mise à jour de votre carte</string>
+    <string name="notification_sync_uploaded">Mis à jour %s</string>
+    <string name="notification_sync_none">Pas encore mis à jour</string>
     <string name="notification_motion_moving">en mouvement</string>
     <string name="notification_motion_stationary">à l\'arrêt</string>
     <string name="notification_expanded_paused">Appuyez sur Reprendre pour continuer.</string>
@@ -31,42 +27,38 @@
     <string name="notification_action_resume">Reprendre</string>
     <string name="notification_action_stop">Arrêter</string>
 
-    <!-- Temps écoulé depuis le dernier upload -->
+    <!-- Temps écoulé depuis la dernière mise à jour -->
     <string name="notification_upload_just_now">à l\'instant</string>
     <string name="notification_upload_minutes_ago">il y a %dmin</string>
     <string name="notification_upload_hours_ago">il y a %dh</string>
     <string name="notification_upload_yesterday">hier</string>
 
-    <!-- Titres de notification — un mot, selon l\'état -->
+    <!-- Titres de notification -->
     <string name="notif_title_contributing">Cartographie</string>
     <string name="notif_title_standby">En veille</string>
-    <!-- Formats de durée -->
     <string name="notif_body_starting">Démarrage…</string>
     <string name="notif_duration_hours_min">%1$dh %2$02dmin</string>
     <string name="notif_duration_minutes">%1$dmin</string>
-    <!-- Corps compact — zones · durée (sync ajouté en code avec ↑) -->
-    <string name="notif_body_paused_compact">%1$d zones sauvegardées</string>
+    <string name="notif_body_paused_compact">%1$d endroits sauvegardés</string>
 
     <!-- Background worker notification -->
-    <string name="notification_worker_title">GreenGains · synchronisation</string>
-    <string name="notification_worker_body">Sauvegarde de vos données</string>
+    <string name="notification_worker_title">GreenGains</string>
+    <string name="notification_worker_body">Mise à jour de votre carte</string>
 
-    <!-- Re-engagement notification — %1$d = série en jours -->
+    <!-- Re-engagement notification -->
     <string name="notification_streak_channel_name">Rappels carte</string>
     <string name="notification_streak_title">Série de %1$d jour(s) en danger</string>
-    <string name="notification_streak_body">Ouvrez l\'appli et gardez votre série vivante.</string>
+    <string name="notification_streak_body">Gardez votre série — marchez n\'importe où.</string>
 
     <!-- Permission result toasts -->
     <string name="toast_location_granted">Permission de localisation accordée</string>
     <string name="toast_location_denied">Permission de localisation refusée</string>
 
-    <!-- Digest hebdomadaire — résumé passif de la carte, sans appel à l\'action -->
+    <!-- Digest hebdomadaire -->
     <string name="notification_weekly_channel_name">Bilan hebdomadaire</string>
     <string name="notification_weekly_title">Votre carte cette semaine</string>
-    <!-- %1$d = nouvelles zones, %2$d = total -->
-    <string name="notification_weekly_body_growth">+%1$d nouvelles zones — %2$d au total sur votre carte</string>
-    <!-- %1$d = total (pas de changement) -->
-    <string name="notification_weekly_body_stable">%1$d zones cartographiées jusqu\'ici</string>
+    <string name="notification_weekly_body_growth">+%1$d nouveaux endroits — %2$d au total</string>
+    <string name="notification_weekly_body_stable">%1$d endroits cartographiés jusqu\'ici</string>
     <string name="sensor_lux_dark">Sombre</string>
     <string name="sensor_lux_indoor">Tamisé</string>
     <string name="sensor_lux_bright">Lumineux</string>
@@ -74,6 +66,6 @@
     <string name="notif_motion_still">Immobile</string>
     <string name="notif_motion_light">Légère activité</string>
     <string name="notif_motion_active">En mouvement</string>
-    <string name="notif_body_measuring">Mesure de votre environnement</string>
+    <string name="notif_body_measuring">À l\'écoute de votre environnement</string>
 
 </resources>

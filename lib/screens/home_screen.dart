@@ -735,6 +735,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   }
 
   void _onTileTap(H3Tile tile) {
+    HapticFeedback.lightImpact();
     final isDark = context.isDarkMode;
     final l10n = context.l10n;
     showModalBottomSheet(

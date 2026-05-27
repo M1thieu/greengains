@@ -29,7 +29,7 @@ const _kSkeletonTitleW    = 160.0;                // width of section-title skel
 const _kSkeletonHeroH     = 96.0;                 // height of hero card skeleton placeholder
 // ── Typography constants ──────────────────────────────────────────────────────
 const _kLetterSpacingCaps     = 2.0;   // wide tracking for uppercase LABEL badges
-const _kBarSelectScale        = 1.04;  // selected bar lift — kept subtle, one place to tune
+const _kBarSelectScale        = 1.12;  // selected bar lift — kept subtle, one place to tune
 
 // Zone milestones — territory achievements visible on the map.
 // Achievable cadence: 5 → 10 → 25 → 50 → 100 → 250 → 500 areas.
@@ -425,7 +425,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
       ),
       builder: (_) {
         final bottomPad = MediaQuery.paddingOf(context).bottom + AppTheme.spaceMd;
-        return Padding(
+        return SingleChildScrollView(
           padding: EdgeInsets.fromLTRB(AppTheme.spaceMd, AppTheme.spaceSm, AppTheme.spaceMd, bottomPad),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -998,6 +998,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                 return Expanded(
                   child: GestureDetector(
                     onTap: () {
+                      HapticFeedback.selectionClick();
                       setState(() => _selectedBarIndex = isSelected ? null : i);
                     },
                     behavior: HitTestBehavior.opaque,
@@ -1044,6 +1045,9 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                               borderRadius: const BorderRadius.vertical(
                                 top: Radius.circular(AppTheme.radiusSm),
                               ),
+                              border: isSelected
+                                  ? Border.all(color: AppColors.primary, width: AppBorderWidths.medium)
+                                  : null,
                             ),
                           ),
                           const SizedBox(height: AppTheme.spaceXxs),
@@ -1285,14 +1289,14 @@ class _StatisticsScreenState extends State<StatisticsScreen>
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(AppTheme.radiusLg)),
       ),
-      builder: (_) => Padding(
-        padding: const EdgeInsets.fromLTRB(
-          AppTheme.spaceMd, AppTheme.spaceSm, AppTheme.spaceMd, AppTheme.spaceLg,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+      builder: (ctx) {
+        final bottomPad = MediaQuery.paddingOf(ctx).bottom + AppTheme.spaceLg;
+        return SingleChildScrollView(
+          padding: EdgeInsets.fromLTRB(AppTheme.spaceMd, AppTheme.spaceSm, AppTheme.spaceMd, bottomPad),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
             AppTheme.dragHandle(isDark),
             const SizedBox(height: AppTheme.spaceMd),
             Text(
@@ -1333,7 +1337,8 @@ class _StatisticsScreenState extends State<StatisticsScreen>
             ],
           ],
         ),
-      ),
+        );
+      },
     );
   }
 
@@ -1923,7 +1928,7 @@ class _CalendarHeatmapState extends State<_CalendarHeatmap> {
                           selCount > 0
                               ? l10n.statsHeatmapDayDetail(
                                   DateFormat('EEE d', locale).format(selDate), selCount)
-                              : DateFormat('EEE d', locale).format(selDate),
+                              : l10n.statsHeatmapNoUploads(DateFormat('EEE d', locale).format(selDate)),
                           style: TextStyle(
                             fontSize: AppTheme.fontSizeNavLabel,
                             color: selCount > 0 ? AppColors.primary : AppColors.textTertiary(isDark),

@@ -1311,6 +1311,7 @@ class MapHeatmapLegend extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
+        HapticFeedback.lightImpact();
         showModalBottomSheet(
           context: context,
           backgroundColor: Colors.transparent,
@@ -1740,7 +1741,33 @@ class _TileInfoSheetState extends State<TileInfoSheet> {
                   if (tile.avgVibration != null)
                     (icon: Icons.vibration_rounded, color: AppColors.movement.withValues(alpha: 0.75), title: l10n.sensorAcceleration, label: _vibrationContext(tile.avgVibration!, l10n), raw: '${(tile.avgVibration! * 100).round()}${l10n.sensorUnitVibration}'),
                 ];
-                if (cards.isEmpty) return const SizedBox.shrink();
+                if (cards.isEmpty) {
+                  return Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Divider(height: 1, thickness: AppBorderWidths.thin, color: AppColors.border(isDark)),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: AppTheme.spaceMd, vertical: AppTheme.spaceSm),
+                        child: Row(
+                          children: [
+                            Icon(Icons.sensors_off_rounded,
+                                size: AppIconSizes.xs, color: AppColors.textTertiary(isDark)),
+                            const SizedBox(width: AppTheme.spaceXs),
+                            Expanded(
+                              child: Text(
+                                l10n.tileInfoNoSensorData,
+                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                  color: AppColors.textTertiary(isDark),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  );
+                }
                 return Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [

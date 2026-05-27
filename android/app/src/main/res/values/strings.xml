@@ -4,31 +4,31 @@
     <string name="mapbox_access_token">maplibre_no_token_needed</string>
 
     <!-- Foreground service notification — title = status, body = progress (zone-first) -->
-    <string name="notification_status_collecting">Mapping your neighborhood</string>
-    <string name="notification_status_stationary">Running in background</string>
+    <string name="notification_status_collecting">Your map is growing</string>
+    <string name="notification_status_stationary">Watching your surroundings</string>
     <string name="notification_paused_title">Paused</string>
-    <string name="notification_paused_body">Resume to keep mapping</string>
-    <string name="notification_collecting_no_upload">Move around to start mapping</string>
+    <string name="notification_paused_body">Resume to keep building your map</string>
+    <string name="notification_collecting_no_upload">Walk around to start mapping</string>
     <!-- Zone-first body strings — shown when zonesTotal > 0 -->
     <!-- %1$d = zones total -->
-    <string name="notification_body_zones_uploading">%1$d zones · uploading now</string>
-    <string name="notification_body_zones_collecting">%1$d zones mapped</string>
+    <string name="notification_body_zones_uploading">%1$d places on your map</string>
+    <string name="notification_body_zones_collecting">%1$d places mapped</string>
     <!-- %1$d = zones total (stationary state) -->
-    <string name="notification_body_stationary">%1$d zones · standing by</string>
+    <string name="notification_body_stationary">%1$d places · standing by</string>
     <!-- %1$d = zones total (paused state) -->
-    <string name="notification_body_paused_zones">%1$d zones on your map</string>
+    <string name="notification_body_paused_zones">%1$d places on your map</string>
     <!-- Fallback body strings when no zones yet — readings count -->
     <!-- %d = readings count -->
-    <string name="notification_readings_uploading">%d readings · uploading now</string>
+    <string name="notification_readings_uploading">Building your first place…</string>
 
-    <!-- Expanded BigText — compact status line: "Synced 5min ago  ·  moving" -->
-    <string name="notification_sync_uploading">Syncing now</string>
+    <!-- Expanded BigText — compact status line -->
+    <string name="notification_sync_uploading">Updating your map</string>
     <!-- %s = elapsed time e.g. "5min ago" -->
-    <string name="notification_sync_uploaded">Synced %s</string>
-    <string name="notification_sync_none">Not synced yet</string>
+    <string name="notification_sync_uploaded">Updated %s</string>
+    <string name="notification_sync_none">Not updated yet</string>
     <string name="notification_motion_moving">moving</string>
     <string name="notification_motion_stationary">still</string>
-    <string name="notification_expanded_paused">Tap Resume to keep mapping.</string>
+    <string name="notification_expanded_paused">Tap Resume to keep building your map.</string>
 
     <!-- Notification actions -->
     <string name="notification_action_pause">Pause</string>
@@ -50,19 +50,19 @@
     <string name="notif_duration_hours_min">%1$dh %2$02dmin</string>
     <!-- %1$d = minutes -->
     <string name="notif_duration_minutes">%1$dmin</string>
-    <!-- Compact body — zones · duration (sync appended in code with ↑) -->
+    <!-- Compact body — zones · duration -->
     <!-- %1$d = zones -->
-    <string name="notif_body_paused_compact">%1$d zones saved</string>
+    <string name="notif_body_paused_compact">%1$d places saved</string>
 
     <!-- Background worker notification -->
-    <string name="notification_worker_title">GreenGains · syncing</string>
-    <string name="notification_worker_body">Saving your map data</string>
+    <string name="notification_worker_title">GreenGains</string>
+    <string name="notification_worker_body">Updating your map</string>
 
     <!-- Re-engagement notification — fires if no activity today -->
     <!-- %1$d = current streak in days -->
     <string name="notification_streak_channel_name">Map Reminders</string>
     <string name="notification_streak_title">%1$d day streak at risk</string>
-    <string name="notification_streak_body">Open the app and keep your streak alive.</string>
+    <string name="notification_streak_body">Keep your streak alive — walk anywhere.</string>
 
     <!-- Permission result toasts -->
     <string name="toast_location_granted">Location permission granted</string>
@@ -72,9 +72,9 @@
     <string name="notification_weekly_channel_name">Weekly Map Update</string>
     <string name="notification_weekly_title">Your map this week</string>
     <!-- %1$d = new zones, %2$d = total -->
-    <string name="notification_weekly_body_growth">+%1$d new zones — %2$d total on your map</string>
+    <string name="notification_weekly_body_growth">+%1$d new places — %2$d total</string>
     <!-- %1$d = total (no change week-over-week) -->
-    <string name="notification_weekly_body_stable">%1$d zones mapped so far</string>
+    <string name="notification_weekly_body_stable">%1$d places mapped so far</string>
     <string name="sensor_lux_dark">Dark</string>
     <string name="sensor_lux_indoor">Dim</string>
     <string name="sensor_lux_bright">Bright</string>
@@ -82,6 +82,6 @@
     <string name="notif_motion_still">Still</string>
     <string name="notif_motion_light">Light activity</string>
     <string name="notif_motion_active">On the move</string>
-    <string name="notif_body_measuring">Measuring your surroundings</string>
+    <string name="notif_body_measuring">Reading your surroundings</string>
 
 </resources>

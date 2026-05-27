@@ -382,7 +382,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
       builder: (_) {
         final bottomPad = MediaQuery.paddingOf(context).bottom + AppTheme.spaceLg;
-        return Padding(
+        return SingleChildScrollView(
           padding: EdgeInsets.fromLTRB(AppTheme.spaceLg, AppTheme.spaceMd, AppTheme.spaceLg, bottomPad),
           child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
             AppTheme.dragHandle(isDark),
@@ -394,16 +394,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
               color: color,
             )),
             const SizedBox(height: AppTheme.spaceXxxs),
-            Text(title, style: TextStyle(
-              fontSize: AppTheme.fontSizeBody,
+            Text(title, style: theme.textTheme.labelMedium?.copyWith(
               fontWeight: AppFontWeights.semibold,
               color: AppColors.textSecondary(isDark),
-              letterSpacing: 0.6,
             )),
             if (explanation != null) ...[
               const SizedBox(height: AppTheme.spaceSm),
-              Text(explanation, style: TextStyle(
-                fontSize: AppTheme.fontSizeBody,
+              Text(explanation, style: theme.textTheme.bodyMedium?.copyWith(
                 color: AppColors.textSecondary(isDark),
                 height: AppLineHeights.relaxed,
               )),
@@ -440,6 +437,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             const SizedBox(height: AppTheme.spaceMd),
           ]),
         );
+
       },
     );
   }
