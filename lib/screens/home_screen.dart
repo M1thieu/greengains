@@ -840,6 +840,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                           // Mine / All toggle
                           _MineAllToggle(
                             showCommunity: _showCommunity,
+                            mineCount: _claimedTileCount,
+                            communityCount: _globalTiles.length,
                             onChanged: (val) =>
                                 setState(() => _showCommunity = val),
                           ),
@@ -930,12 +932,14 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                       ]),
                       builder: (context, _) {
                         final active = _locationService.isRunning.value && !_locationService.isPaused.value;
-                        final show = active && _sessionUploadCount > 0;
+                        final show = active;
                         final zonesGained = (_claimedTileCount - _sessionStartZoneCount).clamp(0, 9999);
                         final l10n = context.l10n;
-                        final pillText = zonesGained > 0
-                            ? l10n.homeSessionPillWithZones(_sessionUploadCount, zonesGained)
-                            : l10n.homeSessionPill(_sessionUploadCount);
+                        final pillText = _sessionUploadCount == 0
+                            ? l10n.sensorCollectingFirst
+                            : zonesGained > 0
+                                ? l10n.homeSessionPillWithZones(_sessionUploadCount, zonesGained)
+                                : l10n.homeSessionPill(_sessionUploadCount);
                         return AnimatedSwitcher(
                           duration: AppDurations.medium,
                           transitionBuilder: (child, anim) => FadeTransition(
@@ -1500,22 +1504,20 @@ class _FirstUploadSheetState extends State<_FirstUploadSheet> {
                 const SizedBox(height: AppTheme.spaceXs),
                 Text(
                   context.l10n.firstUploadHeadline,
-                  style: TextStyle(
-                    fontSize: AppTheme.spaceXl,
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
                     fontWeight: AppFontWeights.semibold,
                     color: Colors.white.withValues(alpha: 0.96),
                     letterSpacing: -0.6,
-                    height: 1.2,
+                    height: AppLineHeights.tight,
                   ),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: AppTheme.spaceSm),
                 Text(
                   context.l10n.firstUploadSubtext,
-                  style: TextStyle(
-                    fontSize: AppTheme.fontSizeSm,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: Colors.white.withValues(alpha: 0.72),
-                    height: 1.5,
+                    height: AppLineHeights.relaxed,
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -1536,14 +1538,15 @@ class _FirstUploadSheetState extends State<_FirstUploadSheet> {
                           children: [
                             Text(context.l10n.firstUploadSensorsLabel,
                               maxLines: 1, overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontSize: AppTheme.fontSizeNavLabel, fontWeight: AppFontWeights.semibold,
-                                color: Colors.white.withValues(alpha: 0.60), letterSpacing: 0.5)),
+                              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                                fontWeight: AppFontWeights.semibold,
+                                color: Colors.white.withValues(alpha: 0.60),
+                                letterSpacing: AppTheme.letterSpacingLabel)),
                             const SizedBox(height: AppTheme.spaceXxxs),
                             Text(context.l10n.firstUploadSensorsValue,
                               maxLines: 2, overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontSize: AppTheme.fontSizeBody, color: Colors.white.withValues(alpha: 0.85))),
+                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                color: Colors.white.withValues(alpha: 0.85))),
                           ],
                         ),
                       ),
@@ -1555,15 +1558,16 @@ class _FirstUploadSheetState extends State<_FirstUploadSheet> {
                             Text(context.l10n.firstUploadPrivacyLabel,
                               maxLines: 1, overflow: TextOverflow.ellipsis,
                               textAlign: TextAlign.end,
-                              style: TextStyle(
-                                fontSize: AppTheme.fontSizeNavLabel, fontWeight: AppFontWeights.semibold,
-                                color: Colors.white.withValues(alpha: 0.60), letterSpacing: 0.5)),
+                              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                                fontWeight: AppFontWeights.semibold,
+                                color: Colors.white.withValues(alpha: 0.60),
+                                letterSpacing: AppTheme.letterSpacingLabel)),
                             const SizedBox(height: AppTheme.spaceXxxs),
                             Text(context.l10n.firstUploadPrivacyValue,
                               maxLines: 1, overflow: TextOverflow.ellipsis,
                               textAlign: TextAlign.end,
-                              style: const TextStyle(
-                                fontSize: AppTheme.fontSizeBody, color: AppColors.primary, fontWeight: AppFontWeights.semibold)),
+                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                color: AppColors.primary, fontWeight: AppFontWeights.semibold)),
                           ],
                         ),
                       ),
@@ -1573,8 +1577,7 @@ class _FirstUploadSheetState extends State<_FirstUploadSheet> {
                 const SizedBox(height: AppTheme.spaceMd),
                 Text(
                   context.l10n.firstUploadKeepMappingCta,
-                  style: TextStyle(
-                    fontSize: AppTheme.fontSizeBody,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: Colors.white.withValues(alpha: 0.55),
                   ),
                   textAlign: TextAlign.center,
@@ -1704,17 +1707,15 @@ class _NextMilestoneBar extends StatelessWidget {
           children: [
             Text(
               l10n.statsMilestoneLabel,
-              style: TextStyle(
-                fontSize: AppTheme.fontSizeBody,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 fontWeight: AppFontWeights.semibold,
-                letterSpacing: 0.8,
+                letterSpacing: AppTheme.letterSpacingCaps,
                 color: AppColors.textSecondary(isDark),
               ),
             ),
             Text(
               l10n.statsMilestoneTarget(target),
-              style: TextStyle(
-                fontSize: AppTheme.fontSizeBody,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 fontWeight: AppFontWeights.semibold,
                 color: AppColors.textSecondary(isDark),
               ),
@@ -1734,8 +1735,7 @@ class _NextMilestoneBar extends StatelessWidget {
         const SizedBox(height: AppTheme.spaceXxxs),
         Text(
           l10n.statsMilestoneRemaining(remaining),
-          style: TextStyle(
-            fontSize: AppTheme.fontSizeBody,
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
             color: AppColors.textTertiary(isDark),
           ),
         ),
@@ -1855,11 +1855,10 @@ class _SessionSummarySheetState extends State<_SessionSummarySheet> {
                 children: [
                   Text(
                     l10n.sessionSummaryBadge,
-                    style: TextStyle(
-                      fontSize: AppTheme.fontSizeBody,
+                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
                       fontWeight: AppFontWeights.semibold,
                       color: Colors.white.withValues(alpha: 0.70),
-                      letterSpacing: 0.8,
+                      letterSpacing: AppTheme.letterSpacingCaps,
                     ),
                   ),
                   GestureDetector(
@@ -1879,11 +1878,10 @@ class _SessionSummarySheetState extends State<_SessionSummarySheet> {
               if (widget.zonesGained > 0) ...[
                 Text(
                   l10n.sessionSummaryZonesGainedLabel,
-                  style: const TextStyle(
-                    fontSize: AppTheme.fontSizeBody,
+                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
                     fontWeight: AppFontWeights.semibold,
                     color: AppColors.primary,
-                    letterSpacing: 0.8,
+                    letterSpacing: AppTheme.letterSpacingCaps,
                   ),
                 ),
                 const SizedBox(height: AppTheme.spaceXxs),
@@ -1906,8 +1904,7 @@ class _SessionSummarySheetState extends State<_SessionSummarySheet> {
                 const SizedBox(height: AppTheme.spaceSm),
                 Text(
                   l10n.sessionSummarySubline,
-                  style: TextStyle(
-                    fontSize: AppTheme.fontSizeMd,
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
                     color: Colors.white.withValues(alpha: 0.72),
                     letterSpacing: -0.1,
                   ),
@@ -1915,17 +1912,16 @@ class _SessionSummarySheetState extends State<_SessionSummarySheet> {
               ] else ...[
                 Text(
                   l10n.sessionSummaryNoZonesLabel,
-                  style: const TextStyle(
-                    fontSize: AppTheme.fontSizeBody,
+                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
                     fontWeight: AppFontWeights.semibold,
                     color: AppColors.primary,
-                    letterSpacing: 0.8,
+                    letterSpacing: AppTheme.letterSpacingCaps,
                   ),
                 ),
                 const SizedBox(height: AppTheme.spaceXxs),
                 TweenAnimationBuilder<int>(
                   tween: IntTween(begin: 0, end: widget.totalZones),
-                  duration: const Duration(milliseconds: 700),
+                  duration: AppDurations.shimmer,
                   curve: Curves.easeOut,
                   builder: (_, value, __) => Text(
                     '$value',
@@ -1942,8 +1938,7 @@ class _SessionSummarySheetState extends State<_SessionSummarySheet> {
                 const SizedBox(height: AppTheme.spaceSm),
                 Text(
                   l10n.sessionSummaryNoZonesSubline,
-                  style: TextStyle(
-                    fontSize: AppTheme.fontSizeMd,
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
                     color: Colors.white.withValues(alpha: 0.72),
                     letterSpacing: -0.1,
                   ),
@@ -1958,8 +1953,7 @@ class _SessionSummarySheetState extends State<_SessionSummarySheet> {
                     const SizedBox(width: AppTheme.spaceXxs),
                     Text(
                       l10n.sessionPersonalBest,
-                      style: const TextStyle(
-                        fontSize: AppTheme.fontSizeSm,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         fontWeight: AppFontWeights.semibold,
                         color: AppColors.primary,
                         letterSpacing: -0.1,
@@ -2015,8 +2009,7 @@ class _SessionSummarySheetState extends State<_SessionSummarySheet> {
                   const SizedBox(width: AppTheme.spaceXxs + 2),
                   Text(
                     l10n.sessionSummaryWatermark,
-                    style: TextStyle(
-                      fontSize: AppTheme.fontSizeNavLabel,
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
                       fontWeight: AppFontWeights.medium,
                       color: Colors.white.withValues(alpha: 0.55),
                       letterSpacing: 1.4,
@@ -2025,10 +2018,9 @@ class _SessionSummarySheetState extends State<_SessionSummarySheet> {
                   const Spacer(),
                   Text(
                     _fmtDate(),
-                    style: TextStyle(
-                      fontSize: AppTheme.fontSizeNavLabel,
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
                       color: Colors.white.withValues(alpha: 0.55),
-                      letterSpacing: 0.6,
+                      letterSpacing: AppTheme.letterSpacingLabel,
                       fontFeatures: const [ui.FontFeature.tabularFigures()],
                     ),
                   ),
@@ -2040,8 +2032,7 @@ class _SessionSummarySheetState extends State<_SessionSummarySheet> {
               // ── Next-session hook — contextual, never commanding ──────────
               Text(
                 _nextHookCopy(l10n),
-                style: TextStyle(
-                  fontSize: AppTheme.fontSizeBody,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: Colors.white.withValues(alpha: 0.65),
                   letterSpacing: -0.1,
                 ),
@@ -2109,7 +2100,7 @@ class _MilestoneBannerState extends State<_MilestoneBanner>
     super.initState();
     _ctrl = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1800),
+      duration: AppDurations.celebration,
     )..repeat(reverse: true);
     _glow = Tween<double>(begin: 0.3, end: 1.0).animate(
       CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut),
@@ -2150,8 +2141,7 @@ class _MilestoneBannerState extends State<_MilestoneBanner>
             Expanded(
               child: Text(
                 widget.l10n.sessionMilestoneHit(widget.milestone),
-                style: const TextStyle(
-                  fontSize: AppTheme.fontSizeSm,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   fontWeight: AppFontWeights.semibold,
                   color: AppColors.primary,
                   letterSpacing: -0.1,
@@ -2168,12 +2158,20 @@ class _MilestoneBannerState extends State<_MilestoneBanner>
 /// Map layer toggle — switches between personal and community coverage tiles.
 /// Mine / All segmented pill toggle.
 class _MineAllToggle extends StatelessWidget {
-  const _MineAllToggle({required this.showCommunity, required this.onChanged});
+  const _MineAllToggle({
+    required this.showCommunity,
+    required this.onChanged,
+    this.mineCount = 0,
+    this.communityCount = 0,
+  });
   final bool showCommunity;
   final ValueChanged<bool> onChanged;
+  final int mineCount;
+  final int communityCount;
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Container(
       decoration: BoxDecoration(
         color: AppColors.shadowDark(0.55),
@@ -2183,10 +2181,16 @@ class _MineAllToggle extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          _Seg(label: context.l10n.layerMine, active: !showCommunity,
-              onTap: () => onChanged(false)),
-          _Seg(label: context.l10n.layerAll, active: showCommunity,
-              onTap: () => onChanged(true)),
+          _Seg(
+            label: mineCount > 0 ? '${l10n.layerMine} $mineCount' : l10n.layerMine,
+            active: !showCommunity,
+            onTap: () => onChanged(false),
+          ),
+          _Seg(
+            label: communityCount > 0 ? '${l10n.layerAll} $communityCount' : l10n.layerAll,
+            active: showCommunity,
+            onTap: () => onChanged(true),
+          ),
         ],
       ),
     );
@@ -2204,7 +2208,7 @@ class _Seg extends StatelessWidget {
     return PressScaleDetector(
       onTap: onTap,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 180),
+        duration: AppDurations.segmentToggle,
         curve: Curves.easeOut,
         padding: const EdgeInsets.symmetric(
             horizontal: AppTheme.spaceSm, vertical: AppTheme.spaceTiny),
@@ -2214,8 +2218,7 @@ class _Seg extends StatelessWidget {
         ),
         child: Text(
           label,
-          style: TextStyle(
-            fontSize: AppTheme.fontSizeNavLabel,
+          style: Theme.of(context).textTheme.labelSmall?.copyWith(
             fontWeight: active ? AppFontWeights.bold : AppFontWeights.medium,
             color: active ? AppColors.actionSegActiveFg : AppColors.darkTextSecondary,
           ),
@@ -2247,8 +2250,7 @@ class _StatPill extends StatelessWidget {
           const SizedBox(width: AppTheme.spaceXxs),
           Text(
             label,
-            style: const TextStyle(
-              fontSize: AppTheme.fontSizeNavLabel,
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
               fontWeight: AppFontWeights.semibold,
               color: Colors.white,
             ),
@@ -2315,8 +2317,7 @@ class _PermissionLostCard extends StatelessWidget {
                 children: [
                   Text(
                     l10n.permissionLostTitle,
-                    style: const TextStyle(
-                      fontSize: AppTheme.fontSizeSm,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       fontWeight: AppFontWeights.semibold,
                       color: AppColors.warning,
                       letterSpacing: -0.1,
@@ -2325,8 +2326,7 @@ class _PermissionLostCard extends StatelessWidget {
                   const SizedBox(height: AppTheme.spaceXxxs),
                   Text(
                     l10n.permissionLostBody,
-                    style: TextStyle(
-                      fontSize: AppTheme.fontSizeBody,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       color: Colors.white.withValues(alpha: 0.72),
                     ),
                   ),
@@ -2343,8 +2343,7 @@ class _PermissionLostCard extends StatelessWidget {
               ),
               child: Text(
                 l10n.permissionLostCta,
-                style: const TextStyle(
-                  fontSize: AppTheme.fontSizeBody,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   fontWeight: AppFontWeights.semibold,
                   color: AppColors.warning,
                 ),
@@ -2374,18 +2373,16 @@ class _SummaryStatCell extends StatelessWidget {
           children: [
             Text(
               label,
-              style: TextStyle(
-                fontSize: AppTheme.fontSizeBody,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 fontWeight: AppFontWeights.medium,
                 color: Colors.white.withValues(alpha: 0.62),
-                letterSpacing: 0.6,
+                letterSpacing: AppTheme.letterSpacingLabel,
               ),
             ),
             const SizedBox(height: AppTheme.spaceXxs),
             Text(
               value,
-              style: TextStyle(
-                fontSize: AppTheme.spaceXl,
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
                 fontWeight: AppFontWeights.semibold,
                 color: Colors.white.withValues(alpha: 0.96),
                 letterSpacing: AppTheme.letterSpacingSubtle,
@@ -2396,8 +2393,7 @@ class _SummaryStatCell extends StatelessWidget {
               const SizedBox(height: AppTheme.spaceXxxs),
               Text(
                 subValue!,
-                style: TextStyle(
-                  fontSize: AppTheme.fontSizeNavLabel,
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(
                   color: Colors.white.withValues(alpha: 0.68),
                   letterSpacing: -0.1,
                 ),

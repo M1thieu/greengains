@@ -217,13 +217,15 @@ class AppColors {
 class AppDurations {
   AppDurations._();
 
-  static const Duration press  = Duration(milliseconds: 80);  // press-scale feedback
-  static const Duration instant = Duration(milliseconds: 100);
-  static const Duration fast = Duration(milliseconds: 300);
-  static const Duration medium = Duration(milliseconds: 600);
-  static const Duration slow = Duration(milliseconds: 900);
+  static const Duration press         = Duration(milliseconds: 80);
+  static const Duration instant       = Duration(milliseconds: 100);
+  static const Duration segmentToggle = Duration(milliseconds: 180);
+  static const Duration fast          = Duration(milliseconds: 300);
+  static const Duration medium        = Duration(milliseconds: 600);
+  static const Duration slow          = Duration(milliseconds: 900);
   static const Duration pageTransition = Duration(milliseconds: 200);
-  static const Duration shimmer = Duration(milliseconds: 750);
+  static const Duration shimmer       = Duration(milliseconds: 750);
+  static const Duration celebration   = Duration(milliseconds: 1800); // zone-gained celebration ring
 }
 
 /// Border and stroke widths
@@ -431,6 +433,8 @@ class AppTheme {
   static const double letterSpacingSubtle  = -0.5; // large titles, section headings
   static const double letterSpacingNumeric = -1.0; // KPI / stat numbers — tight tracking
   static const double letterSpacingDisplay = -2.0; // hero display numbers (displayLarge)
+  static const double letterSpacingCaps    =  0.8; // ALL CAPS eyebrow labels
+  static const double letterSpacingLabel   =  0.6; // small labels, metadata
 
   // Interaction
   static const double pressScale = 0.97; // PressScaleDetector — uniform press-down scale

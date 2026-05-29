@@ -300,8 +300,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         user.email!,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: AppTheme.fontSizeBody,
+                        style: theme.textTheme.bodyMedium?.copyWith(
                           color: AppColors.textSecondary(isDark),
                         ),
                       ),
@@ -310,8 +309,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       const SizedBox(height: AppTheme.spaceXxs),
                       Text(
                         l10n.profileMemberSince(_formatDate(user.metadata.creationTime!)),
-                        style: TextStyle(
-                          fontSize: AppTheme.fontSizeXs,
+                        style: theme.textTheme.labelSmall?.copyWith(
                           color: AppColors.textSecondary(isDark),
                         ),
                       ),
@@ -488,11 +486,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     children: [
                       Text(
                         l10n.statsCurrentStreakLabel,
-                        style: TextStyle(
-                          fontSize: AppTheme.fontSizeXs,
+                        style: theme.textTheme.labelSmall?.copyWith(
                           fontWeight: AppFontWeights.semibold,
                           color: active ? AppColors.primary : AppColors.textSecondary(isDark),
-                          letterSpacing: 0.6,
+                          letterSpacing: AppTheme.letterSpacingLabel,
                         ),
                       ),
                       const SizedBox(height: AppTheme.spaceXxxs),
@@ -582,6 +579,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 '${l10n.statsLongestLabel}: $longest ${l10n.statsDaysUnit}',
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: AppColors.textSecondary(isDark),
+                ),
+              ),
+              const SizedBox(height: AppTheme.spaceXxxs),
+              Text(
+                l10n.streakResetBanner,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: AppColors.textTertiary(isDark),
                 ),
               ),
             ],
@@ -744,8 +748,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     const SizedBox(height: AppTheme.spaceXxs),
                     Text(
                       tile.label,
-                      style: TextStyle(
-                        fontSize: AppTheme.fontSizeXs,
+                      style: theme.textTheme.labelSmall?.copyWith(
                         fontWeight: AppFontWeights.medium,
                         color: tile.color.withValues(alpha: 0.70),
                         letterSpacing: 0.2,

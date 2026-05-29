@@ -388,8 +388,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
           label,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
-          style: TextStyle(
-            fontSize: AppTheme.fontSizeNavLabel,
+          style: Theme.of(context).textTheme.labelSmall?.copyWith(
             fontWeight: AppFontWeights.semibold,
             color: color,
             letterSpacing: 0.2,
@@ -668,8 +667,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                           color: AppColors.primary.withValues(alpha: 0.12),
                           borderRadius: BorderRadius.circular(AppTheme.radiusMin),
                         ),
-                        child: Text(l10n.statsStreakNewRecord, style: TextStyle(
-                          fontSize: AppTheme.fontSizeNavLabel - 1,
+                        child: Text(l10n.statsStreakNewRecord, style: Theme.of(context).textTheme.labelSmall?.copyWith(
                           color: AppColors.primary,
                           fontWeight: AppFontWeights.semibold,
                         )),
@@ -993,7 +991,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                 final isSelected = _selectedBarIndex == i;
                 final barColor = (isToday || isSelected)
                     ? AppColors.primary
-                    : AppColors.primary.withValues(alpha: 0.25);
+                    : AppColors.primary.withValues(alpha: 0.45);
 
                 return Expanded(
                   child: GestureDetector(
@@ -1015,7 +1013,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                               '$count',
                               maxLines: 1,
                               overflow: TextOverflow.visible,
-                              style: TextStyle(
+                              style: Theme.of(context).textTheme.labelSmall?.copyWith(
                                 fontSize: _kBarLabelSize,
                                 color: (isToday || isSelected)
                                     ? AppColors.primary
@@ -1053,7 +1051,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                           const SizedBox(height: AppTheme.spaceXxs),
                           Text(
                             label,
-                            style: TextStyle(
+                            style: Theme.of(context).textTheme.labelSmall?.copyWith(
                               fontSize: _kBarLabelSize,
                               color: (isToday || isSelected)
                                   ? AppColors.primary
@@ -1130,7 +1128,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                           badge,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: TextStyle(fontSize: AppTheme.fontSizeNavLabel, color: AppColors.primary, fontWeight: AppFontWeights.semibold),
+                          style: Theme.of(context).textTheme.labelSmall?.copyWith(color: AppColors.primary, fontWeight: AppFontWeights.semibold),
                         ),
                       ),
                     ],
@@ -1422,8 +1420,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
               color: barColor.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(AppTheme.radiusMin),
             ),
-            child: Text(label, style: TextStyle(
-              fontSize: AppTheme.fontSizeNavLabel,
+            child: Text(label, style: Theme.of(context).textTheme.labelSmall?.copyWith(
               fontWeight: AppFontWeights.semibold,
               color: barColor,
             )),
@@ -1791,8 +1788,7 @@ class _Tab extends StatelessWidget {
         ),
         child: Text(
           label,
-          style: TextStyle(
-            fontSize: AppTheme.fontSizeNavLabel,
+          style: Theme.of(context).textTheme.labelSmall?.copyWith(
             fontWeight: selected ? AppFontWeights.semibold : AppFontWeights.medium,
             color: selected ? AppColors.darkTextPrimary : AppColors.textSecondary(isDark),
           ),
@@ -1929,8 +1925,7 @@ class _CalendarHeatmapState extends State<_CalendarHeatmap> {
                               ? l10n.statsHeatmapDayDetail(
                                   DateFormat('EEE d', locale).format(selDate), selCount)
                               : l10n.statsHeatmapNoUploads(DateFormat('EEE d', locale).format(selDate)),
-                          style: TextStyle(
-                            fontSize: AppTheme.fontSizeNavLabel,
+                          style: Theme.of(context).textTheme.labelSmall?.copyWith(
                             color: selCount > 0 ? AppColors.primary : AppColors.textTertiary(isDark),
                             fontWeight: AppFontWeights.semibold,
                           ),
@@ -1947,8 +1942,7 @@ class _CalendarHeatmapState extends State<_CalendarHeatmap> {
               child: Center(
                 child: Text(
                   d,
-                  style: TextStyle(
-                    fontSize: AppTheme.fontSizeNavLabel,
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
                     color: AppColors.textTertiary(isDark),
                     fontWeight: AppFontWeights.medium,
                   ),
@@ -2023,7 +2017,7 @@ class _CalendarHeatmapState extends State<_CalendarHeatmap> {
             children: [
               Text(
                 l10n.statsHeatmapLess,
-                style: TextStyle(fontSize: AppTheme.fontSizeNavLabel, color: AppColors.textTertiary(isDark)),
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(color: AppColors.textTertiary(isDark)),
               ),
               const SizedBox(width: AppTheme.spaceXxs),
               ...[0.08, 0.35, 0.60, 1.0].map((a) => Container(
@@ -2036,7 +2030,7 @@ class _CalendarHeatmapState extends State<_CalendarHeatmap> {
               )),
               Text(
                 l10n.statsHeatmapMore,
-                style: TextStyle(fontSize: AppTheme.fontSizeNavLabel, color: AppColors.textTertiary(isDark)),
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(color: AppColors.textTertiary(isDark)),
               ),
             ],
           ),
@@ -2070,8 +2064,7 @@ class _SensorChip extends StatelessWidget {
           const SizedBox(width: AppTheme.spaceXxxs + 2),
           Text(
             label,
-            style: TextStyle(
-              fontSize: AppTheme.fontSizeNavLabel,
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
               fontWeight: AppFontWeights.semibold,
               color: color,
             ),
@@ -2146,17 +2139,15 @@ class _MilestoneRing extends StatelessWidget {
             children: [
               Text(
                 '$total',
-                style: const TextStyle(
-                  fontSize: AppTheme.fontSizeSm,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   fontWeight: AppFontWeights.bold,
                   color: AppColors.warning,
-                  height: 1.0,
+                  height: AppLineHeights.tight,
                 ),
               ),
               Text(
                 '/$next',
-                style: TextStyle(
-                  fontSize: AppTheme.fontSizeNavLabel - 1,
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(
                   color: AppColors.warning.withValues(alpha: 0.65),
                   height: 1.1,
                 ),
@@ -2190,8 +2181,7 @@ class _MilestoneBadge extends StatelessWidget {
           const SizedBox(width: AppTheme.spaceTiny),
           Text(
             '$value',
-            style: TextStyle(
-              fontSize: AppTheme.fontSizeNavLabel - 1,
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
               color: AppColors.warning,
               fontWeight: AppFontWeights.semibold,
             ),
@@ -2418,8 +2408,7 @@ class _WeeklyGoalCelebrationState extends State<_WeeklyGoalCelebration>
               const SizedBox(height: AppTheme.spaceMd),
               Text(
                 l10n.weeklyGoalTitle,
-                style: const TextStyle(
-                  fontSize: AppTheme.fontSizeLg,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   fontWeight: AppFontWeights.bold,
                   letterSpacing: AppTheme.letterSpacingSubtle,
                 ),
@@ -2428,8 +2417,7 @@ class _WeeklyGoalCelebrationState extends State<_WeeklyGoalCelebration>
               Text(
                 l10n.weeklyGoalBody,
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: AppTheme.fontSizeSm,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: AppColors.textSecondary(isDark),
                 ),
               ),
@@ -2477,8 +2465,7 @@ class _LockedSensorRow extends StatelessWidget {
           Expanded(
             child: Text(
               label,
-              style: TextStyle(
-                fontSize: AppTheme.fontSizeSm,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: AppColors.textTertiary(isDark),
               ),
             ),
