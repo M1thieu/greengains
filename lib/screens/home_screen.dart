@@ -954,6 +954,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                         ),
                       ),
 
+                    // Live environmental insight — shown during active tracking
+                    _LiveEnvironmentCard(
+                      locationService: _locationService,
+                      onTap: _openSensorSheet,
+                    ),
+
                     // Live session counter pill
                     ListenableBuilder(
                       listenable: Listenable.merge([
@@ -2301,6 +2307,128 @@ class _Seg extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+/// Live environmental insight card — shown above the session pill while tracking.
+/// Translates the current sensor readings into a single human sentence.
+/// Tapping opens the full sensor live sheet.
+class _LiveEnvironmentCard extends StatelessWidget {
+  const _LiveEnvironmentCard({
+    required this.locationService,
+    required this.onTap,
+  });
+
+  final ForegroundLocationService locationService;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListenableBuilder(
+      listenable: Listenable.merge([
+        locationService.isRunning,
+        locationService.isPaused,
+        locationService.liveConditions,
+      ]),
+      builder: (context, _) {
+        final active = locationService.isRunning.value && !locationService.isPaused.value;
+        final cond = locationService.liveConditions.value;
+        final hasSensorData = cond.lux != null || cond.hpa != null;
+
+        return AnimatedSwitcher(
+          duration: AppDurations.medium,
+          transitionBuilder: (child, anim) => FadeTransition(
+            opacity: anim,
+            child: SlideTransition(
+              position: Tween<Offset>(
+                begin: const Offset(0, 0.15),
+                end: Offset.zero,
+              ).animate(CurvedAnimation(parent: anim, curve: Curves.easeOut)),
+              child: child,
+            ),
+          ),
+          child: (active && hasSensorData)
+              ? _buildCard(context, cond)
+              : const SizedBox.shrink(key: ValueKey('env_card_hidden')),
+        );
+      },
+    );
+  }
+
+  Widget _buildCard(BuildContext context, ({int? lux, double? hpa, double? rms}) cond) {
+    final l10n = context.l10n;
+    final isNight = DateTime.now().hour < 6 || DateTime.now().hour >= 20;
+    final lux = cond.lux?.toDouble();
+    final hpa = cond.hpa;
+
+    final insight = SensorInsights.tileInsight(
+      l10n,
+      isNight: isNight,
+      avgLux: lux,
+      avgHpa: hpa,
+    );
+
+    final accentColor = _accentColor(isNight: isNight, lux: lux, hpa: hpa);
+
+    return Padding(
+      key: const ValueKey('env_card'),
+      padding: const EdgeInsets.only(
+        left: AppTheme.spaceMd,
+        right: AppTheme.spaceMd,
+        bottom: AppTheme.spaceXs,
+      ),
+      child: PressScaleDetector(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppTheme.spaceMd,
+            vertical: AppTheme.spaceSm,
+          ),
+          decoration: BoxDecoration(
+            color: AppColors.mapOverlayMid,
+            borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+            border: Border.all(color: accentColor.withValues(alpha: 0.30)),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 6,
+                height: 6,
+                decoration: BoxDecoration(
+                  color: accentColor,
+                  shape: BoxShape.circle,
+                ),
+              ),
+              const SizedBox(width: AppTheme.spaceSm),
+              Expanded(
+                child: Text(
+                  insight,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: AppColors.darkTextPrimary,
+                    height: AppLineHeights.tight,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Color _accentColor({required bool isNight, double? lux, double? hpa}) {
+    if (isNight && lux != null) {
+      return SensorInsights.lightPollutionLevel(lux).color;
+    }
+    if (!isNight && lux != null && hpa != null) {
+      return SensorInsights.heatLevel(lux, hpa).color;
+    }
+    if (lux != null) {
+      return SensorInsights.sunlightLevel(lux).color;
+    }
+    return AppColors.primary;
   }
 }
 

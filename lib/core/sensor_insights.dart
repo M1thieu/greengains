@@ -183,6 +183,17 @@ extension LightPollutionLevelX on LightPollutionLevel {
   }
 }
 
+extension SunlightLevelX on SunlightLevel {
+  Color get color {
+    switch (this) {
+      case SunlightLevel.shaded:   return const Color(0xFF6EE7B7); // muted green
+      case SunlightLevel.partial:  return const Color(0xFF10B981); // green
+      case SunlightLevel.bright:   return const Color(0xFFF59E0B); // amber
+      case SunlightLevel.intense:  return const Color(0xFFEF4444); // red
+    }
+  }
+}
+
 extension SurfaceQualityX on SurfaceQuality {
   Color get color {
     switch (this) {
