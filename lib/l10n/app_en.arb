@@ -918,5 +918,30 @@
   "snapshotMovementBusy": "Busy",
   "snapshotPressureLow": "Low pressure",
   "snapshotPressureStable": "Stable",
-  "snapshotPressureHigh": "High pressure"
+  "snapshotPressureHigh": "High pressure",
+
+  "insightNoData": "Not enough data yet for this area.",
+
+  "insightLightPristine": "Almost no artificial light. Natural darkness preserved here.",
+  "insightLightLow": "Low light pollution. Stars still visible on a clear night.",
+  "insightLightModerate": "Moderate light pollution. The sky glow is noticeable.",
+  "insightLightHigh": "High light pollution. Most stars are washed out here.",
+  "insightLightSevere": "Severe light pollution. The night sky is nearly invisible.",
+
+  "insightSunShaded": "Heavily shaded. Little direct sunlight reaches this area.",
+  "insightSunPartial": "Partially shaded. Filtered light, cooler than open streets.",
+  "insightSunBright": "Good natural light. Open and well-lit during the day.",
+  "insightSunIntense": "Strong direct sun exposure. Heat risk in summer.",
+
+  "insightSurfaceSmooth": "Very smooth surface. Good conditions underfoot.",
+  "insightSurfaceNormal": "Normal surface quality.",
+  "insightSurfaceRough": "Rough surface. Uneven pavement detected.",
+  "insightSurfacePoor": "Poor surface quality. Significant bumps or damage.",
+
+  "insightHeatExposed": "Exposed to sun and pressure. Warmer than surrounding areas.",
+
+  "insightSessionDarkSky": "Your route had very little light pollution tonight.",
+  "insightSessionBrightCity": "Bright urban lighting all along your route tonight.",
+  "insightSessionRoughRoute": "Rougher surface than most of your routes.",
+  "insightSessionHotRoute": "High sun exposure on this route. Stay hydrated."
 }

@@ -12,6 +12,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:share_plus/share_plus.dart';
 import '../core/constants.dart';
 import '../core/extensions/context_extensions.dart';
+import '../core/sensor_insights.dart';
 import '../l10n/app_localizations.dart';
 import '../core/themes.dart';
 import '../services/location/foreground_location_service.dart';
@@ -107,6 +108,11 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   int _sessionUploadCount = 0;
   /// Whether community tiles are visible on the map.
   bool _showCommunity = true;
+  /// Session-level sensor averages — computed from personal tiles after each reload.
+  /// Used to populate the environmental insight in the session summary sheet.
+  double? _sessionAvgLux;
+  double? _sessionAvgHpa;
+  double? _sessionAvgVibration;
 
   @override
   void initState() {
@@ -197,6 +203,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               isPersonalBest: isPersonalBest,
               uploadsInSession: uploads,
               onViewStats: widget.onGoToStats,
+              sessionAvgLux: _sessionAvgLux,
+              sessionAvgHpa: _sessionAvgHpa,
+              sessionAvgVibration: _sessionAvgVibration,
             ),
           );
         });
@@ -560,11 +569,32 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         await _prefs.setLastKnownZoneCount(newCount);
         _h3RetryCount = 0;
         _slowLoadTimer?.cancel();
+        // Compute session sensor averages from tiles that have data.
+        final tilesWithData = response.tiles.where((t) =>
+            t.avgLux != null || t.avgHpa != null || t.avgVibration != null).toList();
+        double? avgLux, avgHpa, avgVib;
+        if (tilesWithData.isNotEmpty) {
+          final luxTiles = tilesWithData.where((t) => t.avgLux != null);
+          final hpaTiles = tilesWithData.where((t) => t.avgHpa != null);
+          final vibTiles = tilesWithData.where((t) => t.avgVibration != null);
+          if (luxTiles.isNotEmpty) {
+            avgLux = luxTiles.map((t) => t.avgLux!.toDouble()).reduce((a, b) => a + b) / luxTiles.length;
+          }
+          if (hpaTiles.isNotEmpty) {
+            avgHpa = hpaTiles.map((t) => t.avgHpa!).reduce((a, b) => a + b) / hpaTiles.length;
+          }
+          if (vibTiles.isNotEmpty) {
+            avgVib = vibTiles.map((t) => t.avgVibration!).reduce((a, b) => a + b) / vibTiles.length;
+          }
+        }
         setState(() {
           _h3Tiles = response.tiles;
           _h3TilesLoading = false;
           _showSlowLoadHint = false;
           _lastTilesFetch = DateTime.now();
+          if (avgLux != null)  _sessionAvgLux      = avgLux;
+          if (avgHpa != null)  _sessionAvgHpa      = avgHpa;
+          if (avgVib != null)  _sessionAvgVibration = avgVib;
         });
         // Persist for instant display on next open.
         unawaited(_prefs.setCachedPersonalTiles(jsonEncode(data)));
@@ -1765,6 +1795,9 @@ class _SessionSummarySheet extends StatefulWidget {
     this.isPersonalBest = false,
     this.uploadsInSession = 0,
     this.onViewStats,
+    this.sessionAvgLux,
+    this.sessionAvgHpa,
+    this.sessionAvgVibration,
   });
 
   final int zonesGained;
@@ -1774,6 +1807,9 @@ class _SessionSummarySheet extends StatefulWidget {
   final bool isPersonalBest;
   final int uploadsInSession;
   final VoidCallback? onViewStats;
+  final double? sessionAvgLux;
+  final double? sessionAvgHpa;
+  final double? sessionAvgVibration;
 
   @override
   State<_SessionSummarySheet> createState() => _SessionSummarySheetState();
@@ -2028,6 +2064,46 @@ class _SessionSummarySheetState extends State<_SessionSummarySheet> {
               ),
 
               const SizedBox(height: AppTheme.spaceSm),
+
+              // ── Environmental insight ─────────────────────────────────────
+              if (widget.sessionAvgLux != null ||
+                  widget.sessionAvgHpa != null ||
+                  widget.sessionAvgVibration != null) ...[
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: AppTheme.spaceSm, vertical: AppTheme.spaceXs),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.06),
+                    borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+                    border: Border.all(color: Colors.white.withValues(alpha: 0.10)),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(Icons.eco_rounded,
+                          size: AppIconSizes.xs,
+                          color: AppColors.primary.withValues(alpha: 0.85)),
+                      const SizedBox(width: AppTheme.spaceXs),
+                      Expanded(
+                        child: Text(
+                          SensorInsights.sessionInsight(
+                            l10n,
+                            isNight: DateTime.now().hour < 6 || DateTime.now().hour >= 20,
+                            avgLux: widget.sessionAvgLux,
+                            avgHpa: widget.sessionAvgHpa,
+                            avgVibration: widget.sessionAvgVibration,
+                          ),
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Colors.white.withValues(alpha: 0.80),
+                            height: AppLineHeights.normal,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: AppTheme.spaceSm),
+              ],
 
               // ── Next-session hook — contextual, never commanding ──────────
               Text(

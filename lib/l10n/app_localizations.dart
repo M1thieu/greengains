@@ -3577,6 +3577,120 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'High pressure'**
   String get snapshotPressureHigh;
+
+  /// No description provided for @insightNoData.
+  ///
+  /// In en, this message translates to:
+  /// **'Not enough data yet for this area.'**
+  String get insightNoData;
+
+  /// No description provided for @insightLightPristine.
+  ///
+  /// In en, this message translates to:
+  /// **'Almost no artificial light. Natural darkness preserved here.'**
+  String get insightLightPristine;
+
+  /// No description provided for @insightLightLow.
+  ///
+  /// In en, this message translates to:
+  /// **'Low light pollution. Stars still visible on a clear night.'**
+  String get insightLightLow;
+
+  /// No description provided for @insightLightModerate.
+  ///
+  /// In en, this message translates to:
+  /// **'Moderate light pollution. The sky glow is noticeable.'**
+  String get insightLightModerate;
+
+  /// No description provided for @insightLightHigh.
+  ///
+  /// In en, this message translates to:
+  /// **'High light pollution. Most stars are washed out here.'**
+  String get insightLightHigh;
+
+  /// No description provided for @insightLightSevere.
+  ///
+  /// In en, this message translates to:
+  /// **'Severe light pollution. The night sky is nearly invisible.'**
+  String get insightLightSevere;
+
+  /// No description provided for @insightSunShaded.
+  ///
+  /// In en, this message translates to:
+  /// **'Heavily shaded. Little direct sunlight reaches this area.'**
+  String get insightSunShaded;
+
+  /// No description provided for @insightSunPartial.
+  ///
+  /// In en, this message translates to:
+  /// **'Partially shaded. Filtered light, cooler than open streets.'**
+  String get insightSunPartial;
+
+  /// No description provided for @insightSunBright.
+  ///
+  /// In en, this message translates to:
+  /// **'Good natural light. Open and well-lit during the day.'**
+  String get insightSunBright;
+
+  /// No description provided for @insightSunIntense.
+  ///
+  /// In en, this message translates to:
+  /// **'Strong direct sun exposure. Heat risk in summer.'**
+  String get insightSunIntense;
+
+  /// No description provided for @insightSurfaceSmooth.
+  ///
+  /// In en, this message translates to:
+  /// **'Very smooth surface. Good conditions underfoot.'**
+  String get insightSurfaceSmooth;
+
+  /// No description provided for @insightSurfaceNormal.
+  ///
+  /// In en, this message translates to:
+  /// **'Normal surface quality.'**
+  String get insightSurfaceNormal;
+
+  /// No description provided for @insightSurfaceRough.
+  ///
+  /// In en, this message translates to:
+  /// **'Rough surface. Uneven pavement detected.'**
+  String get insightSurfaceRough;
+
+  /// No description provided for @insightSurfacePoor.
+  ///
+  /// In en, this message translates to:
+  /// **'Poor surface quality. Significant bumps or damage.'**
+  String get insightSurfacePoor;
+
+  /// No description provided for @insightHeatExposed.
+  ///
+  /// In en, this message translates to:
+  /// **'Exposed to sun and pressure. Warmer than surrounding areas.'**
+  String get insightHeatExposed;
+
+  /// No description provided for @insightSessionDarkSky.
+  ///
+  /// In en, this message translates to:
+  /// **'Your route had very little light pollution tonight.'**
+  String get insightSessionDarkSky;
+
+  /// No description provided for @insightSessionBrightCity.
+  ///
+  /// In en, this message translates to:
+  /// **'Bright urban lighting all along your route tonight.'**
+  String get insightSessionBrightCity;
+
+  /// No description provided for @insightSessionRoughRoute.
+  ///
+  /// In en, this message translates to:
+  /// **'Rougher surface than most of your routes.'**
+  String get insightSessionRoughRoute;
+
+  /// No description provided for @insightSessionHotRoute.
+  ///
+  /// In en, this message translates to:
+  /// **'High sun exposure on this route. Stay hydrated.'**
+  String get insightSessionHotRoute;
 }
 
 class _AppLocalizationsDelegate

@@ -2106,4 +2106,77 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get snapshotPressureHigh => 'High pressure';
+
+  @override
+  String get insightNoData => 'Not enough data yet for this area.';
+
+  @override
+  String get insightLightPristine =>
+      'Almost no artificial light. Natural darkness preserved here.';
+
+  @override
+  String get insightLightLow =>
+      'Low light pollution. Stars still visible on a clear night.';
+
+  @override
+  String get insightLightModerate =>
+      'Moderate light pollution. The sky glow is noticeable.';
+
+  @override
+  String get insightLightHigh =>
+      'High light pollution. Most stars are washed out here.';
+
+  @override
+  String get insightLightSevere =>
+      'Severe light pollution. The night sky is nearly invisible.';
+
+  @override
+  String get insightSunShaded =>
+      'Heavily shaded. Little direct sunlight reaches this area.';
+
+  @override
+  String get insightSunPartial =>
+      'Partially shaded. Filtered light, cooler than open streets.';
+
+  @override
+  String get insightSunBright =>
+      'Good natural light. Open and well-lit during the day.';
+
+  @override
+  String get insightSunIntense =>
+      'Strong direct sun exposure. Heat risk in summer.';
+
+  @override
+  String get insightSurfaceSmooth =>
+      'Very smooth surface. Good conditions underfoot.';
+
+  @override
+  String get insightSurfaceNormal => 'Normal surface quality.';
+
+  @override
+  String get insightSurfaceRough => 'Rough surface. Uneven pavement detected.';
+
+  @override
+  String get insightSurfacePoor =>
+      'Poor surface quality. Significant bumps or damage.';
+
+  @override
+  String get insightHeatExposed =>
+      'Exposed to sun and pressure. Warmer than surrounding areas.';
+
+  @override
+  String get insightSessionDarkSky =>
+      'Your route had very little light pollution tonight.';
+
+  @override
+  String get insightSessionBrightCity =>
+      'Bright urban lighting all along your route tonight.';
+
+  @override
+  String get insightSessionRoughRoute =>
+      'Rougher surface than most of your routes.';
+
+  @override
+  String get insightSessionHotRoute =>
+      'High sun exposure on this route. Stay hydrated.';
 }

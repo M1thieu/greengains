@@ -15,6 +15,7 @@ import '../core/themes.dart';
 import '../data/local/database_helper.dart';
 import '../data/models/h3_tile.dart';
 import '../core/app_preferences.dart';
+import '../core/sensor_insights.dart';
 import '../l10n/app_localizations.dart';
 import 'time_ago_text.dart';
 
@@ -1793,6 +1794,38 @@ class _TileInfoSheetState extends State<TileInfoSheet> {
                       ),
                     ),
                   ],
+                );
+              }),
+              // Environmental insight sentence
+              Builder(builder: (context) {
+                final isNight = DateTime.now().hour < 6 || DateTime.now().hour >= 20;
+                final insight = SensorInsights.tileInsight(
+                  l10n,
+                  isNight: isNight,
+                  avgLux: tile.avgLux?.toDouble(),
+                  avgHpa: tile.avgHpa,
+                  avgVibration: tile.avgVibration,
+                );
+                return Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                      AppTheme.spaceMd, 0, AppTheme.spaceMd, AppTheme.spaceMd),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(Icons.eco_rounded,
+                          size: AppIconSizes.xs, color: AppColors.primary.withValues(alpha: 0.7)),
+                      const SizedBox(width: AppTheme.spaceXs),
+                      Expanded(
+                        child: Text(
+                          insight,
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: AppColors.textSecondary(isDark),
+                            height: AppLineHeights.normal,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 );
               }),
               // Divider

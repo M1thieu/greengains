@@ -918,5 +918,30 @@
   "snapshotMovementBusy": "Animé",
   "snapshotPressureLow": "Basse pression",
   "snapshotPressureStable": "Stable",
-  "snapshotPressureHigh": "Haute pression"
+  "snapshotPressureHigh": "Haute pression",
+
+  "insightNoData": "Pas encore assez de données pour cette zone.",
+
+  "insightLightPristine": "Presque aucune lumière artificielle. L'obscurité naturelle est préservée ici.",
+  "insightLightLow": "Faible pollution lumineuse. Les étoiles restent visibles par temps clair.",
+  "insightLightModerate": "Pollution lumineuse modérée. Le halo lumineux est perceptible.",
+  "insightLightHigh": "Forte pollution lumineuse. La plupart des étoiles sont masquées ici.",
+  "insightLightSevere": "Pollution lumineuse sévère. Le ciel nocturne est presque invisible.",
+
+  "insightSunShaded": "Zone très ombragée. Peu de soleil direct ici.",
+  "insightSunPartial": "Partiellement ombragé. Lumière filtrée, plus frais que les rues ouvertes.",
+  "insightSunBright": "Bonne luminosité naturelle. Zone ouverte et bien éclairée en journée.",
+  "insightSunIntense": "Fort ensoleillement direct. Risque de chaleur en été.",
+
+  "insightSurfaceSmooth": "Surface très lisse. Bonnes conditions de marche.",
+  "insightSurfaceNormal": "Qualité de surface normale.",
+  "insightSurfaceRough": "Surface irrégulière. Revêtement inégal détecté.",
+  "insightSurfacePoor": "Mauvaise qualité de surface. Dégradations importantes.",
+
+  "insightHeatExposed": "Exposé au soleil et à la pression. Plus chaud que les zones voisines.",
+
+  "insightSessionDarkSky": "Votre trajet avait très peu de pollution lumineuse ce soir.",
+  "insightSessionBrightCity": "Éclairage urbain intense tout au long de votre trajet ce soir.",
+  "insightSessionRoughRoute": "Surface plus accidentée que la plupart de vos trajets.",
+  "insightSessionHotRoute": "Fort ensoleillement sur ce trajet. Pensez à vous hydrater."
 }

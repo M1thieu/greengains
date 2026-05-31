@@ -2133,4 +2133,78 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get snapshotPressureHigh => 'Haute pression';
+
+  @override
+  String get insightNoData => 'Pas encore assez de données pour cette zone.';
+
+  @override
+  String get insightLightPristine =>
+      'Presque aucune lumière artificielle. L\'obscurité naturelle est préservée ici.';
+
+  @override
+  String get insightLightLow =>
+      'Faible pollution lumineuse. Les étoiles restent visibles par temps clair.';
+
+  @override
+  String get insightLightModerate =>
+      'Pollution lumineuse modérée. Le halo lumineux est perceptible.';
+
+  @override
+  String get insightLightHigh =>
+      'Forte pollution lumineuse. La plupart des étoiles sont masquées ici.';
+
+  @override
+  String get insightLightSevere =>
+      'Pollution lumineuse sévère. Le ciel nocturne est presque invisible.';
+
+  @override
+  String get insightSunShaded =>
+      'Zone très ombragée. Peu de soleil direct ici.';
+
+  @override
+  String get insightSunPartial =>
+      'Partiellement ombragé. Lumière filtrée, plus frais que les rues ouvertes.';
+
+  @override
+  String get insightSunBright =>
+      'Bonne luminosité naturelle. Zone ouverte et bien éclairée en journée.';
+
+  @override
+  String get insightSunIntense =>
+      'Fort ensoleillement direct. Risque de chaleur en été.';
+
+  @override
+  String get insightSurfaceSmooth =>
+      'Surface très lisse. Bonnes conditions de marche.';
+
+  @override
+  String get insightSurfaceNormal => 'Qualité de surface normale.';
+
+  @override
+  String get insightSurfaceRough =>
+      'Surface irrégulière. Revêtement inégal détecté.';
+
+  @override
+  String get insightSurfacePoor =>
+      'Mauvaise qualité de surface. Dégradations importantes.';
+
+  @override
+  String get insightHeatExposed =>
+      'Exposé au soleil et à la pression. Plus chaud que les zones voisines.';
+
+  @override
+  String get insightSessionDarkSky =>
+      'Votre trajet avait très peu de pollution lumineuse ce soir.';
+
+  @override
+  String get insightSessionBrightCity =>
+      'Éclairage urbain intense tout au long de votre trajet ce soir.';
+
+  @override
+  String get insightSessionRoughRoute =>
+      'Surface plus accidentée que la plupart de vos trajets.';
+
+  @override
+  String get insightSessionHotRoute =>
+      'Fort ensoleillement sur ce trajet. Pensez à vous hydrater.';
 }
