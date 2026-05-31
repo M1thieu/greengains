@@ -195,6 +195,7 @@ function buildStoragePayload(batch: UploadBatch, qualityMultiplier = 1.0): Stora
   if (batch.geohash) payload.geohash = batch.geohash;
   if (batch.battery_level !== undefined) payload.battery_level = batch.battery_level;
   if (batch.is_charging !== undefined) payload.is_charging = batch.is_charging;
+  if (batch.wifi_rssi_avg !== undefined) payload.wifi_rssi_avg = batch.wifi_rssi_avg;
 
   return payload;
 }

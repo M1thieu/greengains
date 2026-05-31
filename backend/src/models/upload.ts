@@ -58,6 +58,8 @@ export const UploadBatchSchema = z.object({
   geohash: z.string().max(12).optional(),
   battery_level: z.number().min(-1).max(100).optional(),
   is_charging: z.boolean().optional(),
+  /** WiFi signal strength in dBm at upload time. Null if not on WiFi. Range: -30 (excellent) to -90 (poor). */
+  wifi_rssi_avg: z.number().int().min(-127).max(0).optional(),
   /** Bitmask: LIGHT=1, MOTION=2, PRESSURE=4, GYRO=8, MAGNETIC=16 */
   sensor_flags: z.number().int().min(0).max(31).optional(),
 });
@@ -88,5 +90,6 @@ export interface StoragePayload {
   geohash?: string;
   battery_level?: number;
   is_charging?: boolean;
+  wifi_rssi_avg?: number;
   quality_multiplier?: number;
 }

@@ -17,6 +17,7 @@ import com.eremat.greengains.util.AppLogger
 import android.content.ContentValues
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
+import android.net.wifi.WifiManager
 import android.util.Log
 import ch.hsr.geohash.GeoHash
 import com.google.gson.Gson
@@ -447,6 +448,7 @@ class NativeBackendUploader(
             "timestamp"     to batch.capturedAt,
             "batch"         to batchPayload,
             "location"      to locationMap,
+            "wifi_rssi_avg" to readWifiRssi(),
             "geohash"       to geohash,
             "battery_level" to (batteryMonitor?.getBatteryLevel() ?: -1),
             "is_charging"   to (batteryMonitor?.isCharging() ?: false),
@@ -560,6 +562,23 @@ class NativeBackendUploader(
             GeoHash.withCharacterPrecision(location.latitude, location.longitude, precision).toBase32()
         } catch (e: Exception) {
             Log.e(TAG, "Error computing geohash: ${e.message}", e)
+            null
+        }
+    }
+
+    /**
+     * Returns current WiFi signal strength in dBm, or null if not on WiFi / unavailable.
+     * Typical range: -30 (excellent) to -90 (unusable). RSSI_UNKNOWN (-127) is filtered out.
+     * No SSID or MAC is read — only signal level.
+     */
+    @Suppress("DEPRECATION")
+    private fun readWifiRssi(): Int? {
+        return try {
+            val wifi = context.getSystemService(Context.WIFI_SERVICE) as? WifiManager ?: return null
+            val info = wifi.connectionInfo ?: return null
+            val rssi = info.rssi
+            if (rssi == WifiManager.RSSI_UNKNOWN || rssi <= -127) null else rssi
+        } catch (e: Exception) {
             null
         }
     }
