@@ -3485,13 +3485,13 @@ abstract class AppLocalizations {
   /// No description provided for @mapZeroStateTitle.
   ///
   /// In en, this message translates to:
-  /// **'Your map starts here'**
+  /// **'Runs in the background'**
   String get mapZeroStateTitle;
 
   /// No description provided for @mapZeroStateBody.
   ///
   /// In en, this message translates to:
-  /// **'Walk anywhere with the app running — your zones appear in real time.'**
+  /// **'Enable tracking once and go about your day. Your route and its environmental data appear when you get back.'**
   String get mapZeroStateBody;
 
   /// No description provided for @snapshotCardTitle.

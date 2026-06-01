@@ -2070,11 +2070,11 @@ class AppLocalizationsFr extends AppLocalizations {
   String get profileUnlockCta => 'Me connecter pour garder ma carte';
 
   @override
-  String get mapZeroStateTitle => 'Ta carte commence ici';
+  String get mapZeroStateTitle => 'Tourne en arrière-plan';
 
   @override
   String get mapZeroStateBody =>
-      'Marche n\'importe où avec l\'appli active — tes zones apparaissent en temps réel.';
+      'Active le suivi une fois et vis ta journée. Ton trajet et ses données environnementales apparaissent à ton retour.';
 
   @override
   String get snapshotCardTitle => 'TON QUARTIER';

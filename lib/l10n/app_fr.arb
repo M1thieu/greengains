@@ -896,8 +896,8 @@
   "profileUnlockBody": "Connecte-toi pour la conserver et la synchroniser sur tous tes appareils.",
   "profileUnlockCta": "Me connecter pour garder ma carte",
 
-  "mapZeroStateTitle": "Ta carte commence ici",
-  "mapZeroStateBody": "Marche n'importe où avec l'appli active — tes zones apparaissent en temps réel.",
+  "mapZeroStateTitle": "Tourne en arrière-plan",
+  "mapZeroStateBody": "Active le suivi une fois et vis ta journée. Ton trajet et ses données environnementales apparaissent à ton retour.",
 
   "snapshotCardTitle": "TON QUARTIER",
   "snapshotReadings": "{count, plural, =1{1 mesure} other{{count} mesures}}",

@@ -4,6 +4,7 @@ import android.Manifest.permission.ACCESS_COARSE_LOCATION
 import android.Manifest.permission.ACCESS_FINE_LOCATION
 import android.annotation.SuppressLint
 import android.app.NotificationManager
+import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
 import android.content.Intent
@@ -931,6 +932,37 @@ class ForegroundService : Service() {
 
     private fun sendTrackingPausedToFlutter(paused: Boolean) {
         postToFlutter("tracking paused") { it.invokeMethod("onTrackingPaused", paused) }
+    }
+
+    /**
+     * Called when the user swipes the app away from recents.
+     * On stock Android a foreground service survives this automatically, but many OEM ROMs
+     * (Samsung, Xiaomi, OPPO) kill the service on task removal. Scheduling a restart intent
+     * ensures the service comes back within ~1 second if it was running before.
+     * Only reschedules if tracking was actually enabled — avoids phantom restarts.
+     */
+    override fun onTaskRemoved(rootIntent: Intent?) {
+        super.onTaskRemoved(rootIntent)
+        val prefs = getSharedPreferences(AppPrefs.NAME, Context.MODE_PRIVATE)
+        val wasEnabled = prefs.getBoolean(AppPrefs.FOREGROUND_ENABLED, false)
+        val wasPaused  = prefs.getBoolean(AppPrefs.TRACKING_PAUSED, false)
+        if (!wasEnabled || wasPaused) return
+
+        // Reschedule service restart via a 1-second delayed PendingIntent.
+        // Uses FLAG_ONE_SHOT so it fires once and is discarded.
+        val restartIntent = Intent(applicationContext, ForegroundService::class.java)
+        val flags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
+            PendingIntent.FLAG_ONE_SHOT or PendingIntent.FLAG_IMMUTABLE
+        else
+            PendingIntent.FLAG_ONE_SHOT
+        val pending = PendingIntent.getService(applicationContext, 1, restartIntent, flags)
+        val alarmManager = getSystemService(Context.ALARM_SERVICE) as android.app.AlarmManager
+        alarmManager.set(
+            android.app.AlarmManager.ELAPSED_REALTIME,
+            android.os.SystemClock.elapsedRealtime() + 1_000L,
+            pending,
+        )
+        Log.i(TAG, "onTaskRemoved: scheduled service restart in 1s (tracking was active)")
     }
 
     override fun onDestroy() {

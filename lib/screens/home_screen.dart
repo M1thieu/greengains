@@ -1822,6 +1822,15 @@ class _SessionSummarySheet extends StatefulWidget {
 }
 
 class _SessionSummarySheetState extends State<_SessionSummarySheet> {
+  Color _insightAccentColor({required bool isNight}) {
+    final lux = widget.sessionAvgLux;
+    final hpa = widget.sessionAvgHpa;
+    if (isNight && lux != null) return SensorInsights.lightPollutionLevel(lux).color;
+    if (!isNight && lux != null && hpa != null) return SensorInsights.heatLevel(lux, hpa).color;
+    if (lux != null) return SensorInsights.sunlightLevel(lux).color;
+    return AppColors.primary;
+  }
+
   int? _nextMilestone() {
     for (final m in _kMilestones) {
       if (m > widget.totalZones) return m;
@@ -1914,7 +1923,54 @@ class _SessionSummarySheetState extends State<_SessionSummarySheet> {
                   ),
                 ],
               ),
-              const SizedBox(height: AppTheme.spaceLg),
+              // ── Environmental insight — lead with what the route did to you ──
+              Builder(builder: (context) {
+                final hasEnv = widget.sessionAvgLux != null ||
+                    widget.sessionAvgHpa != null ||
+                    widget.sessionAvgVibration != null;
+                if (!hasEnv) return const SizedBox(height: AppTheme.spaceLg);
+                final isNight = DateTime.now().hour < 6 || DateTime.now().hour >= 20;
+                final accent = _insightAccentColor(isNight: isNight);
+                final insight = SensorInsights.sessionInsight(
+                  l10n,
+                  isNight: isNight,
+                  avgLux: widget.sessionAvgLux,
+                  avgHpa: widget.sessionAvgHpa,
+                  avgVibration: widget.sessionAvgVibration,
+                );
+                return Padding(
+                  padding: const EdgeInsets.only(top: AppTheme.spaceSm, bottom: AppTheme.spaceLg),
+                  child: Container(
+                    padding: const EdgeInsets.fromLTRB(AppTheme.spaceSm, AppTheme.spaceSm, AppTheme.spaceMd, AppTheme.spaceSm),
+                    decoration: BoxDecoration(
+                      color: accent.withValues(alpha: 0.07),
+                      borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+                      border: Border(left: BorderSide(color: accent, width: 2)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          l10n.sessionSummaryBadge == 'DONE' ? 'YOUR ROUTE' : l10n.sessionSummaryBadge,
+                          style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                            color: accent.withValues(alpha: 0.85),
+                            fontWeight: AppFontWeights.semibold,
+                            letterSpacing: AppTheme.letterSpacingCaps,
+                          ),
+                        ),
+                        const SizedBox(height: AppTheme.spaceXxs),
+                        Text(
+                          insight,
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: Colors.white.withValues(alpha: 0.90),
+                            height: AppLineHeights.normal,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }),
 
               // ── Hero ─────────────────────────────────────────────────────
               if (widget.zonesGained > 0) ...[
@@ -2070,46 +2126,6 @@ class _SessionSummarySheetState extends State<_SessionSummarySheet> {
               ),
 
               const SizedBox(height: AppTheme.spaceSm),
-
-              // ── Environmental insight ─────────────────────────────────────
-              if (widget.sessionAvgLux != null ||
-                  widget.sessionAvgHpa != null ||
-                  widget.sessionAvgVibration != null) ...[
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: AppTheme.spaceSm, vertical: AppTheme.spaceXs),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.06),
-                    borderRadius: BorderRadius.circular(AppTheme.radiusSm),
-                    border: Border.all(color: Colors.white.withValues(alpha: 0.10)),
-                  ),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Icon(Icons.eco_rounded,
-                          size: AppIconSizes.xs,
-                          color: AppColors.primary.withValues(alpha: 0.85)),
-                      const SizedBox(width: AppTheme.spaceXs),
-                      Expanded(
-                        child: Text(
-                          SensorInsights.sessionInsight(
-                            l10n,
-                            isNight: DateTime.now().hour < 6 || DateTime.now().hour >= 20,
-                            avgLux: widget.sessionAvgLux,
-                            avgHpa: widget.sessionAvgHpa,
-                            avgVibration: widget.sessionAvgVibration,
-                          ),
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Colors.white.withValues(alpha: 0.80),
-                            height: AppLineHeights.normal,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: AppTheme.spaceSm),
-              ],
 
               // ── Next-session hook — contextual, never commanding ──────────
               Text(

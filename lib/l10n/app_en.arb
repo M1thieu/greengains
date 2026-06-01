@@ -896,8 +896,8 @@
   "profileUnlockBody": "Sign in to keep it forever and sync across devices.",
   "profileUnlockCta": "Sign in to keep my map",
 
-  "mapZeroStateTitle": "Your map starts here",
-  "mapZeroStateBody": "Walk anywhere with the app running — your zones appear in real time.",
+  "mapZeroStateTitle": "Runs in the background",
+  "mapZeroStateBody": "Enable tracking once and go about your day. Your route and its environmental data appear when you get back.",
 
   "snapshotCardTitle": "YOUR NEIGHBOURHOOD",
   "snapshotReadings": "{count, plural, =1{1 reading} other{{count} readings}}",

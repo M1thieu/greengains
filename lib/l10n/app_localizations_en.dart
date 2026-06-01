@@ -2043,11 +2043,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileUnlockCta => 'Sign in to keep my map';
 
   @override
-  String get mapZeroStateTitle => 'Your map starts here';
+  String get mapZeroStateTitle => 'Runs in the background';
 
   @override
   String get mapZeroStateBody =>
-      'Walk anywhere with the app running — your zones appear in real time.';
+      'Enable tracking once and go about your day. Your route and its environmental data appear when you get back.';
 
   @override
   String get snapshotCardTitle => 'YOUR NEIGHBOURHOOD';
