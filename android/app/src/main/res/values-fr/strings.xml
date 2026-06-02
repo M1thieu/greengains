@@ -64,9 +64,9 @@
     <string name="sensor_lux_bright">Lumineux</string>
     <string name="sensor_lux_direct">Plein soleil</string>
     <string name="sensor_lux_night_pristine">Ciel noir</string>
-    <string name="sensor_lux_night_low">Faible pollution lumineuse</string>
-    <string name="sensor_lux_night_moderate">Pollution lumineuse modérée</string>
-    <string name="sensor_lux_night_high">Forte pollution lumineuse</string>
+    <string name="sensor_lux_night_low">Obscurité naturelle</string>
+    <string name="sensor_lux_night_moderate">Halo lumineux</string>
+    <string name="sensor_lux_night_high">Pollution lumineuse</string>
     <string name="notif_motion_still">Immobile</string>
     <string name="notif_motion_light">Légère activité</string>
     <string name="notif_motion_active">En mouvement</string>

@@ -921,27 +921,28 @@
   "snapshotPressureHigh": "Haute pression",
 
   "insightNoData": "Pas encore assez de données pour cette zone.",
+  "insightNormal": "Conditions environnementales normales.",
 
-  "insightLightPristine": "Presque aucune lumière artificielle. L'obscurité naturelle est préservée ici.",
-  "insightLightLow": "Faible pollution lumineuse. Les étoiles restent visibles par temps clair.",
-  "insightLightModerate": "Pollution lumineuse modérée. Le halo lumineux est perceptible.",
-  "insightLightHigh": "Forte pollution lumineuse. La plupart des étoiles sont masquées ici.",
-  "insightLightSevere": "Pollution lumineuse sévère. Le ciel nocturne est presque invisible.",
+  "insightLightPristine": "Vrai ciel noir — presque aucune lumière artificielle. Exceptionnel.",
+  "insightLightLow": "Obscurité naturelle préservée ici. Pollution lumineuse minimale.",
+  "insightLightModerate": "Halo lumineux visible — pollution lumineuse modérée.",
+  "insightLightHigh": "Pollution lumineuse importante. La plupart des étoiles sont masquées.",
+  "insightLightSevere": "Forte pollution lumineuse. Ciel nocturne presque invisible ici.",
 
-  "insightSunShaded": "Zone très ombragée. Peu de soleil direct ici.",
-  "insightSunPartial": "Partiellement ombragé. Lumière filtrée, plus frais que les rues ouvertes.",
-  "insightSunBright": "Bonne luminosité naturelle. Zone ouverte et bien éclairée en journée.",
-  "insightSunIntense": "Fort ensoleillement direct. Risque de chaleur en été.",
+  "insightSunShaded": "Intérieur ou très ombragé — peu de soleil direct.",
+  "insightSunPartial": "Conditions extérieures normales.",
+  "insightSunBright": "Zone ouverte et bien exposée. Bonne luminosité naturelle.",
+  "insightSunIntense": "Soleil direct intense — exposition à la chaleur et aux UV.",
 
-  "insightSurfaceSmooth": "Surface très lisse. Bonnes conditions de marche.",
-  "insightSurfaceNormal": "Qualité de surface normale.",
-  "insightSurfaceRough": "Surface irrégulière. Revêtement inégal détecté.",
-  "insightSurfacePoor": "Mauvaise qualité de surface. Dégradations importantes.",
+  "insightSurfaceSmooth": "Surface lisse et bien entretenue.",
+  "insightSurfaceNormal": "Conditions de revêtement normales.",
+  "insightSurfaceRough": "Surface irrégulière — revêtement dégradé détecté.",
+  "insightSurfacePoor": "Mauvaise surface — dégradations importantes.",
 
-  "insightHeatExposed": "Exposé au soleil et à la pression. Plus chaud que les zones voisines.",
+  "insightHeatExposed": "Îlot de chaleur — plus chaud que les zones environnantes.",
 
-  "insightSessionDarkSky": "Votre trajet avait très peu de pollution lumineuse ce soir.",
-  "insightSessionBrightCity": "Éclairage urbain intense tout au long de votre trajet ce soir.",
-  "insightSessionRoughRoute": "Surface plus accidentée que la plupart de vos trajets.",
-  "insightSessionHotRoute": "Fort ensoleillement sur ce trajet. Pensez à vous hydrater."
+  "insightSessionDarkSky": "Pollution lumineuse minimale sur ce trajet — bon environnement nocturne.",
+  "insightSessionBrightCity": "Forte pollution lumineuse tout au long de ce trajet.",
+  "insightSessionRoughRoute": "Conditions de surface plus accidentées que la moyenne sur ce trajet.",
+  "insightSessionHotRoute": "Trajet avec une exposition à la chaleur élevée."
 }

@@ -2111,72 +2111,70 @@ class AppLocalizationsEn extends AppLocalizations {
   String get insightNoData => 'Not enough data yet for this area.';
 
   @override
+  String get insightNormal => 'Normal environmental conditions.';
+
+  @override
   String get insightLightPristine =>
-      'Almost no artificial light. Natural darkness preserved here.';
+      'True dark sky — almost no artificial light. Exceptional.';
 
   @override
   String get insightLightLow =>
-      'Low light pollution. Stars still visible on a clear night.';
+      'Natural darkness preserved here. Minimal light pollution.';
 
   @override
   String get insightLightModerate =>
-      'Moderate light pollution. The sky glow is noticeable.';
+      'Sky glow visible — moderate light pollution.';
 
   @override
   String get insightLightHigh =>
-      'High light pollution. Most stars are washed out here.';
+      'Significant light pollution. Most stars washed out.';
 
   @override
   String get insightLightSevere =>
-      'Severe light pollution. The night sky is nearly invisible.';
+      'Heavy light pollution. Night sky nearly invisible here.';
 
   @override
   String get insightSunShaded =>
-      'Heavily shaded. Little direct sunlight reaches this area.';
+      'Indoor or heavily shaded — little direct sun.';
 
   @override
-  String get insightSunPartial =>
-      'Partially shaded. Filtered light, cooler than open streets.';
+  String get insightSunPartial => 'Normal outdoor conditions.';
 
   @override
-  String get insightSunBright =>
-      'Good natural light. Open and well-lit during the day.';
+  String get insightSunBright => 'Open and well-lit. Good outdoor exposure.';
 
   @override
-  String get insightSunIntense =>
-      'Strong direct sun exposure. Heat risk in summer.';
+  String get insightSunIntense => 'Intense direct sun — heat and UV exposure.';
 
   @override
-  String get insightSurfaceSmooth =>
-      'Very smooth surface. Good conditions underfoot.';
+  String get insightSurfaceSmooth => 'Smooth, well-maintained surface.';
 
   @override
-  String get insightSurfaceNormal => 'Normal surface quality.';
+  String get insightSurfaceNormal => 'Normal pavement conditions.';
 
   @override
-  String get insightSurfaceRough => 'Rough surface. Uneven pavement detected.';
+  String get insightSurfaceRough => 'Rough surface — uneven pavement detected.';
 
   @override
   String get insightSurfacePoor =>
-      'Poor surface quality. Significant bumps or damage.';
+      'Poor surface — significant damage or bumps.';
 
   @override
   String get insightHeatExposed =>
-      'Exposed to sun and pressure. Warmer than surrounding areas.';
+      'Urban heat — warmer than surrounding areas.';
 
   @override
   String get insightSessionDarkSky =>
-      'Your route had very little light pollution tonight.';
+      'Minimal light pollution on this route — good night environment.';
 
   @override
   String get insightSessionBrightCity =>
-      'Bright urban lighting all along your route tonight.';
+      'Heavy light pollution throughout this route.';
 
   @override
   String get insightSessionRoughRoute =>
-      'Rougher surface than most of your routes.';
+      'Rougher than average surface conditions on this route.';
 
   @override
-  String get insightSessionHotRoute =>
-      'High sun exposure on this route. Stay hydrated.';
+  String get insightSessionHotRoute => 'Route had elevated heat exposure.';
 }

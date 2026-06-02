@@ -60,7 +60,8 @@ class SensorInsights {
   // ── Insight sentence builders ─────────────────────────────────────────────
 
   /// One-sentence environmental summary for a tile — shown in tile info sheet
-  /// and session summary. Picks the most salient signal.
+  /// and session summary. Only surfaces readings that are anomalous or exceptional.
+  /// Normal conditions return [insightNormal] rather than calling out every reading.
   static String tileInsight(
     AppLocalizations l10n, {
     required bool isNight,
@@ -68,26 +69,42 @@ class SensorInsights {
     double? avgHpa,
     double? avgVibration,
   }) {
-    // Night: lead with light pollution
+    final hasData = avgLux != null || avgHpa != null || avgVibration != null;
+    if (!hasData) return l10n.insightNoData;
+
+    // Night: light pollution is the primary signal.
+    // Pristine/low = exceptionally good → show it.
+    // Moderate+ = anomalous → show it.
+    // Nothing is "unremarkable" at night for light.
     if (isNight && avgLux != null) {
       return _lightPollutionSentence(l10n, avgLux);
     }
-    // Day: lead with heat if both sensors present
+
+    // Day: flag heat only when warm or hot (neutral/cool = normal, skip).
     if (!isNight && avgLux != null && avgHpa != null) {
       final heat = heatLevel(avgLux, avgHpa);
       if (heat == HeatLevel.hot || heat == HeatLevel.warm) {
         return l10n.insightHeatExposed;
       }
     }
-    // Surface quality if vibration data present
+
+    // Surface: flag only rough or poor (smooth/normal = expected, skip).
     if (avgVibration != null) {
-      return _surfaceSentence(l10n, avgVibration);
+      final quality = surfaceQuality(avgVibration);
+      if (quality == SurfaceQuality.rough || quality == SurfaceQuality.poor) {
+        return _surfaceSentence(l10n, avgVibration);
+      }
     }
-    // Light fallback (day)
-    if (avgLux != null) {
-      return _sunlightSentence(l10n, avgLux);
+
+    // Day sunlight: flag only intense (shaded/partial/bright = normal, skip).
+    if (!isNight && avgLux != null) {
+      if (sunlightLevel(avgLux) == SunlightLevel.intense) {
+        return _sunlightSentence(l10n, avgLux);
+      }
     }
-    return l10n.insightNoData;
+
+    // Everything within normal range.
+    return l10n.insightNormal;
   }
 
   /// Session-level summary — what was the dominant environmental character

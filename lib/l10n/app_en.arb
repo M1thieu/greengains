@@ -921,27 +921,28 @@
   "snapshotPressureHigh": "High pressure",
 
   "insightNoData": "Not enough data yet for this area.",
+  "insightNormal": "Normal environmental conditions.",
 
-  "insightLightPristine": "Almost no artificial light. Natural darkness preserved here.",
-  "insightLightLow": "Low light pollution. Stars still visible on a clear night.",
-  "insightLightModerate": "Moderate light pollution. The sky glow is noticeable.",
-  "insightLightHigh": "High light pollution. Most stars are washed out here.",
-  "insightLightSevere": "Severe light pollution. The night sky is nearly invisible.",
+  "insightLightPristine": "True dark sky — almost no artificial light. Exceptional.",
+  "insightLightLow": "Natural darkness preserved here. Minimal light pollution.",
+  "insightLightModerate": "Sky glow visible — moderate light pollution.",
+  "insightLightHigh": "Significant light pollution. Most stars washed out.",
+  "insightLightSevere": "Heavy light pollution. Night sky nearly invisible here.",
 
-  "insightSunShaded": "Heavily shaded. Little direct sunlight reaches this area.",
-  "insightSunPartial": "Partially shaded. Filtered light, cooler than open streets.",
-  "insightSunBright": "Good natural light. Open and well-lit during the day.",
-  "insightSunIntense": "Strong direct sun exposure. Heat risk in summer.",
+  "insightSunShaded": "Indoor or heavily shaded — little direct sun.",
+  "insightSunPartial": "Normal outdoor conditions.",
+  "insightSunBright": "Open and well-lit. Good outdoor exposure.",
+  "insightSunIntense": "Intense direct sun — heat and UV exposure.",
 
-  "insightSurfaceSmooth": "Very smooth surface. Good conditions underfoot.",
-  "insightSurfaceNormal": "Normal surface quality.",
-  "insightSurfaceRough": "Rough surface. Uneven pavement detected.",
-  "insightSurfacePoor": "Poor surface quality. Significant bumps or damage.",
+  "insightSurfaceSmooth": "Smooth, well-maintained surface.",
+  "insightSurfaceNormal": "Normal pavement conditions.",
+  "insightSurfaceRough": "Rough surface — uneven pavement detected.",
+  "insightSurfacePoor": "Poor surface — significant damage or bumps.",
 
-  "insightHeatExposed": "Exposed to sun and pressure. Warmer than surrounding areas.",
+  "insightHeatExposed": "Urban heat — warmer than surrounding areas.",
 
-  "insightSessionDarkSky": "Your route had very little light pollution tonight.",
-  "insightSessionBrightCity": "Bright urban lighting all along your route tonight.",
-  "insightSessionRoughRoute": "Rougher surface than most of your routes.",
-  "insightSessionHotRoute": "High sun exposure on this route. Stay hydrated."
+  "insightSessionDarkSky": "Minimal light pollution on this route — good night environment.",
+  "insightSessionBrightCity": "Heavy light pollution throughout this route.",
+  "insightSessionRoughRoute": "Rougher than average surface conditions on this route.",
+  "insightSessionHotRoute": "Route had elevated heat exposure."
 }
