@@ -79,9 +79,16 @@
     <string name="sensor_lux_indoor">Dim</string>
     <string name="sensor_lux_bright">Bright</string>
     <string name="sensor_lux_direct">In sunlight</string>
+    <!-- Night-specific light pollution labels (same lux ranges, different meaning at night) -->
+    <string name="sensor_lux_night_pristine">Dark sky</string>
+    <string name="sensor_lux_night_low">Low light pollution</string>
+    <string name="sensor_lux_night_moderate">Moderate light pollution</string>
+    <string name="sensor_lux_night_high">High light pollution</string>
     <string name="notif_motion_still">Still</string>
     <string name="notif_motion_light">Light activity</string>
     <string name="notif_motion_active">On the move</string>
     <string name="notif_body_measuring">Reading your surroundings</string>
+    <!-- Uploaded N min ago suffix appended to notification body -->
+    <string name="notif_uploaded_ago">· uploaded %1$s ago</string>
 
 </resources>

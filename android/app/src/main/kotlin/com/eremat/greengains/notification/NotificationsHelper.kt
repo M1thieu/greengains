@@ -71,12 +71,23 @@ internal object NotificationsHelper {
         val title = if (territory != null) "$baseTitle · $territory" else baseTitle
 
         // ── Plain-language environment verdict ────────────────────────────────
+        val hour = java.time.LocalTime.now().hour
+        val isNight = hour < 6 || hour >= 20
         val lightStr = lux?.let {
-            when {
-                it < 5f    -> context.getString(R.string.sensor_lux_dark)
-                it < 50f   -> context.getString(R.string.sensor_lux_indoor)
-                it < 2000f -> context.getString(R.string.sensor_lux_bright)
-                else       -> context.getString(R.string.sensor_lux_direct)
+            if (isNight) {
+                when {
+                    it < 0.5f  -> context.getString(R.string.sensor_lux_night_pristine)
+                    it < 5f    -> context.getString(R.string.sensor_lux_night_low)
+                    it < 25f   -> context.getString(R.string.sensor_lux_night_moderate)
+                    else       -> context.getString(R.string.sensor_lux_night_high)
+                }
+            } else {
+                when {
+                    it < 5f    -> context.getString(R.string.sensor_lux_dark)
+                    it < 50f   -> context.getString(R.string.sensor_lux_indoor)
+                    it < 2000f -> context.getString(R.string.sensor_lux_bright)
+                    else       -> context.getString(R.string.sensor_lux_direct)
+                }
             }
         }
         val motionStr = when (motionState) {
@@ -87,11 +98,17 @@ internal object NotificationsHelper {
         }
 
         // ── Collapsed body ────────────────────────────────────────────────────
+        val uploadSuffix = lastUploadMillis?.let {
+            context.getString(R.string.notif_uploaded_ago, formatElapsedUpload(context, it))
+        }
         val body = when {
             isPaused -> context.getString(R.string.notification_paused_body)
-            else -> listOfNotNull(lightStr, motionStr)
-                .joinToString(" · ")
-                .ifEmpty { context.getString(R.string.notif_body_measuring) }
+            else -> {
+                val envPart = listOfNotNull(lightStr, motionStr)
+                    .joinToString(" · ")
+                    .ifEmpty { context.getString(R.string.notif_body_measuring) }
+                listOfNotNull(envPart, uploadSuffix).joinToString(" ")
+            }
         }
 
         val bigText = body
