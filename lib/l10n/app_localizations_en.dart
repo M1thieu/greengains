@@ -86,7 +86,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get homeIdleSubtitle =>
-      'Walk anywhere — your phone reads light, pressure, and motion.';
+      'Walk anywhere. Your phone reads light, pressure and motion.';
 
   @override
   String homeStatPlaces(int count) {
@@ -491,7 +491,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String statsVerdictSubStrong(int days) {
-    return 'You mapped $days of 7 days — keep it up.';
+    return 'You mapped $days of 7 days. Keep it up.';
   }
 
   @override
@@ -621,7 +621,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get statsQualitySubtitle =>
-      'How clean your readings are — strong signal, fewer gaps';
+      'How clean your readings are: strong signal, fewer gaps';
 
   @override
   String get statsAvgPrefix => 'avg';
@@ -884,7 +884,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get sensorLiveSubtitle =>
-      'Light, movement and air pressure — live from your phone.';
+      'Light, movement and air pressure, live from your phone.';
 
   @override
   String get sensorInactiveTitle => 'Not recording';
@@ -977,19 +977,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get lightVeryBright => 'Very Bright';
 
   @override
-  String get lightDarkHint => 'Near darkness — nighttime or deep shade';
+  String get lightDarkHint => 'Nighttime or deep shade';
 
   @override
-  String get lightDimHint => 'Low ambient light — away from windows';
+  String get lightDimHint => 'Low ambient light, away from windows';
 
   @override
-  String get lightNormalHint => 'Comfortable light — typical indoor daylight';
+  String get lightNormalHint => 'Typical indoor daylight';
 
   @override
-  String get lightBrightHint => 'Well-lit — near a window or outdoors';
+  String get lightBrightHint => 'Near a window or outdoors';
 
   @override
-  String get lightVeryBrightHint => 'Direct sunlight — peak UV exposure';
+  String get lightVeryBrightHint => 'Direct sunlight, peak UV exposure';
 
   @override
   String get magnetVeryLow => 'Very low';
@@ -1262,12 +1262,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String tileDecayWarning(int days) {
-    return 'Data is $days days old — walk here to refresh it.';
+    return 'Data is $days days old. Walk here to refresh it.';
   }
 
   @override
   String tileDecayHint(int days) {
-    return 'Mapped $days days ago — score will drop soon.';
+    return 'Mapped $days days ago. Score will drop soon.';
   }
 
   @override
@@ -1596,17 +1596,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sensorMovementIntense => 'Heavy traffic';
 
   @override
-  String get sensorMovementLowHint => 'Quiet zone — minimal foot traffic';
+  String get sensorMovementLowHint => 'Minimal foot traffic';
 
   @override
-  String get sensorMovementMidHint => 'Light activity — pedestrian area';
+  String get sensorMovementMidHint => 'Light pedestrian activity';
 
   @override
-  String get sensorMovementHighHint => 'Active environment — transit or crowds';
+  String get sensorMovementHighHint => 'Transit or crowds';
 
   @override
-  String get sensorMovementIntenseHint =>
-      'Strong vibration — heavy traffic or machinery';
+  String get sensorMovementIntenseHint => 'Heavy traffic or machinery';
 
   @override
   String get sensorHpaLow => 'Clear air';
@@ -1618,14 +1617,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sensorHpaHigh => 'Heavy air';
 
   @override
-  String get sensorHpaLowHint =>
-      'High pressure — stable, dry conditions typical';
+  String get sensorHpaLowHint => 'High pressure, stable dry conditions';
 
   @override
   String get sensorHpaMidHint => 'Normal atmospheric pressure at this altitude';
 
   @override
-  String get sensorHpaHighHint => 'Low pressure — unsettled weather possible';
+  String get sensorHpaHighHint => 'Low pressure, unsettled weather possible';
 
   @override
   String get sensorAccelStill => 'Barely moving';
@@ -2020,7 +2018,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String referralShareText(String code) {
-    return 'Join me on GreenGains — we\'re mapping our neighborhood\'s air, light & sound. Use my invite code $code when you sign up.';
+    return 'Join me on GreenGains. We\'re mapping our neighborhood\'s light, pressure and motion. Use my invite code $code when you sign up.';
   }
 
   @override
@@ -2114,8 +2112,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get insightNormal => 'Normal environmental conditions.';
 
   @override
+  String get insightRouteHeader => 'YOUR ROUTE';
+
+  @override
   String get insightLightPristine =>
-      'True dark sky — almost no artificial light. Exceptional.';
+      'True dark sky. Almost no artificial light.';
 
   @override
   String get insightLightLow =>
@@ -2123,7 +2124,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get insightLightModerate =>
-      'Sky glow visible — moderate light pollution.';
+      'Sky glow visible. Moderate light pollution.';
 
   @override
   String get insightLightHigh =>
@@ -2131,11 +2132,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get insightLightSevere =>
-      'Heavy light pollution. Night sky nearly invisible here.';
+      'Heavy light pollution. Night sky nearly invisible.';
 
   @override
-  String get insightSunShaded =>
-      'Indoor or heavily shaded — little direct sun.';
+  String get insightSunShaded => 'Indoor or heavily shaded. Little direct sun.';
 
   @override
   String get insightSunPartial => 'Normal outdoor conditions.';
@@ -2144,7 +2144,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get insightSunBright => 'Open and well-lit. Good outdoor exposure.';
 
   @override
-  String get insightSunIntense => 'Intense direct sun — heat and UV exposure.';
+  String get insightSunIntense => 'Intense direct sun. Heat and UV exposure.';
 
   @override
   String get insightSurfaceSmooth => 'Smooth, well-maintained surface.';
@@ -2153,19 +2153,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get insightSurfaceNormal => 'Normal pavement conditions.';
 
   @override
-  String get insightSurfaceRough => 'Rough surface — uneven pavement detected.';
+  String get insightSurfaceRough => 'Rough surface. Uneven pavement detected.';
 
   @override
-  String get insightSurfacePoor =>
-      'Poor surface — significant damage or bumps.';
+  String get insightSurfacePoor => 'Poor surface. Significant damage or bumps.';
 
   @override
-  String get insightHeatExposed =>
-      'Urban heat — warmer than surrounding areas.';
+  String get insightHeatExposed => 'Urban heat. Warmer than surrounding areas.';
 
   @override
   String get insightSessionDarkSky =>
-      'Minimal light pollution on this route — good night environment.';
+      'Minimal light pollution on this route. Good night environment.';
 
   @override
   String get insightSessionBrightCity =>

@@ -239,7 +239,7 @@ abstract class AppLocalizations {
   /// No description provided for @homeIdleSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Walk anywhere — your phone reads light, pressure, and motion.'**
+  /// **'Walk anywhere. Your phone reads light, pressure and motion.'**
   String get homeIdleSubtitle;
 
   /// No description provided for @homeStatPlaces.
@@ -893,7 +893,7 @@ abstract class AppLocalizations {
   /// No description provided for @statsVerdictSubStrong.
   ///
   /// In en, this message translates to:
-  /// **'You mapped {days} of 7 days — keep it up.'**
+  /// **'You mapped {days} of 7 days. Keep it up.'**
   String statsVerdictSubStrong(int days);
 
   /// No description provided for @statsVerdictSubGood.
@@ -1121,7 +1121,7 @@ abstract class AppLocalizations {
   /// No description provided for @statsQualitySubtitle.
   ///
   /// In en, this message translates to:
-  /// **'How clean your readings are — strong signal, fewer gaps'**
+  /// **'How clean your readings are: strong signal, fewer gaps'**
   String get statsQualitySubtitle;
 
   /// No description provided for @statsAvgPrefix.
@@ -1565,7 +1565,7 @@ abstract class AppLocalizations {
   /// No description provided for @sensorLiveSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Light, movement and air pressure — live from your phone.'**
+  /// **'Light, movement and air pressure, live from your phone.'**
   String get sensorLiveSubtitle;
 
   /// No description provided for @sensorInactiveTitle.
@@ -1751,31 +1751,31 @@ abstract class AppLocalizations {
   /// No description provided for @lightDarkHint.
   ///
   /// In en, this message translates to:
-  /// **'Near darkness — nighttime or deep shade'**
+  /// **'Nighttime or deep shade'**
   String get lightDarkHint;
 
   /// No description provided for @lightDimHint.
   ///
   /// In en, this message translates to:
-  /// **'Low ambient light — away from windows'**
+  /// **'Low ambient light, away from windows'**
   String get lightDimHint;
 
   /// No description provided for @lightNormalHint.
   ///
   /// In en, this message translates to:
-  /// **'Comfortable light — typical indoor daylight'**
+  /// **'Typical indoor daylight'**
   String get lightNormalHint;
 
   /// No description provided for @lightBrightHint.
   ///
   /// In en, this message translates to:
-  /// **'Well-lit — near a window or outdoors'**
+  /// **'Near a window or outdoors'**
   String get lightBrightHint;
 
   /// No description provided for @lightVeryBrightHint.
   ///
   /// In en, this message translates to:
-  /// **'Direct sunlight — peak UV exposure'**
+  /// **'Direct sunlight, peak UV exposure'**
   String get lightVeryBrightHint;
 
   /// No description provided for @magnetVeryLow.
@@ -2231,13 +2231,13 @@ abstract class AppLocalizations {
   /// No description provided for @tileDecayWarning.
   ///
   /// In en, this message translates to:
-  /// **'Data is {days} days old — walk here to refresh it.'**
+  /// **'Data is {days} days old. Walk here to refresh it.'**
   String tileDecayWarning(int days);
 
   /// No description provided for @tileDecayHint.
   ///
   /// In en, this message translates to:
-  /// **'Mapped {days} days ago — score will drop soon.'**
+  /// **'Mapped {days} days ago. Score will drop soon.'**
   String tileDecayHint(int days);
 
   /// No description provided for @tileMeasuredWith.
@@ -2711,25 +2711,25 @@ abstract class AppLocalizations {
   /// No description provided for @sensorMovementLowHint.
   ///
   /// In en, this message translates to:
-  /// **'Quiet zone — minimal foot traffic'**
+  /// **'Minimal foot traffic'**
   String get sensorMovementLowHint;
 
   /// No description provided for @sensorMovementMidHint.
   ///
   /// In en, this message translates to:
-  /// **'Light activity — pedestrian area'**
+  /// **'Light pedestrian activity'**
   String get sensorMovementMidHint;
 
   /// No description provided for @sensorMovementHighHint.
   ///
   /// In en, this message translates to:
-  /// **'Active environment — transit or crowds'**
+  /// **'Transit or crowds'**
   String get sensorMovementHighHint;
 
   /// No description provided for @sensorMovementIntenseHint.
   ///
   /// In en, this message translates to:
-  /// **'Strong vibration — heavy traffic or machinery'**
+  /// **'Heavy traffic or machinery'**
   String get sensorMovementIntenseHint;
 
   /// No description provided for @sensorHpaLow.
@@ -2753,7 +2753,7 @@ abstract class AppLocalizations {
   /// No description provided for @sensorHpaLowHint.
   ///
   /// In en, this message translates to:
-  /// **'High pressure — stable, dry conditions typical'**
+  /// **'High pressure, stable dry conditions'**
   String get sensorHpaLowHint;
 
   /// No description provided for @sensorHpaMidHint.
@@ -2765,7 +2765,7 @@ abstract class AppLocalizations {
   /// No description provided for @sensorHpaHighHint.
   ///
   /// In en, this message translates to:
-  /// **'Low pressure — unsettled weather possible'**
+  /// **'Low pressure, unsettled weather possible'**
   String get sensorHpaHighHint;
 
   /// No description provided for @sensorAccelStill.
@@ -3443,7 +3443,7 @@ abstract class AppLocalizations {
   /// No description provided for @referralShareText.
   ///
   /// In en, this message translates to:
-  /// **'Join me on GreenGains — we\'re mapping our neighborhood\'s air, light & sound. Use my invite code {code} when you sign up.'**
+  /// **'Join me on GreenGains. We\'re mapping our neighborhood\'s light, pressure and motion. Use my invite code {code} when you sign up.'**
   String referralShareText(String code);
 
   /// No description provided for @onboardingHaveCode.
@@ -3590,10 +3590,16 @@ abstract class AppLocalizations {
   /// **'Normal environmental conditions.'**
   String get insightNormal;
 
+  /// No description provided for @insightRouteHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'YOUR ROUTE'**
+  String get insightRouteHeader;
+
   /// No description provided for @insightLightPristine.
   ///
   /// In en, this message translates to:
-  /// **'True dark sky — almost no artificial light. Exceptional.'**
+  /// **'True dark sky. Almost no artificial light.'**
   String get insightLightPristine;
 
   /// No description provided for @insightLightLow.
@@ -3605,7 +3611,7 @@ abstract class AppLocalizations {
   /// No description provided for @insightLightModerate.
   ///
   /// In en, this message translates to:
-  /// **'Sky glow visible — moderate light pollution.'**
+  /// **'Sky glow visible. Moderate light pollution.'**
   String get insightLightModerate;
 
   /// No description provided for @insightLightHigh.
@@ -3617,13 +3623,13 @@ abstract class AppLocalizations {
   /// No description provided for @insightLightSevere.
   ///
   /// In en, this message translates to:
-  /// **'Heavy light pollution. Night sky nearly invisible here.'**
+  /// **'Heavy light pollution. Night sky nearly invisible.'**
   String get insightLightSevere;
 
   /// No description provided for @insightSunShaded.
   ///
   /// In en, this message translates to:
-  /// **'Indoor or heavily shaded — little direct sun.'**
+  /// **'Indoor or heavily shaded. Little direct sun.'**
   String get insightSunShaded;
 
   /// No description provided for @insightSunPartial.
@@ -3641,7 +3647,7 @@ abstract class AppLocalizations {
   /// No description provided for @insightSunIntense.
   ///
   /// In en, this message translates to:
-  /// **'Intense direct sun — heat and UV exposure.'**
+  /// **'Intense direct sun. Heat and UV exposure.'**
   String get insightSunIntense;
 
   /// No description provided for @insightSurfaceSmooth.
@@ -3659,25 +3665,25 @@ abstract class AppLocalizations {
   /// No description provided for @insightSurfaceRough.
   ///
   /// In en, this message translates to:
-  /// **'Rough surface — uneven pavement detected.'**
+  /// **'Rough surface. Uneven pavement detected.'**
   String get insightSurfaceRough;
 
   /// No description provided for @insightSurfacePoor.
   ///
   /// In en, this message translates to:
-  /// **'Poor surface — significant damage or bumps.'**
+  /// **'Poor surface. Significant damage or bumps.'**
   String get insightSurfacePoor;
 
   /// No description provided for @insightHeatExposed.
   ///
   /// In en, this message translates to:
-  /// **'Urban heat — warmer than surrounding areas.'**
+  /// **'Urban heat. Warmer than surrounding areas.'**
   String get insightHeatExposed;
 
   /// No description provided for @insightSessionDarkSky.
   ///
   /// In en, this message translates to:
-  /// **'Minimal light pollution on this route — good night environment.'**
+  /// **'Minimal light pollution on this route. Good night environment.'**
   String get insightSessionDarkSky;
 
   /// No description provided for @insightSessionBrightCity.

@@ -1951,7 +1951,7 @@ class _SessionSummarySheetState extends State<_SessionSummarySheet> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          l10n.sessionSummaryBadge == 'DONE' ? 'YOUR ROUTE' : l10n.sessionSummaryBadge,
+                          l10n.insightRouteHeader,
                           style: Theme.of(context).textTheme.labelSmall?.copyWith(
                             color: accent.withValues(alpha: 0.85),
                             fontWeight: AppFontWeights.semibold,
