@@ -115,26 +115,36 @@ class SensorInsights {
     double? avgLux,
     double? avgHpa,
     double? avgVibration,
-    double? lightPercentile,   // 0–1, how this session compares to all user sessions
+    double? lightPercentile,
     double? vibrationPercentile,
   }) {
+    final hasData = avgLux != null || avgHpa != null || avgVibration != null;
+    if (!hasData) return l10n.insightNoData;
+
+    // Night: all light levels are informative (good or bad)
     if (isNight && avgLux != null) {
       final level = lightPollutionLevel(avgLux);
       if (level == LightPollutionLevel.pristine || level == LightPollutionLevel.low) {
         return l10n.insightSessionDarkSky;
       }
-      if (level == LightPollutionLevel.severe) return l10n.insightSessionBrightCity;
+      if (level == LightPollutionLevel.severe || level == LightPollutionLevel.high) {
+        return l10n.insightSessionBrightCity;
+      }
       return _lightPollutionSentence(l10n, avgLux);
     }
-    if (vibrationPercentile != null && vibrationPercentile > 0.8) {
-      return l10n.insightSessionRoughRoute;
-    }
+    // Day: flag only notable heat
     if (avgLux != null && avgHpa != null) {
       final heat = heatLevel(avgLux, avgHpa);
-      if (heat == HeatLevel.hot) return l10n.insightSessionHotRoute;
+      if (heat == HeatLevel.hot || heat == HeatLevel.warm) return l10n.insightSessionHotRoute;
     }
-    if (avgVibration != null) return _surfaceSentence(l10n, avgVibration);
-    return l10n.insightNoData;
+    // Surface: flag only rough/poor
+    if (avgVibration != null) {
+      final quality = surfaceQuality(avgVibration);
+      if (quality == SurfaceQuality.rough || quality == SurfaceQuality.poor) {
+        return l10n.insightSessionRoughRoute;
+      }
+    }
+    return l10n.insightNormal;
   }
 
   // ── Private helpers ───────────────────────────────────────────────────────
