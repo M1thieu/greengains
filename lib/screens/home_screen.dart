@@ -108,17 +108,25 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   int _sessionUploadCount = 0;
   /// Whether community tiles are visible on the map.
   bool _showCommunity = true;
-  /// Session-level sensor averages — computed from personal tiles after each reload.
-  /// Used to populate the environmental insight in the session summary sheet.
+  /// Session-level sensor averages — accumulated from the live sensor stream.
+  /// Updated on every liveConditions change so the session summary always has data,
+  /// even for new users whose tiles don't yet carry sensor aggregates.
   double? _sessionAvgLux;
   double? _sessionAvgHpa;
   double? _sessionAvgVibration;
+  int _sessionLuxCount = 0;
+  int _sessionHpaCount = 0;
+  int _sessionRmsCount = 0;
+  double _sessionLuxSum = 0;
+  double _sessionHpaSum = 0;
+  double _sessionRmsSum = 0;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _locationService.isRunning.addListener(_handleServiceRunningChange);
+    _locationService.liveConditions.addListener(_accumulateSessionSensors);
     _checkServiceStatus();
     _setupUploadSuccessListener();
     _checkBatteryOptimization();
@@ -167,6 +175,27 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     } catch (_) {}
   }
 
+  /// Accumulates live sensor readings into running totals for the session summary.
+  void _accumulateSessionSensors() {
+    if (!_locationService.isRunning.value || _locationService.isPaused.value) return;
+    final cond = _locationService.liveConditions.value;
+    if (cond.lux != null) {
+      _sessionLuxSum += cond.lux!;
+      _sessionLuxCount++;
+      _sessionAvgLux = _sessionLuxSum / _sessionLuxCount;
+    }
+    if (cond.hpa != null) {
+      _sessionHpaSum += cond.hpa!;
+      _sessionHpaCount++;
+      _sessionAvgHpa = _sessionHpaSum / _sessionHpaCount;
+    }
+    if (cond.rms != null) {
+      _sessionRmsSum += cond.rms!;
+      _sessionRmsCount++;
+      _sessionAvgVibration = _sessionRmsSum / _sessionRmsCount;
+    }
+  }
+
   void _handleServiceRunningChange() {
     if (_locationService.isRunning.value) {
       _sessionStartZoneCount = _claimedTileCount;
@@ -174,6 +203,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       _sessionUploadCount = 0;
       _sessionVisitedCells.clear();
       _pendingCellBoundaries = [];
+      // Reset session sensor accumulators for fresh session
+      _sessionAvgLux = null; _sessionLuxSum = 0; _sessionLuxCount = 0;
+      _sessionAvgHpa = null; _sessionHpaSum = 0; _sessionHpaCount = 0;
+      _sessionAvgVibration = null; _sessionRmsSum = 0; _sessionRmsCount = 0;
       _checkBatteryOptimization();
       _maybeShowFirstStart();
     } else {
@@ -440,6 +473,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     _uploadSuccessSub?.cancel();
     _slowLoadTimer?.cancel();
     _locationService.isRunning.removeListener(_handleServiceRunningChange);
+    _locationService.liveConditions.removeListener(_accumulateSessionSensors);
     _recenterTrigger.dispose();
     _userLocationNotifier.dispose();
     _userAccuracyNotifier.dispose();
@@ -569,32 +603,11 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         await _prefs.setLastKnownZoneCount(newCount);
         _h3RetryCount = 0;
         _slowLoadTimer?.cancel();
-        // Compute session sensor averages from tiles that have data.
-        final tilesWithData = response.tiles.where((t) =>
-            t.avgLux != null || t.avgHpa != null || t.avgVibration != null).toList();
-        double? avgLux, avgHpa, avgVib;
-        if (tilesWithData.isNotEmpty) {
-          final luxTiles = tilesWithData.where((t) => t.avgLux != null);
-          final hpaTiles = tilesWithData.where((t) => t.avgHpa != null);
-          final vibTiles = tilesWithData.where((t) => t.avgVibration != null);
-          if (luxTiles.isNotEmpty) {
-            avgLux = luxTiles.map((t) => t.avgLux!.toDouble()).reduce((a, b) => a + b) / luxTiles.length;
-          }
-          if (hpaTiles.isNotEmpty) {
-            avgHpa = hpaTiles.map((t) => t.avgHpa!).reduce((a, b) => a + b) / hpaTiles.length;
-          }
-          if (vibTiles.isNotEmpty) {
-            avgVib = vibTiles.map((t) => t.avgVibration!).reduce((a, b) => a + b) / vibTiles.length;
-          }
-        }
         setState(() {
           _h3Tiles = response.tiles;
           _h3TilesLoading = false;
           _showSlowLoadHint = false;
           _lastTilesFetch = DateTime.now();
-          if (avgLux != null)  _sessionAvgLux      = avgLux;
-          if (avgHpa != null)  _sessionAvgHpa      = avgHpa;
-          if (avgVib != null)  _sessionAvgVibration = avgVib;
         });
         // Persist for instant display on next open.
         unawaited(_prefs.setCachedPersonalTiles(jsonEncode(data)));

@@ -100,3 +100,5 @@ nul
 # Investigation notes
 LAST_RESORT_MIUI_FIX.md
 MIUI_FALLBACK_FIX.md
+*.output
+CUsers*
