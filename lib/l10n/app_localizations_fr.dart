@@ -100,7 +100,13 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String homeStatStreak(int count) {
-    return '$count jours d\'affilée';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count jours d\'affilée',
+      one: '1 jour d\'affilée',
+    );
+    return '$_temp0';
   }
 
   @override

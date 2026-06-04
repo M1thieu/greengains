@@ -2308,7 +2308,7 @@ class _MineAllToggle extends StatelessWidget {
             onTap: () => onChanged(false),
           ),
           _Seg(
-            label: communityCount > 0 ? '${l10n.layerAll} $communityCount' : l10n.layerAll,
+            label: l10n.layerAll,
             active: showCommunity,
             onTap: () => onChanged(true),
           ),

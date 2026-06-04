@@ -37,7 +37,7 @@
   "@homeStatPlaces": { "placeholders": { "count": { "type": "int" } } },
   "homeStatArea": "{area} cartographié",
   "@homeStatArea": { "placeholders": { "area": { "type": "String" } } },
-  "homeStatStreak": "{count} jours d'affilée",
+  "homeStatStreak": "{count, plural, =1{1 jour d'affilée} other{{count} jours d'affilée}}",
   "@homeStatStreak": { "placeholders": { "count": { "type": "int" } } },
   "homeActionStart": "Démarrer",
   "homeActionStop": "Arrêter",
