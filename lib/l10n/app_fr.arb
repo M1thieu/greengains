@@ -292,7 +292,7 @@
   "statsContributionTimeline": "Historique des contributions",
   "statsStartContributing": "Pas encore de données.",
   "statsEmptyDescription": "Active le suivi une fois. Lumière, chaleur, surfaces — enregistrés en silence.",
-  "statsEmptyGoMap": "Commencer à cartographier",
+  "statsEmptyGoMap": "Activer le suivi",
   "statsEmptyUnlockHint": "Marche pour débloquer",
   "statsUpdatedPrefix": "Mis à jour ",
   "statsDayMon": "Lun",
@@ -874,9 +874,9 @@
   "weeklyGoalBody": "À la semaine prochaine.",
   "weeklyGoalDismiss": "Super",
 
-  "statsEmptyLockLight": "Lumière",
-  "statsEmptyLockMovement": "Mouvement",
-  "statsEmptyLockPressure": "Pression atmosphérique",
+  "statsEmptyLockLight": "Luminosité — pollution lumineuse la nuit, soleil le jour",
+  "statsEmptyLockMovement": "Qualité des surfaces — état du revêtement sur tes trajets",
+  "statsEmptyLockPressure": "Chaleur & pression — exposition à la chaleur urbaine",
   "statsKm2Unit": "km²",
   "statsLast30DaysUnit": "/ 30",
 

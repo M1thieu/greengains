@@ -1307,7 +1307,7 @@ abstract class AppLocalizations {
   /// No description provided for @statsEmptyGoMap.
   ///
   /// In en, this message translates to:
-  /// **'Start mapping'**
+  /// **'Enable tracking'**
   String get statsEmptyGoMap;
 
   /// No description provided for @statsEmptyUnlockHint.
@@ -3401,19 +3401,19 @@ abstract class AppLocalizations {
   /// No description provided for @statsEmptyLockLight.
   ///
   /// In en, this message translates to:
-  /// **'Light'**
+  /// **'Light levels — pollution at night, sunlight by day'**
   String get statsEmptyLockLight;
 
   /// No description provided for @statsEmptyLockMovement.
   ///
   /// In en, this message translates to:
-  /// **'Movement'**
+  /// **'Surface quality — smoothness of your routes'**
   String get statsEmptyLockMovement;
 
   /// No description provided for @statsEmptyLockPressure.
   ///
   /// In en, this message translates to:
-  /// **'Air pressure'**
+  /// **'Heat & pressure — urban heat exposure'**
   String get statsEmptyLockPressure;
 
   /// No description provided for @statsKm2Unit.

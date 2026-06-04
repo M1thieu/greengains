@@ -728,7 +728,7 @@ class AppLocalizationsFr extends AppLocalizations {
       'Active le suivi une fois. Lumière, chaleur, surfaces — enregistrés en silence.';
 
   @override
-  String get statsEmptyGoMap => 'Commencer à cartographier';
+  String get statsEmptyGoMap => 'Activer le suivi';
 
   @override
   String get statsEmptyUnlockHint => 'Marche pour débloquer';
@@ -2021,13 +2021,16 @@ class AppLocalizationsFr extends AppLocalizations {
   String get weeklyGoalDismiss => 'Super';
 
   @override
-  String get statsEmptyLockLight => 'Lumière';
+  String get statsEmptyLockLight =>
+      'Luminosité — pollution lumineuse la nuit, soleil le jour';
 
   @override
-  String get statsEmptyLockMovement => 'Mouvement';
+  String get statsEmptyLockMovement =>
+      'Qualité des surfaces — état du revêtement sur tes trajets';
 
   @override
-  String get statsEmptyLockPressure => 'Pression atmosphérique';
+  String get statsEmptyLockPressure =>
+      'Chaleur & pression — exposition à la chaleur urbaine';
 
   @override
   String get statsKm2Unit => 'km²';

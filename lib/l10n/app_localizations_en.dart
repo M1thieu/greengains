@@ -726,7 +726,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Enable tracking once. Light, heat and surface quality are recorded silently.';
 
   @override
-  String get statsEmptyGoMap => 'Start mapping';
+  String get statsEmptyGoMap => 'Enable tracking';
 
   @override
   String get statsEmptyUnlockHint => 'Walk to unlock';
@@ -2001,13 +2001,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get weeklyGoalDismiss => 'Nice';
 
   @override
-  String get statsEmptyLockLight => 'Light';
+  String get statsEmptyLockLight =>
+      'Light levels — pollution at night, sunlight by day';
 
   @override
-  String get statsEmptyLockMovement => 'Movement';
+  String get statsEmptyLockMovement =>
+      'Surface quality — smoothness of your routes';
 
   @override
-  String get statsEmptyLockPressure => 'Air pressure';
+  String get statsEmptyLockPressure => 'Heat & pressure — urban heat exposure';
 
   @override
   String get statsKm2Unit => 'km²';

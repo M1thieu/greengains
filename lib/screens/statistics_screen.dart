@@ -2460,17 +2460,16 @@ class _LockedSensorRow extends StatelessWidget {
       decoration: AppTheme.contentCard(isDark: isDark),
       child: Row(
         children: [
-          Icon(icon, size: AppIconSizes.sm, color: color.withValues(alpha: 0.35)),
+          Icon(icon, size: AppIconSizes.sm, color: color.withValues(alpha: 0.70)),
           const SizedBox(width: AppTheme.spaceSm),
           Expanded(
             child: Text(
               label,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: AppColors.textTertiary(isDark),
+                color: AppColors.textSecondary(isDark),
               ),
             ),
           ),
-          Icon(Icons.lock_outline_rounded, size: 14, color: AppColors.textTertiary(isDark).withValues(alpha: 0.50)),
         ],
       ),
     );

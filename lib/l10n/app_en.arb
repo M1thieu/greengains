@@ -292,7 +292,7 @@
   "statsContributionTimeline": "Contribution Timeline",
   "statsStartContributing": "No data yet.",
   "statsEmptyDescription": "Enable tracking once. Light, heat and surface quality are recorded silently.",
-  "statsEmptyGoMap": "Start mapping",
+  "statsEmptyGoMap": "Enable tracking",
   "statsEmptyUnlockHint": "Walk to unlock",
   "statsUpdatedPrefix": "Updated ",
   "statsDayMon": "Mon",
@@ -874,9 +874,9 @@
   "weeklyGoalBody": "See you next week.",
   "weeklyGoalDismiss": "Nice",
 
-  "statsEmptyLockLight": "Light",
-  "statsEmptyLockMovement": "Movement",
-  "statsEmptyLockPressure": "Air pressure",
+  "statsEmptyLockLight": "Light levels — pollution at night, sunlight by day",
+  "statsEmptyLockMovement": "Surface quality — smoothness of your routes",
+  "statsEmptyLockPressure": "Heat & pressure — urban heat exposure",
   "statsKm2Unit": "km²",
   "statsLast30DaysUnit": "/ 30",
 
