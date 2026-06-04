@@ -35,6 +35,8 @@
   "homeIdleSubtitle": "Leave it on. Light, heat, surface — all passive.",
   "homeStatPlaces": "{count} places",
   "@homeStatPlaces": { "placeholders": { "count": { "type": "int" } } },
+  "homeStatArea": "{area} mapped",
+  "@homeStatArea": { "placeholders": { "area": { "type": "String" } } },
   "homeStatStreak": "{count}-day streak",
   "@homeStatStreak": { "placeholders": { "count": { "type": "int" } } },
   "homeActionStart": "Start",

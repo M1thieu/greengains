@@ -248,6 +248,12 @@ abstract class AppLocalizations {
   /// **'{count} places'**
   String homeStatPlaces(int count);
 
+  /// No description provided for @homeStatArea.
+  ///
+  /// In en, this message translates to:
+  /// **'{area} mapped'**
+  String homeStatArea(String area);
+
   /// No description provided for @homeStatStreak.
   ///
   /// In en, this message translates to:

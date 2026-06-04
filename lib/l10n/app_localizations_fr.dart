@@ -94,6 +94,11 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String homeStatArea(String area) {
+    return '$area cartographié';
+  }
+
+  @override
   String homeStatStreak(int count) {
     return '$count jours d\'affilée';
   }

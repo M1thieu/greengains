@@ -903,9 +903,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                     icon: Icons.hexagon_outlined,
                                     label: () {
                                       final km2 = _claimedTileCount * kKm2PerCell;
-                                      return km2 < 1.0
+                                      final area = km2 < 1.0
                                           ? '${km2.toStringAsFixed(2)} km²'
                                           : '${km2.toStringAsFixed(1)} km²';
+                                      return context.l10n.homeStatArea(area);
                                     }(),
                                   ),
                                 ],

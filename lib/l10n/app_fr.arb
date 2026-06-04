@@ -35,6 +35,8 @@
   "homeIdleSubtitle": "Laisse-le actif. Lumière, chaleur, surfaces — tout en silence.",
   "homeStatPlaces": "{count} endroits",
   "@homeStatPlaces": { "placeholders": { "count": { "type": "int" } } },
+  "homeStatArea": "{area} cartographié",
+  "@homeStatArea": { "placeholders": { "area": { "type": "String" } } },
   "homeStatStreak": "{count} jours d'affilée",
   "@homeStatStreak": { "placeholders": { "count": { "type": "int" } } },
   "homeActionStart": "Démarrer",

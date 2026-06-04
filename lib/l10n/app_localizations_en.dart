@@ -94,6 +94,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String homeStatArea(String area) {
+    return '$area mapped';
+  }
+
+  @override
   String homeStatStreak(int count) {
     return '$count-day streak';
   }
