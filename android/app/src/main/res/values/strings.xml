@@ -45,7 +45,7 @@
     <string name="notif_title_contributing">Mapping</string>
     <string name="notif_title_standby">Standby</string>
     <!-- Duration format strings -->
-    <string name="notif_body_starting">Starting up…</string>
+    <string name="notif_body_starting">Reading…</string>
     <!-- %1$d = hours, %2$d = minutes (zero-padded) -->
     <string name="notif_duration_hours_min">%1$dh %2$02dmin</string>
     <!-- %1$d = minutes -->

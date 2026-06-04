@@ -32,7 +32,7 @@
 
   "homeTitle": "GreenGains",
   "homeIdleTagline": "Vois ce que tes trajets t'exposent",
-  "homeIdleSubtitle": "Laisse-le actif. Ton téléphone lit la lumière, la chaleur et l'état des surfaces en silence.",
+  "homeIdleSubtitle": "Laisse-le actif. Lumière, chaleur, surfaces — tout en silence.",
   "homeStatPlaces": "{count} endroits",
   "@homeStatPlaces": { "placeholders": { "count": { "type": "int" } } },
   "homeStatStreak": "{count} jours d'affilée",
@@ -289,7 +289,7 @@
   "statsHistoryNote": "L'historique hebdomadaire apparaîtra après plusieurs jours de données",
   "statsContributionTimeline": "Historique des contributions",
   "statsStartContributing": "Pas encore de données.",
-  "statsEmptyDescription": "Active le suivi une fois et vis ta journée. Lumière, chaleur et qualité des surfaces seront enregistrées en silence.",
+  "statsEmptyDescription": "Active le suivi une fois. Lumière, chaleur, surfaces — enregistrés en silence.",
   "statsEmptyGoMap": "Commencer à cartographier",
   "statsEmptyUnlockHint": "Marche pour débloquer",
   "statsUpdatedPrefix": "Mis à jour ",
@@ -368,7 +368,7 @@
   "sensorInactiveSubtitle": "Démarrez le suivi pour commencer à enregistrer",
   "sensorPausedTitle": "Enregistrement en pause",
   "sensorPausedSubtitle": "Reprenez le suivi pour continuer à enregistrer",
-  "sensorCollectingFirst": "Démarrage…",
+  "sensorCollectingFirst": "Lecture…",
   "sensorAroundYou": "Autour de vous",
   "sensorPressure": "Pression",
   "sensorUnitLux": "lx",
@@ -547,7 +547,7 @@
   "settingsBatteryModeDesc": "Discret à l'arrêt, précis en mouvement. S'adapte automatiquement.",
 
   "firstStartTitle": "Cartographie en arrière-plan.",
-  "firstStartBody": "Ton téléphone lit la lumière, la chaleur et l\'état des surfaces en silence. Continue ta journée normalement.",
+  "firstStartBody": "Lumière, chaleur, surfaces — enregistrés en silence. Continue.",
 
   "alwaysOnBannerBody": "Définissez la localisation sur 'Toujours' pour continuer à cartographier en arrière-plan",
   "alwaysOnBannerFix": "Corriger",
@@ -726,7 +726,7 @@
       "count": { "type": "int" }
     }
   },
-  "serverWakingUp": "Démarrage en cours. Encore un instant...",
+  "serverWakingUp": "Chargement…",
   "ambientHereLabel": "Ici",
   "ambientNearbyLabel": "À proximité",
   "ambientUnmappedLabel": "Passe par ici pour révéler les données",
@@ -778,7 +778,7 @@
     }
   },
   "sessionSummaryNextHook": "Reviens demain.",
-  "sessionSummaryNextHookEmpty": "Ton environnement est lu en silence chaque fois que tu sors.",
+  "sessionSummaryNextHookEmpty": "Enregistré en silence à chaque sortie.",
   "sessionStatArea": "SURFACE",
   "sessionStatDuration": "TEMPS",
   "sessionStatTotal": "TOTAL",

@@ -233,13 +233,13 @@ abstract class AppLocalizations {
   /// No description provided for @homeIdleTagline.
   ///
   /// In en, this message translates to:
-  /// **'Your neighborhood, mapped by you'**
+  /// **'See what your routes expose you to'**
   String get homeIdleTagline;
 
   /// No description provided for @homeIdleSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Walk anywhere. Your phone reads light, pressure and motion.'**
+  /// **'Leave it on. Light, heat, surface — all passive.'**
   String get homeIdleSubtitle;
 
   /// No description provided for @homeStatPlaces.
@@ -1289,13 +1289,13 @@ abstract class AppLocalizations {
   /// No description provided for @statsStartContributing.
   ///
   /// In en, this message translates to:
-  /// **'Nothing mapped yet.'**
+  /// **'No data yet.'**
   String get statsStartContributing;
 
   /// No description provided for @statsEmptyDescription.
   ///
   /// In en, this message translates to:
-  /// **'Walk anywhere. Your phone reads light, movement, and pressure around you.'**
+  /// **'Enable tracking once. Light, heat and surface quality are recorded silently.'**
   String get statsEmptyDescription;
 
   /// No description provided for @statsEmptyGoMap.
@@ -1595,7 +1595,7 @@ abstract class AppLocalizations {
   /// No description provided for @sensorCollectingFirst.
   ///
   /// In en, this message translates to:
-  /// **'Starting up…'**
+  /// **'Reading…'**
   String get sensorCollectingFirst;
 
   /// No description provided for @sensorAroundYou.
@@ -2339,13 +2339,13 @@ abstract class AppLocalizations {
   /// No description provided for @firstStartTitle.
   ///
   /// In en, this message translates to:
-  /// **'Your map is building.'**
+  /// **'Mapping in the background.'**
   String get firstStartTitle;
 
   /// No description provided for @firstStartBody.
   ///
   /// In en, this message translates to:
-  /// **'New places appear as you move.'**
+  /// **'Light, heat, surface quality — recorded silently. Just go.'**
   String get firstStartBody;
 
   /// No description provided for @alwaysOnBannerBody.
@@ -2861,7 +2861,7 @@ abstract class AppLocalizations {
   /// No description provided for @serverWakingUp.
   ///
   /// In en, this message translates to:
-  /// **'Starting up. Hang tight...'**
+  /// **'Loading…'**
   String get serverWakingUp;
 
   /// No description provided for @ambientHereLabel.
@@ -3077,7 +3077,7 @@ abstract class AppLocalizations {
   /// No description provided for @sessionSummaryNextHookEmpty.
   ///
   /// In en, this message translates to:
-  /// **'New places appear as you move.'**
+  /// **'Recorded silently every time you go out.'**
   String get sessionSummaryNextHookEmpty;
 
   /// No description provided for @sessionStatArea.
@@ -3371,7 +3371,7 @@ abstract class AppLocalizations {
   /// No description provided for @sessionSummaryNextHookFirst.
   ///
   /// In en, this message translates to:
-  /// **'Walk tomorrow to start a streak.'**
+  /// **'Go out tomorrow to start a streak.'**
   String get sessionSummaryNextHookFirst;
 
   /// No description provided for @weeklyGoalTitle.

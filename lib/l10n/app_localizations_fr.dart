@@ -82,11 +82,11 @@ class AppLocalizationsFr extends AppLocalizations {
   String get homeTitle => 'GreenGains';
 
   @override
-  String get homeIdleTagline => 'Ton quartier, cartographié par toi';
+  String get homeIdleTagline => 'Vois ce que tes trajets t\'exposent';
 
   @override
   String get homeIdleSubtitle =>
-      'Marche où tu veux. Ton téléphone lit la lumière, la pression et le mouvement.';
+      'Laisse-le actif. Lumière, chaleur, surfaces — tout en silence.';
 
   @override
   String homeStatPlaces(int count) {
@@ -716,11 +716,11 @@ class AppLocalizationsFr extends AppLocalizations {
   String get statsContributionTimeline => 'Historique des contributions';
 
   @override
-  String get statsStartContributing => 'Rien de cartographié pour l\'instant.';
+  String get statsStartContributing => 'Pas encore de données.';
 
   @override
   String get statsEmptyDescription =>
-      'Marche n\'importe où. Ton téléphone lit la lumière, le mouvement et la pression autour de toi.';
+      'Active le suivi une fois. Lumière, chaleur, surfaces — enregistrés en silence.';
 
   @override
   String get statsEmptyGoMap => 'Commencer à cartographier';
@@ -905,7 +905,7 @@ class AppLocalizationsFr extends AppLocalizations {
       'Reprenez le suivi pour continuer à enregistrer';
 
   @override
-  String get sensorCollectingFirst => 'Démarrage…';
+  String get sensorCollectingFirst => 'Lecture…';
 
   @override
   String get sensorAroundYou => 'Autour de vous';
@@ -1335,10 +1335,11 @@ class AppLocalizationsFr extends AppLocalizations {
       'Discret à l\'arrêt, précis en mouvement. S\'adapte automatiquement.';
 
   @override
-  String get firstStartTitle => 'Votre carte se construit.';
+  String get firstStartTitle => 'Cartographie en arrière-plan.';
 
   @override
-  String get firstStartBody => 'De nouveaux endroits apparaissent en marchant.';
+  String get firstStartBody =>
+      'Lumière, chaleur, surfaces — enregistrés en silence. Continue.';
 
   @override
   String get alwaysOnBannerBody =>
@@ -1694,7 +1695,7 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get serverWakingUp => 'Démarrage en cours. Encore un instant...';
+  String get serverWakingUp => 'Chargement…';
 
   @override
   String get ambientHereLabel => 'Ici';
@@ -1815,7 +1816,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get sessionSummaryNextHookEmpty =>
-      'De nouveaux endroits apparaissent en marchant.';
+      'Enregistré en silence à chaque sortie.';
 
   @override
   String get sessionStatArea => 'SURFACE';
@@ -2003,7 +2004,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get sessionSummaryNextHookFirst =>
-      'Marche demain pour commencer une série.';
+      'Sors demain pour commencer une série.';
 
   @override
   String get weeklyGoalTitle => 'Semaine complète.';

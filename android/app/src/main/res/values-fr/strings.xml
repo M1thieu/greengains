@@ -36,7 +36,7 @@
     <!-- Titres de notification -->
     <string name="notif_title_contributing">Cartographie</string>
     <string name="notif_title_standby">En veille</string>
-    <string name="notif_body_starting">Démarrage…</string>
+    <string name="notif_body_starting">Lecture…</string>
     <string name="notif_duration_hours_min">%1$dh %2$02dmin</string>
     <string name="notif_duration_minutes">%1$dmin</string>
     <string name="notif_body_paused_compact">%1$d endroits sauvegardés</string>

@@ -577,7 +577,7 @@ class NativeBackendUploader(
             val wifi = context.getSystemService(Context.WIFI_SERVICE) as? WifiManager ?: return null
             val info = wifi.connectionInfo ?: return null
             val rssi = info.rssi
-            if (rssi == WifiManager.RSSI_UNKNOWN || rssi <= -127) null else rssi
+            if (rssi <= -127) null else rssi
         } catch (e: Exception) {
             null
         }

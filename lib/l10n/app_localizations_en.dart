@@ -82,11 +82,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeTitle => 'GreenGains';
 
   @override
-  String get homeIdleTagline => 'Your neighborhood, mapped by you';
+  String get homeIdleTagline => 'See what your routes expose you to';
 
   @override
   String get homeIdleSubtitle =>
-      'Walk anywhere. Your phone reads light, pressure and motion.';
+      'Leave it on. Light, heat, surface — all passive.';
 
   @override
   String homeStatPlaces(int count) {
@@ -714,11 +714,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get statsContributionTimeline => 'Contribution Timeline';
 
   @override
-  String get statsStartContributing => 'Nothing mapped yet.';
+  String get statsStartContributing => 'No data yet.';
 
   @override
   String get statsEmptyDescription =>
-      'Walk anywhere. Your phone reads light, movement, and pressure around you.';
+      'Enable tracking once. Light, heat and surface quality are recorded silently.';
 
   @override
   String get statsEmptyGoMap => 'Start mapping';
@@ -899,7 +899,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sensorPausedSubtitle => 'Resume to see live readings.';
 
   @override
-  String get sensorCollectingFirst => 'Starting up…';
+  String get sensorCollectingFirst => 'Reading…';
 
   @override
   String get sensorAroundYou => 'Around You';
@@ -1322,10 +1322,11 @@ class AppLocalizationsEn extends AppLocalizations {
       'Quiet when still, precise when moving. Adapts automatically.';
 
   @override
-  String get firstStartTitle => 'Your map is building.';
+  String get firstStartTitle => 'Mapping in the background.';
 
   @override
-  String get firstStartBody => 'New places appear as you move.';
+  String get firstStartBody =>
+      'Light, heat, surface quality — recorded silently. Just go.';
 
   @override
   String get alwaysOnBannerBody =>
@@ -1677,7 +1678,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get serverWakingUp => 'Starting up. Hang tight...';
+  String get serverWakingUp => 'Loading…';
 
   @override
   String get ambientHereLabel => 'Here';
@@ -1795,7 +1796,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sessionSummaryNextHook => 'Come back tomorrow.';
 
   @override
-  String get sessionSummaryNextHookEmpty => 'New places appear as you move.';
+  String get sessionSummaryNextHookEmpty =>
+      'Recorded silently every time you go out.';
 
   @override
   String get sessionStatArea => 'AREA';
@@ -1981,7 +1983,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sessionSummaryNextHookStreak => 'Streak alive.';
 
   @override
-  String get sessionSummaryNextHookFirst => 'Walk tomorrow to start a streak.';
+  String get sessionSummaryNextHookFirst =>
+      'Go out tomorrow to start a streak.';
 
   @override
   String get weeklyGoalTitle => 'Week complete.';

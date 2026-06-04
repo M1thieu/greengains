@@ -32,7 +32,7 @@
 
   "homeTitle": "GreenGains",
   "homeIdleTagline": "See what your routes expose you to",
-  "homeIdleSubtitle": "Leave it on. Your phone reads light, heat and surface conditions silently.",
+  "homeIdleSubtitle": "Leave it on. Light, heat, surface — all passive.",
   "homeStatPlaces": "{count} places",
   "@homeStatPlaces": { "placeholders": { "count": { "type": "int" } } },
   "homeStatStreak": "{count}-day streak",
@@ -289,7 +289,7 @@
   "statsHistoryNote": "Weekly history will appear once you have multiple days of data",
   "statsContributionTimeline": "Contribution Timeline",
   "statsStartContributing": "No data yet.",
-  "statsEmptyDescription": "Enable tracking once and go about your day. Light, heat and surface quality will be recorded silently.",
+  "statsEmptyDescription": "Enable tracking once. Light, heat and surface quality are recorded silently.",
   "statsEmptyGoMap": "Start mapping",
   "statsEmptyUnlockHint": "Walk to unlock",
   "statsUpdatedPrefix": "Updated ",
@@ -368,7 +368,7 @@
   "sensorInactiveSubtitle": "Start tracking to see live readings.",
   "sensorPausedTitle": "Recording paused",
   "sensorPausedSubtitle": "Resume to see live readings.",
-  "sensorCollectingFirst": "Starting up…",
+  "sensorCollectingFirst": "Reading…",
   "sensorAroundYou": "Around You",
   "sensorPressure": "Pressure",
   "sensorUnitLux": "lx",
@@ -547,7 +547,7 @@
   "settingsBatteryModeDesc": "Quiet when still, precise when moving. Adapts automatically.",
 
   "firstStartTitle": "Mapping in the background.",
-  "firstStartBody": "Your phone reads light, heat and surface quality silently. Just go about your day.",
+  "firstStartBody": "Light, heat, surface quality — recorded silently. Just go.",
 
   "alwaysOnBannerBody": "Set location to 'Always' to keep mapping in the background",
   "alwaysOnBannerFix": "Fix",
@@ -726,7 +726,7 @@
       "count": { "type": "int" }
     }
   },
-  "serverWakingUp": "Starting up. Hang tight...",
+  "serverWakingUp": "Loading…",
   "ambientHereLabel": "Here",
   "ambientNearbyLabel": "Nearby",
   "ambientUnmappedLabel": "Walk here to reveal data",
@@ -778,7 +778,7 @@
     }
   },
   "sessionSummaryNextHook": "Come back tomorrow.",
-  "sessionSummaryNextHookEmpty": "Your environment is read silently every time you go out.",
+  "sessionSummaryNextHookEmpty": "Recorded silently every time you go out.",
   "sessionStatArea": "AREA",
   "sessionStatDuration": "TIME",
   "sessionStatTotal": "TOTAL",
