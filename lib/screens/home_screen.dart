@@ -225,6 +225,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         final uploads = _sessionUploadCount;
         Future.delayed(AppDurations.fast, () {
           if (!mounted || !context.mounted) return;
+          // Fall back to last cached sensor readings if the live stream
+          // didn't accumulate enough data (e.g. very short session or sensors slow to start).
+          final lux = _sessionAvgLux ?? _prefs.lastLux;
+          final hpa = _sessionAvgHpa ?? _prefs.lastHpa;
           showModalBottomSheet(
             context: context,
             backgroundColor: Colors.transparent,
@@ -236,8 +240,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               isPersonalBest: isPersonalBest,
               uploadsInSession: uploads,
               onViewStats: widget.onGoToStats,
-              sessionAvgLux: _sessionAvgLux,
-              sessionAvgHpa: _sessionAvgHpa,
+              sessionAvgLux: lux,
+              sessionAvgHpa: hpa,
               sessionAvgVibration: _sessionAvgVibration,
             ),
           );
