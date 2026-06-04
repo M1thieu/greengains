@@ -898,11 +898,17 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.end,
                               children: [
-                                if (_claimedTileCount > 0)
+                                if (_claimedTileCount > 0) ...[
                                   _StatPill(
-                                    icon: Icons.place_rounded,
-                                    label: context.l10n.homeStatPlaces(_claimedTileCount),
+                                    icon: Icons.hexagon_outlined,
+                                    label: () {
+                                      final km2 = _claimedTileCount * kKm2PerCell;
+                                      return km2 < 1.0
+                                          ? '${km2.toStringAsFixed(2)} km²'
+                                          : '${km2.toStringAsFixed(1)} km²';
+                                    }(),
                                   ),
+                                ],
                                 if (_currentStreak > 0) ...[
                                   const SizedBox(height: AppTheme.spaceXxs),
                                   _StatPill(
