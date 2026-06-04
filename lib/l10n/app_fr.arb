@@ -31,8 +31,8 @@
   "navSettings": "Paramètres",
 
   "homeTitle": "GreenGains",
-  "homeIdleTagline": "Ton quartier, cartographié par toi",
-  "homeIdleSubtitle": "Marche où tu veux. Ton téléphone lit la lumière, la pression et le mouvement.",
+  "homeIdleTagline": "Vois ce que tes trajets t'exposent",
+  "homeIdleSubtitle": "Laisse-le actif. Ton téléphone lit la lumière, la chaleur et l'état des surfaces en silence.",
   "homeStatPlaces": "{count} endroits",
   "@homeStatPlaces": { "placeholders": { "count": { "type": "int" } } },
   "homeStatStreak": "{count} jours d'affilée",
@@ -288,8 +288,8 @@
   "statsTodayLabel": "AUJOURD'HUI",
   "statsHistoryNote": "L'historique hebdomadaire apparaîtra après plusieurs jours de données",
   "statsContributionTimeline": "Historique des contributions",
-  "statsStartContributing": "Rien de cartographié pour l'instant.",
-  "statsEmptyDescription": "Marche n'importe où. Ton téléphone lit la lumière, le mouvement et la pression autour de toi.",
+  "statsStartContributing": "Pas encore de données.",
+  "statsEmptyDescription": "Active le suivi une fois et vis ta journée. Lumière, chaleur et qualité des surfaces seront enregistrées en silence.",
   "statsEmptyGoMap": "Commencer à cartographier",
   "statsEmptyUnlockHint": "Marche pour débloquer",
   "statsUpdatedPrefix": "Mis à jour ",
@@ -546,8 +546,8 @@
   "settingsBatteryMode": "Batterie intelligente",
   "settingsBatteryModeDesc": "Discret à l'arrêt, précis en mouvement. S'adapte automatiquement.",
 
-  "firstStartTitle": "Votre carte se construit.",
-  "firstStartBody": "De nouveaux endroits apparaissent en marchant.",
+  "firstStartTitle": "Cartographie en arrière-plan.",
+  "firstStartBody": "Ton téléphone lit la lumière, la chaleur et l\'état des surfaces en silence. Continue ta journée normalement.",
 
   "alwaysOnBannerBody": "Définissez la localisation sur 'Toujours' pour continuer à cartographier en arrière-plan",
   "alwaysOnBannerFix": "Corriger",
@@ -778,7 +778,7 @@
     }
   },
   "sessionSummaryNextHook": "Reviens demain.",
-  "sessionSummaryNextHookEmpty": "De nouveaux endroits apparaissent en marchant.",
+  "sessionSummaryNextHookEmpty": "Ton environnement est lu en silence chaque fois que tu sors.",
   "sessionStatArea": "SURFACE",
   "sessionStatDuration": "TEMPS",
   "sessionStatTotal": "TOTAL",
@@ -866,7 +866,7 @@
   "streakResetBanner": "Série réinitialisée. Recommence aujourd’hui.",
 
   "sessionSummaryNextHookStreak": "Série en vie.",
-  "sessionSummaryNextHookFirst": "Marche demain pour commencer une série.",
+  "sessionSummaryNextHookFirst": "Sors demain pour commencer une série.",
 
   "weeklyGoalTitle": "Semaine complète.",
   "weeklyGoalBody": "À la semaine prochaine.",

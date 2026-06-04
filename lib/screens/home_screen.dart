@@ -1332,7 +1332,7 @@ class _FirstStartSheetState extends State<_FirstStartSheet> {
   @override
   void initState() {
     super.initState();
-    Future.delayed(const Duration(seconds: 3), () {
+    Future.delayed(const Duration(seconds: 5), () {
       if (mounted) Navigator.of(context).pop();
     });
   }
@@ -1343,7 +1343,9 @@ class _FirstStartSheetState extends State<_FirstStartSheet> {
     final l10n = context.l10n;
     final theme = Theme.of(context);
 
-    return Container(
+    return GestureDetector(
+      onTap: () => Navigator.of(context).pop(),
+      child: Container(
       margin: const EdgeInsets.symmetric(
         horizontal: AppTheme.spaceMd,
         vertical: AppTheme.spaceSm,
@@ -1398,6 +1400,7 @@ class _FirstStartSheetState extends State<_FirstStartSheet> {
           ),
         ),
       ),
+    ),
     );
   }
 }

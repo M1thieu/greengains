@@ -31,8 +31,8 @@
   "navSettings": "Settings",
 
   "homeTitle": "GreenGains",
-  "homeIdleTagline": "Your neighborhood, mapped by you",
-  "homeIdleSubtitle": "Walk anywhere. Your phone reads light, pressure and motion.",
+  "homeIdleTagline": "See what your routes expose you to",
+  "homeIdleSubtitle": "Leave it on. Your phone reads light, heat and surface conditions silently.",
   "homeStatPlaces": "{count} places",
   "@homeStatPlaces": { "placeholders": { "count": { "type": "int" } } },
   "homeStatStreak": "{count}-day streak",
@@ -288,8 +288,8 @@
   "statsTodayLabel": "TODAY",
   "statsHistoryNote": "Weekly history will appear once you have multiple days of data",
   "statsContributionTimeline": "Contribution Timeline",
-  "statsStartContributing": "Nothing mapped yet.",
-  "statsEmptyDescription": "Walk anywhere. Your phone reads light, movement, and pressure around you.",
+  "statsStartContributing": "No data yet.",
+  "statsEmptyDescription": "Enable tracking once and go about your day. Light, heat and surface quality will be recorded silently.",
   "statsEmptyGoMap": "Start mapping",
   "statsEmptyUnlockHint": "Walk to unlock",
   "statsUpdatedPrefix": "Updated ",
@@ -546,8 +546,8 @@
   "settingsBatteryMode": "Smart battery",
   "settingsBatteryModeDesc": "Quiet when still, precise when moving. Adapts automatically.",
 
-  "firstStartTitle": "Your map is building.",
-  "firstStartBody": "New places appear as you move.",
+  "firstStartTitle": "Mapping in the background.",
+  "firstStartBody": "Your phone reads light, heat and surface quality silently. Just go about your day.",
 
   "alwaysOnBannerBody": "Set location to 'Always' to keep mapping in the background",
   "alwaysOnBannerFix": "Fix",
@@ -778,7 +778,7 @@
     }
   },
   "sessionSummaryNextHook": "Come back tomorrow.",
-  "sessionSummaryNextHookEmpty": "New places appear as you move.",
+  "sessionSummaryNextHookEmpty": "Your environment is read silently every time you go out.",
   "sessionStatArea": "AREA",
   "sessionStatDuration": "TIME",
   "sessionStatTotal": "TOTAL",
@@ -866,7 +866,7 @@
   "streakResetBanner": "Streak reset. Start fresh today.",
 
   "sessionSummaryNextHookStreak": "Streak alive.",
-  "sessionSummaryNextHookFirst": "Walk tomorrow to start a streak.",
+  "sessionSummaryNextHookFirst": "Go out tomorrow to start a streak.",
 
   "weeklyGoalTitle": "Week complete.",
   "weeklyGoalBody": "See you next week.",
