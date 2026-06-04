@@ -2975,19 +2975,19 @@ abstract class AppLocalizations {
   /// No description provided for @firstUploadSubtext.
   ///
   /// In en, this message translates to:
-  /// **'Keep walking. Every place you pass through fills in automatically.'**
+  /// **'Every place you pass through fills in automatically.'**
   String get firstUploadSubtext;
 
   /// No description provided for @firstUploadSensorsLabel.
   ///
   /// In en, this message translates to:
-  /// **'WHAT WE MEASURE'**
+  /// **'RECORDED PASSIVELY'**
   String get firstUploadSensorsLabel;
 
   /// No description provided for @firstUploadSensorsValue.
   ///
   /// In en, this message translates to:
-  /// **'brightness · activity · weather'**
+  /// **'light · heat · surface quality'**
   String get firstUploadSensorsValue;
 
   /// No description provided for @firstUploadPrivacyLabel.
@@ -3497,7 +3497,7 @@ abstract class AppLocalizations {
   /// No description provided for @mapZeroStateBody.
   ///
   /// In en, this message translates to:
-  /// **'Enable tracking once and go about your day. Your route and its environmental data appear when you get back.'**
+  /// **'Enable tracking once. Your route appears when you get back.'**
   String get mapZeroStateBody;
 
   /// No description provided for @snapshotCardTitle.

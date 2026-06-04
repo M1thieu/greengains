@@ -755,9 +755,9 @@
 
   "firstUploadBadge": "FIRST PLACE MAPPED",
   "firstUploadHeadline": "Your first spot is on the map.",
-  "firstUploadSubtext": "Keep walking. Every place you pass through fills in automatically.",
-  "firstUploadSensorsLabel": "WHAT WE MEASURE",
-  "firstUploadSensorsValue": "brightness · activity · weather",
+  "firstUploadSubtext": "Every place you pass through fills in automatically.",
+  "firstUploadSensorsLabel": "RECORDED PASSIVELY",
+  "firstUploadSensorsValue": "light · heat · surface quality",
   "firstUploadPrivacyLabel": "PRIVACY",
   "firstUploadPrivacyValue": "anonymous · no route stored",
   "firstUploadKeepMappingCta": "Keep mapping",
@@ -899,7 +899,7 @@
   "profileUnlockCta": "Sign in to keep my map",
 
   "mapZeroStateTitle": "Runs in the background",
-  "mapZeroStateBody": "Enable tracking once and go about your day. Your route and its environmental data appear when you get back.",
+  "mapZeroStateBody": "Enable tracking once. Your route appears when you get back.",
 
   "snapshotCardTitle": "YOUR NEIGHBOURHOOD",
   "snapshotReadings": "{count, plural, =1{1 reading} other{{count} readings}}",

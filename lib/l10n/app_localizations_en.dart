@@ -1745,13 +1745,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get firstUploadSubtext =>
-      'Keep walking. Every place you pass through fills in automatically.';
+      'Every place you pass through fills in automatically.';
 
   @override
-  String get firstUploadSensorsLabel => 'WHAT WE MEASURE';
+  String get firstUploadSensorsLabel => 'RECORDED PASSIVELY';
 
   @override
-  String get firstUploadSensorsValue => 'brightness · activity · weather';
+  String get firstUploadSensorsValue => 'light · heat · surface quality';
 
   @override
   String get firstUploadPrivacyLabel => 'PRIVACY';
@@ -2055,7 +2055,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get mapZeroStateBody =>
-      'Enable tracking once and go about your day. Your route and its environmental data appear when you get back.';
+      'Enable tracking once. Your route appears when you get back.';
 
   @override
   String get snapshotCardTitle => 'YOUR NEIGHBOURHOOD';

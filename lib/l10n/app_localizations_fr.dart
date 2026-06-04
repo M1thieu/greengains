@@ -1763,13 +1763,14 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get firstUploadSubtext =>
-      'Continue à marcher. Chaque endroit par où tu passes s\'ajoute automatiquement.';
+      'Chaque endroit par où tu passes s\'ajoute automatiquement.';
 
   @override
-  String get firstUploadSensorsLabel => 'CAPTEURS';
+  String get firstUploadSensorsLabel => 'ENREGISTRÉ EN SILENCE';
 
   @override
-  String get firstUploadSensorsValue => 'luminosité · activité · météo';
+  String get firstUploadSensorsValue =>
+      'lumière · chaleur · qualité des surfaces';
 
   @override
   String get firstUploadPrivacyLabel => 'CONFIDENTIALITÉ';
@@ -2077,7 +2078,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get mapZeroStateBody =>
-      'Active le suivi une fois et vis ta journée. Ton trajet et ses données environnementales apparaissent à ton retour.';
+      'Active le suivi une fois. Ton trajet apparaît à ton retour.';
 
   @override
   String get snapshotCardTitle => 'TON QUARTIER';

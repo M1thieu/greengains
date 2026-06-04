@@ -755,9 +755,9 @@
 
   "firstUploadBadge": "PREMIER ENDROIT CARTOGRAPHIÉ",
   "firstUploadHeadline": "Ton premier endroit est sur la carte.",
-  "firstUploadSubtext": "Continue à marcher. Chaque endroit par où tu passes s'ajoute automatiquement.",
-  "firstUploadSensorsLabel": "CAPTEURS",
-  "firstUploadSensorsValue": "luminosité · activité · météo",
+  "firstUploadSubtext": "Chaque endroit par où tu passes s'ajoute automatiquement.",
+  "firstUploadSensorsLabel": "ENREGISTRÉ EN SILENCE",
+  "firstUploadSensorsValue": "lumière · chaleur · qualité des surfaces",
   "firstUploadPrivacyLabel": "CONFIDENTIALITÉ",
   "firstUploadPrivacyValue": "anonyme · trajet non enregistré",
   "firstUploadKeepMappingCta": "Continuer à cartographier",
@@ -899,7 +899,7 @@
   "profileUnlockCta": "Me connecter pour garder ma carte",
 
   "mapZeroStateTitle": "Tourne en arrière-plan",
-  "mapZeroStateBody": "Active le suivi une fois et vis ta journée. Ton trajet et ses données environnementales apparaissent à ton retour.",
+  "mapZeroStateBody": "Active le suivi une fois. Ton trajet apparaît à ton retour.",
 
   "snapshotCardTitle": "TON QUARTIER",
   "snapshotReadings": "{count, plural, =1{1 mesure} other{{count} mesures}}",
