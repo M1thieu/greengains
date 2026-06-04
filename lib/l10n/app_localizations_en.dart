@@ -895,7 +895,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sensorInactiveTitle => 'Not recording';
 
   @override
-  String get sensorInactiveSubtitle => 'Start tracking to see live readings.';
+  String get sensorInactiveSubtitle => 'Enable tracking to see live readings.';
 
   @override
   String get sensorPausedTitle => 'Recording paused';

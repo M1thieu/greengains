@@ -367,7 +367,7 @@
   "sensorLiveReadings": "What's around you",
   "sensorLiveSubtitle": "Light, movement and air pressure, live from your phone.",
   "sensorInactiveTitle": "Not recording",
-  "sensorInactiveSubtitle": "Start tracking to see live readings.",
+  "sensorInactiveSubtitle": "Enable tracking to see live readings.",
   "sensorPausedTitle": "Recording paused",
   "sensorPausedSubtitle": "Resume to see live readings.",
   "sensorCollectingFirst": "Reading…",

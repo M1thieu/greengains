@@ -900,7 +900,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get sensorInactiveSubtitle =>
-      'Démarrez le suivi pour commencer à enregistrer';
+      'Active le suivi pour voir les données en direct.';
 
   @override
   String get sensorPausedTitle => 'Enregistrement en pause';

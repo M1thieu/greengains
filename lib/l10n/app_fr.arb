@@ -367,7 +367,7 @@
   "sensorLiveReadings": "Ce qui t'entoure",
   "sensorLiveSubtitle": "Lumière, mouvement et pression, en direct depuis ton téléphone.",
   "sensorInactiveTitle": "Rien n'est enregistré",
-  "sensorInactiveSubtitle": "Démarrez le suivi pour commencer à enregistrer",
+  "sensorInactiveSubtitle": "Active le suivi pour voir les données en direct.",
   "sensorPausedTitle": "Enregistrement en pause",
   "sensorPausedSubtitle": "Reprenez le suivi pour continuer à enregistrer",
   "sensorCollectingFirst": "Lecture…",

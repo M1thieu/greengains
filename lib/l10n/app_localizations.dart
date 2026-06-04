@@ -1583,7 +1583,7 @@ abstract class AppLocalizations {
   /// No description provided for @sensorInactiveSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Start tracking to see live readings.'**
+  /// **'Enable tracking to see live readings.'**
   String get sensorInactiveSubtitle;
 
   /// No description provided for @sensorPausedTitle.
