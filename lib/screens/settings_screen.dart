@@ -1,4 +1,3 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -39,31 +38,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     PackageInfo.fromPlatform().then((info) {
       if (mounted) setState(() => _version = '${info.version}+${info.buildNumber}');
     });
-  }
-
-  Future<void> _signOut() async {
-    final l10n = context.l10n;
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(l10n.settingsSignOutConfirmTitle),
-        content: Text(l10n.settingsSignOutConfirmBody),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: Text(l10n.settingsSignOutCancel),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            style: TextButton.styleFrom(foregroundColor: AppColors.error),
-            child: Text(l10n.settingsSignOutConfirm),
-          ),
-        ],
-      ),
-    );
-    if (confirmed == true) {
-      await FirebaseAuth.instance.signOut();
-    }
   }
 
   @override
@@ -162,27 +136,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ],
           ),
           const SizedBox(height: _kSectionSpacing),
-
-          // ── Account ───────────────────────────────────────────────────────
-          Row(
-            children: [
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.only(left: AppTheme.spaceXxs, bottom: AppTheme.spaceXs),
-                  child: Text(l10n.settingsAccount.toUpperCase(), style: AppTheme.eyebrowLabel(isDark)),
-                ),
-              ),
-              IconButton(
-                icon: Icon(Icons.logout_rounded, size: AppIconSizes.sm, color: AppColors.textTertiary(isDark)),
-                onPressed: _signOut,
-                tooltip: l10n.settingsSignOut,
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(minWidth: AppTheme.iconBoxSm, minHeight: AppTheme.iconBoxSm),
-              ),
-            ],
-          ),
-          _UserIdentityRow(isDark: isDark),
-          const SizedBox(height: _kSectionSpacing * 2),
 
           // ── About ─────────────────────────────────────────────────────────
           Padding(
@@ -402,84 +355,6 @@ class _ToggleRow extends StatelessWidget {
           },
         ),
       ],
-    );
-  }
-}
-
-class _UserIdentityRow extends StatelessWidget {
-  const _UserIdentityRow({required this.isDark});
-  final bool isDark;
-
-  @override
-  Widget build(BuildContext context) {
-    final user = FirebaseAuth.instance.currentUser;
-    final name = user?.displayName;
-    final email = user?.email ?? '';
-    final initials = name != null && name.isNotEmpty
-        ? name.trim().split(' ').map((p) => p[0]).take(2).join().toUpperCase()
-        : email.isNotEmpty ? email[0].toUpperCase() : '?';
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: AppTheme.spaceXs),
-      child: Row(
-        children: [
-          Container(
-            width: AppTheme.iconBoxMd,
-            height: AppTheme.iconBoxMd,
-            decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.15),
-              shape: BoxShape.circle,
-            ),
-            child: Center(
-              child: Text(
-                initials,
-                style: const TextStyle(
-                  fontSize: AppTheme.fontSizeMd,
-                  fontWeight: AppFontWeights.bold,
-                  color: AppColors.primary,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: AppTheme.spaceMd),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (name != null && name.isNotEmpty) ...[
-                  Text(
-                    name,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontWeight: AppFontWeights.semibold,
-                      color: AppColors.textPrimary(isDark),
-                    ),
-                  ),
-                  const SizedBox(height: AppTheme.spaceXxxs),
-                  Text(
-                    email,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: AppTheme.fontSizeBody,
-                      color: AppColors.textSecondary(isDark),
-                    ),
-                  ),
-                ] else
-                  Text(
-                    email,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontWeight: AppFontWeights.semibold,
-                      color: AppColors.textPrimary(isDark),
-                    ),
-                  ),
-              ],
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

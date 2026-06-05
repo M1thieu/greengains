@@ -454,10 +454,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get statsAreasLabel => 'places covered';
 
   @override
-  String get statsDataPtsLabel => 'times mapped';
+  String get statsDataPtsLabel => 'data points';
 
   @override
-  String get statsKmMapped => 'area covered';
+  String get statsKmMapped => 'km² covered';
 
   @override
   String statsBarCalloutUploads(int count) {
@@ -480,7 +480,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get statsBestDayLabel => 'Best day';
 
   @override
-  String get statsAvgPerDay => 'Avg / day';
+  String get statsAvgPerDay => 'Avg. per day';
 
   @override
   String get statsVerdictStrong => 'Strong week';
@@ -1907,10 +1907,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get statsActivitySection => 'ACTIVITY';
+  String get statsActivitySection => 'YOUR WEEK';
 
   @override
-  String get statsTerritorySection => 'TERRITORY';
+  String get statsTerritorySection => 'YOUR AREA';
 
   @override
   String get mapTapHint => 'Tap a place to explore';

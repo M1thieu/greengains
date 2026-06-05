@@ -164,8 +164,6 @@ class _ReferralInviteCardState extends State<ReferralInviteCard> {
 
           if (_hasLoadError && !canShare)
             _IconBtn(icon: Icons.refresh_rounded, onPressed: _loadReferralData)
-          else if (_hasShared && _conversions == 0)
-            _WaitingDots()
           else
             _ShareBtn(
               label: _hasShared ? l10n.referralShareAgain : l10n.referralShareLink,
@@ -174,54 +172,6 @@ class _ReferralInviteCardState extends State<ReferralInviteCard> {
             ),
         ],
       ),
-    );
-  }
-}
-
-class _WaitingDots extends StatefulWidget {
-  @override
-  State<_WaitingDots> createState() => _WaitingDotsState();
-}
-
-class _WaitingDotsState extends State<_WaitingDots> with SingleTickerProviderStateMixin {
-  late AnimationController _ctrl;
-
-  @override
-  void initState() {
-    super.initState();
-    _ctrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 1200))
-      ..repeat();
-  }
-
-  @override
-  void dispose() { _ctrl.dispose(); super.dispose(); }
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _ctrl,
-      builder: (_, __) {
-        return Row(
-          mainAxisSize: MainAxisSize.min,
-          children: List.generate(3, (i) {
-            final phase = ((_ctrl.value * 3) - i).clamp(0.0, 1.0);
-            final opacity = (1 - (phase - 0.5).abs() * 2).clamp(0.25, 1.0);
-            return Padding(
-              padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceXxxs),
-              child: Opacity(
-                opacity: opacity,
-                child: Container(
-                  width: AppTheme.spaceTiny + 2, height: AppTheme.spaceTiny + 2,
-                  decoration: BoxDecoration(
-                    color: AppColors.primary,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-              ),
-            );
-          }),
-        );
-      },
     );
   }
 }

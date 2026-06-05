@@ -833,13 +833,13 @@ abstract class AppLocalizations {
   /// No description provided for @statsDataPtsLabel.
   ///
   /// In en, this message translates to:
-  /// **'times mapped'**
+  /// **'data points'**
   String get statsDataPtsLabel;
 
   /// No description provided for @statsKmMapped.
   ///
   /// In en, this message translates to:
-  /// **'area covered'**
+  /// **'km² covered'**
   String get statsKmMapped;
 
   /// No description provided for @statsBarCalloutUploads.
@@ -869,7 +869,7 @@ abstract class AppLocalizations {
   /// No description provided for @statsAvgPerDay.
   ///
   /// In en, this message translates to:
-  /// **'Avg / day'**
+  /// **'Avg. per day'**
   String get statsAvgPerDay;
 
   /// No description provided for @statsVerdictStrong.
@@ -3257,13 +3257,13 @@ abstract class AppLocalizations {
   /// No description provided for @statsActivitySection.
   ///
   /// In en, this message translates to:
-  /// **'ACTIVITY'**
+  /// **'YOUR WEEK'**
   String get statsActivitySection;
 
   /// No description provided for @statsTerritorySection.
   ///
   /// In en, this message translates to:
-  /// **'TERRITORY'**
+  /// **'YOUR AREA'**
   String get statsTerritorySection;
 
   /// No description provided for @mapTapHint.

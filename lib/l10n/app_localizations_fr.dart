@@ -462,10 +462,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get statsAreasLabel => 'endroits couverts';
 
   @override
-  String get statsDataPtsLabel => 'fois cartographié';
+  String get statsDataPtsLabel => 'données collectées';
 
   @override
-  String get statsKmMapped => 'surface couverte';
+  String get statsKmMapped => 'km² couverts';
 
   @override
   String statsBarCalloutUploads(int count) {
@@ -1933,10 +1933,10 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get statsActivitySection => 'ACTIVITÉ';
+  String get statsActivitySection => 'TA SEMAINE';
 
   @override
-  String get statsTerritorySection => 'TERRITOIRE';
+  String get statsTerritorySection => 'TA ZONE';
 
   @override
   String get mapTapHint => 'Touchez un endroit pour explorer';

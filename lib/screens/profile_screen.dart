@@ -204,6 +204,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   /// Handle Google Sign In - preserves existing tracking data
+  Future<void> _handleSignOut() async {
+    try {
+      await FirebaseAuth.instance.signOut();
+      if (mounted) setState(() {});
+    } catch (e) {
+      debugPrint('Sign-out error: $e');
+    }
+  }
+
   Future<void> _handleGoogleSignIn() async {
     final l10n = context.l10n; // capture before async gap
     if (_signingIn) return;
@@ -294,17 +303,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    if (user.email != null && user.email!.isNotEmpty) ...[
-                      const SizedBox(height: AppTheme.spaceXxxs),
-                      Text(
-                        user.email!,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: AppColors.textSecondary(isDark),
-                        ),
-                      ),
-                    ],
                     if (user.metadata.creationTime != null) ...[
                       const SizedBox(height: AppTheme.spaceXxs),
                       Text(
@@ -335,26 +333,47 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ],
           ),
         ),
-        // Settings gear — pinned top-right, always visible
+        // Top-right buttons — settings gear + logout
         Positioned(
           top: topPad + AppTheme.spaceXxs,
           right: AppTheme.spaceXs,
-          child: PressScaleDetector(
-            onTap: () => Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const SettingsScreen()),
-            ),
-            child: Container(
-              decoration: BoxDecoration(
-                color: AppColors.surfaceElevated(isDark),
-                borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              PressScaleDetector(
+                onTap: _handleSignOut,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: AppColors.surfaceElevated(isDark),
+                    borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                  ),
+                  padding: const EdgeInsets.all(AppTheme.spaceXs),
+                  child: Icon(
+                    Icons.logout_rounded,
+                    size: AppIconSizes.sm,
+                    color: AppColors.textSecondary(isDark),
+                  ),
+                ),
               ),
-              padding: const EdgeInsets.all(AppTheme.spaceXs),
-              child: Icon(
-                Icons.settings_outlined,
-                size: AppIconSizes.sm,
-                color: AppColors.textSecondary(isDark),
+              const SizedBox(width: AppTheme.spaceXxs),
+              PressScaleDetector(
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const SettingsScreen()),
+                ),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: AppColors.surfaceElevated(isDark),
+                    borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                  ),
+                  padding: const EdgeInsets.all(AppTheme.spaceXs),
+                  child: Icon(
+                    Icons.settings_outlined,
+                    size: AppIconSizes.sm,
+                    color: AppColors.textSecondary(isDark),
+                  ),
+                ),
               ),
-            ),
+            ],
           ),
         ),
       ],

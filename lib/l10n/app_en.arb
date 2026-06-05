@@ -193,8 +193,8 @@
   "statsTotal": "Total",
   "statsCoverage": "Places",
   "statsAreasLabel": "places covered",
-  "statsDataPtsLabel": "times mapped",
-  "statsKmMapped": "area covered",
+  "statsDataPtsLabel": "data points",
+  "statsKmMapped": "km² covered",
   "statsBarCalloutUploads": "{count, plural, =1{1 scan} other{{count} scans}}",
   "@statsBarCalloutUploads": {
     "placeholders": { "count": { "type": "int" } }
@@ -202,7 +202,7 @@
   "statsBarCalloutToday": "Today",
   "statsBarCalloutBest": "Best day",
   "statsBestDayLabel": "Best day",
-  "statsAvgPerDay": "Avg / day",
+  "statsAvgPerDay": "Avg. per day",
   "statsVerdictStrong": "Strong week",
   "statsVerdictGood": "Good week",
   "statsVerdictSlow": "Slow week",
@@ -834,8 +834,8 @@
   "@statsMilestoneTarget": {
     "placeholders": { "target": { "type": "int" } }
   },
-  "statsActivitySection": "ACTIVITY",
-  "statsTerritorySection": "TERRITORY",
+  "statsActivitySection": "YOUR WEEK",
+  "statsTerritorySection": "YOUR AREA",
   "mapTapHint": "Tap a place to explore",
   "sessionPersonalBest": "Personal best",
   "returnDeltaTitle": "{zones} new places while you were away.",

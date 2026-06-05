@@ -193,8 +193,8 @@
   "statsTotal": "Total",
   "statsCoverage": "Endroits",
   "statsAreasLabel": "endroits couverts",
-  "statsDataPtsLabel": "fois cartographié",
-  "statsKmMapped": "surface couverte",
+  "statsDataPtsLabel": "données collectées",
+  "statsKmMapped": "km² couverts",
   "statsBarCalloutUploads": "{count, plural, =1{1 scan} other{{count} scans}}",
   "@statsBarCalloutUploads": {
     "placeholders": { "count": { "type": "int" } }
@@ -834,8 +834,8 @@
   "@statsMilestoneTarget": {
     "placeholders": { "target": { "type": "int" } }
   },
-  "statsActivitySection": "ACTIVITÉ",
-  "statsTerritorySection": "TERRITOIRE",
+  "statsActivitySection": "TA SEMAINE",
+  "statsTerritorySection": "TA ZONE",
   "mapTapHint": "Touchez un endroit pour explorer",
   "sessionPersonalBest": "Record personnel",
   "returnDeltaTitle": "{zones} nouveaux endroits pendant ton absence.",
