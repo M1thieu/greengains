@@ -376,7 +376,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get homeFirstTrackingHint =>
-      'Mesure la luminosité, l\'activité et la météo. Premier endroit après l\'envoi.';
+      'Lecture de la lumière, chaleur et surfaces. Première zone après l\'envoi.';
 
   @override
   String homeTrackingReadings(num count) {
@@ -504,22 +504,21 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String statsVerdictSubStrong(int days) {
-    return 'Tu as cartographié $days jours sur 7. Continue comme ça.';
+    return 'Actif $days jours sur 7 cette semaine.';
   }
 
   @override
   String statsVerdictSubGood(int days) {
-    return 'Tu as cartographié $days jours sur 7.';
+    return 'Actif $days jours sur 7 cette semaine.';
   }
 
   @override
   String statsVerdictSubSlow(int days) {
-    return 'Seulement $days jour cette semaine. Une petite marche aide.';
+    return 'Actif $days jour cette semaine.';
   }
 
   @override
-  String get statsVerdictSubNone =>
-      'Ouvre la carte et appuie sur Commencer pour contribuer.';
+  String get statsVerdictSubNone => 'Active le suivi et vis ta journée.';
 
   @override
   String get statsWeeklyTargetLabel => 'CETTE SEMAINE';
@@ -556,11 +555,12 @@ class AppLocalizationsFr extends AppLocalizations {
   String get statsRecordFirstDay => 'Premier jour de cartographie';
 
   @override
-  String get statsZoneExplainer => 'Un pâté de maisons scanné en passant.';
+  String get statsZoneExplainer =>
+      'Une zone correspond environ à un pâté de maisons — enregistré en passant.';
 
   @override
   String get statsUploadExplainer =>
-      'Luminosité, mouvement et pression capturés à cet instant.';
+      'Lumière, chaleur et qualité des surfaces capturées à cet instant.';
 
   @override
   String get statsTabCore => 'Aperçu';
@@ -644,7 +644,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get infoKmBody =>
-      'Chaque endroit fait environ la taille d\'un pâté de maisons. C\'est la part de ton quartier scannée.';
+      'Chaque zone fait environ un pâté de maisons. C\'est la part de ta zone enregistrée.';
 
   @override
   String get infoDataPtsTitle => 'Endroits cartographiés';
@@ -671,7 +671,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get infoDaysActiveBody =>
-      'Jours où vous avez contribué. Pas besoin d\'être actif tous les jours.';
+      'Jours où ton téléphone était actif. Pas besoin de sortir tous les jours.';
 
   @override
   String get infoBestDayTitle => 'Meilleur jour';
@@ -1170,12 +1170,11 @@ class AppLocalizationsFr extends AppLocalizations {
   String get statsFailedToLoad => 'Impossible de charger les statistiques';
 
   @override
-  String get statsReadyToContribute =>
-      'Commencez à marcher pour construire votre carte.';
+  String get statsReadyToContribute => 'Active le suivi et vis ta journée.';
 
   @override
   String get statsFirstContributionHint =>
-      'Commencez le suivi pour cartographier votre premier endroit';
+      'Active le suivi pour enregistrer ta première zone';
 
   @override
   String get statsWeeklyLabel => '7 JOURS';
@@ -1186,22 +1185,22 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get statsMilestoneLabel => 'Niveau suivant';
+  String get statsMilestoneLabel => 'Prochain palier';
 
   @override
   String get statsMilestoneHint =>
-      'Cartographiez suffisamment d\'endroits pour atteindre ce niveau et débloquer le suivant';
+      'Continue à sortir — chaque trajet étend ta couverture.';
 
   @override
-  String get statsMilestoneElite => 'Tout cartographié · statut explorateur';
+  String get statsMilestoneElite => 'Tous les paliers atteints.';
 
   @override
   String statsMilestoneRemaining(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count endroits restants',
-      one: '1 endroit restant',
+      other: '$count zones restantes',
+      one: '1 zone restante',
     );
     return '$_temp0';
   }
@@ -1446,8 +1445,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get statsStreakLabel => 'Série';
 
   @override
-  String get statsStreakAtRisk =>
-      'Cartographie aujourd\'hui ou ta série repart à zéro';
+  String get statsStreakAtRisk => 'Sors aujourd\'hui pour garder ta série.';
 
   @override
   String statsStreakDays(int count) {
@@ -1911,11 +1909,11 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get profileUploadsExplanation =>
-      'Chaque envoi regroupe ~100 lectures de capteurs capturées à un endroit. Vos données enrichissent la carte environnementale partagée.';
+      'Chaque envoi regroupe des lectures de capteurs capturées à un endroit.';
 
   @override
   String get profileDaysExplanation =>
-      'Jours où votre téléphone a contribué au moins un envoi de données. Plus vous êtes actif, plus votre couverture est récente et riche.';
+      'Jours où ton téléphone était actif au moins une fois. Plus de jours, couverture plus récente.';
 
   @override
   String get profileZonesExplanation =>

@@ -159,7 +159,7 @@
   },
   "profileImpactSection": "YOUR MAP",
   "homeFirstUseHint": "Tap ▶ to watch your first place appear on the map",
-  "homeFirstTrackingHint": "Scanning brightness, activity and weather. First place appears after upload.",
+  "homeFirstTrackingHint": "Reading light, heat and surface conditions. First zone appears after upload.",
   "homeTrackingReadings": "{count, plural, =1{1 reading captured} other{{count} readings captured}}",
   "@homeTrackingReadings": {
     "placeholders": { "count": { "type": "num", "format": "compact" } }
@@ -207,13 +207,13 @@
   "statsVerdictGood": "Good week",
   "statsVerdictSlow": "Slow week",
   "statsVerdictNone": "No data yet",
-  "statsVerdictSubStrong": "You mapped {days} of 7 days. Keep it up.",
+  "statsVerdictSubStrong": "Active {days} of 7 days this week.",
   "@statsVerdictSubStrong": { "placeholders": { "days": { "type": "int" } } },
-  "statsVerdictSubGood": "You mapped {days} of 7 days.",
+  "statsVerdictSubGood": "Active {days} of 7 days this week.",
   "@statsVerdictSubGood": { "placeholders": { "days": { "type": "int" } } },
-  "statsVerdictSubSlow": "Only {days} day this week. A short walk helps.",
+  "statsVerdictSubSlow": "Active {days} day this week.",
   "@statsVerdictSubSlow": { "placeholders": { "days": { "type": "int" } } },
-  "statsVerdictSubNone": "Open the map and tap Start to contribute.",
+  "statsVerdictSubNone": "Enable tracking and go about your day.",
   "statsWeeklyTargetLabel": "THIS WEEK",
   "statsWeeklyTargetComplete": "Goal reached",
   "statsWeeklyTargetRemaining": "{count} more",
@@ -226,8 +226,8 @@
   "statsRecordLongestStreak": "Longest streak",
   "statsRecordTotalUploads": "Total scans",
   "statsRecordFirstDay": "First mapping day",
-  "statsZoneExplainer": "One city block scanned as you passed through.",
-  "statsUploadExplainer": "Light, movement and pressure captured at that moment.",
+  "statsZoneExplainer": "A zone is roughly one city block — recorded as you passed through.",
+  "statsUploadExplainer": "Light, heat and surface quality captured at that moment.",
   "statsTabCore": "Overview",
   "statsTabInDepth": "In depth",
   "statsInDepth30Days": "Last 30 days",
@@ -253,7 +253,7 @@
   "statsDaysUnit": "days",
   "statsCurrentStreakLabel": "Current streak",
   "statsLongestLabel": "Longest",
-  "statsAllTimeSection": "ALL-TIME",
+  "statsAllTimeSection": "ALL TIME",
   "statsUploadsUnit": "scans",
   "statsBestWeekLabel": "Best week",
   "statsQualitySection": "SIGNAL QUALITY",
@@ -265,7 +265,7 @@
   "statsAvgPrefix": "avg",
 
   "infoKmTitle": "Territory mapped",
-  "infoKmBody": "Each area is roughly a city block. This is how much of your neighborhood you've scanned.",
+  "infoKmBody": "Each zone is roughly a city block. This is how much of your area has been recorded.",
   "infoDataPtsTitle": "Places mapped",
   "infoDataPtsBody": "Each pass records what that spot is like. More passes means more accuracy.",
   "infoTodayTitle": "Today",
@@ -273,7 +273,7 @@
   "infoThisWeekTitle": "This week",
   "infoThisWeekBody": "Recordings over the last 7 days.",
   "infoDaysActiveTitle": "Days active",
-  "infoDaysActiveBody": "Days you contributed. No need to be active every day.",
+  "infoDaysActiveBody": "Days your phone was active. No need to go out every day.",
   "infoBestDayTitle": "Best day",
   "infoBestDayBody": "Your most active day this week. Usually means more time outdoors.",
   "infoMilestoneTitle": "Next milestone",
@@ -465,17 +465,17 @@
   "statsHighlightsLabel": "HIGHLIGHTS",
   "statsMappingSince": "Mapping since",
   "statsFailedToLoad": "Failed to load stats",
-  "statsReadyToContribute": "Start walking to build your map.",
-  "statsFirstContributionHint": "Start tracking to map your first area",
+  "statsReadyToContribute": "Enable tracking and go about your day.",
+  "statsFirstContributionHint": "Enable tracking to record your first area",
 
   "statsWeeklyLabel": "7 DAYS",
 
   "statsWeeklyTotal": "{count} this week",
 
-  "statsMilestoneLabel": "Next level",
-  "statsMilestoneHint": "Map enough places to reach this level and unlock the next one",
-  "statsMilestoneElite": "Fully mapped · explorer status",
-  "statsMilestoneRemaining": "{count, plural, =1{1 place to go} other{{count} places to go}}",
+  "statsMilestoneLabel": "Next milestone",
+  "statsMilestoneHint": "Keep going — each route adds to your coverage.",
+  "statsMilestoneElite": "All milestones reached.",
+  "statsMilestoneRemaining": "{count, plural, =1{1 zone to go} other{{count} zones to go}}",
   "@statsMilestoneRemaining": {
     "placeholders": { "count": { "type": "int" } }
   },
@@ -604,7 +604,7 @@
     "placeholders": { "date": { "type": "String" } }
   },
   "statsStreakLabel": "Streak",
-  "statsStreakAtRisk": "Map today or your streak resets.",
+  "statsStreakAtRisk": "Go out today to keep your streak.",
   "statsStreakDays": "{count, plural, =1{1 day in a row} other{{count} days in a row}}",
   "@statsStreakDays": {
     "placeholders": { "count": { "type": "int" } }
@@ -824,8 +824,8 @@
       "milestone": { "type": "int" }
     }
   },
-  "profileUploadsExplanation": "Each upload is a batch of ~100 sensor readings captured at one location. Your data contributes to the shared environmental map.",
-  "profileDaysExplanation": "Days where your phone contributed at least one data upload. More active days means richer, more recent coverage.",
+  "profileUploadsExplanation": "Each upload is a batch of sensor readings captured at one location.",
+  "profileDaysExplanation": "Days where your phone was active at least once. More days means richer, more recent coverage.",
   "profileZonesExplanation": "Each zone is roughly a city block. Tap the map to see which areas you've covered.",
   "profileSeeInStats": "See in Stats",
   "profileViewOnMap": "View on Map",

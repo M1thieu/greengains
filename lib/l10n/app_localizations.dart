@@ -725,7 +725,7 @@ abstract class AppLocalizations {
   /// No description provided for @homeFirstTrackingHint.
   ///
   /// In en, this message translates to:
-  /// **'Scanning brightness, activity and weather. First place appears after upload.'**
+  /// **'Reading light, heat and surface conditions. First zone appears after upload.'**
   String get homeFirstTrackingHint;
 
   /// No description provided for @homeTrackingReadings.
@@ -899,25 +899,25 @@ abstract class AppLocalizations {
   /// No description provided for @statsVerdictSubStrong.
   ///
   /// In en, this message translates to:
-  /// **'You mapped {days} of 7 days. Keep it up.'**
+  /// **'Active {days} of 7 days this week.'**
   String statsVerdictSubStrong(int days);
 
   /// No description provided for @statsVerdictSubGood.
   ///
   /// In en, this message translates to:
-  /// **'You mapped {days} of 7 days.'**
+  /// **'Active {days} of 7 days this week.'**
   String statsVerdictSubGood(int days);
 
   /// No description provided for @statsVerdictSubSlow.
   ///
   /// In en, this message translates to:
-  /// **'Only {days} day this week. A short walk helps.'**
+  /// **'Active {days} day this week.'**
   String statsVerdictSubSlow(int days);
 
   /// No description provided for @statsVerdictSubNone.
   ///
   /// In en, this message translates to:
-  /// **'Open the map and tap Start to contribute.'**
+  /// **'Enable tracking and go about your day.'**
   String get statsVerdictSubNone;
 
   /// No description provided for @statsWeeklyTargetLabel.
@@ -983,13 +983,13 @@ abstract class AppLocalizations {
   /// No description provided for @statsZoneExplainer.
   ///
   /// In en, this message translates to:
-  /// **'One city block scanned as you passed through.'**
+  /// **'A zone is roughly one city block — recorded as you passed through.'**
   String get statsZoneExplainer;
 
   /// No description provided for @statsUploadExplainer.
   ///
   /// In en, this message translates to:
-  /// **'Light, movement and pressure captured at that moment.'**
+  /// **'Light, heat and surface quality captured at that moment.'**
   String get statsUploadExplainer;
 
   /// No description provided for @statsTabCore.
@@ -1079,7 +1079,7 @@ abstract class AppLocalizations {
   /// No description provided for @statsAllTimeSection.
   ///
   /// In en, this message translates to:
-  /// **'ALL-TIME'**
+  /// **'ALL TIME'**
   String get statsAllTimeSection;
 
   /// No description provided for @statsUploadsUnit.
@@ -1145,7 +1145,7 @@ abstract class AppLocalizations {
   /// No description provided for @infoKmBody.
   ///
   /// In en, this message translates to:
-  /// **'Each area is roughly a city block. This is how much of your neighborhood you\'ve scanned.'**
+  /// **'Each zone is roughly a city block. This is how much of your area has been recorded.'**
   String get infoKmBody;
 
   /// No description provided for @infoDataPtsTitle.
@@ -1193,7 +1193,7 @@ abstract class AppLocalizations {
   /// No description provided for @infoDaysActiveBody.
   ///
   /// In en, this message translates to:
-  /// **'Days you contributed. No need to be active every day.'**
+  /// **'Days your phone was active. No need to go out every day.'**
   String get infoDaysActiveBody;
 
   /// No description provided for @infoBestDayTitle.
@@ -2051,13 +2051,13 @@ abstract class AppLocalizations {
   /// No description provided for @statsReadyToContribute.
   ///
   /// In en, this message translates to:
-  /// **'Start walking to build your map.'**
+  /// **'Enable tracking and go about your day.'**
   String get statsReadyToContribute;
 
   /// No description provided for @statsFirstContributionHint.
   ///
   /// In en, this message translates to:
-  /// **'Start tracking to map your first area'**
+  /// **'Enable tracking to record your first area'**
   String get statsFirstContributionHint;
 
   /// No description provided for @statsWeeklyLabel.
@@ -2075,25 +2075,25 @@ abstract class AppLocalizations {
   /// No description provided for @statsMilestoneLabel.
   ///
   /// In en, this message translates to:
-  /// **'Next level'**
+  /// **'Next milestone'**
   String get statsMilestoneLabel;
 
   /// No description provided for @statsMilestoneHint.
   ///
   /// In en, this message translates to:
-  /// **'Map enough places to reach this level and unlock the next one'**
+  /// **'Keep going — each route adds to your coverage.'**
   String get statsMilestoneHint;
 
   /// No description provided for @statsMilestoneElite.
   ///
   /// In en, this message translates to:
-  /// **'Fully mapped · explorer status'**
+  /// **'All milestones reached.'**
   String get statsMilestoneElite;
 
   /// No description provided for @statsMilestoneRemaining.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, =1{1 place to go} other{{count} places to go}}'**
+  /// **'{count, plural, =1{1 zone to go} other{{count} zones to go}}'**
   String statsMilestoneRemaining(int count);
 
   /// No description provided for @milestoneNudge.
@@ -2483,7 +2483,7 @@ abstract class AppLocalizations {
   /// No description provided for @statsStreakAtRisk.
   ///
   /// In en, this message translates to:
-  /// **'Map today or your streak resets.'**
+  /// **'Go out today to keep your streak.'**
   String get statsStreakAtRisk;
 
   /// No description provided for @statsStreakDays.
@@ -3221,13 +3221,13 @@ abstract class AppLocalizations {
   /// No description provided for @profileUploadsExplanation.
   ///
   /// In en, this message translates to:
-  /// **'Each upload is a batch of ~100 sensor readings captured at one location. Your data contributes to the shared environmental map.'**
+  /// **'Each upload is a batch of sensor readings captured at one location.'**
   String get profileUploadsExplanation;
 
   /// No description provided for @profileDaysExplanation.
   ///
   /// In en, this message translates to:
-  /// **'Days where your phone contributed at least one data upload. More active days means richer, more recent coverage.'**
+  /// **'Days where your phone was active at least once. More days means richer, more recent coverage.'**
   String get profileDaysExplanation;
 
   /// No description provided for @profileZonesExplanation.

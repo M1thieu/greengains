@@ -159,7 +159,7 @@
   },
   "profileImpactSection": "VOTRE CARTE",
   "homeFirstUseHint": "Appuyez sur ▶ pour voir votre premier endroit apparaître",
-  "homeFirstTrackingHint": "Mesure la luminosité, l'activité et la météo. Premier endroit après l'envoi.",
+  "homeFirstTrackingHint": "Lecture de la lumière, chaleur et surfaces. Première zone après l'envoi.",
   "homeTrackingReadings": "{count, plural, =1{1 mesure capturée} other{{count} mesures capturées}}",
   "@homeTrackingReadings": {
     "placeholders": { "count": { "type": "num", "format": "compact" } }
@@ -207,13 +207,13 @@
   "statsVerdictGood": "Bonne semaine",
   "statsVerdictSlow": "Semaine calme",
   "statsVerdictNone": "Pas encore",
-  "statsVerdictSubStrong": "Tu as cartographié {days} jours sur 7. Continue comme ça.",
+  "statsVerdictSubStrong": "Actif {days} jours sur 7 cette semaine.",
   "@statsVerdictSubStrong": { "placeholders": { "days": { "type": "int" } } },
-  "statsVerdictSubGood": "Tu as cartographié {days} jours sur 7.",
+  "statsVerdictSubGood": "Actif {days} jours sur 7 cette semaine.",
   "@statsVerdictSubGood": { "placeholders": { "days": { "type": "int" } } },
-  "statsVerdictSubSlow": "Seulement {days} jour cette semaine. Une petite marche aide.",
+  "statsVerdictSubSlow": "Actif {days} jour cette semaine.",
   "@statsVerdictSubSlow": { "placeholders": { "days": { "type": "int" } } },
-  "statsVerdictSubNone": "Ouvre la carte et appuie sur Commencer pour contribuer.",
+  "statsVerdictSubNone": "Active le suivi et vis ta journée.",
   "statsWeeklyTargetLabel": "CETTE SEMAINE",
   "statsWeeklyTargetComplete": "Objectif atteint",
   "statsWeeklyTargetRemaining": "{count} de plus",
@@ -226,8 +226,8 @@
   "statsRecordLongestStreak": "Série la plus longue",
   "statsRecordTotalUploads": "Total de scans",
   "statsRecordFirstDay": "Premier jour de cartographie",
-  "statsZoneExplainer": "Un pâté de maisons scanné en passant.",
-  "statsUploadExplainer": "Luminosité, mouvement et pression capturés à cet instant.",
+  "statsZoneExplainer": "Une zone correspond environ à un pâté de maisons — enregistré en passant.",
+  "statsUploadExplainer": "Lumière, chaleur et qualité des surfaces capturées à cet instant.",
   "statsTabCore": "Aperçu",
   "statsTabInDepth": "Détails",
   "statsInDepth30Days": "30 derniers jours",
@@ -265,7 +265,7 @@
   "statsAvgPrefix": "moy.",
 
   "infoKmTitle": "Territoire cartographié",
-  "infoKmBody": "Chaque endroit fait environ la taille d'un pâté de maisons. C'est la part de ton quartier scannée.",
+  "infoKmBody": "Chaque zone fait environ un pâté de maisons. C'est la part de ta zone enregistrée.",
   "infoDataPtsTitle": "Endroits cartographiés",
   "infoDataPtsBody": "Chaque passage enregistre ce que cet endroit est vraiment. Plus de passages, plus de précision.",
   "infoTodayTitle": "Aujourd'hui",
@@ -273,7 +273,7 @@
   "infoThisWeekTitle": "Cette semaine",
   "infoThisWeekBody": "Enregistrements des 7 derniers jours.",
   "infoDaysActiveTitle": "Jours actifs",
-  "infoDaysActiveBody": "Jours où vous avez contribué. Pas besoin d'être actif tous les jours.",
+  "infoDaysActiveBody": "Jours où ton téléphone était actif. Pas besoin de sortir tous les jours.",
   "infoBestDayTitle": "Meilleur jour",
   "infoBestDayBody": "Votre jour le plus actif cette semaine. Souvent plus de temps en extérieur.",
   "infoMilestoneTitle": "Prochain palier",
@@ -465,17 +465,17 @@
   "statsHighlightsLabel": "FAITS MARQUANTS",
   "statsMappingSince": "Cartographie depuis",
   "statsFailedToLoad": "Impossible de charger les statistiques",
-  "statsReadyToContribute": "Commencez à marcher pour construire votre carte.",
-  "statsFirstContributionHint": "Commencez le suivi pour cartographier votre premier endroit",
+  "statsReadyToContribute": "Active le suivi et vis ta journée.",
+  "statsFirstContributionHint": "Active le suivi pour enregistrer ta première zone",
 
   "statsWeeklyLabel": "7 JOURS",
 
   "statsWeeklyTotal": "{count} cette semaine",
 
-  "statsMilestoneLabel": "Niveau suivant",
-  "statsMilestoneHint": "Cartographiez suffisamment d'endroits pour atteindre ce niveau et débloquer le suivant",
-  "statsMilestoneElite": "Tout cartographié · statut explorateur",
-  "statsMilestoneRemaining": "{count, plural, =1{1 endroit restant} other{{count} endroits restants}}",
+  "statsMilestoneLabel": "Prochain palier",
+  "statsMilestoneHint": "Continue à sortir — chaque trajet étend ta couverture.",
+  "statsMilestoneElite": "Tous les paliers atteints.",
+  "statsMilestoneRemaining": "{count, plural, =1{1 zone restante} other{{count} zones restantes}}",
   "@statsMilestoneRemaining": {
     "placeholders": { "count": { "type": "int" } }
   },
@@ -604,7 +604,7 @@
     "placeholders": { "date": { "type": "String" } }
   },
   "statsStreakLabel": "Série",
-  "statsStreakAtRisk": "Cartographie aujourd'hui ou ta série repart à zéro",
+  "statsStreakAtRisk": "Sors aujourd'hui pour garder ta série.",
   "statsStreakDays": "{count, plural, =1{1 jour de suite} other{{count} jours de suite}}",
   "@statsStreakDays": {
     "placeholders": { "count": { "type": "int" } }
@@ -824,8 +824,8 @@
       "milestone": { "type": "int" }
     }
   },
-  "profileUploadsExplanation": "Chaque envoi regroupe ~100 lectures de capteurs capturées à un endroit. Vos données enrichissent la carte environnementale partagée.",
-  "profileDaysExplanation": "Jours où votre téléphone a contribué au moins un envoi de données. Plus vous êtes actif, plus votre couverture est récente et riche.",
+  "profileUploadsExplanation": "Chaque envoi regroupe des lectures de capteurs capturées à un endroit.",
+  "profileDaysExplanation": "Jours où ton téléphone était actif au moins une fois. Plus de jours, couverture plus récente.",
   "profileZonesExplanation": "Chaque zone fait environ la taille d'un pâté de maisons. Consultez la carte pour voir les endroits couverts.",
   "profileSeeInStats": "Voir dans les stats",
   "profileViewOnMap": "Voir sur la carte",

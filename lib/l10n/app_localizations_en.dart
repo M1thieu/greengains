@@ -368,7 +368,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get homeFirstTrackingHint =>
-      'Scanning brightness, activity and weather. First place appears after upload.';
+      'Reading light, heat and surface conditions. First zone appears after upload.';
 
   @override
   String homeTrackingReadings(num count) {
@@ -496,21 +496,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String statsVerdictSubStrong(int days) {
-    return 'You mapped $days of 7 days. Keep it up.';
+    return 'Active $days of 7 days this week.';
   }
 
   @override
   String statsVerdictSubGood(int days) {
-    return 'You mapped $days of 7 days.';
+    return 'Active $days of 7 days this week.';
   }
 
   @override
   String statsVerdictSubSlow(int days) {
-    return 'Only $days day this week. A short walk helps.';
+    return 'Active $days day this week.';
   }
 
   @override
-  String get statsVerdictSubNone => 'Open the map and tap Start to contribute.';
+  String get statsVerdictSubNone => 'Enable tracking and go about your day.';
 
   @override
   String get statsWeeklyTargetLabel => 'THIS WEEK';
@@ -548,11 +548,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get statsZoneExplainer =>
-      'One city block scanned as you passed through.';
+      'A zone is roughly one city block — recorded as you passed through.';
 
   @override
   String get statsUploadExplainer =>
-      'Light, movement and pressure captured at that moment.';
+      'Light, heat and surface quality captured at that moment.';
 
   @override
   String get statsTabCore => 'Overview';
@@ -601,7 +601,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get statsLongestLabel => 'Longest';
 
   @override
-  String get statsAllTimeSection => 'ALL-TIME';
+  String get statsAllTimeSection => 'ALL TIME';
 
   @override
   String get statsUploadsUnit => 'scans';
@@ -636,7 +636,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get infoKmBody =>
-      'Each area is roughly a city block. This is how much of your neighborhood you\'ve scanned.';
+      'Each zone is roughly a city block. This is how much of your area has been recorded.';
 
   @override
   String get infoDataPtsTitle => 'Places mapped';
@@ -663,7 +663,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get infoDaysActiveBody =>
-      'Days you contributed. No need to be active every day.';
+      'Days your phone was active. No need to go out every day.';
 
   @override
   String get infoBestDayTitle => 'Best day';
@@ -1153,11 +1153,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get statsFailedToLoad => 'Failed to load stats';
 
   @override
-  String get statsReadyToContribute => 'Start walking to build your map.';
+  String get statsReadyToContribute => 'Enable tracking and go about your day.';
 
   @override
   String get statsFirstContributionHint =>
-      'Start tracking to map your first area';
+      'Enable tracking to record your first area';
 
   @override
   String get statsWeeklyLabel => '7 DAYS';
@@ -1168,22 +1168,22 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get statsMilestoneLabel => 'Next level';
+  String get statsMilestoneLabel => 'Next milestone';
 
   @override
   String get statsMilestoneHint =>
-      'Map enough places to reach this level and unlock the next one';
+      'Keep going — each route adds to your coverage.';
 
   @override
-  String get statsMilestoneElite => 'Fully mapped · explorer status';
+  String get statsMilestoneElite => 'All milestones reached.';
 
   @override
   String statsMilestoneRemaining(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count places to go',
-      one: '1 place to go',
+      other: '$count zones to go',
+      one: '1 zone to go',
     );
     return '$_temp0';
   }
@@ -1426,7 +1426,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get statsStreakLabel => 'Streak';
 
   @override
-  String get statsStreakAtRisk => 'Map today or your streak resets.';
+  String get statsStreakAtRisk => 'Go out today to keep your streak.';
 
   @override
   String statsStreakDays(int count) {
@@ -1885,11 +1885,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get profileUploadsExplanation =>
-      'Each upload is a batch of ~100 sensor readings captured at one location. Your data contributes to the shared environmental map.';
+      'Each upload is a batch of sensor readings captured at one location.';
 
   @override
   String get profileDaysExplanation =>
-      'Days where your phone contributed at least one data upload. More active days means richer, more recent coverage.';
+      'Days where your phone was active at least once. More days means richer, more recent coverage.';
 
   @override
   String get profileZonesExplanation =>
