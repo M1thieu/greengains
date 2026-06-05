@@ -3593,7 +3593,7 @@ abstract class AppLocalizations {
   /// No description provided for @insightNormal.
   ///
   /// In en, this message translates to:
-  /// **'Normal environmental conditions.'**
+  /// **'Nothing unusual detected here.'**
   String get insightNormal;
 
   /// No description provided for @insightRouteHeader.
@@ -3605,55 +3605,55 @@ abstract class AppLocalizations {
   /// No description provided for @insightLightPristine.
   ///
   /// In en, this message translates to:
-  /// **'True dark sky. Almost no artificial light.'**
+  /// **'Almost no artificial light — rare in most cities. Natural darkness intact.'**
   String get insightLightPristine;
 
   /// No description provided for @insightLightLow.
   ///
   /// In en, this message translates to:
-  /// **'Natural darkness preserved here. Minimal light pollution.'**
+  /// **'Low light pollution. Natural darkness mostly preserved.'**
   String get insightLightLow;
 
   /// No description provided for @insightLightModerate.
   ///
   /// In en, this message translates to:
-  /// **'Sky glow visible. Moderate light pollution.'**
+  /// **'Visible sky glow. Light pollution is building here.'**
   String get insightLightModerate;
 
   /// No description provided for @insightLightHigh.
   ///
   /// In en, this message translates to:
-  /// **'Significant light pollution. Most stars washed out.'**
+  /// **'High light pollution. Stars mostly gone, circadian rhythm affected.'**
   String get insightLightHigh;
 
   /// No description provided for @insightLightSevere.
   ///
   /// In en, this message translates to:
-  /// **'Heavy light pollution. Night sky nearly invisible.'**
+  /// **'Intense artificial light. Like permanent dusk — sleep hormones disrupted.'**
   String get insightLightSevere;
 
   /// No description provided for @insightSunShaded.
   ///
   /// In en, this message translates to:
-  /// **'Indoor or heavily shaded. Little direct sun.'**
+  /// **'Heavily shaded. Low UV, cooler than open streets.'**
   String get insightSunShaded;
 
   /// No description provided for @insightSunPartial.
   ///
   /// In en, this message translates to:
-  /// **'Normal outdoor conditions.'**
+  /// **'Normal outdoor light.'**
   String get insightSunPartial;
 
   /// No description provided for @insightSunBright.
   ///
   /// In en, this message translates to:
-  /// **'Open and well-lit. Good outdoor exposure.'**
+  /// **'Well-lit and open.'**
   String get insightSunBright;
 
   /// No description provided for @insightSunIntense.
   ///
   /// In en, this message translates to:
-  /// **'Intense direct sun. Heat and UV exposure.'**
+  /// **'Direct sun exposure. UV and heat risk.'**
   String get insightSunIntense;
 
   /// No description provided for @insightSurfaceSmooth.
@@ -3665,49 +3665,49 @@ abstract class AppLocalizations {
   /// No description provided for @insightSurfaceNormal.
   ///
   /// In en, this message translates to:
-  /// **'Normal pavement conditions.'**
+  /// **'Normal pavement.'**
   String get insightSurfaceNormal;
 
   /// No description provided for @insightSurfaceRough.
   ///
   /// In en, this message translates to:
-  /// **'Rough surface. Uneven pavement detected.'**
+  /// **'Rough pavement detected.'**
   String get insightSurfaceRough;
 
   /// No description provided for @insightSurfacePoor.
   ///
   /// In en, this message translates to:
-  /// **'Poor surface. Significant damage or bumps.'**
+  /// **'Severely degraded surface.'**
   String get insightSurfacePoor;
 
   /// No description provided for @insightHeatExposed.
   ///
   /// In en, this message translates to:
-  /// **'Urban heat. Warmer than surrounding areas.'**
+  /// **'Urban heat island. Measurably warmer than surrounding areas.'**
   String get insightHeatExposed;
 
   /// No description provided for @insightSessionDarkSky.
   ///
   /// In en, this message translates to:
-  /// **'Minimal light pollution on this route. Good night environment.'**
+  /// **'Low light pollution on this route. Good for sleep.'**
   String get insightSessionDarkSky;
 
   /// No description provided for @insightSessionBrightCity.
   ///
   /// In en, this message translates to:
-  /// **'Heavy light pollution throughout this route.'**
+  /// **'Heavy artificial light all along this route.'**
   String get insightSessionBrightCity;
 
   /// No description provided for @insightSessionRoughRoute.
   ///
   /// In en, this message translates to:
-  /// **'Rougher than average surface conditions on this route.'**
+  /// **'Rough surface throughout this route.'**
   String get insightSessionRoughRoute;
 
   /// No description provided for @insightSessionHotRoute.
   ///
   /// In en, this message translates to:
-  /// **'Route had elevated heat exposure.'**
+  /// **'Route exposed to urban heat.'**
   String get insightSessionHotRoute;
 }
 

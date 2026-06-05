@@ -2148,77 +2148,73 @@ class AppLocalizationsFr extends AppLocalizations {
   String get insightNoData => 'Pas encore assez de données pour cette zone.';
 
   @override
-  String get insightNormal => 'Conditions environnementales normales.';
+  String get insightNormal => 'Rien d\'inhabituel détecté ici.';
 
   @override
   String get insightRouteHeader => 'TON TRAJET';
 
   @override
   String get insightLightPristine =>
-      'Vrai ciel noir. Presque aucune lumière artificielle.';
+      'Presque aucune lumière artificielle — rare en ville. Obscurité naturelle intacte.';
 
   @override
   String get insightLightLow =>
-      'Obscurité naturelle préservée ici. Pollution lumineuse minimale.';
+      'Faible pollution lumineuse. Obscurité naturelle largement préservée.';
 
   @override
   String get insightLightModerate =>
-      'Halo lumineux visible. Pollution lumineuse modérée.';
+      'Halo lumineux visible. La pollution lumineuse s\'installe ici.';
 
   @override
   String get insightLightHigh =>
-      'Pollution lumineuse importante. La plupart des étoiles sont masquées.';
+      'Forte pollution lumineuse. Les étoiles disparaissent, le rythme circadien affecté.';
 
   @override
   String get insightLightSevere =>
-      'Forte pollution lumineuse. Ciel nocturne presque invisible.';
+      'Lumière artificielle intense. Comme un crépuscule permanent — hormones du sommeil perturbées.';
 
   @override
   String get insightSunShaded =>
-      'Intérieur ou très ombragé. Peu de soleil direct.';
+      'Zone très ombragée. UV faibles, plus frais que les rues ouvertes.';
 
   @override
-  String get insightSunPartial => 'Conditions extérieures normales.';
+  String get insightSunPartial => 'Luminosité extérieure normale.';
 
   @override
-  String get insightSunBright =>
-      'Zone ouverte et bien exposée. Bonne luminosité naturelle.';
+  String get insightSunBright => 'Zone ouverte et bien éclairée.';
 
   @override
   String get insightSunIntense =>
-      'Soleil direct intense. Exposition à la chaleur et aux UV.';
+      'Exposition solaire directe. Risque UV et chaleur.';
 
   @override
   String get insightSurfaceSmooth => 'Surface lisse et bien entretenue.';
 
   @override
-  String get insightSurfaceNormal => 'Conditions de revêtement normales.';
+  String get insightSurfaceNormal => 'Revêtement normal.';
 
   @override
-  String get insightSurfaceRough =>
-      'Surface irrégulière. Revêtement dégradé détecté.';
+  String get insightSurfaceRough => 'Revêtement dégradé détecté.';
 
   @override
-  String get insightSurfacePoor =>
-      'Mauvaise surface. Dégradations importantes.';
+  String get insightSurfacePoor => 'Surface très dégradée.';
 
   @override
   String get insightHeatExposed =>
-      'Îlot de chaleur. Plus chaud que les zones environnantes.';
+      'Îlot de chaleur urbain. Mesurably plus chaud que les zones alentour.';
 
   @override
   String get insightSessionDarkSky =>
-      'Pollution lumineuse minimale sur ce trajet. Bon environnement nocturne.';
+      'Faible pollution lumineuse sur ce trajet. Bon pour le sommeil.';
 
   @override
   String get insightSessionBrightCity =>
-      'Forte pollution lumineuse tout au long de ce trajet.';
+      'Lumière artificielle intense tout au long de ce trajet.';
 
   @override
   String get insightSessionRoughRoute =>
-      'Conditions de surface plus accidentées que la moyenne sur ce trajet.';
+      'Revêtement dégradé sur l\'ensemble du trajet.';
 
   @override
-  String get insightSessionHotRoute =>
-      'Trajet avec une exposition à la chaleur élevée.';
+  String get insightSessionHotRoute => 'Trajet exposé à la chaleur urbaine.';
 }
