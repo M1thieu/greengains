@@ -2153,66 +2153,71 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get insightLightPristine =>
-      'Presque aucune lumière artificielle — rare en ville. Obscurité naturelle intacte.';
+      'Presque aucune lumière artificielle ici. Ta mélatonine reste intacte sur ce trajet.';
 
   @override
   String get insightLightLow =>
-      'Faible pollution lumineuse. Obscurité naturelle largement préservée.';
+      'Naturellement sombre ici. Bon pour décompresser si tu rentres par là.';
 
   @override
   String get insightLightModerate =>
-      'Halo lumineux visible. La pollution lumineuse s\'installe ici.';
+      'Un peu de halo lumineux. Assez pour affecter ton horloge biologique à la longue.';
 
   @override
   String get insightLightHigh =>
-      'Forte pollution lumineuse. Les étoiles disparaissent, le rythme circadien affecté.';
+      'Lumineux la nuit — comme une pièce allumée. Pas idéal avant de dormir.';
 
   @override
   String get insightLightSevere =>
-      'Lumière artificielle intense. Comme un crépuscule permanent — hormones du sommeil perturbées.';
+      'Très lumineux la nuit. Ton corps pense qu\'il fait encore jour ici.';
 
   @override
   String get insightSunShaded =>
-      'Zone très ombragée. UV faibles, plus frais que les rues ouvertes.';
+      'Zone ombragée et fraîche. Moins d\'UV que les rues ouvertes.';
 
   @override
-  String get insightSunPartial => 'Luminosité extérieure normale.';
+  String get insightSunPartial => 'Conditions extérieures normales.';
 
   @override
-  String get insightSunBright => 'Zone ouverte et bien éclairée.';
+  String get insightSunBright =>
+      'Zone ouverte, bien exposée à la lumière naturelle.';
 
   @override
   String get insightSunIntense =>
-      'Exposition solaire directe. Risque UV et chaleur.';
+      'Fort soleil direct. Pense à t\'hydrater ou chercher de l\'ombre en été.';
 
   @override
-  String get insightSurfaceSmooth => 'Surface lisse et bien entretenue.';
+  String get insightSurfaceSmooth =>
+      'Surface lisse. Agréable pour le vélo, les articulations, les poussettes.';
 
   @override
   String get insightSurfaceNormal => 'Revêtement normal.';
 
   @override
-  String get insightSurfaceRough => 'Revêtement dégradé détecté.';
+  String get insightSurfaceRough =>
+      'Route dégradée. Plus difficile pour le vélo, les articulations, les poussettes.';
 
   @override
-  String get insightSurfacePoor => 'Surface très dégradée.';
+  String get insightSurfacePoor =>
+      'Surface très dégradée. À éviter si tu es à vélo ou avec une poussette.';
 
   @override
   String get insightHeatExposed =>
-      'Îlot de chaleur urbain. Mesurably plus chaud que les zones alentour.';
+      'Cette zone chauffe. Sensiblement plus chaud que les rues voisines.';
 
   @override
   String get insightSessionDarkSky =>
-      'Faible pollution lumineuse sur ce trajet. Bon pour le sommeil.';
+      'Peu de lumière artificielle sur ce trajet. Bon pour le sommeil si tu rentres par là.';
 
   @override
   String get insightSessionBrightCity =>
-      'Lumière artificielle intense tout au long de ce trajet.';
+      'Lumineux la nuit sur tout ce trajet. Comme marcher dans un bureau éclairé avant de dormir.';
 
   @override
   String get insightSessionRoughRoute =>
-      'Revêtement dégradé sur l\'ensemble du trajet.';
+      'Route dégradée sur ce trajet. Plus difficile que des alternatives plus lisses.';
 
   @override
-  String get insightSessionHotRoute => 'Trajet exposé à la chaleur urbaine.';
+  String get insightSessionHotRoute =>
+      'Ce trajet chauffe. Pense à des alternatives plus fraîches en été.';
 }

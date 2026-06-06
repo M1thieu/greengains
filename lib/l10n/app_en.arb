@@ -926,26 +926,26 @@
   "insightNormal": "Nothing unusual detected here.",
   "insightRouteHeader": "YOUR ROUTE",
 
-  "insightLightPristine": "Almost no artificial light — rare in most cities. Natural darkness intact.",
-  "insightLightLow": "Low light pollution. Natural darkness mostly preserved.",
-  "insightLightModerate": "Visible sky glow. Light pollution is building here.",
-  "insightLightHigh": "High light pollution. Stars mostly gone, circadian rhythm affected.",
-  "insightLightSevere": "Intense artificial light. Like permanent dusk — sleep hormones disrupted.",
+  "insightLightPristine": "Almost no artificial light here. Your melatonin stays intact on this route.",
+  "insightLightLow": "Naturally dark here. Good for winding down if you come home this way.",
+  "insightLightModerate": "Some sky glow. Enough artificial light to affect your body clock over time.",
+  "insightLightHigh": "Bright at night — like a lit room. Not ideal before sleep.",
+  "insightLightSevere": "Very bright at night. Your body thinks it's still daytime here.",
 
-  "insightSunShaded": "Heavily shaded. Low UV, cooler than open streets.",
-  "insightSunPartial": "Normal outdoor light.",
-  "insightSunBright": "Well-lit and open.",
-  "insightSunIntense": "Direct sun exposure. UV and heat risk.",
+  "insightSunShaded": "Shaded and cool. Lower UV than open streets.",
+  "insightSunPartial": "Normal outdoor conditions.",
+  "insightSunBright": "Open and well-exposed to daylight.",
+  "insightSunIntense": "Strong direct sun. Worth planning water or shade here in summer.",
 
-  "insightSurfaceSmooth": "Smooth, well-maintained surface.",
+  "insightSurfaceSmooth": "Smooth surface. Easy on bikes, joints and strollers.",
   "insightSurfaceNormal": "Normal pavement.",
-  "insightSurfaceRough": "Rough pavement detected.",
-  "insightSurfacePoor": "Severely degraded surface.",
+  "insightSurfaceRough": "Rough road. Harder on bikes, joints and strollers.",
+  "insightSurfacePoor": "Very rough surface. Worth avoiding if you're on a bike or with a stroller.",
 
-  "insightHeatExposed": "Urban heat island. Measurably warmer than surrounding areas.",
+  "insightHeatExposed": "This zone runs hot. Noticeably warmer than nearby streets.",
 
-  "insightSessionDarkSky": "Low light pollution on this route. Good for sleep.",
-  "insightSessionBrightCity": "Heavy artificial light all along this route.",
-  "insightSessionRoughRoute": "Rough surface throughout this route.",
-  "insightSessionHotRoute": "Route exposed to urban heat."
+  "insightSessionDarkSky": "Low artificial light on this route. Good for sleep if you come home this way.",
+  "insightSessionBrightCity": "Bright at night throughout this route. Like walking through a lit office before bed.",
+  "insightSessionRoughRoute": "Rough road on this route. Harder on your body than smoother alternatives.",
+  "insightSessionHotRoute": "This route runs hot. Worth considering cooler alternatives in summer."
 }

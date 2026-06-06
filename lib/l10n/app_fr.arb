@@ -926,26 +926,26 @@
   "insightNormal": "Rien d'inhabituel détecté ici.",
   "insightRouteHeader": "TON TRAJET",
 
-  "insightLightPristine": "Presque aucune lumière artificielle — rare en ville. Obscurité naturelle intacte.",
-  "insightLightLow": "Faible pollution lumineuse. Obscurité naturelle largement préservée.",
-  "insightLightModerate": "Halo lumineux visible. La pollution lumineuse s'installe ici.",
-  "insightLightHigh": "Forte pollution lumineuse. Les étoiles disparaissent, le rythme circadien affecté.",
-  "insightLightSevere": "Lumière artificielle intense. Comme un crépuscule permanent — hormones du sommeil perturbées.",
+  "insightLightPristine": "Presque aucune lumière artificielle ici. Ta mélatonine reste intacte sur ce trajet.",
+  "insightLightLow": "Naturellement sombre ici. Bon pour décompresser si tu rentres par là.",
+  "insightLightModerate": "Un peu de halo lumineux. Assez pour affecter ton horloge biologique à la longue.",
+  "insightLightHigh": "Lumineux la nuit — comme une pièce allumée. Pas idéal avant de dormir.",
+  "insightLightSevere": "Très lumineux la nuit. Ton corps pense qu'il fait encore jour ici.",
 
-  "insightSunShaded": "Zone très ombragée. UV faibles, plus frais que les rues ouvertes.",
-  "insightSunPartial": "Luminosité extérieure normale.",
-  "insightSunBright": "Zone ouverte et bien éclairée.",
-  "insightSunIntense": "Exposition solaire directe. Risque UV et chaleur.",
+  "insightSunShaded": "Zone ombragée et fraîche. Moins d'UV que les rues ouvertes.",
+  "insightSunPartial": "Conditions extérieures normales.",
+  "insightSunBright": "Zone ouverte, bien exposée à la lumière naturelle.",
+  "insightSunIntense": "Fort soleil direct. Pense à t'hydrater ou chercher de l'ombre en été.",
 
-  "insightSurfaceSmooth": "Surface lisse et bien entretenue.",
+  "insightSurfaceSmooth": "Surface lisse. Agréable pour le vélo, les articulations, les poussettes.",
   "insightSurfaceNormal": "Revêtement normal.",
-  "insightSurfaceRough": "Revêtement dégradé détecté.",
-  "insightSurfacePoor": "Surface très dégradée.",
+  "insightSurfaceRough": "Route dégradée. Plus difficile pour le vélo, les articulations, les poussettes.",
+  "insightSurfacePoor": "Surface très dégradée. À éviter si tu es à vélo ou avec une poussette.",
 
-  "insightHeatExposed": "Îlot de chaleur urbain. Mesurably plus chaud que les zones alentour.",
+  "insightHeatExposed": "Cette zone chauffe. Sensiblement plus chaud que les rues voisines.",
 
-  "insightSessionDarkSky": "Faible pollution lumineuse sur ce trajet. Bon pour le sommeil.",
-  "insightSessionBrightCity": "Lumière artificielle intense tout au long de ce trajet.",
-  "insightSessionRoughRoute": "Revêtement dégradé sur l'ensemble du trajet.",
-  "insightSessionHotRoute": "Trajet exposé à la chaleur urbaine."
+  "insightSessionDarkSky": "Peu de lumière artificielle sur ce trajet. Bon pour le sommeil si tu rentres par là.",
+  "insightSessionBrightCity": "Lumineux la nuit sur tout ce trajet. Comme marcher dans un bureau éclairé avant de dormir.",
+  "insightSessionRoughRoute": "Route dégradée sur ce trajet. Plus difficile que des alternatives plus lisses.",
+  "insightSessionHotRoute": "Ce trajet chauffe. Pense à des alternatives plus fraîches en été."
 }

@@ -2126,64 +2126,69 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get insightLightPristine =>
-      'Almost no artificial light — rare in most cities. Natural darkness intact.';
+      'Almost no artificial light here. Your melatonin stays intact on this route.';
 
   @override
   String get insightLightLow =>
-      'Low light pollution. Natural darkness mostly preserved.';
+      'Naturally dark here. Good for winding down if you come home this way.';
 
   @override
   String get insightLightModerate =>
-      'Visible sky glow. Light pollution is building here.';
+      'Some sky glow. Enough artificial light to affect your body clock over time.';
 
   @override
   String get insightLightHigh =>
-      'High light pollution. Stars mostly gone, circadian rhythm affected.';
+      'Bright at night — like a lit room. Not ideal before sleep.';
 
   @override
   String get insightLightSevere =>
-      'Intense artificial light. Like permanent dusk — sleep hormones disrupted.';
+      'Very bright at night. Your body thinks it\'s still daytime here.';
 
   @override
-  String get insightSunShaded =>
-      'Heavily shaded. Low UV, cooler than open streets.';
+  String get insightSunShaded => 'Shaded and cool. Lower UV than open streets.';
 
   @override
-  String get insightSunPartial => 'Normal outdoor light.';
+  String get insightSunPartial => 'Normal outdoor conditions.';
 
   @override
-  String get insightSunBright => 'Well-lit and open.';
+  String get insightSunBright => 'Open and well-exposed to daylight.';
 
   @override
-  String get insightSunIntense => 'Direct sun exposure. UV and heat risk.';
+  String get insightSunIntense =>
+      'Strong direct sun. Worth planning water or shade here in summer.';
 
   @override
-  String get insightSurfaceSmooth => 'Smooth, well-maintained surface.';
+  String get insightSurfaceSmooth =>
+      'Smooth surface. Easy on bikes, joints and strollers.';
 
   @override
   String get insightSurfaceNormal => 'Normal pavement.';
 
   @override
-  String get insightSurfaceRough => 'Rough pavement detected.';
+  String get insightSurfaceRough =>
+      'Rough road. Harder on bikes, joints and strollers.';
 
   @override
-  String get insightSurfacePoor => 'Severely degraded surface.';
+  String get insightSurfacePoor =>
+      'Very rough surface. Worth avoiding if you\'re on a bike or with a stroller.';
 
   @override
   String get insightHeatExposed =>
-      'Urban heat island. Measurably warmer than surrounding areas.';
+      'This zone runs hot. Noticeably warmer than nearby streets.';
 
   @override
   String get insightSessionDarkSky =>
-      'Low light pollution on this route. Good for sleep.';
+      'Low artificial light on this route. Good for sleep if you come home this way.';
 
   @override
   String get insightSessionBrightCity =>
-      'Heavy artificial light all along this route.';
+      'Bright at night throughout this route. Like walking through a lit office before bed.';
 
   @override
-  String get insightSessionRoughRoute => 'Rough surface throughout this route.';
+  String get insightSessionRoughRoute =>
+      'Rough road on this route. Harder on your body than smoother alternatives.';
 
   @override
-  String get insightSessionHotRoute => 'Route exposed to urban heat.';
+  String get insightSessionHotRoute =>
+      'This route runs hot. Worth considering cooler alternatives in summer.';
 }
