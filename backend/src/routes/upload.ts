@@ -191,7 +191,19 @@ function buildStoragePayload(batch: UploadBatch, qualityMultiplier = 1.0): Stora
     quality_multiplier: qualityMultiplier < 1.0 ? qualityMultiplier : undefined,
   };
 
-  if (batch.location) payload.location = batch.location;
+  if (batch.location) {
+    // Privacy by architecture: round to 3 decimals (~110m) before storage.
+    // H3 cells are computed from precise coords at ingest, BEFORE this runs —
+    // nothing finer than a zone ever touches disk, so no precise trail can leak.
+    // Anti-teleport speed checks tolerate this error (they detect km-scale jumps).
+    // Bearing is dropped: it reveals direction of travel, and nothing reads it.
+    const { bearing_deg: _bearing, ...rest } = batch.location;
+    payload.location = {
+      ...rest,
+      lat: Math.round(batch.location.lat * 1000) / 1000,
+      lon: Math.round(batch.location.lon * 1000) / 1000,
+    };
+  }
   if (batch.geohash) payload.geohash = batch.geohash;
   if (batch.battery_level !== undefined) payload.battery_level = batch.battery_level;
   if (batch.is_charging !== undefined) payload.is_charging = batch.is_charging;
