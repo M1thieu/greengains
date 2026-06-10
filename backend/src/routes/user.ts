@@ -154,6 +154,7 @@ async function fetchGlobalTiles(log?: { warn: (obj: unknown, msg: string) => voi
     device_count: number;
     quality_valid_ratio: number | null;
     vibration_score: number | null;
+    avg_light: number | null;
     last_update: Date;
   }>(
     `SELECT
@@ -162,6 +163,7 @@ async function fetchGlobalTiles(log?: { warn: (obj: unknown, msg: string) => voi
        MAX(device_count)::int                 AS device_count,
        AVG(quality_valid_ratio)               AS quality_valid_ratio,
        AVG(vibration_score)                   AS vibration_score,
+       AVG(avg_light)                         AS avg_light,
        MAX(day)                               AS last_update
      FROM sensor_aggregates_daily
      WHERE day > CURRENT_DATE - ($1 * INTERVAL '1 day')
@@ -191,9 +193,11 @@ async function fetchGlobalTiles(log?: { warn: (obj: unknown, msg: string) => voi
         boundary,
         confidence:    sampleConfidence,
         qualityScore,
+        qualityValidRatio: row.quality_valid_ratio !== null ? Math.round(qualityValidRatio * 100) / 100 : null,
         deviceCount:   row.device_count,
         sampleCount:   row.sample_count,
         lastUpdate:    row.last_update,
+        avgLux:        row.avg_light !== null ? Math.round(row.avg_light * 10) / 10 : null,
         vibrationScore: row.vibration_score !== null ? Math.round((row.vibration_score ?? 0) * 100) / 100 : null,
       };
     })
