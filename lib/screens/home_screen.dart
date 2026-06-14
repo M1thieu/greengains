@@ -23,6 +23,7 @@ import '../core/app_preferences.dart';
 import '../widgets/coverage_map_widget.dart';
 import '../widgets/press_scale_detector.dart';
 import '../widgets/sensor_section.dart';
+import '../widgets/time_ago_text.dart';
 import '../data/repositories/contribution_repository.dart';
 
 // My Location button: 48×48 standard touch target.
@@ -1729,6 +1730,8 @@ class _SensorLiveSheet extends StatelessWidget {
                   ),
                   children: [
                     SensorSection(locationService: locationService),
+                    const SizedBox(height: AppTheme.spaceSm),
+                    _TransparencyCard(locationService: locationService),
                   ],
                 ),
               ),
@@ -1736,6 +1739,72 @@ class _SensorLiveSheet extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+}
+
+/// "What leaves your phone" — plain-language statement of exactly what is
+/// uploaded, and explicitly what is NOT collected. Trust through visibility.
+class _TransparencyCard extends StatelessWidget {
+  const _TransparencyCard({required this.locationService});
+  final ForegroundLocationService locationService;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = context.isDarkMode;
+    final l10n = context.l10n;
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(AppTheme.spaceMd),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(
+              Icons.shield_outlined,
+              size: AppIconSizes.xs,
+              color: AppColors.primary,
+            ),
+            const SizedBox(width: AppTheme.spaceSm),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // The line that matters — what we do NOT take.
+                  Text(
+                    l10n.transparencyNothingElse,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: AppColors.textPrimary(isDark),
+                      fontWeight: AppFontWeights.semibold,
+                      height: AppLineHeights.snug,
+                    ),
+                  ),
+                  const SizedBox(height: AppTheme.spaceXxxs),
+                  ValueListenableBuilder<UploadStatusSnapshot>(
+                    valueListenable: locationService.uploadStatus,
+                    builder: (context, status, _) {
+                      final last = status.lastUpload;
+                      final style = theme.textTheme.bodySmall?.copyWith(
+                        color: AppColors.textTertiary(isDark),
+                      );
+                      if (last == null) {
+                        return Text(l10n.transparencyNoUploadYet, style: style);
+                      }
+                      return Row(
+                        children: [
+                          Text('${l10n.transparencyLastUpload} · ', style: style),
+                          TimeAgoText(timestamp: last, style: style),
+                        ],
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

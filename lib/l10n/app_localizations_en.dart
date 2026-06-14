@@ -967,7 +967,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sensorStatusNoData => 'No data';
 
   @override
-  String get lightDark => 'Dark';
+  String get lightDark => 'Dark sky';
 
   @override
   String get lightDim => 'Dim';
@@ -982,10 +982,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get lightVeryBright => 'Very Bright';
 
   @override
-  String get lightDarkHint => 'Nighttime or deep shade';
+  String get lightDarkHint => 'Minimal artificial light';
 
   @override
-  String get lightDimHint => 'Low ambient light, away from windows';
+  String get lightDimHint => 'Low ambient light';
 
   @override
   String get lightNormalHint => 'Typical indoor daylight';
@@ -1252,6 +1252,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get sensorLiveSheetTitle => 'What you\'re measuring';
+
+  @override
+  String get transparencyNothingElse =>
+      'No precise route. No microphone. No contacts. Nothing else.';
+
+  @override
+  String get transparencyLastUpload => 'Last upload';
+
+  @override
+  String get transparencyNoUploadYet => 'Nothing sent yet.';
 
   @override
   String get tileQualityExcellent => 'Well covered';

@@ -1727,7 +1727,7 @@ abstract class AppLocalizations {
   /// No description provided for @lightDark.
   ///
   /// In en, this message translates to:
-  /// **'Dark'**
+  /// **'Dark sky'**
   String get lightDark;
 
   /// No description provided for @lightDim.
@@ -1757,13 +1757,13 @@ abstract class AppLocalizations {
   /// No description provided for @lightDarkHint.
   ///
   /// In en, this message translates to:
-  /// **'Nighttime or deep shade'**
+  /// **'Minimal artificial light'**
   String get lightDarkHint;
 
   /// No description provided for @lightDimHint.
   ///
   /// In en, this message translates to:
-  /// **'Low ambient light, away from windows'**
+  /// **'Low ambient light'**
   String get lightDimHint;
 
   /// No description provided for @lightNormalHint.
@@ -2209,6 +2209,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'What you\'re measuring'**
   String get sensorLiveSheetTitle;
+
+  /// No description provided for @transparencyNothingElse.
+  ///
+  /// In en, this message translates to:
+  /// **'No precise route. No microphone. No contacts. Nothing else.'**
+  String get transparencyNothingElse;
+
+  /// No description provided for @transparencyLastUpload.
+  ///
+  /// In en, this message translates to:
+  /// **'Last upload'**
+  String get transparencyLastUpload;
+
+  /// No description provided for @transparencyNoUploadYet.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing sent yet.'**
+  String get transparencyNoUploadYet;
 
   /// No description provided for @tileQualityExcellent.
   ///

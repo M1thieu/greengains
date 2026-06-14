@@ -391,13 +391,13 @@
   "sensorStatusLive": "Live",
   "sensorStatusLastReading": "Last reading",
   "sensorStatusNoData": "No data",
-  "lightDark": "Dark",
+  "lightDark": "Dark sky",
   "lightDim": "Dim",
   "lightNormal": "Normal",
   "lightBright": "Bright",
   "lightVeryBright": "Very Bright",
-  "lightDarkHint": "Nighttime or deep shade",
-  "lightDimHint": "Low ambient light, away from windows",
+  "lightDarkHint": "Minimal artificial light",
+  "lightDimHint": "Low ambient light",
   "lightNormalHint": "Typical indoor daylight",
   "lightBrightHint": "Near a window or outdoors",
   "lightVeryBrightHint": "Direct sunlight, peak UV exposure",
@@ -519,6 +519,10 @@
   "settingsDiagnosticsDesc": "Live readings from your device sensors",
 
   "sensorLiveSheetTitle": "What you're measuring",
+
+  "transparencyNothingElse": "No precise route. No microphone. No contacts. Nothing else.",
+  "transparencyLastUpload": "Last upload",
+  "transparencyNoUploadYet": "Nothing sent yet.",
 
   "tileQualityExcellent": "Well covered",
   "tileQualityGood": "Good coverage",

@@ -979,7 +979,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get sensorStatusNoData => 'Aucune donnée';
 
   @override
-  String get lightDark => 'Sombre';
+  String get lightDark => 'Ciel noir';
 
   @override
   String get lightDim => 'Faible';
@@ -994,10 +994,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get lightVeryBright => 'Très lumineux';
 
   @override
-  String get lightDarkHint => 'Nuit ou ombre profonde';
+  String get lightDarkHint => 'Très peu de lumière artificielle';
 
   @override
-  String get lightDimHint => 'Faible luminosité, loin des fenêtres';
+  String get lightDimHint => 'Faible luminosité ambiante';
 
   @override
   String get lightNormalHint => 'Éclairage intérieur typique';
@@ -1269,7 +1269,17 @@ class AppLocalizationsFr extends AppLocalizations {
       'Lectures en temps réel de vos capteurs';
 
   @override
-  String get sensorLiveSheetTitle => 'Ce que vous mesurez';
+  String get sensorLiveSheetTitle => 'Ce que tu mesures';
+
+  @override
+  String get transparencyNothingElse =>
+      'Pas de trajet précis. Pas de micro. Pas de contacts. Rien d\'autre.';
+
+  @override
+  String get transparencyLastUpload => 'Dernier envoi';
+
+  @override
+  String get transparencyNoUploadYet => 'Rien d\'envoyé pour l\'instant.';
 
   @override
   String get tileQualityExcellent => 'Bien couvert';
