@@ -664,6 +664,13 @@
       "km2": { "type": "String" }
     }
   },
+  "sessionSummaryShareTextDarkSky": "Mapped a dark sky zone tonight — {total} places on my light pollution map · {km2} km²",
+  "@sessionSummaryShareTextDarkSky": {
+    "placeholders": {
+      "total": { "type": "int" },
+      "km2": { "type": "String" }
+    }
+  },
 
   "sensorLuxLabel": "{lux} lux",
   "@sensorLuxLabel": { "placeholders": { "lux": { "type": "int" } } },

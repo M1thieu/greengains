@@ -1573,6 +1573,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String sessionSummaryShareTextDarkSky(int total, String km2) {
+    return 'Mapped a dark sky zone tonight — $total places on my light pollution map · $km2 km²';
+  }
+
+  @override
   String sensorLuxLabel(int lux) {
     return '$lux lux';
   }

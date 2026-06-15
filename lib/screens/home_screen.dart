@@ -1944,9 +1944,16 @@ class _SessionSummarySheetState extends State<_SessionSummarySheet> {
   }
 
   Future<void> _share(AppLocalizations l10n, String km2Display) async {
-    final text = widget.zonesGained > 0
-        ? l10n.sessionSummaryShareText(widget.zonesGained, widget.totalZones, km2Display)
-        : l10n.sessionSummaryShareTextEmpty(_fmtDuration(widget.sessionDuration), widget.totalZones, km2Display);
+    final isNight = DateTime.now().hour < 6 || DateTime.now().hour >= 20;
+    final lux = widget.sessionAvgLux;
+    final isDarkSky = isNight && lux != null &&
+        (SensorInsights.lightPollutionLevel(lux) == LightPollutionLevel.pristine ||
+         SensorInsights.lightPollutionLevel(lux) == LightPollutionLevel.low);
+    final text = isDarkSky
+        ? l10n.sessionSummaryShareTextDarkSky(widget.totalZones, km2Display)
+        : widget.zonesGained > 0
+            ? l10n.sessionSummaryShareText(widget.zonesGained, widget.totalZones, km2Display)
+            : l10n.sessionSummaryShareTextEmpty(_fmtDuration(widget.sessionDuration), widget.totalZones, km2Display);
     await SharePlus.instance.share(ShareParams(text: text));
   }
 

@@ -2666,6 +2666,12 @@ abstract class AppLocalizations {
   /// **'Mapped for {duration}. {total} places on my map · {km2} km²'**
   String sessionSummaryShareTextEmpty(String duration, int total, String km2);
 
+  /// No description provided for @sessionSummaryShareTextDarkSky.
+  ///
+  /// In en, this message translates to:
+  /// **'Mapped a dark sky zone tonight — {total} places on my light pollution map · {km2} km²'**
+  String sessionSummaryShareTextDarkSky(int total, String km2);
+
   /// No description provided for @sensorLuxLabel.
   ///
   /// In en, this message translates to:
