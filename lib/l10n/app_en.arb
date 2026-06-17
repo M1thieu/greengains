@@ -664,7 +664,7 @@
       "km2": { "type": "String" }
     }
   },
-  "sessionSummaryShareTextDarkSky": "Mapped a dark sky zone tonight — {total} places on my light pollution map · {km2} km²",
+  "sessionSummaryShareTextDarkSky": "Mapped a dark sky zone tonight — {total} places on my light pollution map · {km2} km²\nhttps://greengains.app/dashboard/#map",
   "@sessionSummaryShareTextDarkSky": {
     "placeholders": {
       "total": { "type": "int" },

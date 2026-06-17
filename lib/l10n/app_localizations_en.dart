@@ -1574,7 +1574,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String sessionSummaryShareTextDarkSky(int total, String km2) {
-    return 'Mapped a dark sky zone tonight — $total places on my light pollution map · $km2 km²';
+    return 'Mapped a dark sky zone tonight — $total places on my light pollution map · $km2 km²\nhttps://greengains.app/dashboard/#map';
   }
 
   @override

@@ -2669,7 +2669,7 @@ abstract class AppLocalizations {
   /// No description provided for @sessionSummaryShareTextDarkSky.
   ///
   /// In en, this message translates to:
-  /// **'Mapped a dark sky zone tonight — {total} places on my light pollution map · {km2} km²'**
+  /// **'Mapped a dark sky zone tonight — {total} places on my light pollution map · {km2} km²\nhttps://greengains.app/dashboard/#map'**
   String sessionSummaryShareTextDarkSky(int total, String km2);
 
   /// No description provided for @sensorLuxLabel.

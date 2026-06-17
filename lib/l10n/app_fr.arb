@@ -664,7 +664,7 @@
       "km2": { "type": "String" }
     }
   },
-  "sessionSummaryShareTextDarkSky": "Zone de ciel noir cartographiée ce soir — {total} zones sur ma carte de pollution lumineuse · {km2} km²",
+  "sessionSummaryShareTextDarkSky": "Zone de ciel noir cartographiée ce soir — {total} zones sur ma carte de pollution lumineuse · {km2} km²\nhttps://greengains.app/dashboard/#map",
   "@sessionSummaryShareTextDarkSky": {
     "placeholders": {
       "total": { "type": "int" },

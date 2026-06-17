@@ -1594,7 +1594,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String sessionSummaryShareTextDarkSky(int total, String km2) {
-    return 'Zone de ciel noir cartographiée ce soir — $total zones sur ma carte de pollution lumineuse · $km2 km²';
+    return 'Zone de ciel noir cartographiée ce soir — $total zones sur ma carte de pollution lumineuse · $km2 km²\nhttps://greengains.app/dashboard/#map';
   }
 
   @override
