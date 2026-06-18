@@ -2071,7 +2071,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get mapZeroStateBody =>
-      'Enable tracking once. Your route appears when you get back.';
+      'Enable tracking once. Your map fills in as you move.';
 
   @override
   String get snapshotCardTitle => 'YOUR NEIGHBOURHOOD';

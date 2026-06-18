@@ -910,7 +910,7 @@
   "profileUnlockCta": "Me connecter pour garder ma carte",
 
   "mapZeroStateTitle": "Tourne en arrière-plan",
-  "mapZeroStateBody": "Active le suivi une fois. Ton trajet apparaît à ton retour.",
+  "mapZeroStateBody": "Active le suivi une fois. Ta carte se remplit au fil de tes déplacements.",
 
   "snapshotCardTitle": "TON QUARTIER",
   "snapshotReadings": "{count, plural, =1{1 mesure} other{{count} mesures}}",

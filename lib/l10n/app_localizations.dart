@@ -3521,7 +3521,7 @@ abstract class AppLocalizations {
   /// No description provided for @mapZeroStateBody.
   ///
   /// In en, this message translates to:
-  /// **'Enable tracking once. Your route appears when you get back.'**
+  /// **'Enable tracking once. Your map fills in as you move.'**
   String get mapZeroStateBody;
 
   /// No description provided for @snapshotCardTitle.

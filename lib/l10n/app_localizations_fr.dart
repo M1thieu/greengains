@@ -2097,7 +2097,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get mapZeroStateBody =>
-      'Active le suivi une fois. Ton trajet apparaît à ton retour.';
+      'Active le suivi une fois. Ta carte se remplit au fil de tes déplacements.';
 
   @override
   String get snapshotCardTitle => 'TON QUARTIER';

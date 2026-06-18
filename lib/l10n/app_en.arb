@@ -910,7 +910,7 @@
   "profileUnlockCta": "Sign in to keep my map",
 
   "mapZeroStateTitle": "Runs in the background",
-  "mapZeroStateBody": "Enable tracking once. Your route appears when you get back.",
+  "mapZeroStateBody": "Enable tracking once. Your map fills in as you move.",
 
   "snapshotCardTitle": "YOUR NEIGHBOURHOOD",
   "snapshotReadings": "{count, plural, =1{1 reading} other{{count} readings}}",
