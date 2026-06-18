@@ -107,7 +107,7 @@ abstract class AppLocalizations {
   /// No description provided for @onboardingWelcomeSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Your phone reads light, pressure, and motion as you walk. It builds a map of everywhere you\'ve been.'**
+  /// **'Your phone reads light levels, air pressure, and movement as you go. See what your usual routes are actually like.'**
   String get onboardingWelcomeSubtitle;
 
   /// No description provided for @onboardingFeature1Title.
@@ -137,13 +137,13 @@ abstract class AppLocalizations {
   /// No description provided for @onboardingFeature3Title.
   ///
   /// In en, this message translates to:
-  /// **'See how far you\'ve been.'**
+  /// **'See what\'s around you.'**
   String get onboardingFeature3Title;
 
   /// No description provided for @onboardingFeature3Description.
   ///
   /// In en, this message translates to:
-  /// **'Every place you visit shows up on your map. Walk the same streets, watch them fill in.'**
+  /// **'Light levels, air pressure, road conditions — the invisible environment you move through every day.'**
   String get onboardingFeature3Description;
 
   /// No description provided for @onboardingSignInTitle.
@@ -1979,7 +1979,7 @@ abstract class AppLocalizations {
   /// No description provided for @referralInviteDescription.
   ///
   /// In en, this message translates to:
-  /// **'Every neighbor fills in what you haven\'t reached.'**
+  /// **'Every person who joins maps places you haven\'t reached.'**
   String get referralInviteDescription;
 
   /// No description provided for @layerMine.
@@ -2945,7 +2945,7 @@ abstract class AppLocalizations {
   /// No description provided for @onboardingActivateSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Allow location access. Your phone maps as you move.'**
+  /// **'Your phone reads the environment around you as you go. Your route is never stored.'**
   String get onboardingActivateSubtitle;
 
   /// No description provided for @onboardingActivateCta.
@@ -3455,13 +3455,13 @@ abstract class AppLocalizations {
   /// No description provided for @referralWaiting.
   ///
   /// In en, this message translates to:
-  /// **'Link sent. Waiting for your first neighbor.'**
+  /// **'Link shared. No one yet — you might be first in your area.'**
   String get referralWaiting;
 
   /// No description provided for @referralFirstJoined.
   ///
   /// In en, this message translates to:
-  /// **'First neighbor joined.'**
+  /// **'First person joined.'**
   String get referralFirstJoined;
 
   /// No description provided for @referralShareAgain.
@@ -3473,7 +3473,7 @@ abstract class AppLocalizations {
   /// No description provided for @referralShareText.
   ///
   /// In en, this message translates to:
-  /// **'Join me on GreenGains. We\'re mapping our neighborhood\'s light, pressure and motion. Use my invite code {code} when you sign up.'**
+  /// **'Join me on GreenGains — we\'re mapping light pollution, air pressure and road conditions around us. Use my invite code {code} when you sign up.'**
   String referralShareText(String code);
 
   /// No description provided for @onboardingHaveCode.

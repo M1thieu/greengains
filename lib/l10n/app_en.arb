@@ -2,13 +2,13 @@
   "@@locale": "en",
 
   "onboardingWelcomeTitle": "Finally know your neighborhood.",
-  "onboardingWelcomeSubtitle": "Your phone reads light, pressure, and motion as you walk. It builds a map of everywhere you've been.",
+  "onboardingWelcomeSubtitle": "Your phone reads light levels, air pressure, and movement as you go. See what your usual routes are actually like.",
   "onboardingFeature1Title": "Nothing to do.",
   "onboardingFeature1Description": "Start once, carry your phone. Your map builds itself.",
   "onboardingFeature2Title": "Private by default",
   "onboardingFeature2Description": "Your route is never stored. Readings are anonymous before they leave your phone.",
-  "onboardingFeature3Title": "See how far you've been.",
-  "onboardingFeature3Description": "Every place you visit shows up on your map. Walk the same streets, watch them fill in.",
+  "onboardingFeature3Title": "See what's around you.",
+  "onboardingFeature3Description": "Light levels, air pressure, road conditions — the invisible environment you move through every day.",
   "onboardingSignInTitle": "Your map starts here.",
   "onboardingSignInSubtitle": "Sign in to keep your map synced across devices.",
   "onboardingPrivacyNotice": "By continuing, you agree to our {privacyPolicy} and {termsOfService}.",
@@ -446,7 +446,7 @@
   },
   "settingsDataRetention": "Data kept for 7 days (Free)",
   "referralInviteTitle": "Invite friends",
-  "referralInviteDescription": "Every neighbor fills in what you haven't reached.",
+  "referralInviteDescription": "Every person who joins maps places you haven't reached.",
   "layerMine": "Mine",
   "layerAll": "All",
   "referralLinkCopied": "Link copied",
@@ -752,7 +752,7 @@
   },
 
   "onboardingActivateTitle": "Almost there",
-  "onboardingActivateSubtitle": "Allow location access. Your phone maps as you move.",
+  "onboardingActivateSubtitle": "Your phone reads the environment around you as you go. Your route is never stored.",
   "onboardingActivateCta": "Start mapping",
   "onboardingPermissionDenied": "Location permission is required to map your city.",
   "onboardingPermissionDeniedForeverTitle": "Permission required",
@@ -891,10 +891,10 @@
   "statsKm2Unit": "km²",
   "statsLast30DaysUnit": "/ 30",
 
-  "referralWaiting": "Link sent. Waiting for your first neighbor.",
-  "referralFirstJoined": "First neighbor joined.",
+  "referralWaiting": "Link shared. No one yet — you might be first in your area.",
+  "referralFirstJoined": "First person joined.",
   "referralShareAgain": "Share again",
-  "referralShareText": "Join me on GreenGains. We're mapping our neighborhood's light, pressure and motion. Use my invite code {code} when you sign up.",
+  "referralShareText": "Join me on GreenGains — we're mapping light pollution, air pressure and road conditions around us. Use my invite code {code} when you sign up.",
   "@referralShareText": {
     "placeholders": {
       "code": { "type": "String" }

@@ -13,7 +13,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get onboardingWelcomeSubtitle =>
-      'Votre téléphone lit la lumière, la pression et le mouvement pendant que vous marchez. Il construit une carte de tous les endroits où vous êtes allé.';
+      'Votre téléphone mesure la lumière, la pression atmosphérique et le mouvement en déplacement. Découvrez vos trajets habituels sous un nouveau jour.';
 
   @override
   String get onboardingFeature1Title => 'Rien à faire.';
@@ -30,11 +30,11 @@ class AppLocalizationsFr extends AppLocalizations {
       'Votre trajet n\'est jamais conservé. Les données sont anonymisées avant de quitter votre téléphone.';
 
   @override
-  String get onboardingFeature3Title => 'Voyez jusqu\'où vous êtes allé.';
+  String get onboardingFeature3Title => 'Voyez votre environnement.';
 
   @override
   String get onboardingFeature3Description =>
-      'Chaque endroit visité apparaît sur votre carte. Repassez par les mêmes rues, regardez-les se remplir.';
+      'Niveaux de lumière, pression atmosphérique, état des routes — l\'environnement invisible que vous traversez chaque jour.';
 
   @override
   String get onboardingSignInTitle => 'Votre carte commence ici.';
@@ -1125,7 +1125,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get referralInviteDescription =>
-      'Chaque voisin complète ce que tu n\'as pas encore atteint.';
+      'Chaque personne qui rejoint cartographie des endroits que tu n\'as pas encore couverts.';
 
   @override
   String get layerMine => 'Miennes';
@@ -1750,7 +1750,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get onboardingActivateSubtitle =>
-      'Autorisez la localisation. Votre téléphone cartographie pendant vos déplacements.';
+      'Votre téléphone mesure l\'environnement autour de vous en déplacement. Votre trajet n\'est jamais enregistré.';
 
   @override
   String get onboardingActivateCta => 'Commencer à cartographier';
@@ -2060,17 +2060,17 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get referralWaiting =>
-      'Lien envoyé. En attente de ton premier voisin.';
+      'Lien partagé. Personne encore — tu es peut-être le premier dans ta zone.';
 
   @override
-  String get referralFirstJoined => 'Premier voisin rejoint.';
+  String get referralFirstJoined => 'Première personne rejointe.';
 
   @override
   String get referralShareAgain => 'Partager à nouveau';
 
   @override
   String referralShareText(String code) {
-    return 'Rejoins-moi sur GreenGains. On cartographie notre quartier : lumière, pression et mouvement. Utilise mon code d\'invitation $code quand tu t\'inscris.';
+    return 'Rejoins-moi sur GreenGains — on cartographie la pollution lumineuse, la pression atmosphérique et l\'état des routes. Utilise mon code $code à l\'inscription.';
   }
 
   @override

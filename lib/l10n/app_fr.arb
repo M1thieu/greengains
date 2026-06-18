@@ -2,13 +2,13 @@
   "@@locale": "fr",
 
   "onboardingWelcomeTitle": "Enfin connaître son quartier.",
-  "onboardingWelcomeSubtitle": "Votre téléphone lit la lumière, la pression et le mouvement pendant que vous marchez. Il construit une carte de tous les endroits où vous êtes allé.",
+  "onboardingWelcomeSubtitle": "Votre téléphone mesure la lumière, la pression atmosphérique et le mouvement en déplacement. Découvrez vos trajets habituels sous un nouveau jour.",
   "onboardingFeature1Title": "Rien à faire.",
   "onboardingFeature1Description": "Lancez une fois, gardez votre téléphone. La carte se construit seule.",
   "onboardingFeature2Title": "Privé par défaut",
   "onboardingFeature2Description": "Votre trajet n'est jamais conservé. Les données sont anonymisées avant de quitter votre téléphone.",
-  "onboardingFeature3Title": "Voyez jusqu'où vous êtes allé.",
-  "onboardingFeature3Description": "Chaque endroit visité apparaît sur votre carte. Repassez par les mêmes rues, regardez-les se remplir.",
+  "onboardingFeature3Title": "Voyez votre environnement.",
+  "onboardingFeature3Description": "Niveaux de lumière, pression atmosphérique, état des routes — l'environnement invisible que vous traversez chaque jour.",
   "onboardingSignInTitle": "Votre carte commence ici.",
   "onboardingSignInSubtitle": "Connectez-vous pour garder votre carte synchronisée sur tous vos appareils.",
   "onboardingPrivacyNotice": "En continuant, vous acceptez notre {privacyPolicy} et nos {termsOfService}.",
@@ -446,7 +446,7 @@
   },
   "settingsDataRetention": "Données conservées 7 jours (Gratuit)",
   "referralInviteTitle": "Inviter des amis",
-  "referralInviteDescription": "Chaque voisin complète ce que tu n'as pas encore atteint.",
+  "referralInviteDescription": "Chaque personne qui rejoint cartographie des endroits que tu n'as pas encore couverts.",
   "layerMine": "Miennes",
   "layerAll": "Tout",
   "referralLinkCopied": "Lien copié",
@@ -752,7 +752,7 @@
   },
 
   "onboardingActivateTitle": "Presque là",
-  "onboardingActivateSubtitle": "Autorisez la localisation. Votre téléphone cartographie pendant vos déplacements.",
+  "onboardingActivateSubtitle": "Votre téléphone mesure l'environnement autour de vous en déplacement. Votre trajet n'est jamais enregistré.",
   "onboardingActivateCta": "Commencer à cartographier",
   "onboardingPermissionDenied": "L'accès à la localisation est nécessaire pour cartographier votre ville.",
   "onboardingPermissionDeniedForeverTitle": "Permission requise",
@@ -891,10 +891,10 @@
   "statsKm2Unit": "km²",
   "statsLast30DaysUnit": "/ 30",
 
-  "referralWaiting": "Lien envoyé. En attente de ton premier voisin.",
-  "referralFirstJoined": "Premier voisin rejoint.",
+  "referralWaiting": "Lien partagé. Personne encore — tu es peut-être le premier dans ta zone.",
+  "referralFirstJoined": "Première personne rejointe.",
   "referralShareAgain": "Partager à nouveau",
-  "referralShareText": "Rejoins-moi sur GreenGains. On cartographie notre quartier : lumière, pression et mouvement. Utilise mon code d'invitation {code} quand tu t'inscris.",
+  "referralShareText": "Rejoins-moi sur GreenGains — on cartographie la pollution lumineuse, la pression atmosphérique et l'état des routes. Utilise mon code {code} à l'inscription.",
   "@referralShareText": {
     "placeholders": {
       "code": { "type": "String" }

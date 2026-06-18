@@ -13,7 +13,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get onboardingWelcomeSubtitle =>
-      'Your phone reads light, pressure, and motion as you walk. It builds a map of everywhere you\'ve been.';
+      'Your phone reads light levels, air pressure, and movement as you go. See what your usual routes are actually like.';
 
   @override
   String get onboardingFeature1Title => 'Nothing to do.';
@@ -30,11 +30,11 @@ class AppLocalizationsEn extends AppLocalizations {
       'Your route is never stored. Readings are anonymous before they leave your phone.';
 
   @override
-  String get onboardingFeature3Title => 'See how far you\'ve been.';
+  String get onboardingFeature3Title => 'See what\'s around you.';
 
   @override
   String get onboardingFeature3Description =>
-      'Every place you visit shows up on your map. Walk the same streets, watch them fill in.';
+      'Light levels, air pressure, road conditions — the invisible environment you move through every day.';
 
   @override
   String get onboardingSignInTitle => 'Your map starts here.';
@@ -1108,7 +1108,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get referralInviteDescription =>
-      'Every neighbor fills in what you haven\'t reached.';
+      'Every person who joins maps places you haven\'t reached.';
 
   @override
   String get layerMine => 'Mine';
@@ -1728,7 +1728,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get onboardingActivateSubtitle =>
-      'Allow location access. Your phone maps as you move.';
+      'Your phone reads the environment around you as you go. Your route is never stored.';
 
   @override
   String get onboardingActivateCta => 'Start mapping';
@@ -2033,17 +2033,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get statsLast30DaysUnit => '/ 30';
 
   @override
-  String get referralWaiting => 'Link sent. Waiting for your first neighbor.';
+  String get referralWaiting =>
+      'Link shared. No one yet — you might be first in your area.';
 
   @override
-  String get referralFirstJoined => 'First neighbor joined.';
+  String get referralFirstJoined => 'First person joined.';
 
   @override
   String get referralShareAgain => 'Share again';
 
   @override
   String referralShareText(String code) {
-    return 'Join me on GreenGains. We\'re mapping our neighborhood\'s light, pressure and motion. Use my invite code $code when you sign up.';
+    return 'Join me on GreenGains — we\'re mapping light pollution, air pressure and road conditions around us. Use my invite code $code when you sign up.';
   }
 
   @override
