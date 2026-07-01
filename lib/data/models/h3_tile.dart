@@ -20,7 +20,7 @@ class H3Tile {
   final bool isGlobal;
 
   /// Sensor aggregates — only populated for personal tiles (from batch_json).
-  final int? avgLux;         // average illuminance (lux)
+  final int? avgLux;         // average illuminance (lux, all hours)
   final double? avgHpa;      // average barometric pressure (hPa)
   final double? avgMovement; // average accelerometer magnitude
   /// Surface vibration / roughness score 0–1. Derived from accel std-dev.

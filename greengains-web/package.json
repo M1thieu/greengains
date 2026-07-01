@@ -1,0 +1,17 @@
+{
+  "name": "greengains-web",
+  "type": "module",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "deploy": "astro build && xcopy /E /Y /I dist ..\\..\\..\\..\\..\\..\\Users\\mathi\\Documents\\Eremat\\public_html\\greengains"
+  },
+  "dependencies": {
+    "astro": "^4.16.0",
+    "@astrojs/tailwind": "^5.1.0",
+    "@astrojs/sitemap": "^3.2.0",
+    "tailwindcss": "^3.4.0"
+  }
+}

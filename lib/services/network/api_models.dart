@@ -125,6 +125,60 @@ class WeeklyTargetResponse {
       );
 }
 
+// ── Local rank ("Local Legend") ───────────────────────────────────────────────
+
+class LocalRankResponse {
+  final bool hasActivity;
+  final int rank;
+  final int totalMappers;
+  final bool isLeader;
+  final int ownCellCount;
+  final int leaderCellCount;
+  final int cellsToLead;
+
+  const LocalRankResponse({
+    required this.hasActivity,
+    this.rank = 0,
+    this.totalMappers = 0,
+    this.isLeader = false,
+    this.ownCellCount = 0,
+    this.leaderCellCount = 0,
+    this.cellsToLead = 0,
+  });
+
+  factory LocalRankResponse.fromJson(Map<String, dynamic> json) =>
+      LocalRankResponse(
+        hasActivity:     json['hasActivity'] as bool? ?? false,
+        rank:            (json['rank'] as num?)?.toInt() ?? 0,
+        totalMappers:    (json['totalMappers'] as num?)?.toInt() ?? 0,
+        isLeader:        json['isLeader'] as bool? ?? false,
+        ownCellCount:    (json['ownCellCount'] as num?)?.toInt() ?? 0,
+        leaderCellCount: (json['leaderCellCount'] as num?)?.toInt() ?? 0,
+        cellsToLead:     (json['cellsToLead'] as num?)?.toInt() ?? 0,
+      );
+}
+
+// ── Impact ("only you've ever mapped this") ───────────────────────────────────
+
+class ImpactResponse {
+  final bool hasActivity;
+  final int totalCells;
+  final int soloCells;
+
+  const ImpactResponse({
+    required this.hasActivity,
+    this.totalCells = 0,
+    this.soloCells = 0,
+  });
+
+  factory ImpactResponse.fromJson(Map<String, dynamic> json) =>
+      ImpactResponse(
+        hasActivity: json['hasActivity'] as bool? ?? false,
+        totalCells:  (json['totalCells'] as num?)?.toInt() ?? 0,
+        soloCells:   (json['soloCells'] as num?)?.toInt() ?? 0,
+      );
+}
+
 // ── Community stats ─────────────────────────────────────────────────────────
 
 class GlobalStatsResponse {

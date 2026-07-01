@@ -15,6 +15,8 @@ const kApiTilesGlobal  = '/api/tiles/global';
 const kApiUserProfile  = '/api/user/profile';
 const kApiUserConsent  = '/api/user/consent';
 const kApiWeeklyTarget = '/api/user/weekly-target';
+const kApiLocalRank   = '/api/user/local-rank';
+const kApiImpact      = '/api/user/impact';
 const kApiRegisterDevice = '/register-device';
 const kApiStatsGlobal  = '/api/stats/global';
 

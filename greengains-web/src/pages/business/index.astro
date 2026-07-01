@@ -1,0 +1,106 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Nav from '../../components/Nav.astro';
+import Footer from '../../components/Footer.astro';
+---
+
+<Layout
+  title="GreenGains for Cities — Street-level environmental data"
+  description="Citizen-collected sensor data at city scale. Light pollution, road vibration, air pressure — queryable by OSM boundary."
+>
+  <Nav />
+
+  <section class="relative mx-auto max-w-6xl px-6 pt-36 pb-20">
+    <div class="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_60%_40%_at_20%_30%,rgba(16,185,129,0.06),transparent)]" />
+    <p class="text-xs font-semibold uppercase tracking-widest text-primary">For organizations</p>
+    <h1 class="mt-4 max-w-2xl text-4xl font-bold leading-tight md:text-6xl">
+      Street-level data.<br />No fieldwork required.
+    </h1>
+    <p class="mt-6 max-w-xl text-lg leading-relaxed text-muted">
+      GreenGains turns everyday commutes into a continuous sensor grid.
+      Light pollution, road roughness, air pressure — collected passively by citizens,
+      aggregated into queryable spatial layers.
+    </p>
+    <a
+      href="mailto:contact@eremat.org"
+      class="mt-9 inline-flex rounded-lg bg-primary px-6 py-3 font-semibold text-bg transition-opacity hover:opacity-90"
+    >
+      Get in touch
+    </a>
+  </section>
+
+  <!-- What orgs actually use it for -->
+  <section class="border-t border-border">
+    <div class="mx-auto max-w-6xl px-6 py-24">
+      <h2 class="text-2xl font-bold md:text-3xl">What people are using it for.</h2>
+
+      <div class="mt-12 grid gap-px md:grid-cols-3" style="background:theme('colors.border')">
+        {[
+          {
+            title: 'Urban planning',
+            body: 'Ground-truth for streets that satellite imagery can\'t see. Identify high-vibration roads before resurfacing decisions. Map light pollution across districts without deploying physical sensors.',
+          },
+          {
+            title: 'Environmental research',
+            body: 'Continuous ambient light and pressure readings across a real urban area. The kind of longitudinal dataset that normally costs years of fieldwork.',
+          },
+          {
+            title: 'Dark sky / health studies',
+            body: 'Precise light pollution mapping at ~174m resolution. Correlate with bat activity, sleep quality research, or dark-sky certification applications.',
+          },
+        ].map(c => (
+          <div class="bg-bg px-8 py-10">
+            <h3 class="font-semibold text-white">{c.title}</h3>
+            <p class="mt-3 text-sm leading-relaxed text-muted">{c.body}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Data spec -->
+  <section id="api" class="border-t border-border bg-surface">
+    <div class="mx-auto max-w-6xl px-6 py-24">
+      <p class="text-xs font-semibold uppercase tracking-widest text-primary">The data</p>
+      <h2 class="mt-3 text-2xl font-bold md:text-3xl">What you're actually getting.</h2>
+      <p class="mt-4 max-w-lg text-muted">No PII. No raw device data. Just aggregated spatial readings, updated continuously.</p>
+
+      <div class="mt-10 space-y-3 max-w-2xl">
+        {[
+          ['Sensors',       'Ambient light · barometric pressure · road vibration · movement quality'],
+          ['Resolution',    'H3 res 9 (~174m hex) personal · res 8 (~461m) community'],
+          ['Query',         'By OSM boundary polygon, H3 index, or bounding box — REST API'],
+          ['Window',        '30-day rolling, updated as citizens contribute'],
+          ['Format',        'GeoJSON · CSV export on request'],
+          ['Privacy',       'All readings anonymized at ingest. We can\'t trace a reading to a person.'],
+        ].map(([k, v]) => (
+          <div class="flex gap-6 border-b border-border pb-3 last:border-0">
+            <p class="w-28 shrink-0 text-xs font-semibold uppercase tracking-wider text-muted">{k}</p>
+            <p class="text-sm text-white">{v}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Honest state of things -->
+  <section class="border-t border-border">
+    <div class="mx-auto max-w-6xl px-6 py-24">
+      <p class="text-xs font-semibold uppercase tracking-widest text-primary">Honest status</p>
+      <h2 class="mt-3 text-2xl font-bold md:text-3xl">Coverage is growing. We're early.</h2>
+      <p class="mt-5 max-w-xl text-muted leading-relaxed">
+        This isn't a mature enterprise product yet. Coverage depends on where contributors live and commute.
+        Dense areas have rich data; sparse areas have less. If you're an organization willing to work with that honestly,
+        we want to talk — early partners shape what gets built next.
+      </p>
+      <a
+        href="mailto:contact@eremat.org"
+        class="mt-8 inline-flex items-center gap-2 rounded-lg border border-border px-6 py-3 font-semibold text-white transition-colors hover:border-primary/60"
+      >
+        Contact us directly
+      </a>
+    </div>
+  </section>
+
+  <Footer />
+</Layout>

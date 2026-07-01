@@ -658,6 +658,132 @@ export async function userRoutes(fastify: FastifyInstance) {
   );
 
   /**
+   * GET /api/user/local-rank
+   * "Local Legend" status — ranks the user against everyone else who mapped
+   * inside their most-active h3_res8 cell (~461m hex, same granularity as
+   * community tiles) this week. No tokens, no other user identities exposed —
+   * pure local status, mirroring Strava's Local Legend retention mechanic
+   * (consistency-based, achievable, no global leaderboard demotivation).
+   */
+  fastify.get(
+    '/api/user/local-rank',
+    { preHandler: requireFirebaseAuth },
+    async (request: FastifyRequest, reply: FastifyReply) => {
+      const userId = request.user!.uid;
+      try {
+        const pool = getPool();
+
+        const now = new Date();
+        const dayOfWeek = now.getUTCDay();
+        const weekStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - dayOfWeek));
+        const weekEnd   = new Date(weekStart.getTime() + 7 * MS_PER_DAY - 1);
+
+        // Find the h3_res8 cell the user has been most active in this week.
+        const homeResult = await pool.query<{ h3_res8: string; batch_count: string }>(
+          `SELECT h3_res8, COUNT(*)::text AS batch_count
+           FROM sensor_batches
+           WHERE user_id = $1 AND h3_res8 IS NOT NULL AND timestamp_utc >= $2
+           GROUP BY h3_res8
+           ORDER BY batch_count DESC
+           LIMIT 1`,
+          [userId, weekStart.toISOString()],
+        );
+
+        const homeCell = homeResult.rows[0]?.h3_res8 ?? null;
+        if (!homeCell) {
+          return reply.send({
+            hasActivity: false,
+            weekStart: weekStart.toISOString().slice(0, 10),
+            weekEnd:   weekEnd.toISOString().slice(0, 10),
+          });
+        }
+
+        // Rank every mapper active in that same cell this week by distinct cells covered.
+        const rankResult = await pool.query<{ user_id: string; cell_count: string }>(
+          `SELECT user_id, COUNT(DISTINCT h3_res9)::text AS cell_count
+           FROM sensor_batches
+           WHERE h3_res8 = $1 AND timestamp_utc >= $2 AND h3_res9 IS NOT NULL
+           GROUP BY user_id
+           ORDER BY cell_count DESC`,
+          [homeCell, weekStart.toISOString()],
+        );
+
+        const rows = rankResult.rows.map(r => ({ userId: r.user_id, cellCount: parseInt(r.cell_count, 10) }));
+        const totalMappers = rows.length;
+        const ownIndex = rows.findIndex(r => r.userId === userId);
+        const rank = ownIndex === -1 ? totalMappers + 1 : ownIndex + 1;
+        const ownCellCount = ownIndex === -1 ? 0 : rows[ownIndex].cellCount;
+        const leaderCellCount = rows[0]?.cellCount ?? 0;
+        const isLeader = rank === 1;
+
+        return reply.send({
+          hasActivity: true,
+          rank,
+          totalMappers,
+          isLeader,
+          ownCellCount,
+          leaderCellCount,
+          cellsToLead: isLeader ? 0 : Math.max(1, leaderCellCount - ownCellCount + 1),
+          weekStart: weekStart.toISOString().slice(0, 10),
+          weekEnd:   weekEnd.toISOString().slice(0, 10),
+        });
+      } catch (error) {
+        request.log.error({ err: error, userId }, 'Local rank fetch error');
+        return reply.code(500).send({ error: 'Internal Server Error', requestId: request.id });
+      }
+    },
+  );
+
+  /**
+   * GET /api/user/impact
+   * "Only you" signal — counts how many of the user's own h3_res9 cells have
+   * never been mapped by anyone else, ever. Closes the citizen-science
+   * "fulfillment gap" (Frontiers 2023: contribution satisfaction drops after
+   * joining because people never see what their data actually did) with a
+   * concrete, true number rather than a generic thank-you.
+   */
+  fastify.get(
+    '/api/user/impact',
+    { preHandler: requireFirebaseAuth },
+    async (request: FastifyRequest, reply: FastifyReply) => {
+      const userId = request.user!.uid;
+      try {
+        const pool = getPool();
+
+        const result = await pool.query<{ total_cells: string; solo_cells: string }>(
+          `WITH my_cells AS (
+             SELECT DISTINCT h3_res9 FROM sensor_batches
+             WHERE user_id = $1 AND h3_res9 IS NOT NULL
+             LIMIT ${MAX_USER_TILES}
+           ),
+           contributor_counts AS (
+             SELECT sb.h3_res9, COUNT(DISTINCT sb.user_id) AS contributors
+             FROM sensor_batches sb
+             WHERE sb.h3_res9 IN (SELECT h3_res9 FROM my_cells)
+             GROUP BY sb.h3_res9
+           )
+           SELECT
+             (SELECT COUNT(*) FROM my_cells)::text                                AS total_cells,
+             (SELECT COUNT(*) FROM contributor_counts WHERE contributors = 1)::text AS solo_cells`,
+          [userId],
+        );
+
+        const totalCells = parseInt(result.rows[0]?.total_cells ?? '0', 10);
+        const soloCells  = parseInt(result.rows[0]?.solo_cells ?? '0', 10);
+
+        return reply.send({
+          hasActivity: totalCells > 0,
+          totalCells,
+          soloCells,
+        });
+      } catch (error) {
+        request.log.error({ err: error, userId }, 'Impact fetch error');
+        return reply.code(500).send({ error: 'Internal Server Error', requestId: request.id });
+      }
+    },
+  );
+
+  /**
    * POST /api/user/consent
    * Records that the authenticated user explicitly accepted the privacy policy.
    * Body: { platform?: 'android'|'ios', appVersion?: string }

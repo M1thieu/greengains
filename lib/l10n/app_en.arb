@@ -216,6 +216,17 @@
   "statsVerdictSubNone": "Enable tracking and go about your day.",
   "statsWeeklyTargetLabel": "THIS WEEK",
   "statsWeeklyTargetComplete": "Goal reached",
+
+  "statsLocalLegendLabel": "LOCAL LEGEND",
+  "statsLocalLegendLeader": "Top mapper in your area this week",
+  "statsLocalLegendRank": "#{rank} of {total} nearby this week",
+  "@statsLocalLegendRank": { "placeholders": { "rank": { "type": "int" }, "total": { "type": "int" } } },
+  "statsLocalLegendGap": "{count, plural, =1{1 zone to take the lead} other{{count} zones to take the lead}}",
+  "@statsLocalLegendGap": { "placeholders": { "count": { "type": "int" } } },
+
+  "statsImpactLabel": "YOUR IMPACT",
+  "statsImpactSolo": "{count, plural, =1{Only you have ever mapped 1 of your zones} other{Only you have ever mapped {count} of your zones}}",
+  "@statsImpactSolo": { "placeholders": { "count": { "type": "int" } } },
   "statsWeeklyTargetRemaining": "{count} more",
   "@statsWeeklyTargetRemaining": { "placeholders": { "count": { "type": "int" } } },
   "statsDetailTitle": "Your data",

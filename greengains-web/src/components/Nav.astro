@@ -1,0 +1,68 @@
+---
+const links = [
+  { href: '/#how-it-works', label: 'How it works' },
+  { href: '/#map',          label: 'Coverage map' },
+  { href: '/business',      label: 'For cities' },
+];
+const PLAY_STORE = 'https://play.google.com/store/apps/details?id=com.eremat.greengains';
+---
+
+<header class="fixed inset-x-0 top-0 z-50 border-b border-border/50 bg-bg/80 backdrop-blur-md">
+  <nav class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
+    <a href="/" class="flex items-center gap-1.5 font-semibold tracking-tight">
+      <span class="text-primary">Green</span><span class="text-white">Gains</span>
+    </a>
+
+    <ul class="hidden items-center gap-8 text-sm text-muted md:flex">
+      {links.map(l => (
+        <li><a href={l.href} class="transition-colors hover:text-white">{l.label}</a></li>
+      ))}
+    </ul>
+
+    <div class="flex items-center gap-3">
+      <a
+        href={PLAY_STORE}
+        target="_blank" rel="noopener noreferrer"
+        class="hidden rounded-lg bg-primary px-4 py-2 text-sm font-medium text-bg transition-opacity hover:opacity-90 sm:inline-flex"
+      >
+        Download
+      </a>
+
+      <!-- Mobile hamburger -->
+      <button id="gg-hamburger" class="flex flex-col gap-1.5 p-2 md:hidden" aria-label="Open menu" aria-expanded="false">
+        <span class="block h-px w-5 bg-white transition-all"></span>
+        <span class="block h-px w-5 bg-white transition-all"></span>
+        <span class="block h-px w-5 bg-white transition-all"></span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Mobile menu -->
+  <div id="gg-mobile-menu" class="hidden border-t border-border bg-bg px-6 py-4 md:hidden">
+    <ul class="flex flex-col gap-4 text-sm">
+      {links.map(l => (
+        <li><a href={l.href} class="block text-muted transition-colors hover:text-white">{l.label}</a></li>
+      ))}
+      <li class="pt-2 border-t border-border">
+        <a href={PLAY_STORE} target="_blank" rel="noopener noreferrer"
+           class="block rounded-lg bg-primary px-4 py-2.5 text-center font-medium text-bg">
+          Download on Android
+        </a>
+      </li>
+    </ul>
+  </div>
+</header>
+
+<script>
+  const btn  = document.getElementById('gg-hamburger');
+  const menu = document.getElementById('gg-mobile-menu');
+  btn?.addEventListener('click', () => {
+    const open = menu?.classList.toggle('hidden') === false;
+    btn.setAttribute('aria-expanded', String(open));
+  });
+  // Close on nav link click
+  menu?.querySelectorAll('a').forEach(a => a.addEventListener('click', () => {
+    menu.classList.add('hidden');
+    btn?.setAttribute('aria-expanded', 'false');
+  }));
+</script>

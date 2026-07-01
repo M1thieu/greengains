@@ -216,6 +216,17 @@
   "statsVerdictSubNone": "Active le suivi et vis ta journée.",
   "statsWeeklyTargetLabel": "CETTE SEMAINE",
   "statsWeeklyTargetComplete": "Objectif atteint",
+
+  "statsLocalLegendLabel": "LÉGENDE LOCALE",
+  "statsLocalLegendLeader": "Mappeur le plus actif de ton secteur cette semaine",
+  "statsLocalLegendRank": "#{rank} sur {total} dans le secteur cette semaine",
+  "@statsLocalLegendRank": { "placeholders": { "rank": { "type": "int" }, "total": { "type": "int" } } },
+  "statsLocalLegendGap": "{count, plural, =1{1 zone pour prendre la tête} other{{count} zones pour prendre la tête}}",
+  "@statsLocalLegendGap": { "placeholders": { "count": { "type": "int" } } },
+
+  "statsImpactLabel": "TON IMPACT",
+  "statsImpactSolo": "{count, plural, =1{Tu es la seule personne à avoir cartographié 1 de tes zones} other{Tu es la seule personne à avoir cartographié {count} de tes zones}}",
+  "@statsImpactSolo": { "placeholders": { "count": { "type": "int" } } },
   "statsWeeklyTargetRemaining": "{count} de plus",
   "@statsWeeklyTargetRemaining": { "placeholders": { "count": { "type": "int" } } },
   "statsDetailTitle": "Tes données",

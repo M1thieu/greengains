@@ -527,6 +527,43 @@ class AppLocalizationsFr extends AppLocalizations {
   String get statsWeeklyTargetComplete => 'Objectif atteint';
 
   @override
+  String get statsLocalLegendLabel => 'LÉGENDE LOCALE';
+
+  @override
+  String get statsLocalLegendLeader =>
+      'Mappeur le plus actif de ton secteur cette semaine';
+
+  @override
+  String statsLocalLegendRank(int rank, int total) {
+    return '#$rank sur $total dans le secteur cette semaine';
+  }
+
+  @override
+  String statsLocalLegendGap(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count zones pour prendre la tête',
+      one: '1 zone pour prendre la tête',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get statsImpactLabel => 'TON IMPACT';
+
+  @override
+  String statsImpactSolo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Tu es la seule personne à avoir cartographié $count de tes zones',
+      one: 'Tu es la seule personne à avoir cartographié 1 de tes zones',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String statsWeeklyTargetRemaining(int count) {
     return '$count de plus';
   }

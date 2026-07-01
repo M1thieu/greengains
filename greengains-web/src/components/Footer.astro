@@ -1,0 +1,49 @@
+---
+const year = new Date().getFullYear();
+---
+
+<footer class="border-t border-border mt-24">
+  <div class="mx-auto max-w-6xl px-6 py-12">
+    <div class="grid grid-cols-2 gap-8 md:grid-cols-4">
+      <div class="col-span-2 md:col-span-1">
+        <p class="font-semibold">
+          <span class="text-primary">Green</span>Gains
+        </p>
+        <p class="mt-2 text-sm text-muted leading-relaxed">
+          Environmental intelligence,<br />street by street.
+        </p>
+      </div>
+
+      <div>
+        <p class="text-xs font-semibold uppercase tracking-widest text-muted">Product</p>
+        <ul class="mt-4 space-y-2 text-sm text-muted">
+          <li><a href="/#how-it-works" class="hover:text-white transition-colors">How it works</a></li>
+          <li><a href="/dashboard/#map" class="hover:text-white transition-colors">Coverage map</a></li>
+          <li><a href="https://play.google.com/store/apps/details?id=com.eremat.greengains" target="_blank" rel="noopener" class="hover:text-white transition-colors">Android app</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <p class="text-xs font-semibold uppercase tracking-widest text-muted">Business</p>
+        <ul class="mt-4 space-y-2 text-sm text-muted">
+          <li><a href="/business" class="hover:text-white transition-colors">For cities</a></li>
+          <li><a href="/business#api" class="hover:text-white transition-colors">Data API</a></li>
+          <li><a href="mailto:contact@eremat.org" class="hover:text-white transition-colors">Contact</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <p class="text-xs font-semibold uppercase tracking-widest text-muted">Legal</p>
+        <ul class="mt-4 space-y-2 text-sm text-muted">
+          <li><a href="/legal/privacy-policy" class="hover:text-white transition-colors">Privacy</a></li>
+          <li><a href="/legal/terms-of-service" class="hover:text-white transition-colors">Terms</a></li>
+          <li><a href="https://eremat.org" class="hover:text-white transition-colors">Eremat</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="mt-12 border-t border-border pt-6 text-xs text-muted">
+      &copy; {year} Eremat. All rights reserved.
+    </div>
+  </div>
+</footer>

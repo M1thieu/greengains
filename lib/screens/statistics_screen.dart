@@ -79,6 +79,10 @@ class _StatisticsScreenState extends State<StatisticsScreen>
   double? _avgPerDay;
   // Weekly new-territory target
   WeeklyTargetResponse? _weeklyTarget;
+  // Local Legend status — rank among mappers active in the same area this week
+  LocalRankResponse? _localRank;
+  // "Only you" impact — cells nobody else has ever mapped
+  ImpactResponse? _impact;
   // Data quality 0–100 from user_stats valid_samples/samples_count
   int? _qualityPct;
 
@@ -195,8 +199,12 @@ class _StatisticsScreenState extends State<StatisticsScreen>
       // Run independently so weekly target failure can't block profile data.
       final profileFuture = StatsService.instance.fetchProfileAndGlobal();
       final targetFuture = StatsService.instance.fetchWeeklyTarget();
+      final localRankFuture = StatsService.instance.fetchLocalRank();
+      final impactFuture = StatsService.instance.fetchImpact();
       final (:profile, :global) = await profileFuture;
       final weeklyTarget = await targetFuture;
+      final localRank = await localRankFuture;
+      final impact = await impactFuture;
       if (mounted) {
         setState(() {
           _weeklyData = profile.weekly;
@@ -218,6 +226,8 @@ class _StatisticsScreenState extends State<StatisticsScreen>
             _weeklyTarget = weeklyTarget;
             _maybeFireWeeklyCelebration(weeklyTarget);
           }
+          if (localRank != null) _localRank = localRank;
+          if (impact != null) _impact = impact;
           // Auto-highlight best day on first load
           if (_selectedBarIndex == null && profile.weekly.isNotEmpty) {
             final maxV = profile.weekly.fold(0, max);
@@ -312,6 +322,16 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                       if (_weeklyTarget != null) ...[
                         const SizedBox(height: AppTheme.spaceSm),
                         _withEntrance(_buildWeeklyTargetCard(theme, isDark, l10n, _weeklyTarget!), 1),
+                      ],
+                      // Local Legend — rank among mappers active in the same area this week
+                      if (_localRank != null && _localRank!.hasActivity && _localRank!.totalMappers > 1) ...[
+                        const SizedBox(height: AppTheme.spaceSm),
+                        _withEntrance(_buildLocalRankCard(theme, isDark, l10n, _localRank!), 1),
+                      ],
+                      // Impact — cells nobody else has ever mapped ("only you" signal)
+                      if (_impact != null && _impact!.soloCells > 0) ...[
+                        const SizedBox(height: AppTheme.spaceSm),
+                        _withEntrance(_buildImpactCard(theme, isDark, l10n, _impact!), 1),
                       ],
                       const SizedBox(height: AppTheme.spaceMd),
                       // Activity snapshot — verdict chip grouped here (weekly scope)
@@ -863,6 +883,83 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                   valueColor: AlwaysStoppedAnimation(accent),
                 ),
               ),
+            ),
+          ]),
+        ),
+      ]),
+    );
+  }
+
+  // ─── Local Legend card ─────────────────────────────────────────────────────────
+
+  Widget _buildLocalRankCard(ThemeData theme, bool isDark, AppLocalizations l10n, LocalRankResponse rank) {
+    final accent = rank.isLeader ? AppColors.primary : AppColors.textSecondary(isDark);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceMd, vertical: AppTheme.spaceXs + 2),
+      decoration: AppTheme.surfaceContainer(isDark: isDark),
+      child: Row(children: [
+        Icon(rank.isLeader ? Icons.emoji_events_rounded : Icons.emoji_events_outlined,
+            size: AppIconSizes.xs, color: accent),
+        const SizedBox(width: AppTheme.spaceXs),
+        Expanded(
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Row(children: [
+              Flexible(
+                child: Text(
+                  l10n.statsLocalLegendLabel,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: AppColors.textSecondary(isDark),
+                    letterSpacing: _kLetterSpacingCaps,
+                  ),
+                ),
+              ),
+              const SizedBox(width: AppTheme.spaceXs),
+              Text(
+                l10n.statsLocalLegendRank(rank.rank, rank.totalMappers),
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: accent,
+                  fontWeight: AppFontWeights.semibold,
+                ),
+              ),
+            ]),
+            const SizedBox(height: AppTheme.spaceXxxs + 1),
+            Text(
+              rank.isLeader ? l10n.statsLocalLegendLeader : l10n.statsLocalLegendGap(rank.cellsToLead),
+              style: theme.textTheme.bodySmall?.copyWith(color: AppColors.textTertiary(isDark)),
+            ),
+          ]),
+        ),
+      ]),
+    );
+  }
+
+  // ─── Impact card ("only you've ever mapped this") ──────────────────────────────
+
+  Widget _buildImpactCard(ThemeData theme, bool isDark, AppLocalizations l10n, ImpactResponse impact) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceMd, vertical: AppTheme.spaceXs + 2),
+      decoration: AppTheme.surfaceContainer(isDark: isDark),
+      child: Row(children: [
+        Icon(Icons.fingerprint_rounded, size: AppIconSizes.xs, color: AppColors.primary),
+        const SizedBox(width: AppTheme.spaceXs),
+        Expanded(
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(
+              l10n.statsImpactLabel,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: AppColors.textSecondary(isDark),
+                letterSpacing: _kLetterSpacingCaps,
+              ),
+            ),
+            const SizedBox(height: AppTheme.spaceXxxs + 1),
+            Text(
+              l10n.statsImpactSolo(impact.soloCells),
+              style: theme.textTheme.bodySmall?.copyWith(color: AppColors.textTertiary(isDark)),
             ),
           ]),
         ),

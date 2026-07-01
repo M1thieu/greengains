@@ -1,0 +1,81 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Nav from '../../components/Nav.astro';
+import Footer from '../../components/Footer.astro';
+---
+
+<Layout
+  title="Terms of Service — GreenGains"
+  description="GreenGains terms of service and usage conditions."
+>
+  <Nav />
+
+  <main class="mx-auto max-w-3xl px-6 pt-32 pb-24">
+    <div class="mb-12">
+      <p class="text-xs font-semibold uppercase tracking-widest text-primary">Legal</p>
+      <h1 class="mt-3 text-3xl font-bold">Terms of Service</h1>
+      <p class="mt-2 text-sm text-muted">Effective date: January 19, 2026</p>
+    </div>
+
+    <div class="space-y-10 text-sm leading-relaxed text-muted [&_h2]:mb-3 [&_h2]:mt-2 [&_h2]:text-base [&_h2]:font-semibold [&_h2]:text-white [&_a]:text-primary [&_a]:underline [&_ul]:mt-2 [&_ul]:space-y-1 [&_ul]:pl-5 [&_ul]:list-disc [&_p+p]:mt-3">
+
+      <section>
+        <h2>Acceptance</h2>
+        <p>By downloading or using GreenGains, you agree to these Terms. If you don't agree, don't use the app.</p>
+      </section>
+
+      <section>
+        <h2>What GreenGains does</h2>
+        <p>GreenGains is a passive environmental sensing app. It reads ambient light, air pressure, road vibration and movement data from your phone's sensors as you move through your environment. This data is aggregated and anonymized to build environmental maps.</p>
+      </section>
+
+      <section>
+        <h2>Your responsibilities</h2>
+        <ul>
+          <li>Use the app lawfully and only for its intended purpose</li>
+          <li>Don't attempt to reverse-engineer, modify or abuse the API</li>
+          <li>Don't use the app to interfere with others' experience</li>
+          <li>Keep your account credentials secure</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>Data you contribute</h2>
+        <p>By using GreenGains, you grant Eremat a non-exclusive, worldwide licence to use, process and display the anonymized sensor data you contribute. You retain no proprietary rights over the aggregated dataset — it belongs to the community of contributors as a whole.</p>
+        <p>We don't sell your personal data. Sensor data may be licensed to third parties (cities, researchers) only in anonymized, aggregated form.</p>
+      </section>
+
+      <section>
+        <h2>Account termination</h2>
+        <p>We may suspend or terminate your access if you violate these Terms or abuse the service. You can delete your account at any time by contacting <a href="mailto:contact@eremat.org">contact@eremat.org</a>.</p>
+      </section>
+
+      <section>
+        <h2>Disclaimers</h2>
+        <p>GreenGains is provided "as is." We make no warranties about uptime, accuracy of sensor readings, or fitness for any particular purpose. Environmental data is indicative — don't use it as the sole basis for health or safety decisions.</p>
+      </section>
+
+      <section>
+        <h2>Limitation of liability</h2>
+        <p>Eremat is not liable for any indirect, incidental or consequential damages arising from your use of GreenGains. Our total liability to you in any case is limited to €100.</p>
+      </section>
+
+      <section>
+        <h2>Governing law</h2>
+        <p>These Terms are governed by French law. Disputes will be resolved in the courts of France.</p>
+      </section>
+
+      <section>
+        <h2>Changes</h2>
+        <p>We may update these Terms. Continued use after changes means you accept the new Terms. We'll notify you of major changes in the app.</p>
+      </section>
+
+      <section>
+        <h2>Contact</h2>
+        <p><a href="mailto:contact@eremat.org">contact@eremat.org</a></p>
+      </section>
+    </div>
+  </main>
+
+  <Footer />
+</Layout>

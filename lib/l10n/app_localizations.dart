@@ -932,6 +932,42 @@ abstract class AppLocalizations {
   /// **'Goal reached'**
   String get statsWeeklyTargetComplete;
 
+  /// No description provided for @statsLocalLegendLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'LOCAL LEGEND'**
+  String get statsLocalLegendLabel;
+
+  /// No description provided for @statsLocalLegendLeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Top mapper in your area this week'**
+  String get statsLocalLegendLeader;
+
+  /// No description provided for @statsLocalLegendRank.
+  ///
+  /// In en, this message translates to:
+  /// **'#{rank} of {total} nearby this week'**
+  String statsLocalLegendRank(int rank, int total);
+
+  /// No description provided for @statsLocalLegendGap.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 zone to take the lead} other{{count} zones to take the lead}}'**
+  String statsLocalLegendGap(int count);
+
+  /// No description provided for @statsImpactLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'YOUR IMPACT'**
+  String get statsImpactLabel;
+
+  /// No description provided for @statsImpactSolo.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Only you have ever mapped 1 of your zones} other{Only you have ever mapped {count} of your zones}}'**
+  String statsImpactSolo(int count);
+
   /// No description provided for @statsWeeklyTargetRemaining.
   ///
   /// In en, this message translates to:
