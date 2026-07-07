@@ -6,23 +6,24 @@ import Footer from '../components/Footer.astro';
 const PLAY_STORE = 'https://play.google.com/store/apps/details?id=com.eremat.greengains';
 ---
 
-<Layout title="GreenGains — Know what your city is doing to you">
+<Layout title="GreenGains — What your city is doing to you, street by street">
   <Nav />
 
   <!-- Hero -->
   <section class="relative flex min-h-screen flex-col items-center justify-center px-6 pt-24 text-center">
     <div class="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_80%_50%_at_50%_-10%,rgba(16,185,129,0.10),transparent)]" />
 
-    <p class="mb-5 text-xs font-semibold uppercase tracking-widest text-primary">Urban sensing</p>
+    <p class="mb-5 text-xs font-semibold uppercase tracking-widest text-primary">Passive urban sensing</p>
 
     <h1 class="mx-auto max-w-3xl text-5xl font-bold leading-[1.1] tracking-tight md:text-7xl">
-      Know what your city<br /><span class="text-primary">is doing to you.</span>
+      Your phone has been<br />reading your city.<br />
+      <span class="text-primary">Nobody showed you the data.</span>
     </h1>
 
     <p class="mx-auto mt-7 max-w-lg text-lg leading-relaxed text-muted">
-      Your phone has sensors it never uses. GreenGains uses them.
-      Light levels, road vibration, air pressure — read passively as you go.
-      No new habits. Nothing to open.
+      Light levels, road vibration, air pressure, magnetic interference —
+      five sensors running silently on your device since you bought it.
+      GreenGains reads them as you go. No new habits. Nothing to open.
     </p>
 
     <div class="mt-10 flex flex-wrap items-center justify-center gap-4">
@@ -40,7 +41,7 @@ const PLAY_STORE = 'https://play.google.com/store/apps/details?id=com.eremat.gre
         href="/dashboard/#map"
         class="rounded-lg border border-border px-6 py-3 font-semibold text-white transition-colors hover:border-primary/60"
       >
-        See the map
+        See the live map
       </a>
     </div>
 
@@ -50,42 +51,45 @@ const PLAY_STORE = 'https://play.google.com/store/apps/details?id=com.eremat.gre
   <!-- What it is -->
   <section class="border-t border-border">
     <div class="mx-auto grid max-w-6xl gap-px md:grid-cols-3" style="background:theme('colors.border')">
-      {[
-        { label: 'Runs in background', body: 'You never open it. It reads sensors while you live your life — commute, walk, cycle.' },
-        { label: 'Your routes. Not averages.', body: 'The map shows your zones specifically. Not city-wide stats — your actual streets.' },
-        { label: 'GDPR. No PII sold.', body: 'Readings are anonymized at ingest. We don\'t know who mapped what.' },
-      ].map(item => (
-        <div class="bg-bg px-8 py-10">
-          <p class="font-semibold text-white">{item.label}</p>
-          <p class="mt-3 text-sm leading-relaxed text-muted">{item.body}</p>
-        </div>
-      ))}
+      <div class="bg-bg px-8 py-10">
+        <p class="font-semibold text-white">Runs without you</p>
+        <p class="mt-3 text-sm leading-relaxed text-muted">Install once. It reads sensors while you commute, walk, cycle. Most days you'll forget it exists.</p>
+      </div>
+      <div class="bg-bg px-8 py-10">
+        <p class="font-semibold text-white">Your streets, not city averages</p>
+        <p class="mt-3 text-sm leading-relaxed text-muted">The map is personal. Your actual routes at your actual hours. Nobody else sees the same picture.</p>
+      </div>
+      <div class="bg-bg px-8 py-10">
+        <p class="font-semibold text-white">Map is public, data is yours</p>
+        <p class="mt-3 text-sm leading-relaxed text-muted">Anyone can see the coverage map without an account. Your readings are yours — anonymized before they leave the device.</p>
+      </div>
     </div>
   </section>
 
   <!-- The sensors -->
   <section class="mx-auto max-w-6xl px-6 py-28">
-    <h2 class="text-3xl font-bold md:text-4xl">Four things your phone already knows.</h2>
-    <p class="mt-4 max-w-lg text-muted">
-      It's been measuring these all along. GreenGains is the first app that makes them useful.
+    <h2 class="text-3xl font-bold md:text-4xl">What your phone has been reading all along.</h2>
+    <p class="mt-4 max-w-lg text-muted leading-relaxed">
+      These sensors shipped with your device years ago. Most apps ignore all of them.
     </p>
 
-    <div class="mt-14 grid gap-6 sm:grid-cols-2">
+    <div class="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
       <div class="rounded-xl border border-border bg-surface p-7">
         <div class="mb-5 h-1.5 w-10 rounded-full bg-light" />
         <h3 class="font-semibold text-light">Ambient light</h3>
         <p class="mt-3 text-sm leading-relaxed text-muted">
-          Light pollution levels on your usual routes. Which streets are bright at midnight. Which neighborhoods stay dark.
-          The kind of data that takes researchers years to collect — yours in a week of commuting.
+          Which streets go dark after midnight. Which blocks are washed in orange glow at 3am.
+          Light pollution at street level — not from satellite, from someone actually walking there.
         </p>
       </div>
 
       <div class="rounded-xl border border-border bg-surface p-7">
         <div class="mb-5 h-1.5 w-10 rounded-full bg-movement" />
-        <h3 class="font-semibold text-movement">Movement quality</h3>
+        <h3 class="font-semibold text-movement">Road vibration</h3>
         <p class="mt-3 text-sm leading-relaxed text-muted">
-          How smooth your movement is end-to-end. Reflects traffic flow, pedestrian density, stop-and-go patterns.
-          Different at 8am and 8pm on the same street.
+          The accelerometer already knows which streets are rough before any city inspector does.
+          Potholes, patched tarmac, cobblestones — it registers everything.
+          Your commute is an inspection route.
         </p>
       </div>
 
@@ -93,18 +97,40 @@ const PLAY_STORE = 'https://play.google.com/store/apps/details?id=com.eremat.gre
         <div class="mb-5 h-1.5 w-10 rounded-full bg-pressure" />
         <h3 class="font-semibold text-pressure">Air pressure</h3>
         <p class="mt-3 text-sm leading-relaxed text-muted">
-          Barometric readings that change with altitude, weather fronts, and whether you're indoors or out.
-          Useful for correlating with health studies and urban climate modeling.
+          Barometric readings at street level, continuous.
+          Weather fronts, altitude differences between streets, the pressure shift
+          when you leave a heated building in January. No weather station required.
         </p>
       </div>
 
       <div class="rounded-xl border border-border bg-surface p-7">
         <div class="mb-5 h-1.5 w-10 rounded-full bg-quality" />
-        <h3 class="font-semibold text-quality">Road vibration</h3>
+        <h3 class="font-semibold text-quality">Movement flow</h3>
         <p class="mt-3 text-sm leading-relaxed text-muted">
-          Accelerometer data that shows surface quality. Potholes, cobblestones, smooth asphalt —
-          measurable from your pocket, no special hardware needed.
+          Not speed. Not distance. How the movement actually feels — the density of stops,
+          the stillness at a crossing, the rhythm of a pedestrian street versus a main road.
         </p>
+      </div>
+
+      <div class="rounded-xl border border-border bg-surface p-7">
+        <div class="mb-5 h-1.5 w-10 rounded-full" style="background:#a78bfa" />
+        <h3 class="font-semibold" style="color:#a78bfa">Magnetic field</h3>
+        <p class="mt-3 text-sm leading-relaxed text-muted">
+          Electromagnetic interference mapped street by street.
+          Power line corridors, subway infrastructure, transformer stations —
+          the invisible electrical geography of a city, readable from your magnetometer.
+        </p>
+      </div>
+
+      <div class="rounded-xl border border-border bg-surface p-7 flex flex-col justify-between">
+        <div>
+          <div class="mb-5 h-1.5 w-10 rounded-full bg-primary/40" />
+          <h3 class="font-semibold text-muted">More coming</h3>
+          <p class="mt-3 text-sm leading-relaxed text-muted">
+            Humidity, UV, cellular signal strength — sensors already present on many devices,
+            not yet read by anything. We add them when the data is worth collecting.
+          </p>
+        </div>
       </div>
     </div>
   </section>
@@ -147,17 +173,21 @@ const PLAY_STORE = 'https://play.google.com/store/apps/details?id=com.eremat.gre
     </div>
   </section>
 
-  <!-- For cities teaser -->
+  <!-- For organizations -->
   <section class="mx-auto max-w-6xl px-6 py-24">
     <div class="rounded-2xl border border-border p-8 md:p-12">
       <p class="text-xs font-semibold uppercase tracking-widest text-primary">For organizations</p>
       <h2 class="mt-3 max-w-xl text-2xl font-bold md:text-3xl">
-        Cities and researchers are using this data.
+        Five sensor layers. One network. No fieldwork.
       </h2>
       <p class="mt-4 max-w-lg text-muted leading-relaxed">
-        The same sensor layer, queryable by OSM boundary polygon.
-        Urban planners, environmental agencies, real estate.
-        If you need street-level environmental intelligence at scale, that's what this is.
+        Light pollution at ~174m resolution. Road roughness scores. Barometric pressure at street level.
+        Electromagnetic interference mapping. All collected passively by people already moving through the city.
+        Queryable as a REST API — no deployment, no hardware, no maintenance.
+      </p>
+      <p class="mt-3 max-w-lg text-muted leading-relaxed text-sm">
+        Relevant for: insurance telematics, active travel planning, cycling infrastructure,
+        dark sky certification, urban research.
       </p>
       <a href="/business" class="mt-7 inline-flex items-center gap-2 text-sm font-semibold text-white hover:text-primary transition-colors">
         See the data API
@@ -173,7 +203,7 @@ const PLAY_STORE = 'https://play.google.com/store/apps/details?id=com.eremat.gre
     <div class="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_60%_80%_at_50%_100%,rgba(16,185,129,0.07),transparent)]" />
     <h2 class="text-4xl font-bold md:text-5xl">Start seeing your city.</h2>
     <p class="mx-auto mt-5 max-w-sm text-muted">
-      Android. Free. Takes 30 seconds to install and you're done.
+      Android. Free. Install once and you're done.
     </p>
     <a
       href={PLAY_STORE}

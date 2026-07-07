@@ -3769,6 +3769,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This route runs hot. Worth considering cooler alternatives in summer.'**
   String get insightSessionHotRoute;
+
+  /// No description provided for @statsInsightLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'THIS WEEK'**
+  String get statsInsightLabel;
+
+  /// No description provided for @statsInsightRoughest.
+  ///
+  /// In en, this message translates to:
+  /// **'Roughest stretch: {street} — bumpier than {pct}% of your mapped routes'**
+  String statsInsightRoughest(String street, int pct);
+
+  /// No description provided for @statsInsightNewZones.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 new place mapped this week} other{{count} new places mapped this week}}'**
+  String statsInsightNewZones(int count);
+
+  /// No description provided for @statsInsightSolo.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 place only you\'ve ever been} other{{count} places only you\'ve ever been}}'**
+  String statsInsightSolo(int count);
 }
 
 class _AppLocalizationsDelegate

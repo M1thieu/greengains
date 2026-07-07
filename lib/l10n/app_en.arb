@@ -969,5 +969,18 @@
   "insightSessionDarkSky": "Low artificial light on this route. Good for sleep if you come home this way.",
   "insightSessionBrightCity": "Bright at night throughout this route. Like walking through a lit office before bed.",
   "insightSessionRoughRoute": "Rough road on this route. Harder on your body than smoother alternatives.",
-  "insightSessionHotRoute": "This route runs hot. Worth considering cooler alternatives in summer."
+  "insightSessionHotRoute": "This route runs hot. Worth considering cooler alternatives in summer.",
+
+  "statsInsightLabel": "THIS WEEK",
+  "statsInsightRoughest": "Roughest stretch: {street} — bumpier than {pct}% of your mapped routes",
+  "@statsInsightRoughest": {
+    "placeholders": {
+      "street": { "type": "String" },
+      "pct": { "type": "int" }
+    }
+  },
+  "statsInsightNewZones": "{count, plural, =1{1 new place mapped this week} other{{count} new places mapped this week}}",
+  "@statsInsightNewZones": { "placeholders": { "count": { "type": "int" } } },
+  "statsInsightSolo": "{count, plural, =1{1 place only you've ever been} other{{count} places only you've ever been}}",
+  "@statsInsightSolo": { "placeholders": { "count": { "type": "int" } } }
 }

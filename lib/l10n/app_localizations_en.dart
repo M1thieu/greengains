@@ -2243,4 +2243,34 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get insightSessionHotRoute =>
       'This route runs hot. Worth considering cooler alternatives in summer.';
+
+  @override
+  String get statsInsightLabel => 'THIS WEEK';
+
+  @override
+  String statsInsightRoughest(String street, int pct) {
+    return 'Roughest stretch: $street — bumpier than $pct% of your mapped routes';
+  }
+
+  @override
+  String statsInsightNewZones(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count new places mapped this week',
+      one: '1 new place mapped this week',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String statsInsightSolo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count places only you\'ve ever been',
+      one: '1 place only you\'ve ever been',
+    );
+    return '$_temp0';
+  }
 }

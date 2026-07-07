@@ -83,6 +83,8 @@ class _StatisticsScreenState extends State<StatisticsScreen>
   LocalRankResponse? _localRank;
   // "Only you" impact — cells nobody else has ever mapped
   ImpactResponse? _impact;
+  // Weekly civic insight — roughest street, new zones, solo territory
+  WeeklyInsightResponse? _insight;
   // Data quality 0–100 from user_stats valid_samples/samples_count
   int? _qualityPct;
 
@@ -201,10 +203,12 @@ class _StatisticsScreenState extends State<StatisticsScreen>
       final targetFuture = StatsService.instance.fetchWeeklyTarget();
       final localRankFuture = StatsService.instance.fetchLocalRank();
       final impactFuture = StatsService.instance.fetchImpact();
+      final insightFuture = StatsService.instance.fetchWeeklyInsight();
       final (:profile, :global) = await profileFuture;
       final weeklyTarget = await targetFuture;
       final localRank = await localRankFuture;
       final impact = await impactFuture;
+      final insight = await insightFuture;
       if (mounted) {
         setState(() {
           _weeklyData = profile.weekly;
@@ -228,6 +232,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
           }
           if (localRank != null) _localRank = localRank;
           if (impact != null) _impact = impact;
+          if (insight != null) _insight = insight;
           // Auto-highlight best day on first load
           if (_selectedBarIndex == null && profile.weekly.isNotEmpty) {
             final maxV = profile.weekly.fold(0, max);
@@ -332,6 +337,11 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                       if (_impact != null && _impact!.soloCells > 0) ...[
                         const SizedBox(height: AppTheme.spaceSm),
                         _withEntrance(_buildImpactCard(theme, isDark, l10n, _impact!), 1),
+                      ],
+                      // Weekly civic insight — roughest street, new zones, solo territory
+                      if (_insight != null && _insight!.hasActivity) ...[
+                        const SizedBox(height: AppTheme.spaceSm),
+                        _withEntrance(_buildInsightCard(theme, isDark, l10n, _insight!), 1),
                       ],
                       const SizedBox(height: AppTheme.spaceMd),
                       // Activity snapshot — verdict chip grouped here (weekly scope)
@@ -961,6 +971,61 @@ class _StatisticsScreenState extends State<StatisticsScreen>
               l10n.statsImpactSolo(impact.soloCells),
               style: theme.textTheme.bodySmall?.copyWith(color: AppColors.textTertiary(isDark)),
             ),
+          ]),
+        ),
+      ]),
+    );
+  }
+
+  // ─── Weekly civic insight card ───────────────────────────────────────────────
+
+  Widget _buildInsightCard(ThemeData theme, bool isDark, AppLocalizations l10n, WeeklyInsightResponse insight) {
+    final rows = <Widget>[];
+
+    if (insight.roughestStreet != null && insight.roughestPercentile != null) {
+      rows.add(Text(
+        l10n.statsInsightRoughest(insight.roughestStreet!, insight.roughestPercentile!),
+        style: theme.textTheme.bodySmall?.copyWith(color: AppColors.textTertiary(isDark)),
+      ));
+    }
+
+    if (insight.newZonesThisWeek > 0) {
+      if (rows.isNotEmpty) rows.add(const SizedBox(height: AppTheme.spaceXxxs + 1));
+      rows.add(Text(
+        l10n.statsInsightNewZones(insight.newZonesThisWeek),
+        style: theme.textTheme.bodySmall?.copyWith(color: AppColors.textTertiary(isDark)),
+      ));
+    }
+
+    if (insight.soloZones > 0) {
+      if (rows.isNotEmpty) rows.add(const SizedBox(height: AppTheme.spaceXxxs + 1));
+      rows.add(Text(
+        l10n.statsInsightSolo(insight.soloZones),
+        style: theme.textTheme.bodySmall?.copyWith(color: AppColors.textTertiary(isDark)),
+      ));
+    }
+
+    if (rows.isEmpty) return const SizedBox.shrink();
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceMd, vertical: AppTheme.spaceXs + 2),
+      decoration: AppTheme.surfaceContainer(isDark: isDark),
+      child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Icon(Icons.place_rounded, size: AppIconSizes.xs, color: AppColors.primary),
+        const SizedBox(width: AppTheme.spaceXs),
+        Expanded(
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(
+              l10n.statsInsightLabel,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: AppColors.textSecondary(isDark),
+                letterSpacing: _kLetterSpacingCaps,
+              ),
+            ),
+            const SizedBox(height: AppTheme.spaceXxxs + 1),
+            ...rows,
           ]),
         ),
       ]),

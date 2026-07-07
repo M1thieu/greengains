@@ -2272,4 +2272,34 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get insightSessionHotRoute =>
       'Ce trajet chauffe. Pense à des alternatives plus fraîches en été.';
+
+  @override
+  String get statsInsightLabel => 'CETTE SEMAINE';
+
+  @override
+  String statsInsightRoughest(String street, int pct) {
+    return 'Tronçon le plus dégradé : $street — plus cahoteuse que $pct% de tes trajets';
+  }
+
+  @override
+  String statsInsightNewZones(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count nouveaux endroits cartographiés cette semaine',
+      one: '1 nouvel endroit cartographié cette semaine',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String statsInsightSolo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count endroits où tu es le seul à être passé',
+      one: '1 endroit où tu es le seul à être passé',
+    );
+    return '$_temp0';
+  }
 }

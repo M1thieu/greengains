@@ -34,6 +34,8 @@ import { authRoutes } from './routes/auth';
 import { dataRoutes } from './routes/data';
 import { referralRoutes } from './routes/referral';
 import { telemetryRoutes } from './routes/telemetry';
+import { insightsRoutes } from './routes/insights';
+import { roadQualityRoutes } from './routes/road-quality';
 import { startAggregationJob, stopAggregationJob } from './jobs/aggregator';
 import { runH3Backfill } from './jobs/h3-backfill';
 import { ErrorCodes, createErrorResponse } from './utils/errors';
@@ -159,6 +161,8 @@ fastify.register(analyticsRoutes);
 fastify.register(userRoutes);
 fastify.register(referralRoutes);
 fastify.register(telemetryRoutes);
+fastify.register(insightsRoutes);
+fastify.register(roadQualityRoutes);
 
 // Graceful shutdown
 const shutdown = async (signal: string) => {

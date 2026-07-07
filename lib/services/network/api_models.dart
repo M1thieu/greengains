@@ -179,6 +179,51 @@ class ImpactResponse {
       );
 }
 
+// ── Weekly insight ("what your city is doing to you this week") ───────────────
+
+class WeeklyInsightResponse {
+  final bool hasActivity;
+  final int newZonesThisWeek;
+  final int totalZones;
+  final int soloZones;
+  final String? roughestStreet;
+  final double? roughestVibration;
+  final int? roughestPercentile;
+  final String? brightestStreet;
+  final double? brightestLux;
+  final String weekStart;
+  final String weekEnd;
+
+  const WeeklyInsightResponse({
+    required this.hasActivity,
+    this.newZonesThisWeek = 0,
+    this.totalZones = 0,
+    this.soloZones = 0,
+    this.roughestStreet,
+    this.roughestVibration,
+    this.roughestPercentile,
+    this.brightestStreet,
+    this.brightestLux,
+    this.weekStart = '',
+    this.weekEnd = '',
+  });
+
+  factory WeeklyInsightResponse.fromJson(Map<String, dynamic> json) =>
+      WeeklyInsightResponse(
+        hasActivity:        json['hasActivity'] as bool? ?? false,
+        newZonesThisWeek:   (json['newZonesThisWeek'] as num?)?.toInt() ?? 0,
+        totalZones:         (json['totalZones'] as num?)?.toInt() ?? 0,
+        soloZones:          (json['soloZones'] as num?)?.toInt() ?? 0,
+        roughestStreet:     json['roughestStreet'] as String?,
+        roughestVibration:  (json['roughestVibration'] as num?)?.toDouble(),
+        roughestPercentile: (json['roughestPercentile'] as num?)?.toInt(),
+        brightestStreet:    json['brightestStreet'] as String?,
+        brightestLux:       (json['brightestLux'] as num?)?.toDouble(),
+        weekStart:          json['weekStart'] as String? ?? '',
+        weekEnd:            json['weekEnd'] as String? ?? '',
+      );
+}
+
 // ── Community stats ─────────────────────────────────────────────────────────
 
 class GlobalStatsResponse {

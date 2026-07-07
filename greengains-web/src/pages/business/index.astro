@@ -2,80 +2,151 @@
 import Layout from '../../layouts/Layout.astro';
 import Nav from '../../components/Nav.astro';
 import Footer from '../../components/Footer.astro';
+
+const API_BASE = 'https://greengains-production.up.railway.app';
 ---
 
 <Layout
-  title="GreenGains for Cities — Street-level environmental data"
-  description="Citizen-collected sensor data at city scale. Light pollution, road vibration, air pressure — queryable by OSM boundary."
+  title="GreenGains Data — Passive Road Quality & Urban Sensor Network"
+  description="Street-level road roughness, light, and pressure data collected passively by citizens. REST API. No fieldwork. Relevant for telematics, insurance, routing, and city infrastructure."
 >
   <Nav />
 
+  <!-- Hero -->
   <section class="relative mx-auto max-w-6xl px-6 pt-36 pb-20">
     <div class="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_60%_40%_at_20%_30%,rgba(16,185,129,0.06),transparent)]" />
-    <p class="text-xs font-semibold uppercase tracking-widest text-primary">For organizations</p>
-    <h1 class="mt-4 max-w-2xl text-4xl font-bold leading-tight md:text-6xl">
-      Street-level data.<br />No fieldwork required.
+    <p class="text-xs font-semibold uppercase tracking-widest text-primary">Road quality data</p>
+    <h1 class="mt-4 max-w-3xl text-4xl font-bold leading-tight md:text-6xl">
+      Every commuter is a road inspector.<br />
+      <span class="text-primary">We read the data they already collect.</span>
     </h1>
     <p class="mt-6 max-w-xl text-lg leading-relaxed text-muted">
-      GreenGains turns everyday commutes into a continuous sensor grid.
-      Light pollution, road roughness, air pressure — collected passively by citizens,
-      aggregated into queryable spatial layers.
+      GreenGains turns the accelerometer in ordinary phones into a continuous road condition sensor.
+      Vibration scores, light levels, and pressure — passively collected, aggregated by H3 hex,
+      delivered as a REST API.
     </p>
-    <a
-      href="mailto:contact@eremat.org"
-      class="mt-9 inline-flex rounded-lg bg-primary px-6 py-3 font-semibold text-bg transition-opacity hover:opacity-90"
-    >
-      Get in touch
-    </a>
+    <div class="mt-9 flex flex-wrap gap-4">
+      <a
+        href="mailto:contact@eremat.org?subject=Road quality data — pilot inquiry"
+        class="inline-flex rounded-lg bg-primary px-6 py-3 font-semibold text-bg transition-opacity hover:opacity-90"
+      >
+        Request a pilot dataset
+      </a>
+      <a
+        href="#api"
+        class="inline-flex items-center gap-2 rounded-lg border border-border px-6 py-3 font-semibold text-white transition-colors hover:border-primary/60"
+      >
+        See the API
+      </a>
+    </div>
   </section>
 
-  <!-- What orgs actually use it for -->
+  <!-- Who it's for -->
   <section class="border-t border-border">
     <div class="mx-auto max-w-6xl px-6 py-24">
-      <h2 class="text-2xl font-bold md:text-3xl">What people are using it for.</h2>
+      <h2 class="text-2xl font-bold md:text-3xl">Who this is for.</h2>
 
       <div class="mt-12 grid gap-px md:grid-cols-3" style="background:theme('colors.border')">
-        {[
-          {
-            title: 'Urban planning',
-            body: 'Ground-truth for streets that satellite imagery can\'t see. Identify high-vibration roads before resurfacing decisions. Map light pollution across districts without deploying physical sensors.',
-          },
-          {
-            title: 'Environmental research',
-            body: 'Continuous ambient light and pressure readings across a real urban area. The kind of longitudinal dataset that normally costs years of fieldwork.',
-          },
-          {
-            title: 'Dark sky / health studies',
-            body: 'Precise light pollution mapping at ~174m resolution. Correlate with bat activity, sleep quality research, or dark-sky certification applications.',
-          },
-        ].map(c => (
-          <div class="bg-bg px-8 py-10">
-            <h3 class="font-semibold text-white">{c.title}</h3>
-            <p class="mt-3 text-sm leading-relaxed text-muted">{c.body}</p>
-          </div>
-        ))}
+        <div class="bg-bg px-8 py-10">
+          <div class="mb-4 h-1 w-8 rounded-full bg-movement" />
+          <h3 class="font-semibold text-white">Insurance telematics</h3>
+          <p class="mt-3 text-sm leading-relaxed text-muted">
+            Road roughness is a loss predictor. Our vibration scores give you street-level surface
+            quality correlated with real trips — without deploying any hardware.
+            Enriches UBI risk models with data that isn't in any existing dataset.
+          </p>
+        </div>
+        <div class="bg-bg px-8 py-10">
+          <div class="mb-4 h-1 w-8 rounded-full bg-pressure" />
+          <h3 class="font-semibold text-white">Routing & navigation</h3>
+          <p class="mt-3 text-sm leading-relaxed text-muted">
+            Cyclists, pedestrians, and micro-mobility users want smooth routes — not just fast ones.
+            Road quality scores as a routing cost layer. Integrates as a tile overlay or via REST.
+          </p>
+        </div>
+        <div class="bg-bg px-8 py-10">
+          <div class="mb-4 h-1 w-8 rounded-full bg-light" />
+          <h3 class="font-semibold text-white">City infrastructure</h3>
+          <p class="mt-3 text-sm leading-relaxed text-muted">
+            Continuous road condition monitoring without deploying sensor hardware or sending inspection vehicles.
+            Identify deteriorating streets before they become potholes.
+            Updated as residents go about their day.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Live API -->
+  <section id="api" class="border-t border-border bg-surface">
+    <div class="mx-auto max-w-6xl px-6 py-24">
+      <p class="text-xs font-semibold uppercase tracking-widest text-primary">Live endpoint</p>
+      <h2 class="mt-3 text-2xl font-bold md:text-3xl">Try the data right now.</h2>
+      <p class="mt-4 max-w-lg text-muted">
+        No API key required. Returns real road roughness data from active contributors.
+      </p>
+
+      <div class="mt-10 space-y-6 max-w-3xl">
+        <!-- Endpoint block -->
+        <div class="rounded-xl border border-border bg-bg p-6">
+          <p class="text-xs font-semibold uppercase tracking-widest text-muted mb-3">All cells — last 30 days</p>
+          <code class="block text-sm text-primary break-all">
+            GET {API_BASE}/api/tiles/road-quality
+          </code>
+        </div>
+
+        <div class="rounded-xl border border-border bg-bg p-6">
+          <p class="text-xs font-semibold uppercase tracking-widest text-muted mb-3">Bounding box filter</p>
+          <code class="block text-sm text-primary break-all">
+            GET {API_BASE}/api/tiles/road-quality?sw_lat=48.82&sw_lng=2.28&ne_lat=48.90&ne_lng=2.42
+          </code>
+          <p class="mt-3 text-xs text-muted">Replace coordinates with any city bounding box.</p>
+        </div>
+
+        <!-- Response schema -->
+        <div class="rounded-xl border border-border bg-bg p-6">
+          <p class="text-xs font-semibold uppercase tracking-widest text-muted mb-3">Response shape</p>
+          <pre class="text-sm text-white overflow-x-auto"><code>{`{
+  "resolution": 9,
+  "hexSize": "~174m",
+  "window": "30d",
+  "count": 412,
+  "tiles": [
+    {
+      "h3":        "891fb4664c3ffff",
+      "lat":       48.8566,
+      "lng":       2.3522,
+      "vibration": 0.412,   // 0–1 normalised, higher = rougher
+      "samples":   38,
+      "lastSeen":  "2026-07-05"
+    }
+  ]
+}`}</code></pre>
+        </div>
       </div>
     </div>
   </section>
 
   <!-- Data spec -->
-  <section id="api" class="border-t border-border bg-surface">
+  <section class="border-t border-border">
     <div class="mx-auto max-w-6xl px-6 py-24">
-      <p class="text-xs font-semibold uppercase tracking-widest text-primary">The data</p>
+      <p class="text-xs font-semibold uppercase tracking-widest text-primary">Data spec</p>
       <h2 class="mt-3 text-2xl font-bold md:text-3xl">What you're actually getting.</h2>
-      <p class="mt-4 max-w-lg text-muted">No PII. No raw device data. Just aggregated spatial readings, updated continuously.</p>
+      <p class="mt-4 max-w-lg text-muted">No PII. No raw device data. Aggregated spatial readings, updated continuously as contributors move.</p>
 
       <div class="mt-10 space-y-3 max-w-2xl">
         {[
-          ['Sensors',       'Ambient light · barometric pressure · road vibration · movement quality'],
-          ['Resolution',    'H3 res 9 (~174m hex) personal · res 8 (~461m) community'],
-          ['Query',         'By OSM boundary polygon, H3 index, or bounding box — REST API'],
-          ['Window',        '30-day rolling, updated as citizens contribute'],
-          ['Format',        'GeoJSON · CSV export on request'],
-          ['Privacy',       'All readings anonymized at ingest. We can\'t trace a reading to a person.'],
+          ['Primary signal',   'Road vibration (0–1 normalised, ≥3 samples per hex)'],
+          ['Secondary signals','Ambient light (lux) · barometric pressure (hPa)'],
+          ['Resolution',       'H3 res 9 (~174m hex) — ~11 hexes per typical city block'],
+          ['Update cadence',   'Continuous — as contributors upload, cells refresh'],
+          ['Window',           '30-day rolling'],
+          ['Formats',          'JSON via REST · GeoJSON · CSV on request'],
+          ['Privacy',          'Readings anonymized at ingest. No route, no identity, no PII ever stored.'],
+          ['Auth',             'Pilot access: open. Production: API key (email us).'],
         ].map(([k, v]) => (
           <div class="flex gap-6 border-b border-border pb-3 last:border-0">
-            <p class="w-28 shrink-0 text-xs font-semibold uppercase tracking-wider text-muted">{k}</p>
+            <p class="w-36 shrink-0 text-xs font-semibold uppercase tracking-wider text-muted">{k}</p>
             <p class="text-sm text-white">{v}</p>
           </div>
         ))}
@@ -83,21 +154,26 @@ import Footer from '../../components/Footer.astro';
     </div>
   </section>
 
-  <!-- Honest state of things -->
-  <section class="border-t border-border">
+  <!-- Honest status -->
+  <section class="border-t border-border bg-surface">
     <div class="mx-auto max-w-6xl px-6 py-24">
       <p class="text-xs font-semibold uppercase tracking-widest text-primary">Honest status</p>
-      <h2 class="mt-3 text-2xl font-bold md:text-3xl">Coverage is growing. We're early.</h2>
+      <h2 class="mt-3 text-2xl font-bold md:text-3xl">Early, real, and growing.</h2>
       <p class="mt-5 max-w-xl text-muted leading-relaxed">
-        This isn't a mature enterprise product yet. Coverage depends on where contributors live and commute.
-        Dense areas have rich data; sparse areas have less. If you're an organization willing to work with that honestly,
-        we want to talk — early partners shape what gets built next.
+        Coverage depends on where contributors live and commute. Dense urban areas have rich,
+        high-sample data. Sparse areas have less. If you need complete national coverage,
+        we're not there yet. If you're willing to pilot in specific corridors or cities
+        where coverage exists — and shape what gets built next — talk to us.
+      </p>
+      <p class="mt-5 max-w-xl text-muted leading-relaxed">
+        We're looking for one serious first partner. Pilot datasets are free.
+        Commercial licensing is negotiated based on coverage area and use case.
       </p>
       <a
-        href="mailto:contact@eremat.org"
-        class="mt-8 inline-flex items-center gap-2 rounded-lg border border-border px-6 py-3 font-semibold text-white transition-colors hover:border-primary/60"
+        href="mailto:contact@eremat.org?subject=Road quality data — pilot inquiry"
+        class="mt-8 inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3 font-semibold text-bg transition-opacity hover:opacity-90"
       >
-        Contact us directly
+        Email us directly
       </a>
     </div>
   </section>

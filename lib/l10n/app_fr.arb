@@ -969,5 +969,18 @@
   "insightSessionDarkSky": "Peu de lumière artificielle sur ce trajet. Bon pour le sommeil si tu rentres par là.",
   "insightSessionBrightCity": "Lumineux la nuit sur tout ce trajet. Comme marcher dans un bureau éclairé avant de dormir.",
   "insightSessionRoughRoute": "Route dégradée sur ce trajet. Plus difficile que des alternatives plus lisses.",
-  "insightSessionHotRoute": "Ce trajet chauffe. Pense à des alternatives plus fraîches en été."
+  "insightSessionHotRoute": "Ce trajet chauffe. Pense à des alternatives plus fraîches en été.",
+
+  "statsInsightLabel": "CETTE SEMAINE",
+  "statsInsightRoughest": "Tronçon le plus dégradé : {street} — plus cahoteuse que {pct}% de tes trajets",
+  "@statsInsightRoughest": {
+    "placeholders": {
+      "street": { "type": "String" },
+      "pct": { "type": "int" }
+    }
+  },
+  "statsInsightNewZones": "{count, plural, =1{1 nouvel endroit cartographié cette semaine} other{{count} nouveaux endroits cartographiés cette semaine}}",
+  "@statsInsightNewZones": { "placeholders": { "count": { "type": "int" } } },
+  "statsInsightSolo": "{count, plural, =1{1 endroit où tu es le seul à être passé} other{{count} endroits où tu es le seul à être passé}}",
+  "@statsInsightSolo": { "placeholders": { "count": { "type": "int" } } }
 }
