@@ -424,6 +424,7 @@ export async function userRoutes(fastify: FastifyInstance) {
           avg_accel_std_dev: number | null;
           avg_vibration_vehicle: number | null;
           avg_wifi_ap_count: number | null;
+          avg_magnetic: number | null;
           avg_quality_ratio: number | null;
         }>(
           `SELECT
@@ -444,6 +445,7 @@ export async function userRoutes(fastify: FastifyInstance) {
              AVG(CASE WHEN batch_json->'summary'->>'transport_mode' = 'vehicle'
                   THEN (batch_json->'summary'->>'accel_std_dev')::numeric END)             AS avg_vibration_vehicle,
              AVG((batch_json->>'wifi_ap_count')::numeric)                                  AS avg_wifi_ap_count,
+             AVG((batch_json->'summary'->'magnetic_magnitude'->>'avg')::numeric)           AS avg_magnetic,
              AVG(
                (batch_json->'summary'->>'quality_valid')::numeric
                / NULLIF((batch_json->'summary'->>'count')::numeric, 0)
@@ -469,6 +471,7 @@ export async function userRoutes(fastify: FastifyInstance) {
           vibrationSum: number; vibrationCount: number;
           vibrationVehicleSum: number; vibrationVehicleCount: number;
           wifiApSum: number; wifiApCount: number;
+          magneticSum: number; magneticCount: number;
           qualitySum: number; qualityCount: number;
         }>();
         for (const row of tilesResult.rows) {
@@ -493,6 +496,7 @@ export async function userRoutes(fastify: FastifyInstance) {
             if (row.avg_accel_std_dev !== null)     { existing.vibrationSum         += row.avg_accel_std_dev     * n; existing.vibrationCount         += n; }
             if (row.avg_vibration_vehicle !== null) { existing.vibrationVehicleSum  += row.avg_vibration_vehicle * n; existing.vibrationVehicleCount  += n; }
             if (row.avg_wifi_ap_count !== null)     { existing.wifiApSum            += row.avg_wifi_ap_count     * n; existing.wifiApCount            += n; }
+            if (row.avg_magnetic !== null)          { existing.magneticSum          += row.avg_magnetic          * n; existing.magneticCount          += n; }
             if (row.avg_quality_ratio !== null)     { existing.qualitySum           += row.avg_quality_ratio     * n; existing.qualityCount           += n; }
           } else {
             const w = (v: number | null) => v !== null ? v * n : 0;
@@ -507,6 +511,7 @@ export async function userRoutes(fastify: FastifyInstance) {
               vibrationSum:        w(row.avg_accel_std_dev),     vibrationCount:        c(row.avg_accel_std_dev),
               vibrationVehicleSum: w(row.avg_vibration_vehicle), vibrationVehicleCount: c(row.avg_vibration_vehicle),
               wifiApSum:           w(row.avg_wifi_ap_count),     wifiApCount:           c(row.avg_wifi_ap_count),
+              magneticSum:         w(row.avg_magnetic),          magneticCount:         c(row.avg_magnetic),
               qualitySum:          w(row.avg_quality_ratio),     qualityCount:          c(row.avg_quality_ratio),
             });
           }
@@ -536,6 +541,7 @@ export async function userRoutes(fastify: FastifyInstance) {
               avgVibration:       rawVibration        !== null  ? Math.round(Math.min(1, rawVibration        / 5.0) * 100) / 100                              : null,
               avgVibrationVehicle:rawVibrationVehicle !== null  ? Math.round(Math.min(1, rawVibrationVehicle / 5.0) * 100) / 100                              : null,
               avgWifiApCount:     stats.wifiApCount        > 0 ? Math.round(stats.wifiApSum          / stats.wifiApCount)                                     : null,
+              avgMagnetic:        stats.magneticCount      > 0 ? Math.round((stats.magneticSum        / stats.magneticCount) * 10) / 10                         : null,
               qualityRatio:       stats.qualityCount       > 0 ? Math.round((stats.qualitySum        / stats.qualityCount) * 100) / 100                       : null,
             };
           });
