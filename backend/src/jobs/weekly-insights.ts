@@ -50,22 +50,26 @@ export async function computeWeeklyInsight(userId: string): Promise<WeeklyInsigh
   const { start, end, prevStart, prevEnd } = weekBounds();
 
   try {
-    // 1. This week's distinct cells + their avg vibration + avg lux
+    // 1. This week's distinct cells + their avg vibration (vehicle-only) + avg lux (night-only)
     const thisWeekResult = await pool.query<{
       h3_res9: string;
       avg_vibration: string;
       avg_lux: string;
+      avg_lux_night: string;
     }>(`
       SELECT
         h3_res9,
-        AVG((batch_json->>'avgVibration')::float)  AS avg_vibration,
-        AVG((batch_json->>'avgLux')::float)         AS avg_lux
+        AVG(CASE WHEN batch_json->'summary'->>'transport_mode' = 'vehicle'
+            THEN (batch_json->'summary'->>'accel_std_dev')::float END)                     AS avg_vibration,
+        AVG((batch_json->'summary'->'light'->>'avg')::float)                               AS avg_lux,
+        AVG(CASE WHEN EXTRACT(hour FROM timestamp_utc) >= 22
+                   OR EXTRACT(hour FROM timestamp_utc) < 6
+            THEN (batch_json->'summary'->'light'->>'avg')::float END)                      AS avg_lux_night
       FROM sensor_batches
-      WHERE user_id   = $1
-        AND h3_res9   IS NOT NULL
+      WHERE user_id     = $1
+        AND h3_res9     IS NOT NULL
         AND timestamp_utc >= $2
         AND timestamp_utc <= $3
-        AND batch_json ? 'avgVibration'
       GROUP BY h3_res9
     `, [userId, start.toISOString(), end.toISOString()]);
 
@@ -106,26 +110,32 @@ export async function computeWeeklyInsight(userId: string): Promise<WeeklyInsigh
     `, [userId]);
     const soloZones = parseInt(soloResult.rows[0]?.count ?? '0', 10);
 
-    // 5. Roughest and brightest cells this week
-    const sorted = [...thisWeekResult.rows].sort(
+    // 5. Roughest (vehicle-only vibration) and brightest (night lux) cells this week
+    const withVibration = thisWeekResult.rows.filter(r => r.avg_vibration != null);
+    const roughestRow = withVibration.sort(
       (a, b) => parseFloat(b.avg_vibration) - parseFloat(a.avg_vibration)
-    );
-    const roughestRow = sorted[0];
-    const brightestRow = [...thisWeekResult.rows].sort(
-      (a, b) => parseFloat(b.avg_lux) - parseFloat(a.avg_lux)
-    )[0];
+    )[0] ?? null;
 
-    // 6. Community percentile for roughest cell
+    // Prefer night lux for light pollution insight; fall back to all-hours lux
+    const brightestRow = [...thisWeekResult.rows].sort(
+      (a, b) => parseFloat(b.avg_lux_night ?? b.avg_lux ?? '0') - parseFloat(a.avg_lux_night ?? a.avg_lux ?? '0')
+    )[0] ?? null;
+
+    // 6. Community percentile for roughest cell (vehicle-only)
     let roughestPercentile: number | null = null;
     if (roughestRow) {
       const pctResult = await pool.query<{ percentile: string }>(`
         SELECT ROUND(
-          100.0 * PERCENT_RANK() OVER (ORDER BY AVG((batch_json->>'avgVibration')::float) DESC)
+          100.0 * PERCENT_RANK() OVER (
+            ORDER BY AVG(CASE WHEN batch_json->'summary'->>'transport_mode' = 'vehicle'
+                         THEN (batch_json->'summary'->>'accel_std_dev')::float END) DESC
+          )
         )::text AS percentile
         FROM sensor_batches
-        WHERE h3_res9 = $1 AND h3_res9 IS NOT NULL AND batch_json ? 'avgVibration'
+        WHERE h3_res9 = $1 AND h3_res9 IS NOT NULL
         GROUP BY user_id
-        HAVING AVG((batch_json->>'avgVibration')::float) <= $2
+        HAVING AVG(CASE WHEN batch_json->'summary'->>'transport_mode' = 'vehicle'
+                   THEN (batch_json->'summary'->>'accel_std_dev')::float END) <= $2
         LIMIT 1
       `, [roughestRow.h3_res9, parseFloat(roughestRow.avg_vibration)]);
       roughestPercentile = pctResult.rows[0]
@@ -150,7 +160,7 @@ export async function computeWeeklyInsight(userId: string): Promise<WeeklyInsigh
       roughestVibration:  roughestRow ? parseFloat(roughestRow.avg_vibration) : null,
       roughestPercentile,
       brightestStreet:    brightestRow ? (nameMap.get(brightestRow.h3_res9) ?? null) : null,
-      brightestLux:       brightestRow ? parseFloat(brightestRow.avg_lux) : null,
+      brightestLux:       brightestRow ? parseFloat(brightestRow.avg_lux_night ?? brightestRow.avg_lux) : null,
       weekStart: start.toISOString().slice(0, 10),
       weekEnd:   end.toISOString().slice(0, 10),
     };
