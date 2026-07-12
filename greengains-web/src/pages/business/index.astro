@@ -7,23 +7,23 @@ const API_BASE = 'https://greengains-production.up.railway.app';
 ---
 
 <Layout
-  title="GreenGains Data — Passive Road Quality & Urban Sensor Network"
-  description="Street-level road roughness, light, and pressure data collected passively by citizens. REST API. No fieldwork. Relevant for telematics, insurance, routing, and city infrastructure."
+  title="GreenGains Data — Passive Urban Sensing at Street Scale"
+  description="Five sensor layers from ordinary phones: vehicle road vibration, night/day light lux, magnetic field, WiFi density, and air pressure. H3 hexes, transport-mode filtered, REST API. No fieldwork."
 >
   <Nav />
 
   <!-- Hero -->
   <section class="relative mx-auto max-w-6xl px-6 pt-36 pb-20">
     <div class="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_60%_40%_at_20%_30%,rgba(16,185,129,0.06),transparent)]" />
-    <p class="text-xs font-semibold uppercase tracking-widest text-primary">Road quality data</p>
+    <p class="text-xs font-semibold uppercase tracking-widest text-primary">Passive urban sensing</p>
     <h1 class="mt-4 max-w-3xl text-4xl font-bold leading-tight md:text-6xl">
       Every commuter is a road inspector.<br />
       <span class="text-primary">We read the data they already collect.</span>
     </h1>
     <p class="mt-6 max-w-xl text-lg leading-relaxed text-muted">
-      GreenGains turns the accelerometer in ordinary phones into a continuous road condition sensor.
-      Vibration scores, light levels, and pressure — passively collected, aggregated by H3 hex,
-      delivered as a REST API.
+      Five sensor layers from ordinary phones — road vibration, ambient light, air pressure,
+      magnetic field, and movement flow — passively collected as people go about their day.
+      Aggregated by H3 hex (~174m), filtered by transport mode and time of day, delivered as a REST API.
     </p>
     <div class="mt-9 flex flex-wrap gap-4">
       <a
@@ -73,6 +73,24 @@ const API_BASE = 'https://greengains-production.up.railway.app';
             Updated as residents go about their day.
           </p>
         </div>
+        <div class="bg-bg px-8 py-10">
+          <div class="mb-4 h-1 w-8 rounded-full bg-quality" />
+          <h3 class="font-semibold text-white">Environmental research</h3>
+          <p class="mt-3 text-sm leading-relaxed text-muted">
+            Night-only light lux splits enable street-level light pollution mapping.
+            Magnetic field readings add electromagnetic exposure data — useful for dark sky,
+            urban ecology, and telecom tower research.
+          </p>
+        </div>
+        <div class="bg-bg px-8 py-10">
+          <div class="mb-4 h-1 w-8 rounded-full bg-pressure" />
+          <h3 class="font-semibold text-white">Urban mobility analytics</h3>
+          <p class="mt-3 text-sm leading-relaxed text-muted">
+            WiFi access point density is a urban density proxy collected at no extra cost.
+            Combine with transport mode inference (walking vs. vehicle) to segment streets by
+            pedestrian activity vs. car traffic — without any surveys.
+          </p>
+        </div>
       </div>
     </div>
   </section>
@@ -83,7 +101,7 @@ const API_BASE = 'https://greengains-production.up.railway.app';
       <p class="text-xs font-semibold uppercase tracking-widest text-primary">Live endpoint</p>
       <h2 class="mt-3 text-2xl font-bold md:text-3xl">Try the data right now.</h2>
       <p class="mt-4 max-w-lg text-muted">
-        No API key required. Returns real road roughness data from active contributors.
+        No API key required. Returns real road vibration data — vehicle-only, transport-filtered — from active contributors.
       </p>
 
       <div class="mt-10 space-y-6 max-w-3xl">
@@ -136,9 +154,14 @@ const API_BASE = 'https://greengains-production.up.railway.app';
 
       <div class="mt-10 space-y-3 max-w-2xl">
         {[
-          ['Primary signal',   'Road vibration (0–1 normalised, ≥3 samples per hex)'],
-          ['Secondary signals','Ambient light (lux) · barometric pressure (hPa)'],
+          ['Road vibration',   'Vehicle-only (transport_mode filter removes walking noise). 0–1 normalised accel std dev. ≥3 samples per hex.'],
+          ['Ambient light',    'Lux — split into day (06:00–21:00) and night (22:00–06:00). Night split is the light pollution signal.'],
+          ['Magnetic field',   'µT average per hex — electromagnetic exposure mapping, EMF sensitivity research.'],
+          ['WiFi density',     'Count of visible access points — urban density proxy without SSIDs or MACs. Pedestrian vs. vehicle segmentable.'],
+          ['Air pressure',     'hPa per hex — altitude validation, microclimate indicators.'],
+          ['Transport mode',   'Inferred from GPS speed: stationary / walking / vehicle / unknown. Used to segment all other signals.'],
           ['Resolution',       'H3 res 9 (~174m hex) — ~11 hexes per typical city block'],
+          ['GPS accuracy filter', 'Batches with accuracy > 100m excluded — bad GPS fixes don't pollute hex cells.'],
           ['Update cadence',   'Continuous — as contributors upload, cells refresh'],
           ['Window',           '30-day rolling'],
           ['Formats',          'JSON via REST · GeoJSON · CSV on request'],
