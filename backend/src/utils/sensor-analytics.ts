@@ -30,6 +30,8 @@ export interface Summary {
   /** Quality counters baked in at ingest so the aggregator never needs the raw batch array. */
   quality_valid: number;
   quality_pocket_likely: number;
+  /** Inferred from GPS speed: stationary / walking / vehicle / unknown */
+  transport_mode?: string;
 }
 
 /**

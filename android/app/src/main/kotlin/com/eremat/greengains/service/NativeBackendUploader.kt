@@ -449,6 +449,7 @@ class NativeBackendUploader(
             "batch"         to batchPayload,
             "location"      to locationMap,
             "wifi_rssi_avg" to readWifiRssi(),
+            "wifi_ap_count" to readWifiApCount(),
             "geohash"       to geohash,
             "battery_level" to (batteryMonitor?.getBatteryLevel() ?: -1),
             "is_charging"   to (batteryMonitor?.isCharging() ?: false),
@@ -578,6 +579,23 @@ class NativeBackendUploader(
             val info = wifi.connectionInfo ?: return null
             val rssi = info.rssi
             if (rssi <= -127) null else rssi
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    /**
+     * Count of visible WiFi access points from the last OS scan.
+     * Uses cached scan results — no active scan triggered, no SSIDs or MACs read.
+     * Requires ACCESS_WIFI_STATE + ACCESS_FINE_LOCATION (both already declared).
+     * Urban density proxy: more APs = denser built environment.
+     */
+    @Suppress("DEPRECATION")
+    private fun readWifiApCount(): Int? {
+        return try {
+            val wifi = context.getSystemService(Context.WIFI_SERVICE) as? WifiManager ?: return null
+            val results = wifi.scanResults ?: return null
+            results.size
         } catch (e: Exception) {
             null
         }

@@ -96,7 +96,16 @@ async function checkCoLocationOutlier(
   }
 }
 
-function summarizeBatch(readings: SensorReading[], batchAccuracyM?: number): Summary {
+function inferTransportMode(accelRms: number, speedMps?: number): string {
+  if (accelRms < 0.15) return 'stationary';
+  if (speedMps !== undefined) {
+    if (speedMps > 3.5) return 'vehicle';   // >12.6 km/h — cycling or motorised
+    if (speedMps >= 0.3) return 'walking';
+  }
+  return 'unknown';
+}
+
+function summarizeBatch(readings: SensorReading[], batchAccuracyM?: number, speedMps?: number): Summary {
   // Light — filter statistical outliers (MAD method) before averaging.
   // E.g. a single 65535 lux spike from sensor glitch won't skew the window average.
   const lightRaw = readings.filter(r => r.light !== undefined).map(r => r.light!);
@@ -172,11 +181,17 @@ function summarizeBatch(readings: SensorReading[], batchAccuracyM?: number): Sum
     magnetic_magnitude: magneticSummary,
     quality_valid: quality.valid,
     quality_pocket_likely: quality.pocketLikely,
+    transport_mode: inferTransportMode(
+      accelMagnitudes.length > 0
+        ? accelMagnitudes.reduce((a, b) => a + b, 0) / accelMagnitudes.length
+        : 0,
+      speedMps,
+    ),
   };
 }
 
 function buildStoragePayload(batch: UploadBatch, qualityMultiplier = 1.0): StoragePayload {
-  const summary = summarizeBatch(batch.batch, batch.location?.accuracy_m);
+  const summary = summarizeBatch(batch.batch, batch.location?.accuracy_m, batch.location?.speed_mps);
 
   // Apply the integrity multiplier to quality_valid — batches flagged as static/high-speed/etc.
   // get proportionally fewer valid readings credited, which flows into per-tile qualityRatio.
@@ -208,6 +223,7 @@ function buildStoragePayload(batch: UploadBatch, qualityMultiplier = 1.0): Stora
   if (batch.battery_level !== undefined) payload.battery_level = batch.battery_level;
   if (batch.is_charging !== undefined) payload.is_charging = batch.is_charging;
   if (batch.wifi_rssi_avg !== undefined) payload.wifi_rssi_avg = batch.wifi_rssi_avg;
+  if (batch.wifi_ap_count !== undefined) payload.wifi_ap_count = batch.wifi_ap_count;
 
   return payload;
 }
