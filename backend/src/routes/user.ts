@@ -417,9 +417,13 @@ export async function userRoutes(fastify: FastifyInstance) {
           device_count: number;
           last_update: Date;
           avg_lux: number | null;
+          avg_lux_night: number | null;
+          avg_lux_day: number | null;
           avg_hpa: number | null;
           avg_movement: number | null;
           avg_accel_std_dev: number | null;
+          avg_vibration_vehicle: number | null;
+          avg_wifi_ap_count: number | null;
           avg_quality_ratio: number | null;
         }>(
           `SELECT
@@ -429,9 +433,17 @@ export async function userRoutes(fastify: FastifyInstance) {
              COUNT(DISTINCT device_hash)::int                                               AS device_count,
              MAX(timestamp_utc)                                                             AS last_update,
              AVG((batch_json->'summary'->'light'->>'avg')::numeric)                        AS avg_lux,
+             AVG(CASE WHEN EXTRACT(hour FROM timestamp_utc) >= 22
+                        OR EXTRACT(hour FROM timestamp_utc) < 6
+                  THEN (batch_json->'summary'->'light'->>'avg')::numeric END)              AS avg_lux_night,
+             AVG(CASE WHEN EXTRACT(hour FROM timestamp_utc) BETWEEN 6 AND 21
+                  THEN (batch_json->'summary'->'light'->>'avg')::numeric END)              AS avg_lux_day,
              AVG((batch_json->'summary'->'pressure'->>'avg')::numeric)                     AS avg_hpa,
              AVG((batch_json->'summary'->>'accel_rms')::numeric)                           AS avg_movement,
              AVG((batch_json->'summary'->>'accel_std_dev')::numeric)                       AS avg_accel_std_dev,
+             AVG(CASE WHEN batch_json->'summary'->>'transport_mode' = 'vehicle'
+                  THEN (batch_json->'summary'->>'accel_std_dev')::numeric END)             AS avg_vibration_vehicle,
+             AVG((batch_json->>'wifi_ap_count')::numeric)                                  AS avg_wifi_ap_count,
              AVG(
                (batch_json->'summary'->>'quality_valid')::numeric
                / NULLIF((batch_json->'summary'->>'count')::numeric, 0)
@@ -450,9 +462,13 @@ export async function userRoutes(fastify: FastifyInstance) {
         const tileMap = new Map<string, {
           batchCount: number; deviceCount: number; lastUpdate: Date;
           luxSum: number; luxCount: number;
+          luxNightSum: number; luxNightCount: number;
+          luxDaySum: number; luxDayCount: number;
           hpaSum: number; hpaCount: number;
           movementSum: number; movementCount: number;
           vibrationSum: number; vibrationCount: number;
+          vibrationVehicleSum: number; vibrationVehicleCount: number;
+          wifiApSum: number; wifiApCount: number;
           qualitySum: number; qualityCount: number;
         }>();
         for (const row of tilesResult.rows) {
@@ -463,24 +479,35 @@ export async function userRoutes(fastify: FastifyInstance) {
             h3Index = latLngToCell(centroid.lat, centroid.lon, 9);
           }
           if (!h3Index) continue;
+          const n = row.batch_count;
           const existing = tileMap.get(h3Index);
           if (existing) {
-            existing.batchCount += row.batch_count;
+            existing.batchCount += n;
             existing.deviceCount = Math.max(existing.deviceCount, row.device_count);
             if (row.last_update > existing.lastUpdate) existing.lastUpdate = row.last_update;
-            if (row.avg_lux !== null)          { existing.luxSum       += row.avg_lux          * row.batch_count; existing.luxCount       += row.batch_count; }
-            if (row.avg_hpa !== null)          { existing.hpaSum       += row.avg_hpa          * row.batch_count; existing.hpaCount       += row.batch_count; }
-            if (row.avg_movement !== null)     { existing.movementSum  += row.avg_movement     * row.batch_count; existing.movementCount  += row.batch_count; }
-            if (row.avg_accel_std_dev !== null){ existing.vibrationSum += row.avg_accel_std_dev* row.batch_count; existing.vibrationCount += row.batch_count; }
-            if (row.avg_quality_ratio !== null){ existing.qualitySum   += row.avg_quality_ratio* row.batch_count; existing.qualityCount   += row.batch_count; }
+            if (row.avg_lux !== null)               { existing.luxSum               += row.avg_lux               * n; existing.luxCount               += n; }
+            if (row.avg_lux_night !== null)         { existing.luxNightSum          += row.avg_lux_night         * n; existing.luxNightCount          += n; }
+            if (row.avg_lux_day !== null)           { existing.luxDaySum            += row.avg_lux_day           * n; existing.luxDayCount            += n; }
+            if (row.avg_hpa !== null)               { existing.hpaSum               += row.avg_hpa               * n; existing.hpaCount               += n; }
+            if (row.avg_movement !== null)          { existing.movementSum          += row.avg_movement          * n; existing.movementCount          += n; }
+            if (row.avg_accel_std_dev !== null)     { existing.vibrationSum         += row.avg_accel_std_dev     * n; existing.vibrationCount         += n; }
+            if (row.avg_vibration_vehicle !== null) { existing.vibrationVehicleSum  += row.avg_vibration_vehicle * n; existing.vibrationVehicleCount  += n; }
+            if (row.avg_wifi_ap_count !== null)     { existing.wifiApSum            += row.avg_wifi_ap_count     * n; existing.wifiApCount            += n; }
+            if (row.avg_quality_ratio !== null)     { existing.qualitySum           += row.avg_quality_ratio     * n; existing.qualityCount           += n; }
           } else {
+            const w = (v: number | null) => v !== null ? v * n : 0;
+            const c = (v: number | null) => v !== null ? n : 0;
             tileMap.set(h3Index, {
-              batchCount: row.batch_count, deviceCount: row.device_count, lastUpdate: row.last_update,
-              luxSum:       row.avg_lux           !== null ? row.avg_lux           * row.batch_count : 0, luxCount:       row.avg_lux           !== null ? row.batch_count : 0,
-              hpaSum:       row.avg_hpa           !== null ? row.avg_hpa           * row.batch_count : 0, hpaCount:       row.avg_hpa           !== null ? row.batch_count : 0,
-              movementSum:  row.avg_movement      !== null ? row.avg_movement      * row.batch_count : 0, movementCount:  row.avg_movement      !== null ? row.batch_count : 0,
-              vibrationSum: row.avg_accel_std_dev !== null ? row.avg_accel_std_dev * row.batch_count : 0, vibrationCount: row.avg_accel_std_dev !== null ? row.batch_count : 0,
-              qualitySum:   row.avg_quality_ratio !== null ? row.avg_quality_ratio * row.batch_count : 0, qualityCount:   row.avg_quality_ratio !== null ? row.batch_count : 0,
+              batchCount: n, deviceCount: row.device_count, lastUpdate: row.last_update,
+              luxSum:              w(row.avg_lux),               luxCount:              c(row.avg_lux),
+              luxNightSum:         w(row.avg_lux_night),         luxNightCount:         c(row.avg_lux_night),
+              luxDaySum:           w(row.avg_lux_day),           luxDayCount:           c(row.avg_lux_day),
+              hpaSum:              w(row.avg_hpa),               hpaCount:              c(row.avg_hpa),
+              movementSum:         w(row.avg_movement),          movementCount:         c(row.avg_movement),
+              vibrationSum:        w(row.avg_accel_std_dev),     vibrationCount:        c(row.avg_accel_std_dev),
+              vibrationVehicleSum: w(row.avg_vibration_vehicle), vibrationVehicleCount: c(row.avg_vibration_vehicle),
+              wifiApSum:           w(row.avg_wifi_ap_count),     wifiApCount:           c(row.avg_wifi_ap_count),
+              qualitySum:          w(row.avg_quality_ratio),     qualityCount:          c(row.avg_quality_ratio),
             });
           }
         }
@@ -492,20 +519,24 @@ export async function userRoutes(fastify: FastifyInstance) {
             const boundary = cellToBoundary(h3Index, true) as [number, number][];
             const [lat, lng] = cellToLatLng(h3Index);
             const rawVibration = stats.vibrationCount > 0 ? stats.vibrationSum / stats.vibrationCount : null;
+            const rawVibrationVehicle = stats.vibrationVehicleCount > 0 ? stats.vibrationVehicleSum / stats.vibrationVehicleCount : null;
             return {
               h3Index,
               boundary,
               centroid: { lat, lng },
-              confidence:   Math.min(1.0, stats.batchCount / CONFIDENCE_BATCH_THRESHOLD),
-              sampleCount:  stats.batchCount,
-              deviceCount:  stats.deviceCount,
-              lastUpdate:   stats.lastUpdate,
-              avgLux:       stats.luxCount      > 0 ? Math.round(stats.luxSum      / stats.luxCount)                            : null,
-              avgHpa:       stats.hpaCount      > 0 ? Math.round((stats.hpaSum     / stats.hpaCount) * 10) / 10                 : null,
-              avgMovement:  stats.movementCount > 0 ? Math.round((stats.movementSum/ stats.movementCount) * 100) / 100          : null,
-              // vibration: normalize accel std-dev to 0–1 (same formula as aggregator vibrationScore)
-              avgVibration: rawVibration !== null ? Math.round(Math.min(1, rawVibration / 5.0) * 100) / 100 : null,
-              qualityRatio: stats.qualityCount  > 0 ? Math.round((stats.qualitySum  / stats.qualityCount) * 100) / 100         : null,
+              confidence:         Math.min(1.0, stats.batchCount / CONFIDENCE_BATCH_THRESHOLD),
+              sampleCount:        stats.batchCount,
+              deviceCount:        stats.deviceCount,
+              lastUpdate:         stats.lastUpdate,
+              avgLux:             stats.luxCount           > 0 ? Math.round(stats.luxSum            / stats.luxCount)                                        : null,
+              avgLuxNight:        stats.luxNightCount      > 0 ? Math.round(stats.luxNightSum        / stats.luxNightCount)                                   : null,
+              avgLuxDay:          stats.luxDayCount        > 0 ? Math.round(stats.luxDaySum          / stats.luxDayCount)                                     : null,
+              avgHpa:             stats.hpaCount           > 0 ? Math.round((stats.hpaSum            / stats.hpaCount) * 10) / 10                             : null,
+              avgMovement:        stats.movementCount      > 0 ? Math.round((stats.movementSum       / stats.movementCount) * 100) / 100                      : null,
+              avgVibration:       rawVibration        !== null  ? Math.round(Math.min(1, rawVibration        / 5.0) * 100) / 100                              : null,
+              avgVibrationVehicle:rawVibrationVehicle !== null  ? Math.round(Math.min(1, rawVibrationVehicle / 5.0) * 100) / 100                              : null,
+              avgWifiApCount:     stats.wifiApCount        > 0 ? Math.round(stats.wifiApSum          / stats.wifiApCount)                                     : null,
+              qualityRatio:       stats.qualityCount       > 0 ? Math.round((stats.qualitySum        / stats.qualityCount) * 100) / 100                       : null,
             };
           });
 
