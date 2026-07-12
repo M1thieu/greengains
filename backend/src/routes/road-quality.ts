@@ -34,17 +34,17 @@ export async function roadQualityRoutes(fastify: FastifyInstance) {
       const rows = await pool.query<RoadQualityRow>(`
         SELECT
           h3_res9,
-          ROUND(AVG((batch_json->>'avgVibration')::float)::numeric, 4) AS vibration_score,
+          ROUND(AVG((batch_json->'summary'->>'accel_std_dev')::float)::numeric, 4) AS vibration_score,
           COUNT(*)::text AS sample_count,
           MAX(timestamp_utc)::text AS last_seen
         FROM sensor_batches
         WHERE h3_res9 IS NOT NULL
           AND timestamp_utc >= NOW() - INTERVAL '30 days'
-          AND batch_json ? 'avgVibration'
-          AND (batch_json->>'avgVibration')::float > 0
+          AND batch_json->'summary'->>'transport_mode' = 'vehicle'
+          AND (batch_json->'summary'->>'accel_std_dev')::float > 0
         GROUP BY h3_res9
         HAVING COUNT(*) >= 3
-        ORDER BY AVG((batch_json->>'avgVibration')::float) DESC
+        ORDER BY AVG((batch_json->'summary'->>'accel_std_dev')::float) DESC
         LIMIT 10000
       `);
 

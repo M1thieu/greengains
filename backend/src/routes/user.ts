@@ -453,6 +453,10 @@ export async function userRoutes(fastify: FastifyInstance) {
            FROM sensor_batches
            WHERE user_id = $1
              AND (h3_res9 IS NOT NULL OR batch_json->>'geohash' IS NOT NULL)
+             AND (
+               (batch_json->'location'->>'accuracy_m') IS NULL
+               OR (batch_json->'location'->>'accuracy_m')::float <= 100
+             )
            GROUP BY h3_res9, batch_json->>'geohash'
            ORDER BY batch_count DESC
            LIMIT ${MAX_USER_TILES}`,
