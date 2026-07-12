@@ -890,7 +890,7 @@
   "streakResetBanner": "Streak reset. Start fresh today.",
 
   "sessionSummaryNextHookStreak": "Streak alive.",
-  "sessionSummaryNextHookFirst": "Go out tomorrow to start a streak.",
+  "sessionSummaryNextHookFirst": "Your streak starts tomorrow. Go out once more.",
 
   "weeklyGoalTitle": "Week complete.",
   "weeklyGoalBody": "See you next week.",
@@ -920,8 +920,8 @@
   "profileUnlockBody": "Sign in to keep it forever and sync across devices.",
   "profileUnlockCta": "Sign in to keep my map",
 
-  "mapZeroStateTitle": "Runs in the background",
-  "mapZeroStateBody": "Enable tracking once. Your map fills in as you move.",
+  "mapZeroStateTitle": "Your first place is one walk away",
+  "mapZeroStateBody": "Start tracking once. Your street goes on the map the moment you move.",
 
   "snapshotCardTitle": "YOUR NEIGHBOURHOOD",
   "snapshotReadings": "{count, plural, =1{1 reading} other{{count} readings}}",

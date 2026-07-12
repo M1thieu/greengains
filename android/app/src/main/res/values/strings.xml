@@ -7,7 +7,7 @@
     <string name="notification_status_collecting">Your map is growing</string>
     <string name="notification_status_stationary">Watching your surroundings</string>
     <string name="notification_paused_title">Paused</string>
-    <string name="notification_paused_body">Resume to keep building your map</string>
+    <string name="notification_paused_body">Your route isn\'t being captured</string>
     <string name="notification_collecting_no_upload">Walk around to start mapping</string>
     <!-- Zone-first body strings — shown when zonesTotal > 0 -->
     <!-- %1$d = zones total -->
@@ -28,7 +28,7 @@
     <string name="notification_sync_none">Not updated yet</string>
     <string name="notification_motion_moving">moving</string>
     <string name="notification_motion_stationary">still</string>
-    <string name="notification_expanded_paused">Tap Resume to keep building your map.</string>
+    <string name="notification_expanded_paused">Readings off — tap Resume to keep capturing your route.</string>
 
     <!-- Notification actions -->
     <string name="notification_action_pause">Pause</string>

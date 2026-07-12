@@ -890,7 +890,7 @@
   "streakResetBanner": "Série réinitialisée. Recommence aujourd’hui.",
 
   "sessionSummaryNextHookStreak": "Série en vie.",
-  "sessionSummaryNextHookFirst": "Sors demain pour commencer une série.",
+  "sessionSummaryNextHookFirst": "Ta série commence demain. Ressors une fois.",
 
   "weeklyGoalTitle": "Semaine complète.",
   "weeklyGoalBody": "À la semaine prochaine.",
@@ -920,8 +920,8 @@
   "profileUnlockBody": "Connecte-toi pour la conserver et la synchroniser sur tous tes appareils.",
   "profileUnlockCta": "Me connecter pour garder ma carte",
 
-  "mapZeroStateTitle": "Tourne en arrière-plan",
-  "mapZeroStateBody": "Active le suivi une fois. Ta carte se remplit au fil de tes déplacements.",
+  "mapZeroStateTitle": "Ton premier endroit est à une marche",
+  "mapZeroStateBody": "Lance le suivi une fois. Ta rue apparaît sur la carte dès que tu bouges.",
 
   "snapshotCardTitle": "TON QUARTIER",
   "snapshotReadings": "{count, plural, =1{1 mesure} other{{count} mesures}}",
