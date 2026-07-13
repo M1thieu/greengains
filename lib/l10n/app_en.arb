@@ -2,7 +2,7 @@
   "@@locale": "en",
 
   "onboardingWelcomeTitle": "Finally know your neighborhood.",
-  "onboardingWelcomeSubtitle": "Your phone reads light levels, air pressure, and movement as you go. See what your usual routes are actually like.",
+  "onboardingWelcomeSubtitle": "Your phone quietly reads each street you pass through — how bright, how rough, how lively. Your routes, seen differently.",
   "onboardingFeature1Title": "Nothing to do.",
   "onboardingFeature1Description": "Start once, carry your phone. Your map builds itself.",
   "onboardingFeature2Title": "Private by default",
@@ -455,7 +455,7 @@
       "date": { "type": "String" }
     }
   },
-  "settingsDataRetention": "Data kept for 7 days (Free)",
+  "settingsDataRetention": "Readings stored for 30 days",
   "referralInviteTitle": "Invite friends",
   "referralInviteDescription": "Every person who joins maps places you haven't reached.",
   "layerMine": "Mine",
@@ -742,6 +742,18 @@
       "movement": { "type": "String" }
     }
   },
+  "tileConditionSummaryWithSurface": "Usually {light}, {movement}, {surface}.",
+  "@tileConditionSummaryWithSurface": {
+    "placeholders": {
+      "light": { "type": "String" },
+      "movement": { "type": "String" },
+      "surface": { "type": "String" }
+    }
+  },
+  "tileSurfaceSmooth": "smooth road",
+  "tileSurfaceNormal": "normal road",
+  "tileSurfaceRough": "rough road",
+  "tileSurfaceHeavy": "very rough",
 
   "territoryHeroLabel": "{neighborhood} · {count} places",
   "@territoryHeroLabel": {
@@ -896,9 +908,10 @@
   "weeklyGoalBody": "See you next week.",
   "weeklyGoalDismiss": "Nice",
 
-  "statsEmptyLockLight": "Light levels — pollution at night, sunlight by day",
-  "statsEmptyLockMovement": "Surface quality — smoothness of your routes",
-  "statsEmptyLockPressure": "Heat & pressure — urban heat exposure",
+  "statsEmptyLockLight": "Light — dark sky at night, sunlight by day",
+  "statsEmptyLockMovement": "Activity — how lively each place feels",
+  "statsEmptyLockPressure": "Weather — heat and pressure along your routes",
+  "statsEmptyLockSurface": "Road feel — smooth or rough, street by street",
   "statsKm2Unit": "km²",
   "statsLast30DaysUnit": "/ 30",
 

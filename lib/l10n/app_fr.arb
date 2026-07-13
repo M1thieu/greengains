@@ -2,7 +2,7 @@
   "@@locale": "fr",
 
   "onboardingWelcomeTitle": "Enfin connaître son quartier.",
-  "onboardingWelcomeSubtitle": "Votre téléphone mesure la lumière, la pression atmosphérique et le mouvement en déplacement. Découvrez vos trajets habituels sous un nouveau jour.",
+  "onboardingWelcomeSubtitle": "Votre téléphone lit chaque rue que vous traversez — son éclairage, ses vibrations, son animation. Vos trajets, vus autrement.",
   "onboardingFeature1Title": "Rien à faire.",
   "onboardingFeature1Description": "Lancez une fois, gardez votre téléphone. La carte se construit seule.",
   "onboardingFeature2Title": "Privé par défaut",
@@ -455,7 +455,7 @@
       "date": { "type": "String" }
     }
   },
-  "settingsDataRetention": "Données conservées 7 jours (Gratuit)",
+  "settingsDataRetention": "Mesures stockées 30 jours",
   "referralInviteTitle": "Inviter des amis",
   "referralInviteDescription": "Chaque personne qui rejoint cartographie des endroits que tu n'as pas encore couverts.",
   "layerMine": "Miennes",
@@ -742,6 +742,18 @@
       "movement": { "type": "String" }
     }
   },
+  "tileConditionSummaryWithSurface": "Généralement {light}, {movement}, {surface}.",
+  "@tileConditionSummaryWithSurface": {
+    "placeholders": {
+      "light": { "type": "String" },
+      "movement": { "type": "String" },
+      "surface": { "type": "String" }
+    }
+  },
+  "tileSurfaceSmooth": "route lisse",
+  "tileSurfaceNormal": "route normale",
+  "tileSurfaceRough": "route dégradée",
+  "tileSurfaceHeavy": "très dégradée",
 
   "territoryHeroLabel": "{neighborhood} · {count} endroits",
   "@territoryHeroLabel": {
@@ -896,9 +908,10 @@
   "weeklyGoalBody": "À la semaine prochaine.",
   "weeklyGoalDismiss": "Super",
 
-  "statsEmptyLockLight": "Luminosité — pollution lumineuse la nuit, soleil le jour",
-  "statsEmptyLockMovement": "Qualité des surfaces — état du revêtement sur tes trajets",
-  "statsEmptyLockPressure": "Chaleur & pression — exposition à la chaleur urbaine",
+  "statsEmptyLockLight": "Lumière — ciel noir la nuit, soleil le jour",
+  "statsEmptyLockMovement": "Activité — l'animation de chaque endroit",
+  "statsEmptyLockPressure": "Météo — chaleur et pression sur tes trajets",
+  "statsEmptyLockSurface": "Revêtement — lisse ou dégradé, rue par rue",
   "statsKm2Unit": "km²",
   "statsLast30DaysUnit": "/ 30",
 

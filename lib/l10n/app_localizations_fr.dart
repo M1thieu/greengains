@@ -13,7 +13,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get onboardingWelcomeSubtitle =>
-      'Votre téléphone mesure la lumière, la pression atmosphérique et le mouvement en déplacement. Découvrez vos trajets habituels sous un nouveau jour.';
+      'Votre téléphone lit chaque rue que vous traversez — son éclairage, ses vibrations, son animation. Vos trajets, vus autrement.';
 
   @override
   String get onboardingFeature1Title => 'Rien à faire.';
@@ -1155,7 +1155,7 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get settingsDataRetention => 'Données conservées 7 jours (Gratuit)';
+  String get settingsDataRetention => 'Mesures stockées 30 jours';
 
   @override
   String get referralInviteTitle => 'Inviter des amis';
@@ -1751,6 +1751,24 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String tileConditionSummaryWithSurface(
+      String light, String movement, String surface) {
+    return 'Généralement $light, $movement, $surface.';
+  }
+
+  @override
+  String get tileSurfaceSmooth => 'route lisse';
+
+  @override
+  String get tileSurfaceNormal => 'route normale';
+
+  @override
+  String get tileSurfaceRough => 'route dégradée';
+
+  @override
+  String get tileSurfaceHeavy => 'très dégradée';
+
+  @override
   String territoryHeroLabel(String neighborhood, int count) {
     return '$neighborhood · $count endroits';
   }
@@ -2066,7 +2084,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get sessionSummaryNextHookFirst =>
-      'Sors demain pour commencer une série.';
+      'Ta série commence demain. Ressors une fois.';
 
   @override
   String get weeklyGoalTitle => 'Semaine complète.';
@@ -2079,15 +2097,19 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get statsEmptyLockLight =>
-      'Luminosité — pollution lumineuse la nuit, soleil le jour';
+      'Lumière — ciel noir la nuit, soleil le jour';
 
   @override
   String get statsEmptyLockMovement =>
-      'Qualité des surfaces — état du revêtement sur tes trajets';
+      'Activité — l\'animation de chaque endroit';
 
   @override
   String get statsEmptyLockPressure =>
-      'Chaleur & pression — exposition à la chaleur urbaine';
+      'Météo — chaleur et pression sur tes trajets';
+
+  @override
+  String get statsEmptyLockSurface =>
+      'Revêtement — lisse ou dégradé, rue par rue';
 
   @override
   String get statsKm2Unit => 'km²';
@@ -2130,11 +2152,11 @@ class AppLocalizationsFr extends AppLocalizations {
   String get profileUnlockCta => 'Me connecter pour garder ma carte';
 
   @override
-  String get mapZeroStateTitle => 'Tourne en arrière-plan';
+  String get mapZeroStateTitle => 'Ton premier endroit est à une marche';
 
   @override
   String get mapZeroStateBody =>
-      'Active le suivi une fois. Ta carte se remplit au fil de tes déplacements.';
+      'Lance le suivi une fois. Ta rue apparaît sur la carte dès que tu bouges.';
 
   @override
   String get snapshotCardTitle => 'TON QUARTIER';

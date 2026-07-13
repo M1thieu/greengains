@@ -107,7 +107,7 @@ abstract class AppLocalizations {
   /// No description provided for @onboardingWelcomeSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Your phone reads light levels, air pressure, and movement as you go. See what your usual routes are actually like.'**
+  /// **'Your phone quietly reads each street you pass through — how bright, how rough, how lively. Your routes, seen differently.'**
   String get onboardingWelcomeSubtitle;
 
   /// No description provided for @onboardingFeature1Title.
@@ -2003,7 +2003,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsDataRetention.
   ///
   /// In en, this message translates to:
-  /// **'Data kept for 7 days (Free)'**
+  /// **'Readings stored for 30 days'**
   String get settingsDataRetention;
 
   /// No description provided for @referralInviteTitle.
@@ -2918,6 +2918,37 @@ abstract class AppLocalizations {
   /// **'Usually {light} and {movement}.'**
   String tileConditionSummaryNoHpa(String light, String movement);
 
+  /// No description provided for @tileConditionSummaryWithSurface.
+  ///
+  /// In en, this message translates to:
+  /// **'Usually {light}, {movement}, {surface}.'**
+  String tileConditionSummaryWithSurface(
+      String light, String movement, String surface);
+
+  /// No description provided for @tileSurfaceSmooth.
+  ///
+  /// In en, this message translates to:
+  /// **'smooth road'**
+  String get tileSurfaceSmooth;
+
+  /// No description provided for @tileSurfaceNormal.
+  ///
+  /// In en, this message translates to:
+  /// **'normal road'**
+  String get tileSurfaceNormal;
+
+  /// No description provided for @tileSurfaceRough.
+  ///
+  /// In en, this message translates to:
+  /// **'rough road'**
+  String get tileSurfaceRough;
+
+  /// No description provided for @tileSurfaceHeavy.
+  ///
+  /// In en, this message translates to:
+  /// **'very rough'**
+  String get tileSurfaceHeavy;
+
   /// No description provided for @territoryHeroLabel.
   ///
   /// In en, this message translates to:
@@ -3437,7 +3468,7 @@ abstract class AppLocalizations {
   /// No description provided for @sessionSummaryNextHookFirst.
   ///
   /// In en, this message translates to:
-  /// **'Go out tomorrow to start a streak.'**
+  /// **'Your streak starts tomorrow. Go out once more.'**
   String get sessionSummaryNextHookFirst;
 
   /// No description provided for @weeklyGoalTitle.
@@ -3461,20 +3492,26 @@ abstract class AppLocalizations {
   /// No description provided for @statsEmptyLockLight.
   ///
   /// In en, this message translates to:
-  /// **'Light levels — pollution at night, sunlight by day'**
+  /// **'Light — dark sky at night, sunlight by day'**
   String get statsEmptyLockLight;
 
   /// No description provided for @statsEmptyLockMovement.
   ///
   /// In en, this message translates to:
-  /// **'Surface quality — smoothness of your routes'**
+  /// **'Activity — how lively each place feels'**
   String get statsEmptyLockMovement;
 
   /// No description provided for @statsEmptyLockPressure.
   ///
   /// In en, this message translates to:
-  /// **'Heat & pressure — urban heat exposure'**
+  /// **'Weather — heat and pressure along your routes'**
   String get statsEmptyLockPressure;
+
+  /// No description provided for @statsEmptyLockSurface.
+  ///
+  /// In en, this message translates to:
+  /// **'Road feel — smooth or rough, street by street'**
+  String get statsEmptyLockSurface;
 
   /// No description provided for @statsKm2Unit.
   ///
@@ -3551,13 +3588,13 @@ abstract class AppLocalizations {
   /// No description provided for @mapZeroStateTitle.
   ///
   /// In en, this message translates to:
-  /// **'Runs in the background'**
+  /// **'Your first place is one walk away'**
   String get mapZeroStateTitle;
 
   /// No description provided for @mapZeroStateBody.
   ///
   /// In en, this message translates to:
-  /// **'Enable tracking once. Your map fills in as you move.'**
+  /// **'Start tracking once. Your street goes on the map the moment you move.'**
   String get mapZeroStateBody;
 
   /// No description provided for @snapshotCardTitle.
