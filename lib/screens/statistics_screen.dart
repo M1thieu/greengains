@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:shimmer/shimmer.dart';
 import '../core/extensions/context_extensions.dart';
+import '../core/sensor_insights.dart';
 import '../core/themes.dart';
 import '../l10n/app_localizations.dart';
 import '../data/models/contribution_stats.dart';
@@ -820,6 +821,15 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                     style: theme.textTheme.labelSmall?.copyWith(
                       color: AppColors.warning,
                       fontWeight: AppFontWeights.semibold,
+                    ),
+                  ),
+                  const SizedBox(height: AppTheme.spaceXxxs),
+                  Text(
+                    '→ ${SensorInsights.mapperRoleLabel(l10n, SensorInsights.mapperRole(next))}',
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: AppColors.primary,
+                      fontWeight: AppFontWeights.semibold,
+                      letterSpacing: 0.5,
                     ),
                   ),
                 ],
