@@ -755,6 +755,32 @@
   "tileSurfaceRough": "route dégradée",
   "tileSurfaceHeavy": "très dégradée",
 
+  "tileCondLightDark": "sombre",
+  "tileCondLightDim": "peu éclairé",
+  "tileCondLightBright": "éclairé",
+  "tileCondLightShaded": "à l'ombre",
+  "tileCondLightPartial": "nuageux",
+  "tileCondLightIntense": "très lumineux",
+  "tileCondActivityCalm": "calme",
+  "tileCondActivityModerate": "modéré",
+  "tileCondActivityActive": "animé",
+  "tileCondActivityBusy": "très animé",
+
+  "sessionCharacterDarkSky": "CIEL NOIR",
+  "sessionCharacterBrightCity": "NUIT ÉCLAIRÉE",
+  "sessionCharacterHotRoute": "TRAJET CHAUD",
+  "sessionCharacterRoughRoad": "ROUTES DÉGRADÉES",
+  "sessionCharacterSunExposed": "CIEL OUVERT",
+
+  "sessionMilestone5Flavor": "Votre quartier commence à prendre forme.",
+  "sessionMilestone10Flavor": "Un bloc complet, cartographié.",
+  "sessionMilestone25Flavor": "La surface d'un petit parc, couverte.",
+  "sessionMilestone50Flavor": "La moitié d'un îlot urbain, le vôtre.",
+  "sessionMilestone100Flavor": "Un quartier entier, sur la carte.",
+  "sessionMilestone250Flavor": "Vous avez couvert un district urbain.",
+  "sessionMilestone500Flavor": "Une couverture que peu d'apps atteignent.",
+  "sessionMilestone1000Flavor": "Cartographie à l'échelle d'une ville. Rare.",
+
   "territoryHeroLabel": "{neighborhood} · {count} endroits",
   "@territoryHeroLabel": {
     "placeholders": {

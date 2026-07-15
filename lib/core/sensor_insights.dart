@@ -107,6 +107,102 @@ class SensorInsights {
     return l10n.insightNormal;
   }
 
+  /// Returns the dominant character of a session — used for the dynamic route label.
+  static SessionCharacter sessionCharacter({
+    required bool isNight,
+    double? avgLux,
+    double? avgHpa,
+    double? avgVibration,
+  }) {
+    if (isNight && avgLux != null) {
+      final level = lightPollutionLevel(avgLux);
+      if (level == LightPollutionLevel.pristine || level == LightPollutionLevel.low) {
+        return SessionCharacter.darkSky;
+      }
+      if (level == LightPollutionLevel.high || level == LightPollutionLevel.severe) {
+        return SessionCharacter.brightCity;
+      }
+    }
+    if (!isNight && avgLux != null && avgHpa != null) {
+      final heat = heatLevel(avgLux, avgHpa);
+      if (heat == HeatLevel.hot || heat == HeatLevel.warm) return SessionCharacter.hotRoute;
+    }
+    if (avgVibration != null) {
+      final sq = surfaceQuality(avgVibration);
+      if (sq == SurfaceQuality.rough || sq == SurfaceQuality.poor) return SessionCharacter.roughRoad;
+    }
+    if (!isNight && avgLux != null && sunlightLevel(avgLux) == SunlightLevel.intense) {
+      return SessionCharacter.sunExposed;
+    }
+    return SessionCharacter.quiet;
+  }
+
+  /// All-caps label for the session character — shown as the insight card header.
+  static String sessionCharacterLabel(AppLocalizations l10n, SessionCharacter c) {
+    switch (c) {
+      case SessionCharacter.darkSky:    return l10n.sessionCharacterDarkSky;
+      case SessionCharacter.brightCity: return l10n.sessionCharacterBrightCity;
+      case SessionCharacter.hotRoute:   return l10n.sessionCharacterHotRoute;
+      case SessionCharacter.roughRoad:  return l10n.sessionCharacterRoughRoad;
+      case SessionCharacter.sunExposed: return l10n.sessionCharacterSunExposed;
+      case SessionCharacter.quiet:      return l10n.insightRouteHeader;
+    }
+  }
+
+  /// Compact bullet-separated condition line for the tile popup.
+  /// Returns "dark · quiet · rough road" — each component lowercase.
+  static String tileConditionLine(
+    AppLocalizations l10n, {
+    required bool isNight,
+    double? avgLux,
+    double? avgMovement,
+    double? avgVibration,
+  }) {
+    final parts = <String>[];
+    if (avgLux != null) {
+      if (isNight) {
+        switch (lightPollutionLevel(avgLux)) {
+          case LightPollutionLevel.pristine:
+          case LightPollutionLevel.low:
+            parts.add(l10n.tileCondLightDark);
+          case LightPollutionLevel.moderate:
+            parts.add(l10n.tileCondLightDim);
+          case LightPollutionLevel.high:
+          case LightPollutionLevel.severe:
+            parts.add(l10n.tileCondLightBright);
+        }
+      } else {
+        switch (sunlightLevel(avgLux)) {
+          case SunlightLevel.shaded:  parts.add(l10n.tileCondLightShaded);
+          case SunlightLevel.partial: parts.add(l10n.tileCondLightPartial);
+          case SunlightLevel.bright:  parts.add(l10n.tileCondLightBright);
+          case SunlightLevel.intense: parts.add(l10n.tileCondLightIntense);
+        }
+      }
+    }
+    if (avgMovement != null) {
+      if (avgMovement < 0.25) {
+        parts.add(l10n.tileCondActivityCalm);
+      } else if (avgMovement < 0.55) {
+        parts.add(l10n.tileCondActivityModerate);
+      } else if (avgMovement < 0.80) {
+        parts.add(l10n.tileCondActivityActive);
+      } else {
+        parts.add(l10n.tileCondActivityBusy);
+      }
+    }
+    if (avgVibration != null) {
+      switch (surfaceQuality(avgVibration)) {
+        case SurfaceQuality.smooth: parts.add(l10n.tileSurfaceSmooth);
+        case SurfaceQuality.rough:  parts.add(l10n.tileSurfaceRough);
+        case SurfaceQuality.poor:   parts.add(l10n.tileSurfaceHeavy);
+        case SurfaceQuality.normal: break;
+      }
+    }
+    if (parts.isEmpty) return l10n.insightNormal;
+    return parts.join(' · ');
+  }
+
   /// Session-level summary — what was the dominant environmental character
   /// of this session. Compares against a population baseline (0–100 percentile).
   static String sessionInsight(
@@ -184,6 +280,7 @@ enum LightPollutionLevel { pristine, low, moderate, high, severe }
 enum SunlightLevel       { shaded, partial, bright, intense }
 enum SurfaceQuality      { smooth, normal, rough, poor }
 enum HeatLevel           { cool, neutral, warm, hot }
+enum SessionCharacter    { darkSky, brightCity, hotRoute, roughRoad, sunExposed, quiet }
 
 // ── Color mapping (for map tiles and badges) ──────────────────────────────────
 

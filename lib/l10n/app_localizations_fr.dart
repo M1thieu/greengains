@@ -1769,6 +1769,81 @@ class AppLocalizationsFr extends AppLocalizations {
   String get tileSurfaceHeavy => 'très dégradée';
 
   @override
+  String get tileCondLightDark => 'sombre';
+
+  @override
+  String get tileCondLightDim => 'peu éclairé';
+
+  @override
+  String get tileCondLightBright => 'éclairé';
+
+  @override
+  String get tileCondLightShaded => 'à l\'ombre';
+
+  @override
+  String get tileCondLightPartial => 'nuageux';
+
+  @override
+  String get tileCondLightIntense => 'très lumineux';
+
+  @override
+  String get tileCondActivityCalm => 'calme';
+
+  @override
+  String get tileCondActivityModerate => 'modéré';
+
+  @override
+  String get tileCondActivityActive => 'animé';
+
+  @override
+  String get tileCondActivityBusy => 'très animé';
+
+  @override
+  String get sessionCharacterDarkSky => 'CIEL NOIR';
+
+  @override
+  String get sessionCharacterBrightCity => 'NUIT ÉCLAIRÉE';
+
+  @override
+  String get sessionCharacterHotRoute => 'TRAJET CHAUD';
+
+  @override
+  String get sessionCharacterRoughRoad => 'ROUTES DÉGRADÉES';
+
+  @override
+  String get sessionCharacterSunExposed => 'CIEL OUVERT';
+
+  @override
+  String get sessionMilestone5Flavor =>
+      'Votre quartier commence à prendre forme.';
+
+  @override
+  String get sessionMilestone10Flavor => 'Un bloc complet, cartographié.';
+
+  @override
+  String get sessionMilestone25Flavor =>
+      'La surface d\'un petit parc, couverte.';
+
+  @override
+  String get sessionMilestone50Flavor =>
+      'La moitié d\'un îlot urbain, le vôtre.';
+
+  @override
+  String get sessionMilestone100Flavor => 'Un quartier entier, sur la carte.';
+
+  @override
+  String get sessionMilestone250Flavor =>
+      'Vous avez couvert un district urbain.';
+
+  @override
+  String get sessionMilestone500Flavor =>
+      'Une couverture que peu d\'apps atteignent.';
+
+  @override
+  String get sessionMilestone1000Flavor =>
+      'Cartographie à l\'échelle d\'une ville. Rare.';
+
+  @override
   String territoryHeroLabel(String neighborhood, int count) {
     return '$neighborhood · $count endroits';
   }

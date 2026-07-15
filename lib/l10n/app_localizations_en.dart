@@ -1747,6 +1747,76 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tileSurfaceHeavy => 'very rough';
 
   @override
+  String get tileCondLightDark => 'dark';
+
+  @override
+  String get tileCondLightDim => 'dim';
+
+  @override
+  String get tileCondLightBright => 'bright';
+
+  @override
+  String get tileCondLightShaded => 'shaded';
+
+  @override
+  String get tileCondLightPartial => 'overcast';
+
+  @override
+  String get tileCondLightIntense => 'very bright';
+
+  @override
+  String get tileCondActivityCalm => 'quiet';
+
+  @override
+  String get tileCondActivityModerate => 'moderate';
+
+  @override
+  String get tileCondActivityActive => 'active';
+
+  @override
+  String get tileCondActivityBusy => 'busy';
+
+  @override
+  String get sessionCharacterDarkSky => 'DARK SKY';
+
+  @override
+  String get sessionCharacterBrightCity => 'LIT STREETS';
+
+  @override
+  String get sessionCharacterHotRoute => 'HOT ROUTE';
+
+  @override
+  String get sessionCharacterRoughRoad => 'ROUGH ROADS';
+
+  @override
+  String get sessionCharacterSunExposed => 'OPEN SKY';
+
+  @override
+  String get sessionMilestone5Flavor =>
+      'Your neighbourhood, starting to take shape.';
+
+  @override
+  String get sessionMilestone10Flavor => 'A full block, mapped.';
+
+  @override
+  String get sessionMilestone25Flavor => 'The area of a small park, covered.';
+
+  @override
+  String get sessionMilestone50Flavor => 'Half a city block, yours.';
+
+  @override
+  String get sessionMilestone100Flavor => 'A full neighbourhood, on the map.';
+
+  @override
+  String get sessionMilestone250Flavor => 'You\'ve covered a city district.';
+
+  @override
+  String get sessionMilestone500Flavor => 'Coverage most apps will never have.';
+
+  @override
+  String get sessionMilestone1000Flavor => 'City-scale mapping. Rare.';
+
+  @override
   String territoryHeroLabel(String neighborhood, int count) {
     return '$neighborhood · $count places';
   }

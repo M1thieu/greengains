@@ -2034,6 +2034,12 @@ class _SessionSummarySheetState extends State<_SessionSummarySheet> {
                 if (!hasEnv) return const SizedBox(height: AppTheme.spaceLg);
                 final isNight = DateTime.now().hour < 6 || DateTime.now().hour >= 20;
                 final accent = _insightAccentColor(isNight: isNight);
+                final character = SensorInsights.sessionCharacter(
+                  isNight: isNight,
+                  avgLux: widget.sessionAvgLux,
+                  avgHpa: widget.sessionAvgHpa,
+                  avgVibration: widget.sessionAvgVibration,
+                );
                 final insight = SensorInsights.sessionInsight(
                   l10n,
                   isNight: isNight,
@@ -2054,7 +2060,7 @@ class _SessionSummarySheetState extends State<_SessionSummarySheet> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          l10n.insightRouteHeader,
+                          SensorInsights.sessionCharacterLabel(l10n, character),
                           style: Theme.of(context).textTheme.labelSmall?.copyWith(
                             color: accent.withValues(alpha: 0.85),
                             fontWeight: AppFontWeights.semibold,
@@ -2157,6 +2163,26 @@ class _SessionSummarySheetState extends State<_SessionSummarySheet> {
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         fontWeight: AppFontWeights.semibold,
                         color: AppColors.primary,
+                        letterSpacing: -0.1,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+
+              // ── Streak chip ───────────────────────────────────────────────
+              if (widget.streak >= 2) ...[
+                const SizedBox(height: AppTheme.spaceSm),
+                Row(
+                  children: [
+                    Icon(Icons.local_fire_department_rounded,
+                        size: AppIconSizes.xs, color: const Color(0xFFF97316)),
+                    const SizedBox(width: AppTheme.spaceXxs),
+                    Text(
+                      l10n.statsStreakDays(widget.streak),
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        fontWeight: AppFontWeights.semibold,
+                        color: const Color(0xFFF97316),
                         letterSpacing: -0.1,
                       ),
                     ),
@@ -2335,24 +2361,56 @@ class _MilestoneBannerState extends State<_MilestoneBanner>
             ),
           ],
         ),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Icon(Icons.star_rounded, color: AppColors.primary, size: 16),
-            const SizedBox(width: AppTheme.spaceXs),
-            Expanded(
-              child: Text(
-                widget.l10n.sessionMilestoneHit(widget.milestone),
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  fontWeight: AppFontWeights.semibold,
-                  color: AppColors.primary,
-                  letterSpacing: -0.1,
+            Row(
+              children: [
+                const Icon(Icons.star_rounded, color: AppColors.primary, size: 16),
+                const SizedBox(width: AppTheme.spaceXs),
+                Expanded(
+                  child: Text(
+                    widget.l10n.sessionMilestoneHit(widget.milestone),
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      fontWeight: AppFontWeights.semibold,
+                      color: AppColors.primary,
+                      letterSpacing: -0.1,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            if (_milestoneFlavor() != null) ...[
+              const SizedBox(height: AppTheme.spaceXxxs + 1),
+              Padding(
+                padding: const EdgeInsets.only(left: 16 + AppTheme.spaceXs),
+                child: Text(
+                  _milestoneFlavor()!,
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    color: AppColors.primary.withValues(alpha: 0.70),
+                    letterSpacing: -0.1,
+                  ),
                 ),
               ),
-            ),
+            ],
           ],
         ),
       ),
     );
+  }
+
+  String? _milestoneFlavor() {
+    switch (widget.milestone) {
+      case 5:    return widget.l10n.sessionMilestone5Flavor;
+      case 10:   return widget.l10n.sessionMilestone10Flavor;
+      case 25:   return widget.l10n.sessionMilestone25Flavor;
+      case 50:   return widget.l10n.sessionMilestone50Flavor;
+      case 100:  return widget.l10n.sessionMilestone100Flavor;
+      case 250:  return widget.l10n.sessionMilestone250Flavor;
+      case 500:  return widget.l10n.sessionMilestone500Flavor;
+      case 1000: return widget.l10n.sessionMilestone1000Flavor;
+      default:   return null;
+    }
   }
 }
 

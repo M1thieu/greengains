@@ -2949,6 +2949,144 @@ abstract class AppLocalizations {
   /// **'very rough'**
   String get tileSurfaceHeavy;
 
+  /// No description provided for @tileCondLightDark.
+  ///
+  /// In en, this message translates to:
+  /// **'dark'**
+  String get tileCondLightDark;
+
+  /// No description provided for @tileCondLightDim.
+  ///
+  /// In en, this message translates to:
+  /// **'dim'**
+  String get tileCondLightDim;
+
+  /// No description provided for @tileCondLightBright.
+  ///
+  /// In en, this message translates to:
+  /// **'bright'**
+  String get tileCondLightBright;
+
+  /// No description provided for @tileCondLightShaded.
+  ///
+  /// In en, this message translates to:
+  /// **'shaded'**
+  String get tileCondLightShaded;
+
+  /// No description provided for @tileCondLightPartial.
+  ///
+  /// In en, this message translates to:
+  /// **'overcast'**
+  String get tileCondLightPartial;
+
+  /// No description provided for @tileCondLightIntense.
+  ///
+  /// In en, this message translates to:
+  /// **'very bright'**
+  String get tileCondLightIntense;
+
+  /// No description provided for @tileCondActivityCalm.
+  ///
+  /// In en, this message translates to:
+  /// **'quiet'**
+  String get tileCondActivityCalm;
+
+  /// No description provided for @tileCondActivityModerate.
+  ///
+  /// In en, this message translates to:
+  /// **'moderate'**
+  String get tileCondActivityModerate;
+
+  /// No description provided for @tileCondActivityActive.
+  ///
+  /// In en, this message translates to:
+  /// **'active'**
+  String get tileCondActivityActive;
+
+  /// No description provided for @tileCondActivityBusy.
+  ///
+  /// In en, this message translates to:
+  /// **'busy'**
+  String get tileCondActivityBusy;
+
+  /// No description provided for @sessionCharacterDarkSky.
+  ///
+  /// In en, this message translates to:
+  /// **'DARK SKY'**
+  String get sessionCharacterDarkSky;
+
+  /// No description provided for @sessionCharacterBrightCity.
+  ///
+  /// In en, this message translates to:
+  /// **'LIT STREETS'**
+  String get sessionCharacterBrightCity;
+
+  /// No description provided for @sessionCharacterHotRoute.
+  ///
+  /// In en, this message translates to:
+  /// **'HOT ROUTE'**
+  String get sessionCharacterHotRoute;
+
+  /// No description provided for @sessionCharacterRoughRoad.
+  ///
+  /// In en, this message translates to:
+  /// **'ROUGH ROADS'**
+  String get sessionCharacterRoughRoad;
+
+  /// No description provided for @sessionCharacterSunExposed.
+  ///
+  /// In en, this message translates to:
+  /// **'OPEN SKY'**
+  String get sessionCharacterSunExposed;
+
+  /// No description provided for @sessionMilestone5Flavor.
+  ///
+  /// In en, this message translates to:
+  /// **'Your neighbourhood, starting to take shape.'**
+  String get sessionMilestone5Flavor;
+
+  /// No description provided for @sessionMilestone10Flavor.
+  ///
+  /// In en, this message translates to:
+  /// **'A full block, mapped.'**
+  String get sessionMilestone10Flavor;
+
+  /// No description provided for @sessionMilestone25Flavor.
+  ///
+  /// In en, this message translates to:
+  /// **'The area of a small park, covered.'**
+  String get sessionMilestone25Flavor;
+
+  /// No description provided for @sessionMilestone50Flavor.
+  ///
+  /// In en, this message translates to:
+  /// **'Half a city block, yours.'**
+  String get sessionMilestone50Flavor;
+
+  /// No description provided for @sessionMilestone100Flavor.
+  ///
+  /// In en, this message translates to:
+  /// **'A full neighbourhood, on the map.'**
+  String get sessionMilestone100Flavor;
+
+  /// No description provided for @sessionMilestone250Flavor.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'ve covered a city district.'**
+  String get sessionMilestone250Flavor;
+
+  /// No description provided for @sessionMilestone500Flavor.
+  ///
+  /// In en, this message translates to:
+  /// **'Coverage most apps will never have.'**
+  String get sessionMilestone500Flavor;
+
+  /// No description provided for @sessionMilestone1000Flavor.
+  ///
+  /// In en, this message translates to:
+  /// **'City-scale mapping. Rare.'**
+  String get sessionMilestone1000Flavor;
+
   /// No description provided for @territoryHeroLabel.
   ///
   /// In en, this message translates to:

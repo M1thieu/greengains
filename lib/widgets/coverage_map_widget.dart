@@ -1796,14 +1796,14 @@ class _TileInfoSheetState extends State<TileInfoSheet> {
                   ],
                 );
               }),
-              // Environmental insight sentence
+              // Compact condition line — what is this place normally like
               Builder(builder: (context) {
                 final isNight = DateTime.now().hour < 6 || DateTime.now().hour >= 20;
-                final insight = SensorInsights.tileInsight(
+                final conditionLine = SensorInsights.tileConditionLine(
                   l10n,
                   isNight: isNight,
                   avgLux: tile.avgLux?.toDouble(),
-                  avgHpa: tile.avgHpa,
+                  avgMovement: tile.avgMovement,
                   avgVibration: tile.avgVibration,
                 );
                 return Padding(
@@ -1817,7 +1817,7 @@ class _TileInfoSheetState extends State<TileInfoSheet> {
                       const SizedBox(width: AppTheme.spaceXs),
                       Expanded(
                         child: Text(
-                          insight,
+                          conditionLine,
                           style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: AppColors.textSecondary(isDark),
                             height: AppLineHeights.normal,

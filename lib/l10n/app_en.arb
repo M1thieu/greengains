@@ -755,6 +755,32 @@
   "tileSurfaceRough": "rough road",
   "tileSurfaceHeavy": "very rough",
 
+  "tileCondLightDark": "dark",
+  "tileCondLightDim": "dim",
+  "tileCondLightBright": "bright",
+  "tileCondLightShaded": "shaded",
+  "tileCondLightPartial": "overcast",
+  "tileCondLightIntense": "very bright",
+  "tileCondActivityCalm": "quiet",
+  "tileCondActivityModerate": "moderate",
+  "tileCondActivityActive": "active",
+  "tileCondActivityBusy": "busy",
+
+  "sessionCharacterDarkSky": "DARK SKY",
+  "sessionCharacterBrightCity": "LIT STREETS",
+  "sessionCharacterHotRoute": "HOT ROUTE",
+  "sessionCharacterRoughRoad": "ROUGH ROADS",
+  "sessionCharacterSunExposed": "OPEN SKY",
+
+  "sessionMilestone5Flavor": "Your neighbourhood, starting to take shape.",
+  "sessionMilestone10Flavor": "A full block, mapped.",
+  "sessionMilestone25Flavor": "The area of a small park, covered.",
+  "sessionMilestone50Flavor": "Half a city block, yours.",
+  "sessionMilestone100Flavor": "A full neighbourhood, on the map.",
+  "sessionMilestone250Flavor": "You've covered a city district.",
+  "sessionMilestone500Flavor": "Coverage most apps will never have.",
+  "sessionMilestone1000Flavor": "City-scale mapping. Rare.",
+
   "territoryHeroLabel": "{neighborhood} · {count} places",
   "@territoryHeroLabel": {
     "placeholders": {
