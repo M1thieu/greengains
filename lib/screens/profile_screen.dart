@@ -13,6 +13,7 @@ import '../core/constants.dart';
 import '../core/themes.dart';
 import '../l10n/app_localizations.dart';
 import '../core/app_preferences.dart';
+import '../core/sensor_insights.dart';
 import '../services/auth/auth_service.dart';
 import '../utils/app_snackbars.dart';
 import '../widgets/referral_invite_card.dart';
@@ -303,6 +304,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
+                    if (_coverageCells != null && _coverageCells! >= 5) ...[
+                      const SizedBox(height: AppTheme.spaceXxs),
+                      _MapperRoleChip(cells: _coverageCells!, isDark: isDark, l10n: l10n),
+                    ],
                     if (user.metadata.creationTime != null) ...[
                       const SizedBox(height: AppTheme.spaceXxs),
                       Text(
@@ -789,6 +794,42 @@ class _ProfileScreenState extends State<ProfileScreen> {
   String _formatDate(DateTime date) {
     final locale = Localizations.localeOf(context).toString();
     return DateFormat('MMM y', locale).format(date);
+  }
+}
+
+// ── Mapper role chip ─────────────────────────────────────────────────────────
+
+class _MapperRoleChip extends StatelessWidget {
+  const _MapperRoleChip({
+    required this.cells,
+    required this.isDark,
+    required this.l10n,
+  });
+  final int cells;
+  final bool isDark;
+  final AppLocalizations l10n;
+
+  @override
+  Widget build(BuildContext context) {
+    final role = SensorInsights.mapperRole(cells);
+    final label = SensorInsights.mapperRoleLabel(l10n, role);
+    return Container(
+      padding: const EdgeInsets.symmetric(
+          horizontal: AppTheme.spaceXs + 2, vertical: AppTheme.spaceXxxs + 1),
+      decoration: BoxDecoration(
+        color: AppColors.primary.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(AppTheme.radiusPill),
+        border: Border.all(color: AppColors.primary.withValues(alpha: 0.22)),
+      ),
+      child: Text(
+        label,
+        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+          color: AppColors.primary,
+          fontWeight: AppFontWeights.semibold,
+          letterSpacing: 0.2,
+        ),
+      ),
+    );
   }
 }
 

@@ -107,6 +107,27 @@ class SensorInsights {
     return l10n.insightNormal;
   }
 
+  /// Mapper role based on lifetime coverage cells — used on profile + session summary.
+  static MapperRole mapperRole(int coverageCells) {
+    if (coverageCells >= 1000) return MapperRole.urbanScientist;
+    if (coverageCells >= 500)  return MapperRole.cityMapper;
+    if (coverageCells >= 100)  return MapperRole.cartographer;
+    if (coverageCells >= 25)   return MapperRole.explorer;
+    if (coverageCells >= 5)    return MapperRole.pioneer;
+    return MapperRole.contributor;
+  }
+
+  static String mapperRoleLabel(AppLocalizations l10n, MapperRole role) {
+    switch (role) {
+      case MapperRole.urbanScientist: return l10n.mapperRoleUrbanScientist;
+      case MapperRole.cityMapper:     return l10n.mapperRoleCityMapper;
+      case MapperRole.cartographer:   return l10n.mapperRoleCartographer;
+      case MapperRole.explorer:       return l10n.mapperRoleExplorer;
+      case MapperRole.pioneer:        return l10n.mapperRolePioneer;
+      case MapperRole.contributor:    return l10n.mapperRoleContributor;
+    }
+  }
+
   /// Returns the dominant character of a session — used for the dynamic route label.
   static SessionCharacter sessionCharacter({
     required bool isNight,
@@ -281,6 +302,7 @@ enum SunlightLevel       { shaded, partial, bright, intense }
 enum SurfaceQuality      { smooth, normal, rough, poor }
 enum HeatLevel           { cool, neutral, warm, hot }
 enum SessionCharacter    { darkSky, brightCity, hotRoute, roughRoad, sunExposed, quiet }
+enum MapperRole          { contributor, pioneer, explorer, cartographer, cityMapper, urbanScientist }
 
 // ── Color mapping (for map tiles and badges) ──────────────────────────────────
 

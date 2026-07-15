@@ -1817,6 +1817,56 @@ class AppLocalizationsFr extends AppLocalizations {
   String get sessionCharacterSunExposed => 'CIEL OUVERT';
 
   @override
+  String get mapperRoleContributor => 'Contributeur';
+
+  @override
+  String get mapperRolePioneer => 'Pionnier';
+
+  @override
+  String get mapperRoleExplorer => 'Explorateur';
+
+  @override
+  String get mapperRoleCartographer => 'Cartographe';
+
+  @override
+  String get mapperRoleCityMapper => 'Cartographe urbain';
+
+  @override
+  String get mapperRoleUrbanScientist => 'Scientifique urbain';
+
+  @override
+  String get milestoneBody5 =>
+      'Vos relevés sont sur la carte. Chaque rue parcourue est une zone de moins à découvrir.';
+
+  @override
+  String get milestoneBody10 =>
+      'Un bloc complet, lu. Des rues que personne d\'autre n\'a encore cartographiées.';
+
+  @override
+  String get milestoneBody25 =>
+      'Vous connaissez des endroits que la plupart des cartographes n\'atteignent jamais.';
+
+  @override
+  String get milestoneBody50 =>
+      'La moitié d\'un quartier, terminée. Assez de terrain pour compter.';
+
+  @override
+  String get milestoneBody100 =>
+      'Vous êtes dans le peloton de tête. Votre secteur le sait.';
+
+  @override
+  String get milestoneBody250 =>
+      'Cartographie à l\'échelle d\'un district. Une compagnie rare.';
+
+  @override
+  String get milestoneBody500 =>
+      'Des données que la plupart des apps n\'auront jamais. Vous les avez construites.';
+
+  @override
+  String get milestoneBody1000 =>
+      'Vous êtes un jeu de données à l\'échelle d\'une ville. C\'est de la vraie science.';
+
+  @override
   String get sessionMilestone5Flavor =>
       'Votre quartier commence à prendre forme.';
 

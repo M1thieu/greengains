@@ -1795,6 +1795,53 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sessionCharacterSunExposed => 'OPEN SKY';
 
   @override
+  String get mapperRoleContributor => 'Contributor';
+
+  @override
+  String get mapperRolePioneer => 'Pioneer';
+
+  @override
+  String get mapperRoleExplorer => 'Explorer';
+
+  @override
+  String get mapperRoleCartographer => 'Cartographer';
+
+  @override
+  String get mapperRoleCityMapper => 'City Mapper';
+
+  @override
+  String get mapperRoleUrbanScientist => 'Urban Scientist';
+
+  @override
+  String get milestoneBody5 =>
+      'Your readings are on the map. Every street you walk is now one fewer blank.';
+
+  @override
+  String get milestoneBody10 =>
+      'A full block, read. Streets that nobody else bothered to map.';
+
+  @override
+  String get milestoneBody25 => 'You know places most mappers never reach.';
+
+  @override
+  String get milestoneBody50 =>
+      'Half a neighbourhood, done. Enough ground to matter.';
+
+  @override
+  String get milestoneBody100 => 'You\'re in the top tier. Your area knows it.';
+
+  @override
+  String get milestoneBody250 => 'City-district level mapping. Rare company.';
+
+  @override
+  String get milestoneBody500 =>
+      'Data most apps will never have. You built this.';
+
+  @override
+  String get milestoneBody1000 =>
+      'You\'re a city-scale dataset. This is real science.';
+
+  @override
   String get sessionMilestone5Flavor =>
       'Your neighbourhood, starting to take shape.';
 

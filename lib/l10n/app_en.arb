@@ -773,6 +773,22 @@
   "sessionCharacterRoughRoad": "ROUGH ROADS",
   "sessionCharacterSunExposed": "OPEN SKY",
 
+  "mapperRoleContributor": "Contributor",
+  "mapperRolePioneer": "Pioneer",
+  "mapperRoleExplorer": "Explorer",
+  "mapperRoleCartographer": "Cartographer",
+  "mapperRoleCityMapper": "City Mapper",
+  "mapperRoleUrbanScientist": "Urban Scientist",
+
+  "milestoneBody5": "Your readings are on the map. Every street you walk is now one fewer blank.",
+  "milestoneBody10": "A full block, read. Streets that nobody else bothered to map.",
+  "milestoneBody25": "You know places most mappers never reach.",
+  "milestoneBody50": "Half a neighbourhood, done. Enough ground to matter.",
+  "milestoneBody100": "You're in the top tier. Your area knows it.",
+  "milestoneBody250": "City-district level mapping. Rare company.",
+  "milestoneBody500": "Data most apps will never have. You built this.",
+  "milestoneBody1000": "You're a city-scale dataset. This is real science.",
+
   "sessionMilestone5Flavor": "Your neighbourhood, starting to take shape.",
   "sessionMilestone10Flavor": "A full block, mapped.",
   "sessionMilestone25Flavor": "The area of a small park, covered.",

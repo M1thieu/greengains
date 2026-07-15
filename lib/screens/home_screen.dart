@@ -1487,6 +1487,20 @@ class _MilestoneSheetState extends State<_MilestoneSheet> {
     return null;
   }
 
+  String _milestoneBody(AppLocalizations l10n) {
+    switch (widget.zoneCount) {
+      case 5:    return l10n.milestoneBody5;
+      case 10:   return l10n.milestoneBody10;
+      case 25:   return l10n.milestoneBody25;
+      case 50:   return l10n.milestoneBody50;
+      case 100:  return l10n.milestoneBody100;
+      case 250:  return l10n.milestoneBody250;
+      case 500:  return l10n.milestoneBody500;
+      case 1000: return l10n.milestoneBody1000;
+      default:   return l10n.milestoneReachedBody;
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -1544,7 +1558,7 @@ class _MilestoneSheetState extends State<_MilestoneSheet> {
                 ),
                 const SizedBox(height: AppTheme.spaceSm),
                 Text(
-                  l10n.milestoneReachedBody,
+                  _milestoneBody(l10n),
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: AppColors.textSecondary(isDark),
                     height: 1.5,
@@ -2570,11 +2584,17 @@ class _LiveEnvironmentCard extends StatelessWidget {
     final lux = cond.lux?.toDouble();
     final hpa = cond.hpa;
 
-    final insight = SensorInsights.tileInsight(
-      l10n,
+    final character = SensorInsights.sessionCharacter(
       isNight: isNight,
       avgLux: lux,
       avgHpa: hpa,
+    );
+    final characterLabel = SensorInsights.sessionCharacterLabel(l10n, character);
+    final conditionLine = SensorInsights.tileConditionLine(
+      l10n,
+      isNight: isNight,
+      avgLux: lux,
+      avgVibration: cond.rms,
     );
 
     final accentColor = _accentColor(isNight: isNight, lux: lux, hpa: hpa);
@@ -2610,14 +2630,29 @@ class _LiveEnvironmentCard extends StatelessWidget {
               ),
               const SizedBox(width: AppTheme.spaceSm),
               Expanded(
-                child: Text(
-                  insight,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: AppColors.darkTextPrimary,
-                    height: AppLineHeights.tight,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      characterLabel,
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        color: accentColor,
+                        fontWeight: AppFontWeights.semibold,
+                        letterSpacing: AppTheme.letterSpacingCaps,
+                        height: AppLineHeights.tight,
+                      ),
+                    ),
+                    Text(
+                      conditionLine,
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        color: AppColors.darkTextSecondary,
+                        height: AppLineHeights.tight,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
                 ),
               ),
             ],

@@ -3045,6 +3045,90 @@ abstract class AppLocalizations {
   /// **'OPEN SKY'**
   String get sessionCharacterSunExposed;
 
+  /// No description provided for @mapperRoleContributor.
+  ///
+  /// In en, this message translates to:
+  /// **'Contributor'**
+  String get mapperRoleContributor;
+
+  /// No description provided for @mapperRolePioneer.
+  ///
+  /// In en, this message translates to:
+  /// **'Pioneer'**
+  String get mapperRolePioneer;
+
+  /// No description provided for @mapperRoleExplorer.
+  ///
+  /// In en, this message translates to:
+  /// **'Explorer'**
+  String get mapperRoleExplorer;
+
+  /// No description provided for @mapperRoleCartographer.
+  ///
+  /// In en, this message translates to:
+  /// **'Cartographer'**
+  String get mapperRoleCartographer;
+
+  /// No description provided for @mapperRoleCityMapper.
+  ///
+  /// In en, this message translates to:
+  /// **'City Mapper'**
+  String get mapperRoleCityMapper;
+
+  /// No description provided for @mapperRoleUrbanScientist.
+  ///
+  /// In en, this message translates to:
+  /// **'Urban Scientist'**
+  String get mapperRoleUrbanScientist;
+
+  /// No description provided for @milestoneBody5.
+  ///
+  /// In en, this message translates to:
+  /// **'Your readings are on the map. Every street you walk is now one fewer blank.'**
+  String get milestoneBody5;
+
+  /// No description provided for @milestoneBody10.
+  ///
+  /// In en, this message translates to:
+  /// **'A full block, read. Streets that nobody else bothered to map.'**
+  String get milestoneBody10;
+
+  /// No description provided for @milestoneBody25.
+  ///
+  /// In en, this message translates to:
+  /// **'You know places most mappers never reach.'**
+  String get milestoneBody25;
+
+  /// No description provided for @milestoneBody50.
+  ///
+  /// In en, this message translates to:
+  /// **'Half a neighbourhood, done. Enough ground to matter.'**
+  String get milestoneBody50;
+
+  /// No description provided for @milestoneBody100.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re in the top tier. Your area knows it.'**
+  String get milestoneBody100;
+
+  /// No description provided for @milestoneBody250.
+  ///
+  /// In en, this message translates to:
+  /// **'City-district level mapping. Rare company.'**
+  String get milestoneBody250;
+
+  /// No description provided for @milestoneBody500.
+  ///
+  /// In en, this message translates to:
+  /// **'Data most apps will never have. You built this.'**
+  String get milestoneBody500;
+
+  /// No description provided for @milestoneBody1000.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re a city-scale dataset. This is real science.'**
+  String get milestoneBody1000;
+
   /// No description provided for @sessionMilestone5Flavor.
   ///
   /// In en, this message translates to:
