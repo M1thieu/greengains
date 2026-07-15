@@ -3,6 +3,7 @@ package com.eremat.greengains.service
 import android.Manifest.permission.ACCESS_COARSE_LOCATION
 import android.Manifest.permission.ACCESS_FINE_LOCATION
 import android.annotation.SuppressLint
+import android.app.ActivityManager
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
@@ -480,8 +481,10 @@ class ForegroundService : Service() {
         // This lets the UI update isRunning/isPaused even when stopped from the notification.
         methodChannel?.invokeMethod("onServiceStopped", null)
 
-        // Post passive discovery notification so user sees what was collected this session.
-        NotificationsHelper.postDiscoveryNotification(this, sessionUploads, zonesTotal)
+        // Post passive discovery notification — skip if app is already open (user saw summary sheet).
+        if (!isAppForegrounded()) {
+            NotificationsHelper.postDiscoveryNotification(this, sessionUploads, zonesTotal)
+        }
 
         stopForeground(true)
         stopSelf()
@@ -815,6 +818,14 @@ class ForegroundService : Service() {
     private fun readCurrentStreakFromPrefs(): Int {
         val prefs = getSharedPreferences(AppPrefs.NAME, Context.MODE_PRIVATE)
         return prefs.getInt(AppPrefs.CURRENT_STREAK, 0)
+    }
+
+    private fun isAppForegrounded(): Boolean {
+        val am = getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+        return am.runningAppProcesses?.any {
+            it.importance == ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND &&
+            it.processName == packageName
+        } ?: false
     }
 
     private fun sendNativeUploadStatusToFlutter(event: NativeUploadStatusEvent) {

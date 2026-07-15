@@ -57,6 +57,7 @@ class PreferenceKeys {
   static const lastSessionZonesGained = 'last_session_zones_gained';
   static const lastSessionEndAt = 'last_session_end_at';
   static const bestSessionZonesGained = 'best_session_zones_gained';
+  static const dismissedReturnDeltaZones = 'dismissed_return_delta_zones';
 
   /// Primary neighborhood name computed from the user's most-mapped tile centroid.
   static const territoryLabel = 'territory_label';
@@ -518,6 +519,11 @@ class AppPreferences {
       await _sp.setInt(PreferenceKeys.bestSessionZonesGained, zonesGained);
     }
   }
+
+  int get dismissedReturnDeltaZones =>
+      _sp.getInt(PreferenceKeys.dismissedReturnDeltaZones) ?? -1;
+  Future<void> setDismissedReturnDeltaZones(int zones) =>
+      _sp.setInt(PreferenceKeys.dismissedReturnDeltaZones, zones);
 
   bool get firstUploadCelebrated =>
       _sp.getBool(PreferenceKeys.firstUploadCelebrated) ?? false;
