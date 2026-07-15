@@ -67,7 +67,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   int _sessionStartZoneCount = 0;
   /// Wall-clock time when tracking started — drives elapsed timer in hint pill.
   DateTime? _sessionStartTime;
-  /// Zones gained since last app open — shown as re-engagement banner after tile load.
+  /// Zones gained since last app open — shown as return delta card on next open.
+  int _returnDeltaZones = 0;
+  bool _showReturnDelta = false;
   /// True when map is actively following the user's GPS position.
   final _followModeNotifier = ValueNotifier<bool>(false);
   StreamSubscription? _locationStreamSub;
@@ -163,7 +165,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     // after the session summary was already shown) but less than 24h ago.
     final age = DateTime.now().difference(endAt);
     if (age < const Duration(minutes: 10) || age > const Duration(hours: 24)) return;
-    // return-delta removed from UI — no-op
+    setState(() {
+      _returnDeltaZones = zones;
+      _showReturnDelta = true;
+    });
   }
 
   Future<void> _loadStreak() async {
@@ -976,6 +981,20 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                               ),
                             ],
                           ),
+                        ),
+                      ),
+
+                    // Return delta — shows zones gained last session on next open
+                    if (_showReturnDelta && !_locationService.isRunning.value)
+                      Padding(
+                        padding: const EdgeInsets.only(
+                          left: AppTheme.spaceMd,
+                          right: AppTheme.spaceMd,
+                          bottom: AppTheme.spaceSm,
+                        ),
+                        child: _ReturnDeltaCard(
+                          zones: _returnDeltaZones,
+                          onDismiss: () => setState(() => _showReturnDelta = false),
                         ),
                       ),
 
@@ -2735,6 +2754,55 @@ class _InfoButton extends StatelessWidget {
 
 /// Persistent banner shown when background location permission was revoked
 /// while tracking is supposed to be running. Not dismissable — stays until fixed.
+class _ReturnDeltaCard extends StatelessWidget {
+  const _ReturnDeltaCard({required this.zones, required this.onDismiss});
+  final int zones;
+  final VoidCallback onDismiss;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppTheme.spaceMd,
+        vertical: AppTheme.spaceSm,
+      ),
+      decoration: BoxDecoration(
+        color: AppColors.mapOverlayMid,
+        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+        border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.add_location_alt_rounded,
+              size: AppIconSizes.sm, color: AppColors.primary),
+          const SizedBox(width: AppTheme.spaceSm),
+          Expanded(
+            child: Text(
+              l10n.returnDeltaTitle(zones),
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                fontWeight: AppFontWeights.semibold,
+                color: AppColors.darkTextPrimary,
+              ),
+            ),
+          ),
+          const SizedBox(width: AppTheme.spaceXs),
+          GestureDetector(
+            onTap: onDismiss,
+            child: Text(
+              l10n.returnDeltaDismiss,
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                color: AppColors.primary,
+                fontWeight: AppFontWeights.semibold,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _PermissionLostCard extends StatelessWidget {
   const _PermissionLostCard({required this.onFix});
   final VoidCallback onFix;

@@ -73,4 +73,10 @@
     <string name="notif_body_measuring">À l\'écoute de votre environnement</string>
     <string name="notif_uploaded_ago">· envoyé il y a %1$s</string>
 
+    <!-- Notification de fin de session — résumé passif -->
+    <string name="notification_discovery_channel_name">Résumé de trajet</string>
+    <string name="notification_discovery_title">Trajet sauvegardé · %1$d envois</string>
+    <string name="notification_discovery_body">%1$d endroits sur votre carte — touchez pour explorer.</string>
+    <string name="notification_discovery_body_first">Votre premier trajet est sur la carte — touchez pour le voir.</string>
+
 </resources>

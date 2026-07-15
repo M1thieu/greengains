@@ -22,6 +22,7 @@ import java.util.concurrent.TimeUnit
 import com.eremat.greengains.service.ForegroundService
 import com.eremat.greengains.util.AppLogger
 import com.eremat.greengains.worker.StreakAlertWorker
+import com.eremat.greengains.worker.WeeklyDigestWorker
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
@@ -48,6 +49,14 @@ class MainActivity : FlutterActivity() {
             StreakAlertWorker.WORK_NAME,
             ExistingPeriodicWorkPolicy.KEEP,
             streakWork,
+        )
+        // Weekly passive digest — every 7 days, Sunday morning feel.
+        // Self-gates: skips if no zones collected yet.
+        val weeklyWork = PeriodicWorkRequestBuilder<WeeklyDigestWorker>(7L, TimeUnit.DAYS).build()
+        WorkManager.getInstance(this).enqueueUniquePeriodicWork(
+            WeeklyDigestWorker.WORK_NAME,
+            ExistingPeriodicWorkPolicy.KEEP,
+            weeklyWork,
         )
     }
 

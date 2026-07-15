@@ -16,15 +16,17 @@ import java.time.Instant
 
 internal object NotificationsHelper {
 
-    private const val NOTIFICATION_CHANNEL_ID = "sensor_collection_v2"
-    private const val LEGACY_CHANNEL_ID       = "general_notification_channel"
-    const val NOTIFICATION_ID_SERVICE = 1
-    const val NOTIFICATION_ID_WORKER  = 2
+    private const val NOTIFICATION_CHANNEL_ID   = "sensor_collection_v2"
+    private const val LEGACY_CHANNEL_ID         = "general_notification_channel"
+    const val CHANNEL_ID_DISCOVERY              = "discovery_v1"
+    const val NOTIFICATION_ID_SERVICE   = 1
+    const val NOTIFICATION_ID_WORKER    = 2
+    const val NOTIFICATION_ID_DISCOVERY = 3
 
     fun createNotificationChannel(context: Context) {
         val manager = context.getSystemService(Service.NOTIFICATION_SERVICE) as NotificationManager
         manager.deleteNotificationChannel(LEGACY_CHANNEL_ID)
-        val channel = NotificationChannel(
+        val serviceChannel = NotificationChannel(
             NOTIFICATION_CHANNEL_ID,
             "Sensor Collection",
             NotificationManager.IMPORTANCE_LOW
@@ -33,7 +35,47 @@ internal object NotificationsHelper {
             setSound(null, null)
             setShowBadge(false)
         }
-        manager.createNotificationChannel(channel)
+        manager.createNotificationChannel(serviceChannel)
+
+        // Discovery channel — gentle sound, shows in shade, no heads-up popup
+        if (manager.getNotificationChannel(CHANNEL_ID_DISCOVERY) == null) {
+            val discoveryChannel = NotificationChannel(
+                CHANNEL_ID_DISCOVERY,
+                context.getString(R.string.notification_discovery_channel_name),
+                NotificationManager.IMPORTANCE_DEFAULT
+            ).apply {
+                enableVibration(false)
+                setShowBadge(true)
+            }
+            manager.createNotificationChannel(discoveryChannel)
+        }
+    }
+
+    fun postDiscoveryNotification(context: Context, sessionUploads: Int, zonesTotal: Int) {
+        if (sessionUploads <= 0) return
+        val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val tapIntent = PendingIntent.getActivity(
+            context, NOTIFICATION_ID_DISCOVERY,
+            Intent(context, MainActivity::class.java),
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+        )
+        val territory = context.getSharedPreferences(AppPrefs.NAME, Context.MODE_PRIVATE)
+            .getString(AppPrefs.TERRITORY_LABEL, null)
+            ?.takeIf { it.isNotBlank() }
+        val baseBody = if (zonesTotal == 0)
+            context.getString(R.string.notification_discovery_body_first)
+        else
+            context.getString(R.string.notification_discovery_body, zonesTotal)
+        val body = if (territory != null) "$territory · $baseBody" else baseBody
+        val notification = NotificationCompat.Builder(context, CHANNEL_ID_DISCOVERY)
+            .setContentTitle(context.getString(R.string.notification_discovery_title, sessionUploads))
+            .setContentText(body)
+            .setSmallIcon(R.drawable.ic_notification_leaf)
+            .setColor(android.graphics.Color.parseColor("#10B981"))
+            .setAutoCancel(true)
+            .setContentIntent(tapIntent)
+            .build()
+        manager.notify(NOTIFICATION_ID_DISCOVERY, notification)
     }
 
     fun buildNotification(

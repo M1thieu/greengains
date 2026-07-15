@@ -91,4 +91,12 @@
     <!-- Uploaded N min ago suffix appended to notification body -->
     <string name="notif_uploaded_ago">· uploaded %1$s ago</string>
 
+    <!-- Post-session discovery notification — fires when user stops tracking -->
+    <string name="notification_discovery_channel_name">Route Summary</string>
+    <!-- %1$d = uploads in this session -->
+    <string name="notification_discovery_title">Route saved · %1$d uploads</string>
+    <!-- %1$d = total zones -->
+    <string name="notification_discovery_body">%1$d places on your map — tap to explore.</string>
+    <string name="notification_discovery_body_first">Your first route is on the map — tap to see it.</string>
+
 </resources>

@@ -99,6 +99,9 @@ class ForegroundService : Service() {
     // Set when sensors start, cleared on pause or stop.
     private var sessionStartMillis: Long? = null
 
+    // Upload count at session start — delta on stop = uploads from this session only.
+    private var sessionStartUploads: Int = 0
+
     // PARTIAL_WAKE_LOCK: keeps CPU alive during upload batches on aggressive OEMs (Xiaomi, Samsung,
     // Huawei) that suspend the CPU between sensor intervals. Without this, mid-batch upload drops
     // are silent — data is lost with no error. Held only during the NativeBackendUploader flush
@@ -388,6 +391,7 @@ class ForegroundService : Service() {
 
     private fun startTracking() {
         sessionStartMillis = System.currentTimeMillis()
+        sessionStartUploads = readUploadsTodayFromPrefs()
         lightSensor.start()
         barometer.start()
         motionSensors.start()
@@ -460,6 +464,8 @@ class ForegroundService : Service() {
     }
 
     private fun stopForegroundService() {
+        val sessionUploads = readUploadsTodayFromPrefs() - sessionStartUploads
+        val zonesTotal    = readZonesTotalFromPrefs()
         sessionStartMillis = null
         running = false
         trackingPausedState = false
@@ -473,6 +479,9 @@ class ForegroundService : Service() {
         // Signal Flutter before stopSelf() so the method channel is still valid.
         // This lets the UI update isRunning/isPaused even when stopped from the notification.
         methodChannel?.invokeMethod("onServiceStopped", null)
+
+        // Post passive discovery notification so user sees what was collected this session.
+        NotificationsHelper.postDiscoveryNotification(this, sessionUploads, zonesTotal)
 
         stopForeground(true)
         stopSelf()
