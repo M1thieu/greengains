@@ -637,6 +637,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get statsInDepthBestWeekday => 'Meilleur jour';
 
   @override
+  String get statsInDepthWhenYouMap => 'Quand vous cartographiez';
+
+  @override
   String get statsDaysUnit => 'jours';
 
   @override

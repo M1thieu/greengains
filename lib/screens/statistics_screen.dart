@@ -1632,9 +1632,10 @@ class _StatisticsScreenState extends State<StatisticsScreen>
     final total30 = counts30?.values.fold(0, (a, b) => a + b) ?? 0;
     final avgPerActiveDay = activeDays30 > 0 ? (total30 / activeDays30).round() : 0;
 
-    // Best weekday computation
+    // Best weekday computation + full weekday distribution for chart
     String? bestWeekday;
     int bestWeekdayAvg = 0;
+    List<int>? weekdayTotals;
     if (counts30 != null && counts30.isNotEmpty) {
       final wd = List<int>.filled(7, 0);
       final wdCount = List<int>.filled(7, 0);
@@ -1650,6 +1651,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
         final bestIdx = wd.indexOf(maxWd);
         bestWeekday = DateFormat('EEE', locale).format(DateTime(2024, 1, 1 + bestIdx));
         bestWeekdayAvg = wdCount[bestIdx] > 0 ? (wd[bestIdx] / wdCount[bestIdx]).round() : 0;
+        weekdayTotals = wd;
       }
     }
 
@@ -1751,6 +1753,18 @@ class _StatisticsScreenState extends State<StatisticsScreen>
               ])),
             ],
           ])),
+          const SizedBox(height: AppTheme.spaceLg),
+        ],
+
+        // ── When you map: day-of-week personality chart ───────────────────
+        if (weekdayTotals != null) ...[
+          SectionHeader(l10n.statsInDepthWhenYouMap),
+          const SizedBox(height: AppTheme.spaceXs),
+          _WeekdayChart(
+            dayTotals: weekdayTotals,
+            isDark: isDark,
+            locale: locale,
+          ),
           const SizedBox(height: AppTheme.spaceLg),
         ],
 
@@ -2009,6 +2023,93 @@ class _SensorTypesRow extends StatelessWidget {
   }
 }
 
+
+// ── Day-of-week personality chart ────────────────────────────────────────────
+
+/// 7-bar mini chart (Mon–Sun) showing relative activity distribution.
+/// Inspired by Dawarich's weekly_pattern_chart_data helper.
+class _WeekdayChart extends StatelessWidget {
+  const _WeekdayChart({
+    required this.dayTotals,
+    required this.isDark,
+    required this.locale,
+  });
+  final List<int> dayTotals; // length 7, index 0 = Monday
+  final bool isDark;
+  final String locale;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final maxV = dayTotals.fold(0, max);
+    if (maxV == 0) return const SizedBox.shrink();
+    final bestIdx = dayTotals.indexOf(maxV);
+
+    return Container(
+      padding: const EdgeInsets.fromLTRB(
+          AppTheme.spaceMd, AppTheme.spaceMd, AppTheme.spaceMd, AppTheme.spaceSm),
+      decoration: AppTheme.surfaceContainer(isDark: isDark),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: List.generate(7, (i) {
+          final value = dayTotals[i];
+          final fraction = maxV > 0 ? value / maxV : 0.0;
+          final isMax = i == bestIdx && value > 0;
+          final label = DateFormat('E', locale)
+              .format(DateTime(2024, 1, 1 + i))[0]
+              .toUpperCase();
+
+          return Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 3),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TweenAnimationBuilder<double>(
+                    tween: Tween(begin: 0, end: fraction),
+                    duration: Duration(milliseconds: 400 + i * 60),
+                    curve: Curves.easeOut,
+                    builder: (_, frac, __) => SizedBox(
+                      height: _kBarMaxH,
+                      child: Align(
+                        alignment: Alignment.bottomCenter,
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          width: double.infinity,
+                          height: max(_kBarMinH, _kBarMaxH * frac),
+                          decoration: BoxDecoration(
+                            color: isMax
+                                ? AppColors.primary
+                                : AppColors.primary.withValues(alpha: 0.28),
+                            borderRadius: const BorderRadius.vertical(
+                                top: Radius.circular(3)),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 5),
+                  Text(
+                    label,
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: isMax
+                          ? AppColors.primary
+                          : AppColors.textTertiary(isDark),
+                      fontWeight: isMax
+                          ? AppFontWeights.bold
+                          : AppFontWeights.medium,
+                      fontSize: _kBarLabelSize,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }),
+      ),
+    );
+  }
+}
 
 // ── 30-day calendar heatmap ───────────────────────────────────────────────────
 

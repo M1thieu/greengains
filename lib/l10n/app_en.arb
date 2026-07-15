@@ -261,6 +261,7 @@
   "statsInDepthActiveDays": "Active days",
   "statsInDepthAvgPerDay": "Avg / active day",
   "statsInDepthBestWeekday": "Best weekday",
+  "statsInDepthWhenYouMap": "When you map",
   "statsDaysUnit": "days",
   "statsCurrentStreakLabel": "Current streak",
   "statsLongestLabel": "Longest",

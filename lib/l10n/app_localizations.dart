@@ -1094,6 +1094,12 @@ abstract class AppLocalizations {
   /// **'Best weekday'**
   String get statsInDepthBestWeekday;
 
+  /// No description provided for @statsInDepthWhenYouMap.
+  ///
+  /// In en, this message translates to:
+  /// **'When you map'**
+  String get statsInDepthWhenYouMap;
+
   /// No description provided for @statsDaysUnit.
   ///
   /// In en, this message translates to:

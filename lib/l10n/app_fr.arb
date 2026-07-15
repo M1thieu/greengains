@@ -261,6 +261,7 @@
   "statsInDepthActiveDays": "Jours actifs",
   "statsInDepthAvgPerDay": "Moy. / jour actif",
   "statsInDepthBestWeekday": "Meilleur jour",
+  "statsInDepthWhenYouMap": "Quand vous cartographiez",
   "statsDaysUnit": "jours",
   "statsCurrentStreakLabel": "Série actuelle",
   "statsLongestLabel": "Record",

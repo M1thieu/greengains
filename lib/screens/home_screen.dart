@@ -1248,6 +1248,61 @@ enum _ActionBtnStyle { primary, secondary, danger }
 
 // ─── Private widgets ────────────────────────────────────────────────────────
 
+// ── Animated count with bounded haptic feedback ──────────────────────────────
+
+/// Counts from 0 to [count] with a short animation and selectionClick haptics.
+/// Fires at most 10 haptic pulses regardless of count size — one per 10 % step.
+class _HapticCountText extends StatefulWidget {
+  const _HapticCountText({
+    required this.count,
+    required this.duration,
+    this.prefix = '',
+  });
+  final int count;
+  final Duration duration;
+  final String prefix;
+
+  @override
+  State<_HapticCountText> createState() => _HapticCountTextState();
+}
+
+class _HapticCountTextState extends State<_HapticCountText> {
+  int _prev = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    return TweenAnimationBuilder<int>(
+      tween: IntTween(begin: 0, end: widget.count),
+      duration: widget.duration,
+      curve: Curves.easeOut,
+      builder: (_, value, __) {
+        if (value > _prev && widget.count > 0) {
+          // Fire at most 10 ticks, one per 10% of total
+          final prevBucket = _prev * 10 ~/ widget.count;
+          final currBucket = value * 10 ~/ widget.count;
+          if (currBucket > prevBucket) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) HapticFeedback.selectionClick();
+            });
+          }
+          _prev = value;
+        }
+        return Text(
+          '${widget.prefix}$value',
+          style: const TextStyle(
+            fontSize: AppTheme.fontSizeDisplay,
+            fontWeight: AppFontWeights.bold,
+            color: Colors.white,
+            letterSpacing: -5,
+            height: 0.92,
+            fontFeatures: [ui.FontFeature.tabularFigures()],
+          ),
+        );
+      },
+    );
+  }
+}
+
 /// Flat-top hex brand mark — matches design's SVG exactly.
 class _BrandMark extends StatelessWidget {
   const _BrandMark({this.size = 16});
@@ -2092,21 +2147,10 @@ class _SessionSummarySheetState extends State<_SessionSummarySheet> {
                   ),
                 ),
                 const SizedBox(height: AppTheme.spaceXxs),
-                TweenAnimationBuilder<int>(
-                  tween: IntTween(begin: 0, end: widget.zonesGained),
+                _HapticCountText(
+                  count: widget.zonesGained,
                   duration: AppDurations.medium + Duration(milliseconds: widget.zonesGained.clamp(0, 60) * 8),
-                  curve: Curves.easeOut,
-                  builder: (_, value, __) => Text(
-                    '+$value',
-                    style: const TextStyle(
-                      fontSize: AppTheme.fontSizeDisplay,
-                      fontWeight: AppFontWeights.bold,
-                      color: Colors.white,
-                      letterSpacing: -5,
-                      height: 0.92,
-                      fontFeatures: [ui.FontFeature.tabularFigures()],
-                    ),
-                  ),
+                  prefix: '+',
                 ),
                 const SizedBox(height: AppTheme.spaceSm),
                 Text(
@@ -2126,21 +2170,9 @@ class _SessionSummarySheetState extends State<_SessionSummarySheet> {
                   ),
                 ),
                 const SizedBox(height: AppTheme.spaceXxs),
-                TweenAnimationBuilder<int>(
-                  tween: IntTween(begin: 0, end: widget.totalZones),
+                _HapticCountText(
+                  count: widget.totalZones,
                   duration: AppDurations.shimmer,
-                  curve: Curves.easeOut,
-                  builder: (_, value, __) => Text(
-                    '$value',
-                    style: const TextStyle(
-                      fontSize: AppTheme.fontSizeDisplay,
-                      fontWeight: AppFontWeights.bold,
-                      color: Colors.white,
-                      letterSpacing: -5,
-                      height: 0.92,
-                      fontFeatures: [ui.FontFeature.tabularFigures()],
-                    ),
-                  ),
                 ),
                 const SizedBox(height: AppTheme.spaceSm),
                 Text(
