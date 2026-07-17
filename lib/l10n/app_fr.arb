@@ -39,6 +39,8 @@
   "@homeStatArea": { "placeholders": { "area": { "type": "String" } } },
   "homeStatStreak": "{count, plural, =1{1 jour d'affilée} other{{count} jours d'affilée}}",
   "@homeStatStreak": { "placeholders": { "count": { "type": "int" } } },
+  "homeStatToday": "+{count} aujourd'hui",
+  "@homeStatToday": { "placeholders": { "count": { "type": "int" } } },
   "homeActionStart": "Démarrer",
   "homeActionStop": "Arrêter",
   "startTracking": "Démarrer le suivi",

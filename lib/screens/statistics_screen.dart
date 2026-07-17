@@ -664,6 +664,13 @@ class _StatisticsScreenState extends State<StatisticsScreen>
     final isRecord = streak > 0 && streak >= longest && longest > 0;
     final hairline = AppColors.textTertiary(isDark).withValues(alpha: 0.12);
 
+    // Streak at risk — user hasn't mapped today and has a streak to lose.
+    final lastSession = AppPreferences.instance.lastSessionEndAt;
+    final mappedToday = lastSession != null &&
+        DateTime.now().difference(lastSession).inHours < 20;
+    final streakAtRisk = streak > 0 && !mappedToday;
+    final streakColor = streakAtRisk ? AppColors.warning : AppColors.primary;
+
     return Container(
       decoration: AppTheme.surfaceContainer(isDark: isDark),
       child: IntrinsicHeight(
@@ -681,14 +688,14 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                       curve: AppMotion.decelerated,
                       builder: (_, value, __) => Text('$value', style: theme.textTheme.headlineMedium?.copyWith(
                         fontWeight: AppFontWeights.bold,
-                        color: AppColors.primary,
+                        color: streakColor,
                         height: AppLineHeights.numeric,
                         letterSpacing: AppTheme.letterSpacingNumeric,
                       )),
                     ),
                     const SizedBox(width: AppTheme.spaceXxs),
                     Text(l10n.statsDaysUnit, style: theme.textTheme.bodySmall?.copyWith(
-                      color: AppColors.primary.withValues(alpha: 0.7),
+                      color: streakColor.withValues(alpha: 0.7),
                     )),
                     if (isRecord) ...[
                       const SizedBox(width: AppTheme.spaceXs),

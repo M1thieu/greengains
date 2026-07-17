@@ -621,6 +621,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           _showSlowLoadHint = false;
           _lastTilesFetch = DateTime.now();
         });
+        // Check for milestone crossings on cold open — catches zones earned while app was closed.
+        unawaited(_maybeCelebrateMilestone(newCount));
         // Persist for instant display on next open.
         unawaited(_prefs.setCachedPersonalTiles(jsonEncode(data)));
         // Geocode neighborhood from the most-sampled tile centroid — fire-and-forget.
@@ -929,6 +931,26 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                     label: context.l10n.homeStatStreak(_currentStreak),
                                   ),
                                 ],
+                                Builder(builder: (context) {
+                                  final lastEnd = _prefs.lastSessionEndAt;
+                                  final todayZones = _prefs.lastSessionZonesGained;
+                                  final isToday = lastEnd != null &&
+                                      DateTime.now().difference(lastEnd).inHours < 20 &&
+                                      !_locationService.isRunning.value &&
+                                      todayZones > 0;
+                                  if (!isToday) return const SizedBox.shrink();
+                                  return Column(
+                                    crossAxisAlignment: CrossAxisAlignment.end,
+                                    children: [
+                                      const SizedBox(height: AppTheme.spaceXxs),
+                                      _StatPill(
+                                        icon: Icons.add_rounded,
+                                        label: context.l10n.homeStatToday(todayZones),
+                                        color: AppColors.primary,
+                                      ),
+                                    ],
+                                  );
+                                }),
                               ],
                             ),
                           ),
@@ -2703,29 +2725,36 @@ class _LiveEnvironmentCard extends StatelessWidget {
 
 /// Small frosted pill showing a stat (places or streak).
 class _StatPill extends StatelessWidget {
-  const _StatPill({required this.icon, required this.label});
+  const _StatPill({required this.icon, required this.label, this.color});
   final IconData icon;
   final String label;
+  final Color? color;
 
   @override
   Widget build(BuildContext context) {
+    final accent = color ?? AppColors.primary;
     return Container(
       padding: const EdgeInsets.symmetric(
           horizontal: AppTheme.spaceSm, vertical: AppTheme.spaceTiny),
       decoration: BoxDecoration(
-        color: AppColors.shadowDark(0.55),
+        color: color != null
+            ? color!.withValues(alpha: 0.18)
+            : AppColors.shadowDark(0.55),
         borderRadius: BorderRadius.circular(AppTheme.radiusPill),
+        border: color != null
+            ? Border.all(color: color!.withValues(alpha: 0.35))
+            : null,
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: AppIconSizes.xs, color: AppColors.primary),
+          Icon(icon, size: AppIconSizes.xs, color: accent),
           const SizedBox(width: AppTheme.spaceXxs),
           Text(
             label,
             style: Theme.of(context).textTheme.labelSmall?.copyWith(
               fontWeight: AppFontWeights.semibold,
-              color: Colors.white,
+              color: color != null ? accent : Colors.white,
             ),
           ),
         ],
