@@ -239,6 +239,7 @@
   "statsRecordLongestStreak": "Longest streak",
   "statsRecordTotalUploads": "Total scans",
   "statsRecordFirstDay": "First mapping day",
+  "statsRecordBestSession": "Best session",
   "statsZoneExplainer": "A zone is roughly one city block — recorded as you passed through.",
   "statsUploadExplainer": "Light, heat and surface quality captured at that moment.",
   "statsTabCore": "Overview",

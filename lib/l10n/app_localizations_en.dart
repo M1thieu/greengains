@@ -104,6 +104,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String homeStatToday(int count) {
+    return '+$count today';
+  }
+
+  @override
   String get homeActionStart => 'Start';
 
   @override
@@ -581,6 +586,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get statsRecordFirstDay => 'First mapping day';
+
+  @override
+  String get statsRecordBestSession => 'Best session';
 
   @override
   String get statsZoneExplainer =>

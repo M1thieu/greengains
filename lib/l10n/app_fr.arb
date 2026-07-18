@@ -239,6 +239,7 @@
   "statsRecordLongestStreak": "Série la plus longue",
   "statsRecordTotalUploads": "Total de scans",
   "statsRecordFirstDay": "Premier jour de cartographie",
+  "statsRecordBestSession": "Meilleure session",
   "statsZoneExplainer": "Une zone correspond environ à un pâté de maisons — enregistré en passant.",
   "statsUploadExplainer": "Lumière, chaleur et qualité des surfaces capturées à cet instant.",
   "statsTabCore": "Aperçu",

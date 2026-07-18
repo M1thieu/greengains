@@ -260,6 +260,12 @@ abstract class AppLocalizations {
   /// **'{count}-day streak'**
   String homeStatStreak(int count);
 
+  /// No description provided for @homeStatToday.
+  ///
+  /// In en, this message translates to:
+  /// **'+{count} today'**
+  String homeStatToday(int count);
+
   /// No description provided for @homeActionStart.
   ///
   /// In en, this message translates to:
@@ -1015,6 +1021,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'First mapping day'**
   String get statsRecordFirstDay;
+
+  /// No description provided for @statsRecordBestSession.
+  ///
+  /// In en, this message translates to:
+  /// **'Best session'**
+  String get statsRecordBestSession;
 
   /// No description provided for @statsZoneExplainer.
   ///

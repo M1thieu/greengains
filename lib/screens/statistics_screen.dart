@@ -499,6 +499,18 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                   )),
                 ],
               ),
+              const SizedBox(height: AppTheme.spaceSm),
+              Row(
+                children: [
+                  Expanded(child: StatCell(
+                    label: l10n.statsRecordBestSession,
+                    value: '${AppPreferences.instance.bestSessionZonesGained}',
+                    color: AppColors.pressure,
+                  )),
+                  const SizedBox(width: AppTheme.spaceSm),
+                  const Expanded(child: SizedBox.shrink()),
+                ],
+              ),
               const SizedBox(height: AppTheme.spaceMd),
               _SensorTypesRow(isDark: isDark, l10n: l10n),
             ],
