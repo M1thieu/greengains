@@ -4100,6 +4100,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, =1{1 place only you\'ve ever been} other{{count} places only you\'ve ever been}}'**
   String statsInsightSolo(int count);
+
+  /// No description provided for @statsInsightBrightest.
+  ///
+  /// In en, this message translates to:
+  /// **'Most lit-up spot: {street}'**
+  String statsInsightBrightest(String street);
 }
 
 class _AppLocalizationsDelegate

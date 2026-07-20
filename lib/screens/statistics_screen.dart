@@ -1052,6 +1052,14 @@ class _StatisticsScreenState extends State<StatisticsScreen>
       ));
     }
 
+    if (insight.brightestStreet != null) {
+      if (rows.isNotEmpty) rows.add(const SizedBox(height: AppTheme.spaceXxxs + 1));
+      rows.add(Text(
+        l10n.statsInsightBrightest(insight.brightestStreet!),
+        style: theme.textTheme.bodySmall?.copyWith(color: AppColors.textTertiary(isDark)),
+      ));
+    }
+
     if (rows.isEmpty) return const SizedBox.shrink();
 
     return Container(

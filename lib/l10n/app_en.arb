@@ -1047,5 +1047,7 @@
   "statsInsightNewZones": "{count, plural, =1{1 new place mapped this week} other{{count} new places mapped this week}}",
   "@statsInsightNewZones": { "placeholders": { "count": { "type": "int" } } },
   "statsInsightSolo": "{count, plural, =1{1 place only you've ever been} other{{count} places only you've ever been}}",
-  "@statsInsightSolo": { "placeholders": { "count": { "type": "int" } } }
+  "@statsInsightSolo": { "placeholders": { "count": { "type": "int" } } },
+  "statsInsightBrightest": "Most lit-up spot: {street}",
+  "@statsInsightBrightest": { "placeholders": { "street": { "type": "String" } } }
 }

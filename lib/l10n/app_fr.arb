@@ -1047,5 +1047,7 @@
   "statsInsightNewZones": "{count, plural, =1{1 nouvel endroit cartographié cette semaine} other{{count} nouveaux endroits cartographiés cette semaine}}",
   "@statsInsightNewZones": { "placeholders": { "count": { "type": "int" } } },
   "statsInsightSolo": "{count, plural, =1{1 endroit où tu es le seul à être passé} other{{count} endroits où tu es le seul à être passé}}",
-  "@statsInsightSolo": { "placeholders": { "count": { "type": "int" } } }
+  "@statsInsightSolo": { "placeholders": { "count": { "type": "int" } } },
+  "statsInsightBrightest": "Endroit le plus lumineux : {street}",
+  "@statsInsightBrightest": { "placeholders": { "street": { "type": "String" } } }
 }

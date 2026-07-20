@@ -2440,4 +2440,9 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String statsInsightBrightest(String street) {
+    return 'Most lit-up spot: $street';
+  }
 }
