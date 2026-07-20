@@ -648,13 +648,31 @@ class _StatisticsScreenState extends State<StatisticsScreen>
         : avgPerDay.toStringAsFixed(1);
     final hairline = AppColors.textTertiary(isDark).withValues(alpha: 0.12);
 
+    // Week-over-week trend from daily counts (last 7 vs previous 7 days).
+    int? weekTrend;
+    if (_dailyCounts != null && _dailyCounts!.length >= 7) {
+      final today = DateTime.now();
+      int thisWeek = 0, prevWeek = 0;
+      for (int i = 1; i <= 7; i++) {
+        final key = today.subtract(Duration(days: i)).toIso8601String().substring(0, 10);
+        thisWeek += _dailyCounts![key] ?? 0;
+      }
+      for (int i = 8; i <= 14; i++) {
+        final key = today.subtract(Duration(days: i)).toIso8601String().substring(0, 10);
+        prevWeek += _dailyCounts![key] ?? 0;
+      }
+      if (prevWeek > 0 && thisWeek != prevWeek) {
+        weekTrend = ((thisWeek - prevWeek) / prevWeek * 100).round();
+      }
+    }
+
     return Container(
       decoration: AppTheme.surfaceContainer(isDark: isDark),
       child: Column(children: [
         IntrinsicHeight(child: Row(children: [
           Expanded(child: _KpiCell(label: l10n.statsToday, value: '$uploadsToday', isDark: isDark, theme: theme)),
           Container(width: 1, color: hairline),
-          Expanded(child: _KpiCell(label: l10n.statsThisWeek, value: '$uploadsThisWeek', isDark: isDark, theme: theme)),
+          Expanded(child: _KpiCell(label: l10n.statsThisWeek, value: '$uploadsThisWeek', isDark: isDark, theme: theme, trend: weekTrend)),
         ])),
         Container(height: 1, color: hairline),
         IntrinsicHeight(child: Row(children: [
@@ -2526,11 +2544,13 @@ class _RingPainter extends CustomPainter {
 // ── KPI hairline grid cell ────────────────────────────────────────────────────
 
 class _KpiCell extends StatelessWidget {
-  const _KpiCell({required this.label, required this.value, required this.isDark, required this.theme});
+  const _KpiCell({required this.label, required this.value, required this.isDark, required this.theme, this.trend});
   final String label;
   final String? value;
   final bool isDark;
   final ThemeData theme;
+  /// Week-over-week delta as integer percentage (e.g. 15 = +15%, -8 = -8%).
+  final int? trend;
 
   @override
   Widget build(BuildContext context) {
@@ -2539,20 +2559,50 @@ class _KpiCell extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          AnimatedSwitcher(
-            duration: const Duration(milliseconds: 280),
-            switchInCurve: Curves.easeOut,
-            child: value != null
-                ? Text(value!, key: ValueKey(value), style: theme.textTheme.headlineMedium?.copyWith(
-                    fontWeight: AppFontWeights.bold,
-                    height: AppLineHeights.numeric,
-                    letterSpacing: AppTheme.letterSpacingNumeric,
-                  ))
-                : SizedBox(key: const ValueKey('loading'), width: 36, height: 22, child: LinearProgressIndicator(
-                    borderRadius: BorderRadius.circular(AppTheme.radiusXxs),
-                    backgroundColor: AppColors.textTertiary(isDark).withValues(alpha: 0.12),
-                    color: AppColors.primary.withValues(alpha: 0.4),
-                  )),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 280),
+                switchInCurve: Curves.easeOut,
+                child: value != null
+                    ? Text(value!, key: ValueKey(value), style: theme.textTheme.headlineMedium?.copyWith(
+                        fontWeight: AppFontWeights.bold,
+                        height: AppLineHeights.numeric,
+                        letterSpacing: AppTheme.letterSpacingNumeric,
+                      ))
+                    : SizedBox(key: const ValueKey('loading'), width: 36, height: 22, child: LinearProgressIndicator(
+                        borderRadius: BorderRadius.circular(AppTheme.radiusXxs),
+                        backgroundColor: AppColors.textTertiary(isDark).withValues(alpha: 0.12),
+                        color: AppColors.primary.withValues(alpha: 0.4),
+                      )),
+              ),
+              if (trend != null && trend != 0) ...[
+                const SizedBox(width: AppTheme.spaceXxs),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 3),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        trend! > 0 ? Icons.arrow_upward_rounded : Icons.arrow_downward_rounded,
+                        size: 11,
+                        color: trend! > 0 ? AppColors.quality : AppColors.error,
+                      ),
+                      Text(
+                        '${trend!.abs()}%',
+                        style: TextStyle(
+                          fontSize: AppTheme.fontSizeXs,
+                          color: trend! > 0 ? AppColors.quality : AppColors.error,
+                          fontWeight: AppFontWeights.semibold,
+                          height: 1.2,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ],
           ),
           const SizedBox(height: AppTheme.spaceXxxs),
           Text(label, style: AppTheme.statLabel(isDark)),

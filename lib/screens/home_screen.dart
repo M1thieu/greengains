@@ -923,6 +923,22 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                       return context.l10n.homeStatArea(area);
                                     }(),
                                   ),
+                                  if (_prefs.territoryLabel != null) ...[
+                                    const SizedBox(height: 3),
+                                    Padding(
+                                      padding: const EdgeInsets.only(right: AppTheme.spaceXs),
+                                      child: Text(
+                                        _prefs.territoryLabel!,
+                                        style: TextStyle(
+                                          fontSize: AppTheme.fontSizeXs,
+                                          color: AppColors.textTertiary(true),
+                                          fontWeight: AppFontWeights.medium,
+                                          letterSpacing: 0.2,
+                                        ),
+                                        textAlign: TextAlign.end,
+                                      ),
+                                    ),
+                                  ],
                                 ],
                                 if (_currentStreak > 0) ...[
                                   const SizedBox(height: AppTheme.spaceXxs),
