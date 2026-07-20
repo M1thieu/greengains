@@ -939,6 +939,33 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                       ),
                                     ),
                                   ],
+                                  // Ambient sync indicator — subtle last-upload timestamp
+                                  Builder(builder: (context) {
+                                    final last = _prefs.lastUploadAt;
+                                    if (last == null) return const SizedBox.shrink();
+                                    if (_locationService.isRunning.value) return const SizedBox.shrink();
+                                    final age = DateTime.now().difference(last);
+                                    if (age.inHours > 24) return const SizedBox.shrink();
+                                    return Padding(
+                                      padding: const EdgeInsets.only(top: 3, right: AppTheme.spaceXs),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(Icons.cloud_done_outlined,
+                                              size: 9, color: AppColors.textTertiary(true).withValues(alpha: 0.55)),
+                                          const SizedBox(width: 3),
+                                          TimeAgoText(
+                                            timestamp: last,
+                                            style: TextStyle(
+                                              fontSize: 9.5,
+                                              color: AppColors.textTertiary(true).withValues(alpha: 0.55),
+                                              fontWeight: AppFontWeights.regular,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  }),
                                 ],
                                 if (_currentStreak > 0) ...[
                                   const SizedBox(height: AppTheme.spaceXxs),
@@ -1015,6 +1042,19 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                         color: AppColors.darkTextSecondary,
                                         height: AppLineHeights.normal,
                                       ),
+                                    ),
+                                    const SizedBox(height: AppTheme.spaceSm),
+                                    // Ghost sensor preview — teases what will appear
+                                    Row(
+                                      children: [
+                                        _GhostSensorChip(icon: Icons.light_mode_rounded, color: AppColors.light),
+                                        const SizedBox(width: AppTheme.spaceXxs),
+                                        _GhostSensorChip(icon: Icons.compress_rounded, color: AppColors.pressure),
+                                        const SizedBox(width: AppTheme.spaceXxs),
+                                        _GhostSensorChip(icon: Icons.directions_walk_rounded, color: AppColors.movement),
+                                        const SizedBox(width: AppTheme.spaceXxs),
+                                        _GhostSensorChip(icon: Icons.eco_rounded, color: AppColors.quality),
+                                      ],
                                     ),
                                   ],
                                 ),
@@ -2740,6 +2780,40 @@ class _LiveEnvironmentCard extends StatelessWidget {
 }
 
 /// Small frosted pill showing a stat (places or streak).
+/// Ghost sensor chip used in zero-state to preview what sensor data will look like.
+class _GhostSensorChip extends StatelessWidget {
+  const _GhostSensorChip({required this.icon, required this.color});
+  final IconData icon;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceXs, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+        border: Border.all(color: color.withValues(alpha: 0.18)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: AppIconSizes.xxs, color: color.withValues(alpha: 0.45)),
+          const SizedBox(width: 4),
+          Text(
+            '—',
+            style: TextStyle(
+              fontSize: AppTheme.fontSizeXs,
+              color: color.withValues(alpha: 0.35),
+              fontWeight: AppFontWeights.semibold,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _StatPill extends StatelessWidget {
   const _StatPill({required this.icon, required this.label, this.color});
   final IconData icon;
