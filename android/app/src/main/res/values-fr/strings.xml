@@ -72,6 +72,7 @@
     <string name="notif_motion_active">En mouvement</string>
     <string name="notif_body_measuring">À l\'écoute de votre environnement</string>
     <string name="notif_uploaded_ago">· envoyé il y a %1$s</string>
+    <string name="notif_session_zones">+%1$d zones</string>
 
     <!-- Notification de fin de session — résumé passif -->
     <string name="notification_discovery_channel_name">Résumé de trajet</string>

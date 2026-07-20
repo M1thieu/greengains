@@ -88,6 +88,7 @@ internal object NotificationsHelper {
         motionState: String = "UNKNOWN",
         readingsCount: Int = 0,
         sessionStartMillis: Long? = null,
+        sessionZones: Int = 0,
         lux: Float? = null,
         hPa: Float? = null,
     ): Notification {
@@ -143,13 +144,16 @@ internal object NotificationsHelper {
         val uploadSuffix = lastUploadMillis?.let {
             context.getString(R.string.notif_uploaded_ago, formatElapsedUpload(context, it))
         }
+        val sessionZonesStr = if (!isPaused && sessionZones > 0)
+            context.getString(R.string.notif_session_zones, sessionZones)
+        else null
         val body = when {
             isPaused -> context.getString(R.string.notification_paused_body)
             else -> {
                 val envPart = listOfNotNull(lightStr, motionStr)
                     .joinToString(" · ")
                     .ifEmpty { context.getString(R.string.notif_body_measuring) }
-                listOfNotNull(envPart, uploadSuffix).joinToString(" ")
+                listOfNotNull(sessionZonesStr, envPart, uploadSuffix).joinToString(" · ")
             }
         }
 
@@ -226,12 +230,13 @@ internal object NotificationsHelper {
         motionState: String = "UNKNOWN",
         readingsCount: Int = 0,
         sessionStartMillis: Long? = null,
+        sessionZones: Int = 0,
         lux: Float? = null,
         hPa: Float? = null,
     ) {
         manager.notify(NOTIFICATION_ID_SERVICE, buildNotification(
             context, lastUpload, isPaused, uploadsToday, totalUploads, zonesTotal,
-            motionState, readingsCount, sessionStartMillis, lux, hPa,
+            motionState, readingsCount, sessionStartMillis, sessionZones, lux, hPa,
         ))
     }
 

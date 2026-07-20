@@ -103,6 +103,9 @@ class ForegroundService : Service() {
     // Upload count at session start — delta on stop = uploads from this session only.
     private var sessionStartUploads: Int = 0
 
+    // Zone count at session start — delta = zones discovered this session (shown live in notification).
+    private var sessionStartZones: Int = 0
+
     // PARTIAL_WAKE_LOCK: keeps CPU alive during upload batches on aggressive OEMs (Xiaomi, Samsung,
     // Huawei) that suspend the CPU between sensor intervals. Without this, mid-batch upload drops
     // are silent — data is lost with no error. Held only during the NativeBackendUploader flush
@@ -393,6 +396,7 @@ class ForegroundService : Service() {
     private fun startTracking() {
         sessionStartMillis = System.currentTimeMillis()
         sessionStartUploads = readUploadsTodayFromPrefs()
+        sessionStartZones = readZonesTotalFromPrefs()
         lightSensor.start()
         barometer.start()
         motionSensors.start()
@@ -771,11 +775,13 @@ class ForegroundService : Service() {
         if (event.type == NativeUploadEventType.SUCCESS && ::notificationManager.isInitialized) {
             val uploadsToday = incrementUploadsToday()
             val uploadsTotal = readTotalUploadsFromPrefs()
+            val zonesNow = readZonesTotalFromPrefs()
             NotificationsHelper.notifyUpdate(
                 this, notificationManager, event.timestamp, trackingPausedState,
-                uploadsToday, uploadsTotal, readZonesTotalFromPrefs(),
+                uploadsToday, uploadsTotal, zonesNow,
                 currentMotionState.name, nativeUploader?.getBufferSize() ?: 0,
                 sessionStartMillis = sessionStartMillis,
+                sessionZones = (zonesNow - sessionStartZones).coerceAtLeast(0),
                 lux = _lightFlow.value,
                 hPa = _pressureFlow.value,
             )
@@ -940,11 +946,13 @@ class ForegroundService : Service() {
         val lastUpload = NotificationsHelper.readLastUploadFromPrefs(this)
         val uploadsToday = readUploadsTodayFromPrefs()
         val uploadsTotal = readTotalUploadsFromPrefs()
+        val zonesNow = readZonesTotalFromPrefs()
         NotificationsHelper.notifyUpdate(
             this, notificationManager, lastUpload, trackingPausedState,
-            uploadsToday, uploadsTotal, readZonesTotalFromPrefs(),
+            uploadsToday, uploadsTotal, zonesNow,
             currentMotionState.name, nativeUploader?.getBufferSize() ?: 0,
             sessionStartMillis = sessionStartMillis,
+            sessionZones = (zonesNow - sessionStartZones).coerceAtLeast(0),
             lux = _lightFlow.value,
             hPa = _pressureFlow.value,
         )

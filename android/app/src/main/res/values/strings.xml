@@ -90,6 +90,9 @@
     <string name="notif_body_measuring">Reading your surroundings</string>
     <!-- Uploaded N min ago suffix appended to notification body -->
     <string name="notif_uploaded_ago">· uploaded %1$s ago</string>
+    <!-- Session zone counter — live count of new zones discovered this session -->
+    <!-- %1$d = zones discovered since session start -->
+    <string name="notif_session_zones">+%1$d zones</string>
 
     <!-- Post-session discovery notification — fires when user stops tracking -->
     <string name="notification_discovery_channel_name">Route Summary</string>
