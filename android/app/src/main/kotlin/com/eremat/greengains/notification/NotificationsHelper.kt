@@ -153,7 +153,7 @@ internal object NotificationsHelper {
                 val envPart = listOfNotNull(lightStr, motionStr)
                     .joinToString(" · ")
                     .ifEmpty { context.getString(R.string.notif_body_measuring) }
-                listOfNotNull(sessionZonesStr, envPart, uploadSuffix).joinToString(" · ")
+                listOfNotNull(sessionZonesStr, durationStr, envPart, uploadSuffix).joinToString(" · ")
             }
         }
 

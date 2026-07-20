@@ -76,6 +76,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   List<H3Tile> _h3Tiles = [];
   List<H3Tile> _globalTiles = [];
   bool _h3TilesLoading = true;
+  /// Aggregated condition summary of all personal tiles — null if normal or no data.
+  String? _areaConditionLine;
   DateTime? _lastTilesFetch;
   static const _kTilesCooldown = Duration(minutes: 2);
   /// Retry counters — reset on success, capped at kMaxTileRetries.
@@ -631,6 +633,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         if (_prefs.territoryLabel == null && response.tiles.isNotEmpty) {
           unawaited(_refreshNeighborhoodName(response.tiles));
         }
+        if (response.tiles.isNotEmpty) _updateAreaConditionLine(response.tiles);
       }
     } on ApiException catch (e) {
       debugPrint('Tiles: ApiException ${e.statusCode}');
@@ -673,6 +676,34 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     if (name != null && name.isNotEmpty && mounted) {
       await _prefs.setTerritoryLabel(name);
     }
+  }
+
+  /// Aggregate sensor data across personal tiles and derive a condition line.
+  /// Only surfaces non-normal conditions (anomalous light, surface, or activity).
+  void _updateAreaConditionLine(List<H3Tile> tiles) {
+    final goodTiles = tiles.where((t) => (t.qualityRatio ?? 0) > 0.3).toList();
+    if (goodTiles.isEmpty) return;
+    double? avgLux, avgMovement, avgVibration;
+    final luxVals = goodTiles.map((t) => t.avgLux).whereType<double>().toList();
+    final movVals = goodTiles.map((t) => t.avgMovement).whereType<double>().toList();
+    final vibVals = goodTiles.map((t) => t.avgVibration).whereType<double>().toList();
+    if (luxVals.isNotEmpty) avgLux = luxVals.reduce((a, b) => a + b) / luxVals.length;
+    if (movVals.isNotEmpty) avgMovement = movVals.reduce((a, b) => a + b) / movVals.length;
+    if (vibVals.isNotEmpty) avgVibration = vibVals.reduce((a, b) => a + b) / vibVals.length;
+    if (!mounted) return;
+    final l10n = AppLocalizations.of(context);
+    if (l10n == null) return;
+    final isNight = DateTime.now().hour < 6 || DateTime.now().hour >= 20;
+    final line = SensorInsights.tileConditionLine(
+      l10n,
+      isNight: isNight,
+      avgLux: avgLux,
+      avgMovement: avgMovement,
+      avgVibration: avgVibration,
+    );
+    // Only show if not generic "normal" — surface surprises, not averages.
+    final normal = l10n.insightNormal;
+    setState(() => _areaConditionLine = line == normal ? null : line);
   }
 
   /// Load community coverage tiles (all users, cached 5 min on server).
@@ -934,6 +965,22 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                           color: AppColors.textTertiary(true),
                                           fontWeight: AppFontWeights.medium,
                                           letterSpacing: 0.2,
+                                        ),
+                                        textAlign: TextAlign.end,
+                                      ),
+                                    ),
+                                  ],
+                                  if (_areaConditionLine != null) ...[
+                                    const SizedBox(height: 2),
+                                    Padding(
+                                      padding: const EdgeInsets.only(right: AppTheme.spaceXs),
+                                      child: Text(
+                                        _areaConditionLine!,
+                                        style: TextStyle(
+                                          fontSize: 9.5,
+                                          color: AppColors.textTertiary(true).withValues(alpha: 0.6),
+                                          fontWeight: AppFontWeights.regular,
+                                          letterSpacing: 0.1,
                                         ),
                                         textAlign: TextAlign.end,
                                       ),
