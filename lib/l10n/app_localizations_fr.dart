@@ -1317,6 +1317,23 @@ class AppLocalizationsFr extends AppLocalizations {
       'Lectures en temps réel de vos capteurs';
 
   @override
+  String get settingsNotifications => 'Notifications';
+
+  @override
+  String get settingsWeeklyDigest => 'Bilan hebdomadaire';
+
+  @override
+  String get settingsWeeklyDigestDesc =>
+      'Résumé dominical de vos nouveaux endroits cartographiés';
+
+  @override
+  String get settingsStreakAlerts => 'Rappels de série';
+
+  @override
+  String get settingsStreakAlertsDesc =>
+      'Alerte quand votre série de jours actifs est en danger';
+
+  @override
   String get sensorLiveSheetTitle => 'Ce que tu mesures';
 
   @override

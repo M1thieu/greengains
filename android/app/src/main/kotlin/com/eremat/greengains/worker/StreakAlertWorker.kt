@@ -39,6 +39,9 @@ class StreakAlertWorker(
         val prefs = context.getSharedPreferences(AppPrefs.NAME, Context.MODE_PRIVATE)
         val today = LocalDate.now().toString() // YYYY-MM-DD
 
+        // User preference — off means skip entirely
+        if (!prefs.getBoolean(AppPrefs.STREAK_ALERTS_ENABLED, true)) return Result.success()
+
         // Dedup — only alert once per day
         val lastAlertDate = prefs.getString(AppPrefs.STREAK_ALERT_DATE, null)
         if (lastAlertDate == today) return Result.success()
@@ -86,7 +89,7 @@ class StreakAlertWorker(
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setContentTitle(context.getString(R.string.notification_streak_title, streak))
             .setContentText(context.getString(R.string.notification_streak_body))
-            .setSmallIcon(R.mipmap.ic_launcher)
+            .setSmallIcon(R.drawable.ic_notification_leaf)
             .setColor(Color.parseColor("#10B981"))
             .setAutoCancel(true)
             .setContentIntent(openAppIntent)

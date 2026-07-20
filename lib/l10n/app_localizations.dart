@@ -2258,6 +2258,36 @@ abstract class AppLocalizations {
   /// **'Live readings from your device sensors'**
   String get settingsDiagnosticsDesc;
 
+  /// No description provided for @settingsNotifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get settingsNotifications;
+
+  /// No description provided for @settingsWeeklyDigest.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly map update'**
+  String get settingsWeeklyDigest;
+
+  /// No description provided for @settingsWeeklyDigestDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Sunday summary of your new mapped places'**
+  String get settingsWeeklyDigestDesc;
+
+  /// No description provided for @settingsStreakAlerts.
+  ///
+  /// In en, this message translates to:
+  /// **'Streak reminders'**
+  String get settingsStreakAlerts;
+
+  /// No description provided for @settingsStreakAlertsDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Alert when your active days streak is at risk'**
+  String get settingsStreakAlertsDesc;
+
   /// No description provided for @sensorLiveSheetTitle.
   ///
   /// In en, this message translates to:

@@ -59,6 +59,12 @@ class PreferenceKeys {
   static const bestSessionZonesGained = 'best_session_zones_gained';
   static const dismissedReturnDeltaZones = 'dismissed_return_delta_zones';
 
+  /// Whether the weekly map digest notification is enabled (default true).
+  static const weeklyDigestEnabled = 'weekly_digest_enabled';
+
+  /// Whether streak-at-risk reminder notifications are enabled (default true).
+  static const streakAlertsEnabled = 'streak_alerts_enabled';
+
   /// Primary neighborhood name computed from the user's most-mapped tile centroid.
   static const territoryLabel = 'territory_label';
 
@@ -203,6 +209,20 @@ class AppPreferences {
 
   Future<void> setUseMobileUploads(bool value) async {
     await _sp.setBool(PreferenceKeys.useMobileUploads, value);
+  }
+
+  bool get weeklyDigestEnabled =>
+      _sp.getBool(PreferenceKeys.weeklyDigestEnabled) ?? true;
+
+  Future<void> setWeeklyDigestEnabled(bool value) async {
+    await _sp.setBool(PreferenceKeys.weeklyDigestEnabled, value);
+  }
+
+  bool get streakAlertsEnabled =>
+      _sp.getBool(PreferenceKeys.streakAlertsEnabled) ?? true;
+
+  Future<void> setStreakAlertsEnabled(bool value) async {
+    await _sp.setBool(PreferenceKeys.streakAlertsEnabled, value);
   }
 
   bool get foregroundServiceEnabled =>

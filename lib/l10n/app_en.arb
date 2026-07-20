@@ -533,6 +533,12 @@
   "settingsDiagnostics": "Sensor Diagnostics",
   "settingsDiagnosticsDesc": "Live readings from your device sensors",
 
+  "settingsNotifications": "Notifications",
+  "settingsWeeklyDigest": "Weekly map update",
+  "settingsWeeklyDigestDesc": "Sunday summary of your new mapped places",
+  "settingsStreakAlerts": "Streak reminders",
+  "settingsStreakAlertsDesc": "Alert when your active days streak is at risk",
+
   "sensorLiveSheetTitle": "What you're measuring",
 
   "transparencyNothingElse": "No precise route. No microphone. No contacts. Nothing else.",

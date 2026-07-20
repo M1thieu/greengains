@@ -533,6 +533,12 @@
   "settingsDiagnostics": "Diagnostics capteurs",
   "settingsDiagnosticsDesc": "Lectures en temps réel de vos capteurs",
 
+  "settingsNotifications": "Notifications",
+  "settingsWeeklyDigest": "Bilan hebdomadaire",
+  "settingsWeeklyDigestDesc": "Résumé dominical de vos nouveaux endroits cartographiés",
+  "settingsStreakAlerts": "Rappels de série",
+  "settingsStreakAlertsDesc": "Alerte quand votre série de jours actifs est en danger",
+
   "sensorLiveSheetTitle": "Ce que tu mesures",
 
   "transparencyNothingElse": "Pas de trajet précis. Pas de micro. Pas de contacts. Rien d'autre.",

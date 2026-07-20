@@ -137,6 +137,37 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           const SizedBox(height: _kSectionSpacing),
 
+          // ── Notifications ─────────────────────────────────────────────────
+          _SectionCard(
+            label: l10n.settingsNotifications,
+            children: [
+              _ToggleRow(
+                icon: Icons.calendar_today_outlined,
+                iconColor: AppColors.quality,
+                title: l10n.settingsWeeklyDigest,
+                subtitle: l10n.settingsWeeklyDigestDesc,
+                value: _prefs.weeklyDigestEnabled,
+                onChanged: (v) async {
+                  await _prefs.setWeeklyDigestEnabled(v);
+                  if (mounted) setState(() {});
+                },
+              ),
+              _divider(isDark),
+              _ToggleRow(
+                icon: Icons.bolt_rounded,
+                iconColor: AppColors.warning,
+                title: l10n.settingsStreakAlerts,
+                subtitle: l10n.settingsStreakAlertsDesc,
+                value: _prefs.streakAlertsEnabled,
+                onChanged: (v) async {
+                  await _prefs.setStreakAlertsEnabled(v);
+                  if (mounted) setState(() {});
+                },
+              ),
+            ],
+          ),
+          const SizedBox(height: _kSectionSpacing),
+
           // ── About ─────────────────────────────────────────────────────────
           Padding(
             padding: const EdgeInsets.only(left: AppTheme.spaceXxs, bottom: AppTheme.spaceXs),

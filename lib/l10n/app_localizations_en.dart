@@ -1298,6 +1298,23 @@ class AppLocalizationsEn extends AppLocalizations {
       'Live readings from your device sensors';
 
   @override
+  String get settingsNotifications => 'Notifications';
+
+  @override
+  String get settingsWeeklyDigest => 'Weekly map update';
+
+  @override
+  String get settingsWeeklyDigestDesc =>
+      'Sunday summary of your new mapped places';
+
+  @override
+  String get settingsStreakAlerts => 'Streak reminders';
+
+  @override
+  String get settingsStreakAlertsDesc =>
+      'Alert when your active days streak is at risk';
+
+  @override
   String get sensorLiveSheetTitle => 'What you\'re measuring';
 
   @override

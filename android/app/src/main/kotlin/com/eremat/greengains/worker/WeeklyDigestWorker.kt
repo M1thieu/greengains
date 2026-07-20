@@ -36,6 +36,7 @@ class WeeklyDigestWorker(
         val currentZones = prefs.getInt(AppPrefs.ZONES_TOTAL_COUNT, 0)
 
         if (currentZones == 0) return Result.success()
+        if (!prefs.getBoolean(AppPrefs.WEEKLY_DIGEST_ENABLED, true)) return Result.success()
 
         val lastDigestZones = prefs.getInt(PREF_ZONES_AT_LAST_DIGEST, -1)
         prefs.edit().putInt(PREF_ZONES_AT_LAST_DIGEST, currentZones).apply()
