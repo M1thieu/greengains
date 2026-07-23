@@ -20,6 +20,7 @@ import '../services/network/backend_client.dart';
 import '../core/events/app_events.dart';
 import '../utils/app_snackbars.dart';
 import '../core/app_preferences.dart';
+import '../widgets/battery_optimization_dialog.dart';
 import '../widgets/coverage_map_widget.dart';
 import '../widgets/press_scale_detector.dart';
 import '../widgets/sensor_section.dart';
@@ -356,11 +357,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
       if (!isIgnoring && mounted) {
         _batteryPromptOpen = true;
-        await _prefs.setBatteryOptimizationPromptLastShown(DateTime.now());
         try {
-          await platform.invokeMethod('requestIgnoreBatteryOptimizations');
-        } catch (e) {
-          debugPrint('Failed to request battery optimization: $e');
+          await showDialog<void>(
+            context: context,
+            barrierDismissible: false,
+            builder: (_) => const BatteryOptimizationDialog(),
+          );
         } finally {
           _batteryPromptOpen = false;
         }

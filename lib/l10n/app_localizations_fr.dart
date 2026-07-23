@@ -1288,6 +1288,18 @@ class AppLocalizationsFr extends AppLocalizations {
       'Impossible d\'ouvrir les paramètres de la batterie';
 
   @override
+  String get batteryDialogOemXiaomiHint =>
+      'Sur Xiaomi/Redmi : activez aussi le démarrage auto dans Paramètres → Applications → Gérer les apps → GreenGains → Démarrage auto';
+
+  @override
+  String get batteryDialogOemHuaweiHint =>
+      'Sur Huawei/Honor : dans Paramètres → Batterie → Lancement des apps, réglez GreenGains en manuel avec tous les interrupteurs activés';
+
+  @override
+  String get batteryDialogOemSamsungHint =>
+      'Sur Samsung : réglez GreenGains sur Sans restriction dans Paramètres → Batterie → Limites d\'utilisation en arrière-plan';
+
+  @override
   String get locationPermBannerBody =>
       'Choisissez \'Toujours autoriser\' pour cartographier en arrière-plan';
 

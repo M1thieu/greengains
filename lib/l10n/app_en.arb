@@ -520,6 +520,9 @@
   "batteryDialogLater": "Later",
   "batteryDialogAllow": "Allow Background Run",
   "batteryDialogError": "Unable to open battery settings",
+  "batteryDialogOemXiaomiHint": "Also on Xiaomi/Redmi: enable AutoStart in Settings → Apps → Manage apps → GreenGains → AutoStart",
+  "batteryDialogOemHuaweiHint": "Also on Huawei/Honor: open Settings → Battery → App launch, set GreenGains to manual with all toggles on",
+  "batteryDialogOemSamsungHint": "Also on Samsung: set GreenGains to Unrestricted in Settings → Battery → Background usage limits",
 
   "locationPermBannerBody": "Set to 'Allow all the time' to map in the background",
   "locationPermBannerFix": "Fix",

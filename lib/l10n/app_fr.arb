@@ -520,6 +520,9 @@
   "batteryDialogLater": "Plus tard",
   "batteryDialogAllow": "Autoriser l'exécution en arrière-plan",
   "batteryDialogError": "Impossible d'ouvrir les paramètres de la batterie",
+  "batteryDialogOemXiaomiHint": "Sur Xiaomi/Redmi : activez aussi le démarrage auto dans Paramètres → Applications → Gérer les apps → GreenGains → Démarrage auto",
+  "batteryDialogOemHuaweiHint": "Sur Huawei/Honor : dans Paramètres → Batterie → Lancement des apps, réglez GreenGains en manuel avec tous les interrupteurs activés",
+  "batteryDialogOemSamsungHint": "Sur Samsung : réglez GreenGains sur Sans restriction dans Paramètres → Batterie → Limites d'utilisation en arrière-plan",
 
   "locationPermBannerBody": "Choisissez 'Toujours autoriser' pour cartographier en arrière-plan",
   "locationPermBannerFix": "Corriger",

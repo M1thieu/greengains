@@ -112,6 +112,9 @@ class MainActivity : FlutterActivity() {
                         requestIgnoreBatteryOptimizations()
                         result.success(true)
                     }
+                    "getDeviceManufacturer" -> {
+                        result.success(Build.MANUFACTURER)
+                    }
                     "isIgnoringBatteryOptimizations" -> {
                         val pm = getSystemService(Context.POWER_SERVICE) as PowerManager
                         val ignoring = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {

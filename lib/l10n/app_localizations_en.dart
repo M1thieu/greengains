@@ -1269,6 +1269,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get batteryDialogError => 'Unable to open battery settings';
 
   @override
+  String get batteryDialogOemXiaomiHint =>
+      'Also on Xiaomi/Redmi: enable AutoStart in Settings → Apps → Manage apps → GreenGains → AutoStart';
+
+  @override
+  String get batteryDialogOemHuaweiHint =>
+      'Also on Huawei/Honor: open Settings → Battery → App launch, set GreenGains to manual with all toggles on';
+
+  @override
+  String get batteryDialogOemSamsungHint =>
+      'Also on Samsung: set GreenGains to Unrestricted in Settings → Battery → Background usage limits';
+
+  @override
   String get locationPermBannerBody =>
       'Set to \'Allow all the time\' to map in the background';
 
