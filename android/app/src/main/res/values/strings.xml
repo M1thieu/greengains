@@ -102,4 +102,12 @@
     <string name="notification_discovery_body">%1$d places on your map — tap to explore.</string>
     <string name="notification_discovery_body_first">Your first route is on the map — tap to see it.</string>
 
+    <!-- Home screen widget -->
+    <string name="widget_zones_label">places mapped</string>
+    <string name="widget_active">● ACTIVE</string>
+    <plurals name="widget_streak">
+        <item quantity="one">%d day streak</item>
+        <item quantity="other">%d day streak</item>
+    </plurals>
+
 </resources>

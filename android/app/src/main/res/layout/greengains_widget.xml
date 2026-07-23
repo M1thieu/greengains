@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="14dp"
+    android:background="@drawable/widget_background"
+    android:gravity="start">
+
+    <!-- App label -->
+    <TextView
+        android:id="@+id/widget_app_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/app_name"
+        android:textSize="9sp"
+        android:textColor="#66A0A0A0"
+        android:letterSpacing="0.10"
+        android:textAllCaps="true" />
+
+    <!-- Zone count — large green number -->
+    <TextView
+        android:id="@+id/widget_zone_count"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:text="0"
+        android:textSize="38sp"
+        android:textColor="#10B981"
+        android:textStyle="bold"
+        android:lineSpacingMultiplier="0.85"
+        android:includeFontPadding="false" />
+
+    <!-- "places" label -->
+    <TextView
+        android:id="@+id/widget_zones_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/widget_zones_label"
+        android:textSize="11sp"
+        android:textColor="#80A0A0A0" />
+
+    <!-- Streak + active row -->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <TextView
+            android:id="@+id/widget_streak"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:textSize="11sp"
+            android:textColor="#D0D0D0" />
+
+        <TextView
+            android:id="@+id/widget_active"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
+            android:visibility="gone"
+            android:text="@string/widget_active"
+            android:textSize="10sp"
+            android:textColor="#FBBF24"
+            android:textStyle="bold" />
+
+    </LinearLayout>
+
+</LinearLayout>

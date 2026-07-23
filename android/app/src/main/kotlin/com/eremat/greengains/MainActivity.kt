@@ -115,6 +115,14 @@ class MainActivity : FlutterActivity() {
                     "getDeviceManufacturer" -> {
                         result.success(Build.MANUFACTURER)
                     }
+                    "updateHomeWidget" -> {
+                        val zones = call.argument<Int>("zoneCount") ?: 0
+                        val streak = call.argument<Int>("streak") ?: 0
+                        val isActive = call.argument<Boolean>("isActive") ?: false
+                        com.eremat.greengains.widget.GreenGainsWidgetProvider
+                            .updateAll(this, zones, streak, isActive)
+                        result.success(true)
+                    }
                     "isIgnoringBatteryOptimizations" -> {
                         val pm = getSystemService(Context.POWER_SERVICE) as PowerManager
                         val ignoring = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {

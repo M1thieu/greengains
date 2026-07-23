@@ -20,6 +20,7 @@ import '../services/network/backend_client.dart';
 import '../core/events/app_events.dart';
 import '../utils/app_snackbars.dart';
 import '../core/app_preferences.dart';
+import '../services/widget/home_widget_service.dart';
 import '../widgets/battery_optimization_dialog.dart';
 import '../widgets/coverage_map_widget.dart';
 import '../widgets/press_scale_detector.dart';
@@ -183,7 +184,16 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       final next = stats.currentStreak;
       await _prefs.setLastKnownStreak(next);
       setState(() { _currentStreak = next; });
+      unawaited(_updateHomeWidget());
     } catch (_) {}
+  }
+
+  Future<void> _updateHomeWidget() async {
+    await HomeWidgetService.update(
+      zoneCount: _claimedTileCount,
+      streak: _currentStreak,
+      isActive: _locationService.isRunning.value,
+    );
   }
 
   /// Accumulates live sensor readings into running totals for the session summary.
@@ -208,6 +218,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   }
 
   void _handleServiceRunningChange() {
+    unawaited(_updateHomeWidget());
     if (_locationService.isRunning.value) {
       _sessionStartZoneCount = _claimedTileCount;
       _sessionStartTime = DateTime.now();
@@ -627,6 +638,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         });
         // Check for milestone crossings on cold open — catches zones earned while app was closed.
         unawaited(_maybeCelebrateMilestone(newCount));
+        unawaited(_updateHomeWidget());
         // Persist for instant display on next open.
         unawaited(_prefs.setCachedPersonalTiles(jsonEncode(data)));
         // Geocode neighborhood from the most-sampled tile centroid — fire-and-forget.

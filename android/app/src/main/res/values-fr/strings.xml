@@ -80,4 +80,12 @@
     <string name="notification_discovery_body">%1$d endroits sur votre carte — touchez pour explorer.</string>
     <string name="notification_discovery_body_first">Votre premier trajet est sur la carte — touchez pour le voir.</string>
 
+    <!-- Widget écran d'accueil -->
+    <string name="widget_zones_label">endroits cartographiés</string>
+    <string name="widget_active">● ACTIF</string>
+    <plurals name="widget_streak">
+        <item quantity="one">série de %d jour</item>
+        <item quantity="other">série de %d jours</item>
+    </plurals>
+
 </resources>
