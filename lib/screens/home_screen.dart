@@ -1000,40 +1000,20 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                       ),
                                     ),
                                   ],
-                                  // Ambient sync indicator — subtle last-upload timestamp
-                                  Builder(builder: (context) {
-                                    final last = _prefs.lastUploadAt;
-                                    if (last == null) return const SizedBox.shrink();
-                                    if (_locationService.isRunning.value) return const SizedBox.shrink();
-                                    final age = DateTime.now().difference(last);
-                                    if (age.inHours > 24) return const SizedBox.shrink();
-                                    return Padding(
-                                      padding: const EdgeInsets.only(top: 3, right: AppTheme.spaceXs),
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Icon(Icons.cloud_done_outlined,
-                                              size: 9, color: AppColors.textTertiary(true).withValues(alpha: 0.55)),
-                                          const SizedBox(width: 3),
-                                          TimeAgoText(
-                                            timestamp: last,
-                                            style: TextStyle(
-                                              fontSize: 9.5,
-                                              color: AppColors.textTertiary(true).withValues(alpha: 0.55),
-                                              fontWeight: AppFontWeights.regular,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    );
-                                  }),
                                 ],
                                 if (_currentStreak > 0) ...[
                                   const SizedBox(height: AppTheme.spaceXxs),
-                                  _StatPill(
-                                    icon: Icons.bolt_rounded,
-                                    label: context.l10n.homeStatStreak(_currentStreak),
-                                  ),
+                                  Builder(builder: (context) {
+                                    final lastEnd = _prefs.lastSessionEndAt;
+                                    final mappedToday = _locationService.isRunning.value ||
+                                        (lastEnd != null &&
+                                            DateTime.now().difference(lastEnd).inHours < 20);
+                                    return _StatPill(
+                                      icon: Icons.bolt_rounded,
+                                      label: context.l10n.homeStatStreak(_currentStreak),
+                                      color: mappedToday ? null : AppColors.warning,
+                                    );
+                                  }),
                                 ],
                                 Builder(builder: (context) {
                                   final lastEnd = _prefs.lastSessionEndAt;
