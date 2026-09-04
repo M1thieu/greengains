@@ -1,6 +1,6 @@
 import * as Sentry from '@sentry/node';
 import { PoolClient } from 'pg';
-import { latLngToCell } from 'h3-js';
+import { latLngToCell, gridDisk } from 'h3-js';
 import { getPool } from '../database';
 import { decodeGeohash } from '../utils/geo';
 import {
@@ -295,6 +295,14 @@ export async function runAggregationJob(): Promise<void> {
     return;
   }
 
+  // Build H3-keyed lookup for ring-1 spatial smoothing (same window only, no DB query).
+  const h3WindowIndex = new Map<string, WindowAccumulator>();
+  for (const bucket of windowBuckets.values()) {
+    if (bucket.h3Index) {
+      h3WindowIndex.set(`${bucket.windowStart.toISOString()}|${bucket.h3Index}`, bucket);
+    }
+  }
+
   const windowResults = [];
   for (const bucket of windowBuckets.values()) {
     const samples = bucket.samples;
@@ -302,14 +310,45 @@ export async function runAggregationJob(): Promise<void> {
       continue;
     }
     const deviceCount = bucket.deviceIds.size;
-    const avgLight =
+    const avgLightRaw =
       samples > 0 && isFinite(bucket.lightSum) ? bucket.lightSum / samples : null;
     const lightMin = bucket.lightMin === Number.POSITIVE_INFINITY ? null : bucket.lightMin;
     const lightMax = bucket.lightMax === Number.NEGATIVE_INFINITY ? null : bucket.lightMax;
     const avgAccelRms = bucket.accelRmsSum / samples;
     const avgAccelStdDev = bucket.accelStdDevSum / samples;
     const avgGyroRms = bucket.gyroRmsSum / samples;
-    const avgPressure = bucket.pressureSamples > 0 ? bucket.pressureSum / bucket.pressureSamples : null;
+    const avgPressureRaw = bucket.pressureSamples > 0 ? bucket.pressureSum / bucket.pressureSamples : null;
+
+    // Ring-1 spatial smoothing: blend this cell 80% with the average of present neighbors 20%.
+    // Only considers neighbors present in the same 5-min window — no DB queries, no latency.
+    let avgLight = avgLightRaw;
+    let avgPressure = avgPressureRaw;
+    if (bucket.h3Index) {
+      const neighborBuckets = gridDisk(bucket.h3Index, 1)
+        .filter(h => h !== bucket.h3Index)
+        .map(h => h3WindowIndex.get(`${bucket.windowStart.toISOString()}|${h}`))
+        .filter((b): b is WindowAccumulator => b !== undefined);
+      if (neighborBuckets.length > 0) {
+        if (avgLightRaw !== null) {
+          const neighborLights = neighborBuckets
+            .map(nb => nb.samples > 0 && isFinite(nb.lightSum) ? nb.lightSum / nb.samples : null)
+            .filter((v): v is number => v !== null);
+          if (neighborLights.length > 0) {
+            const neighborAvg = neighborLights.reduce((a, b) => a + b, 0) / neighborLights.length;
+            avgLight = avgLightRaw * 0.8 + neighborAvg * 0.2;
+          }
+        }
+        if (avgPressureRaw !== null) {
+          const neighborPressures = neighborBuckets
+            .map(nb => nb.pressureSamples > 0 ? nb.pressureSum / nb.pressureSamples : null)
+            .filter((v): v is number => v !== null);
+          if (neighborPressures.length > 0) {
+            const neighborAvg = neighborPressures.reduce((a, b) => a + b, 0) / neighborPressures.length;
+            avgPressure = avgPressureRaw * 0.8 + neighborAvg * 0.2;
+          }
+        }
+      }
+    }
     const windowMovementScore = movementScore(avgAccelRms);
     const windowVibrationScore = vibrationScore(avgAccelStdDev);
     const batteryAvg =

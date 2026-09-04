@@ -153,7 +153,8 @@ function readingQualityScore(
   const motionScore = motionState === 'unknown'
     ? 0.15
     : Math.max(MOTION_CONFIDENCE_THRESHOLD, motionConf);
-  const exposureScore = pocket === 'unlikely' ? 1.0 : 0.5;
+  // face_up = sensor clearly exposed to environment (not blocked by surface or clothing)
+  const exposureScore = pocket === 'unlikely' ? 1.0 : orientation === 'face_up' ? 0.85 : 0.5;
 
   return locScore * 0.45 + motionScore * 0.35 + exposureScore * 0.20;
 }
