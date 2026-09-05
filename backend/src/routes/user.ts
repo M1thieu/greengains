@@ -266,7 +266,7 @@ export async function userRoutes(fastify: FastifyInstance) {
 
         // uploads_today always comes from sensor_batches — not cached (changes intraday).
         // device_count also live — rarely needed and fast with existing index.
-        const [liveResult, weeklyResult, qualityResult, bestDayResult] = await Promise.all([
+        const [liveResult, weeklyResult, qualityResult, bestDayResult, prevWeekResult] = await Promise.all([
           pool.query<{ uploads_today: number; device_count: number }>(
             `SELECT
                COUNT(*) FILTER (WHERE DATE(timestamp_utc) = CURRENT_DATE)::int AS uploads_today,
@@ -299,6 +299,15 @@ export async function userRoutes(fastify: FastifyInstance) {
              GROUP BY DATE(timestamp_utc)
              ORDER BY best_day_count DESC
              LIMIT 1`,
+            [userId],
+          ),
+          // Previous 7-day window (8–14 days ago) for week-over-week comparison.
+          pool.query<{ prev_week_total: string }>(
+            `SELECT COUNT(*)::text AS prev_week_total
+             FROM sensor_batches
+             WHERE user_id = $1
+               AND timestamp_utc >= CURRENT_DATE - INTERVAL '13 days'
+               AND timestamp_utc <  CURRENT_DATE - INTERVAL '6 days'`,
             [userId],
           ),
         ]);
@@ -384,6 +393,7 @@ export async function userRoutes(fastify: FastifyInstance) {
             qualityPct,
             bestDayCount,
             avgPerDay: daysActive > 0 ? Math.round((totalUploads / daysActive) * 10) / 10 : 0,
+            prevWeekTotal: parseInt(prevWeekResult.rows[0]?.prev_week_total ?? '0', 10),
           },
         };
         _profileCache.set(userId, { data: profileData, expiresAt: Date.now() + PROFILE_CACHE_TTL_MS });
@@ -658,24 +668,51 @@ export async function userRoutes(fastify: FastifyInstance) {
         reply.header('Cache-Control', `public, max-age=${GLOBAL_TILE_CACHE_TTL_S}, stale-while-revalidate=60`);
         const pool = getPool();
         const windowDays = Math.ceil(GLOBAL_TILE_WINDOW_HOURS / 24);
-        const result = await pool.query<{
-          cell_count: string;
-          avg_quality: string | null;
-          last_updated: Date | null;
-          total_samples: string;
-        }>(
-          `SELECT
-             COUNT(DISTINCT geohash)::text       AS cell_count,
-             AVG(quality_valid_ratio)::float      AS avg_quality,
-             MAX(day)                             AS last_updated,
-             SUM(samples_count)::text             AS total_samples
-           FROM sensor_aggregates_daily
-           WHERE day > CURRENT_DATE - ($1 * INTERVAL '1 day')`,
-          [windowDays],
-        );
-        const row = result.rows[0];
+        const [mainResult, coverageResult, regionResult] = await Promise.all([
+          pool.query<{
+            cell_count: string;
+            avg_quality: string | null;
+            last_updated: Date | null;
+            total_samples: string;
+          }>(
+            `SELECT
+               COUNT(DISTINCT geohash)::text       AS cell_count,
+               AVG(quality_valid_ratio)::float      AS avg_quality,
+               MAX(day)                             AS last_updated,
+               SUM(samples_count)::text             AS total_samples
+             FROM sensor_aggregates_daily
+             WHERE day > CURRENT_DATE - ($1 * INTERVAL '1 day')`,
+            [windowDays],
+          ),
+          // Sensor coverage: what fraction of cells have light / pressure data
+          pool.query<{ total: string; with_light: string; with_pressure: string }>(
+            `SELECT
+               COUNT(DISTINCT geohash)::text                                                         AS total,
+               COUNT(DISTINCT geohash) FILTER (WHERE avg_light IS NOT NULL)::text                    AS with_light,
+               COUNT(DISTINCT geohash) FILTER (WHERE avg_pressure IS NOT NULL AND avg_pressure > 0)::text AS with_pressure
+             FROM sensor_aggregates_daily
+             WHERE day > CURRENT_DATE - ($1 * INTERVAL '1 day')`,
+            [windowDays],
+          ),
+          // Region count: distinct geohash4 prefixes (≈ 39km × 20km cells — city-scale regions)
+          pool.query<{ region_count: string }>(
+            `SELECT COUNT(DISTINCT LEFT(geohash, 4))::text AS region_count
+             FROM sensor_aggregates_daily
+             WHERE day > CURRENT_DATE - ($1 * INTERVAL '1 day')`,
+            [windowDays],
+          ),
+        ]);
+        const row = mainResult.rows[0];
+        const cov = coverageResult.rows[0];
         const cellCount = parseInt(row?.cell_count ?? '0', 10);
+        const totalCells = parseInt(cov?.total ?? '0', 10);
         const H3_RES9_KM2 = 0.000853; // average area of an H3 res-9 hex in km²
+        const lightCoveragePct = totalCells > 0
+          ? Math.round((parseInt(cov.with_light, 10) / totalCells) * 100)
+          : null;
+        const pressureCoveragePct = totalCells > 0
+          ? Math.round((parseInt(cov.with_pressure, 10) / totalCells) * 100)
+          : null;
         return reply.send({
           cellCount,
           coverageKm2: Math.round(cellCount * H3_RES9_KM2 * 10) / 10,
@@ -683,6 +720,8 @@ export async function userRoutes(fastify: FastifyInstance) {
           lastUpdated: row?.last_updated ?? null,
           totalSamples: parseInt(row?.total_samples ?? '0', 10),
           windowDays,
+          sensorCoverage: { lightPct: lightCoveragePct, pressurePct: pressureCoveragePct },
+          regionCount: parseInt(regionResult.rows[0]?.region_count ?? '0', 10),
         });
       } catch (error) {
         request.log.error({ err: error }, 'Tiles summary error');

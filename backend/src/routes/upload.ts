@@ -24,6 +24,18 @@ import {
 } from '../utils/uploadValidation';
 
 
+// Neighborhood average cache keyed by geohash6 prefix — avoids a per-upload
+// 7-day LIKE scan when multiple devices map the same cell back-to-back.
+// Entries are geographically stable enough that 15-min staleness is acceptable.
+interface _NeighborEntry {
+  avgLight: number | null;
+  avgPressure: number | null;
+  count: number;
+  expiresAt: number;
+}
+const _neighborCache = new Map<string, _NeighborEntry>();
+const _NEIGHBOR_TTL_MS = 15 * 60 * 1000;
+
 /**
  * Co-location cross-validation (fire-and-forget quality signal).
  *
@@ -47,28 +59,45 @@ async function checkCoLocationOutlier(
   // Use geohash6 prefix (≈1.2 km × 0.6 km) — enough neighbors, not too broad.
   const geohashPrefix = geohash.slice(0, 6);
 
-  const result = await pool.query<{
-    avg_light: string | null;
-    avg_pressure: string | null;
-    batch_count: string;
-  }>(
-    `SELECT
-       AVG((batch_json->'summary'->'light'->>'avg')::numeric)    AS avg_light,
-       AVG((batch_json->'summary'->'pressure'->>'avg')::numeric) AS avg_pressure,
-       COUNT(*)::text                                            AS batch_count
-     FROM sensor_batches
-     WHERE geohash LIKE $1
-       AND device_hash != $2
-       AND created_at > NOW() - INTERVAL '7 days'`,
-    [`${geohashPrefix}%`, deviceHash],
-  );
+  // Serve from cache if fresh — skip the 7-day scan on repeated uploads in the same cell.
+  let neighborCount: number;
+  let neighborLight: number | null;
+  let neighborPressure: number | null;
 
-  const row = result.rows[0];
-  const neighborCount = parseInt(row?.batch_count ?? '0', 10);
+  const cached = _neighborCache.get(geohashPrefix);
+  if (cached && cached.expiresAt > Date.now()) {
+    neighborCount = cached.count;
+    neighborLight = cached.avgLight;
+    neighborPressure = cached.avgPressure;
+  } else {
+    const result = await pool.query<{
+      avg_light: string | null;
+      avg_pressure: string | null;
+      batch_count: string;
+    }>(
+      `SELECT
+         AVG((batch_json->'summary'->'light'->>'avg')::numeric)    AS avg_light,
+         AVG((batch_json->'summary'->'pressure'->>'avg')::numeric) AS avg_pressure,
+         COUNT(*)::text                                            AS batch_count
+       FROM sensor_batches
+       WHERE geohash LIKE $1
+         AND device_hash != $2
+         AND created_at > NOW() - INTERVAL '7 days'`,
+      [`${geohashPrefix}%`, deviceHash],
+    );
+    const row = result.rows[0];
+    neighborCount = parseInt(row?.batch_count ?? '0', 10);
+    neighborLight = row?.avg_light != null ? parseFloat(row.avg_light!) : null;
+    neighborPressure = row?.avg_pressure != null ? parseFloat(row.avg_pressure!) : null;
+    _neighborCache.set(geohashPrefix, {
+      avgLight: neighborLight,
+      avgPressure: neighborPressure,
+      count: neighborCount,
+      expiresAt: Date.now() + _NEIGHBOR_TTL_MS,
+    });
+  }
+
   if (neighborCount < 3) return; // need at least 3 other devices to make a judgment
-
-  const neighborLight    = row.avg_light    != null ? parseFloat(row.avg_light)    : null;
-  const neighborPressure = row.avg_pressure != null ? parseFloat(row.avg_pressure) : null;
 
   const outlierFlags: string[] = [];
 
