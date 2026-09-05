@@ -924,6 +924,8 @@
     "placeholders": { "target": { "type": "int" } }
   },
   "statsActivitySection": "TA SEMAINE",
+  "statsVsPrevWeek": "{delta}% vs sem. préc.",
+  "@statsVsPrevWeek": { "placeholders": { "delta": { "type": "String" } } },
   "statsTerritorySection": "TA ZONE",
   "mapTapHint": "Touchez un endroit pour explorer",
   "sessionPersonalBest": "Record personnel",

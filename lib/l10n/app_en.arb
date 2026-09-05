@@ -924,6 +924,8 @@
     "placeholders": { "target": { "type": "int" } }
   },
   "statsActivitySection": "YOUR WEEK",
+  "statsVsPrevWeek": "{delta}% vs prev week",
+  "@statsVsPrevWeek": { "placeholders": { "delta": { "type": "String" } } },
   "statsTerritorySection": "YOUR AREA",
   "mapTapHint": "Tap a place to explore",
   "sessionPersonalBest": "Personal best",

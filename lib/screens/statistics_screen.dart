@@ -88,6 +88,8 @@ class _StatisticsScreenState extends State<StatisticsScreen>
   WeeklyInsightResponse? _insight;
   // Data quality 0–100 from user_stats valid_samples/samples_count
   int? _qualityPct;
+  // Week-over-week comparison: total uploads in the previous 7-day window
+  int? _prevWeekTotal;
 
   // 30-day heatmap: key = 'yyyy-MM-dd', value = upload count
   Map<String, int>? _dailyCounts;
@@ -227,6 +229,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                   ? (profile.totalUploads / days * 10).round() / 10.0
                   : 0.0);
           if (profile.qualityPct != null) _qualityPct = profile.qualityPct;
+          if (profile.prevWeekTotal != null) _prevWeekTotal = profile.prevWeekTotal;
           if (weeklyTarget != null) {
             _weeklyTarget = weeklyTarget;
             _maybeFireWeeklyCelebration(weeklyTarget);
@@ -1154,6 +1157,27 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                       ),
                     ],
                   ),
+                  if (_prevWeekTotal != null && _prevWeekTotal! > 0) ...[
+                    const SizedBox(height: 1),
+                    Builder(builder: (context) {
+                      final prev = _prevWeekTotal!;
+                      final pct = ((weeklyTotal - prev) / prev * 100).round();
+                      final sign = pct >= 0 ? '+' : '';
+                      final color = pct > 0
+                          ? AppColors.primary
+                          : pct < 0
+                              ? AppColors.error
+                              : AppColors.textTertiary(isDark);
+                      return Text(
+                        l10n.statsVsPrevWeek('$sign$pct'),
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          fontSize: 10,
+                          color: color,
+                          fontWeight: AppFontWeights.medium,
+                        ),
+                      );
+                    }),
+                  ],
                 ],
               ),
               _ChartRangeToggle(

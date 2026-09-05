@@ -42,6 +42,7 @@ class UserProfileResponse {
   final int? qualityPct;
   final int? bestDayCount;
   final double? avgPerDay;
+  final int? prevWeekTotal;
 
   const UserProfileResponse({
     required this.totalUploads,
@@ -55,6 +56,7 @@ class UserProfileResponse {
     this.qualityPct,
     this.bestDayCount,
     this.avgPerDay,
+    this.prevWeekTotal,
   });
 
   factory UserProfileResponse.fromJson(Map<String, dynamic> json) {
@@ -72,6 +74,7 @@ class UserProfileResponse {
       qualityPct:    (s['qualityPct']    as num?)?.toInt(),
       bestDayCount:  (s['bestDayCount']  as num?)?.toInt(),
       avgPerDay:     (s['avgPerDay']     as num?)?.toDouble(),
+      prevWeekTotal: (s['prevWeekTotal'] as num?)?.toInt(),
     );
   }
 }

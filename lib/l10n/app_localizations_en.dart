@@ -2136,6 +2136,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get statsActivitySection => 'YOUR WEEK';
 
   @override
+  String statsVsPrevWeek(String delta) {
+    return '$delta% vs prev week';
+  }
+
+  @override
   String get statsTerritorySection => 'YOUR AREA';
 
   @override

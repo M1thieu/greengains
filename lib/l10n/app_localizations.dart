@@ -3639,6 +3639,12 @@ abstract class AppLocalizations {
   /// **'YOUR WEEK'**
   String get statsActivitySection;
 
+  /// No description provided for @statsVsPrevWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'{delta}% vs prev week'**
+  String statsVsPrevWeek(String delta);
+
   /// No description provided for @statsTerritorySection.
   ///
   /// In en, this message translates to:

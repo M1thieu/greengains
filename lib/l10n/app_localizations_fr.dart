@@ -2169,6 +2169,11 @@ class AppLocalizationsFr extends AppLocalizations {
   String get statsActivitySection => 'TA SEMAINE';
 
   @override
+  String statsVsPrevWeek(String delta) {
+    return '$delta% vs sem. préc.';
+  }
+
+  @override
   String get statsTerritorySection => 'TA ZONE';
 
   @override
