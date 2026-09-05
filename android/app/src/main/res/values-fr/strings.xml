@@ -49,6 +49,7 @@
     <string name="notification_streak_channel_name">Rappels carte</string>
     <string name="notification_streak_title">Série de %1$d jour(s) en danger</string>
     <string name="notification_streak_body">Marchez n\'importe où pour la garder.</string>
+    <string name="notification_streak_body_zones">%1$d endroits sur votre carte — marchez pour garder votre série.</string>
 
     <!-- Permission result toasts -->
     <string name="toast_location_granted">Permission de localisation accordée</string>

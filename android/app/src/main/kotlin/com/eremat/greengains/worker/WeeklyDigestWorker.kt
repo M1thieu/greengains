@@ -12,6 +12,7 @@ import com.eremat.greengains.MainActivity
 import com.eremat.greengains.R
 import com.eremat.greengains.notification.NotificationsHelper
 import com.eremat.greengains.util.AppPrefs
+import com.eremat.greengains.util.AppPrefs
 
 /**
  * Fires a passive weekly digest Sunday morning: "Your map this week — +X new places."
@@ -56,13 +57,19 @@ class WeeklyDigestWorker(
             Intent(context, MainActivity::class.java),
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
         )
+        val territory = context.getSharedPreferences(AppPrefs.NAME, Context.MODE_PRIVATE)
+            .getString(AppPrefs.TERRITORY_LABEL, null)?.takeIf { it.isNotBlank() }
         val body = if (newThisWeek > 0)
             context.getString(R.string.notification_weekly_body_growth, newThisWeek, total)
         else
             context.getString(R.string.notification_weekly_body_stable, total)
+        val title = if (territory != null)
+            "${context.getString(R.string.notification_weekly_title)} · $territory"
+        else
+            context.getString(R.string.notification_weekly_title)
 
         val notification = NotificationCompat.Builder(context, NotificationsHelper.CHANNEL_ID_DISCOVERY)
-            .setContentTitle(context.getString(R.string.notification_weekly_title))
+            .setContentTitle(title)
             .setContentText(body)
             .setSmallIcon(R.drawable.ic_notification_leaf)
             .setColor(Color.parseColor("#10B981"))

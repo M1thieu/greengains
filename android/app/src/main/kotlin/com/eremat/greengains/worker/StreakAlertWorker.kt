@@ -70,7 +70,7 @@ class StreakAlertWorker(
             val channel = NotificationChannel(
                 CHANNEL_ID,
                 context.getString(R.string.notification_streak_channel_name),
-                NotificationManager.IMPORTANCE_DEFAULT, // heads-up capable, but not loud
+                NotificationManager.IMPORTANCE_DEFAULT,
             ).apply {
                 enableVibration(false)
                 setSound(null, null)
@@ -78,6 +78,16 @@ class StreakAlertWorker(
             }
             manager.createNotificationChannel(channel)
         }
+
+        val prefs = context.getSharedPreferences(AppPrefs.NAME, Context.MODE_PRIVATE)
+        val zonesTotal = prefs.getInt(AppPrefs.ZONES_TOTAL_COUNT, 0)
+        val territory = prefs.getString(AppPrefs.TERRITORY_LABEL, null)?.takeIf { it.isNotBlank() }
+
+        val baseBody = if (zonesTotal > 0)
+            context.getString(R.string.notification_streak_body_zones, zonesTotal)
+        else
+            context.getString(R.string.notification_streak_body)
+        val body = if (territory != null) "$territory · $baseBody" else baseBody
 
         val openAppIntent = PendingIntent.getActivity(
             context,
@@ -88,7 +98,8 @@ class StreakAlertWorker(
 
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setContentTitle(context.getString(R.string.notification_streak_title, streak))
-            .setContentText(context.getString(R.string.notification_streak_body))
+            .setContentText(body)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(body))
             .setSmallIcon(R.drawable.ic_notification_leaf)
             .setColor(Color.parseColor("#10B981"))
             .setAutoCancel(true)

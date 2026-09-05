@@ -20,6 +20,9 @@ export interface WeeklyInsight {
   // Solo territory
   soloZones: number; // zones only this user has ever mapped
 
+  // Transport mode breakdown (0–100, null if no data)
+  walkingPct: number | null;
+
   // Week dates
   weekStart: string;
   weekEnd: string;
@@ -143,7 +146,25 @@ export async function computeWeeklyInsight(userId: string): Promise<WeeklyInsigh
         : null;
     }
 
-    // 7. Resolve street names (max 2 Nominatim calls)
+    // 7. Transport mode breakdown for this week's batches
+    const transportResult = await pool.query<{
+      walking: string; vehicle: string; total: string;
+    }>(`
+      SELECT
+        COUNT(CASE WHEN batch_json->'summary'->>'transport_mode' = 'walking' THEN 1 END)::text AS walking,
+        COUNT(CASE WHEN batch_json->'summary'->>'transport_mode' = 'vehicle' THEN 1 END)::text AS vehicle,
+        COUNT(*)::text AS total
+      FROM sensor_batches
+      WHERE user_id = $1 AND timestamp_utc >= $2 AND timestamp_utc <= $3
+    `, [userId, start.toISOString(), end.toISOString()]);
+    const tRow = transportResult.rows[0];
+    const totalBatches = parseInt(tRow?.total ?? '0', 10);
+    const walkingBatches = parseInt(tRow?.walking ?? '0', 10);
+    const walkingPct = totalBatches >= 5
+      ? Math.round((walkingBatches / totalBatches) * 100)
+      : null;
+
+    // 8. Resolve street names (max 2 Nominatim calls)
     const cellsToName = [
       roughestRow?.h3_res9,
       brightestRow?.h3_res9 !== roughestRow?.h3_res9 ? brightestRow?.h3_res9 : null,
@@ -161,6 +182,7 @@ export async function computeWeeklyInsight(userId: string): Promise<WeeklyInsigh
       roughestPercentile,
       brightestStreet:    brightestRow ? (nameMap.get(brightestRow.h3_res9) ?? null) : null,
       brightestLux:       brightestRow ? parseFloat(brightestRow.avg_lux_night ?? brightestRow.avg_lux) : null,
+      walkingPct,
       weekStart: start.toISOString().slice(0, 10),
       weekEnd:   end.toISOString().slice(0, 10),
     };

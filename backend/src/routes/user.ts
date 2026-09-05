@@ -647,6 +647,51 @@ export async function userRoutes(fastify: FastifyInstance) {
   );
 
   /**
+   * GET /api/tiles/summary
+   * Unauthenticated dataset metadata for B2B buyers evaluating coverage before signup.
+   * Returns aggregate stats for the last 30-day window: cell count, km², quality, freshness.
+   */
+  fastify.get(
+    '/api/tiles/summary',
+    async (request: FastifyRequest, reply: FastifyReply) => {
+      try {
+        reply.header('Cache-Control', `public, max-age=${GLOBAL_TILE_CACHE_TTL_S}, stale-while-revalidate=60`);
+        const pool = getPool();
+        const windowDays = Math.ceil(GLOBAL_TILE_WINDOW_HOURS / 24);
+        const result = await pool.query<{
+          cell_count: string;
+          avg_quality: string | null;
+          last_updated: Date | null;
+          total_samples: string;
+        }>(
+          `SELECT
+             COUNT(DISTINCT geohash)::text       AS cell_count,
+             AVG(quality_valid_ratio)::float      AS avg_quality,
+             MAX(day)                             AS last_updated,
+             SUM(samples_count)::text             AS total_samples
+           FROM sensor_aggregates_daily
+           WHERE day > CURRENT_DATE - ($1 * INTERVAL '1 day')`,
+          [windowDays],
+        );
+        const row = result.rows[0];
+        const cellCount = parseInt(row?.cell_count ?? '0', 10);
+        const H3_RES9_KM2 = 0.000853; // average area of an H3 res-9 hex in km²
+        return reply.send({
+          cellCount,
+          coverageKm2: Math.round(cellCount * H3_RES9_KM2 * 10) / 10,
+          avgQualityScore: row?.avg_quality != null ? Math.round(parseFloat(String(row.avg_quality)) * 100) : null,
+          lastUpdated: row?.last_updated ?? null,
+          totalSamples: parseInt(row?.total_samples ?? '0', 10),
+          windowDays,
+        });
+      } catch (error) {
+        request.log.error({ err: error }, 'Tiles summary error');
+        return reply.code(500).send({ error: 'Internal Server Error', requestId: request.id });
+      }
+    },
+  );
+
+  /**
    * GET /api/user/weekly-target
    * Returns the user's new-territory progress for the current week (Sun–Sat UTC).
    * "New" cells = h3_res9 seen this week that were never seen in any prior week.

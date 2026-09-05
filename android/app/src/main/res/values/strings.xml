@@ -63,6 +63,8 @@
     <string name="notification_streak_channel_name">Map Reminders</string>
     <string name="notification_streak_title">%1$d day streak at risk</string>
     <string name="notification_streak_body">Walk anywhere to keep it.</string>
+    <!-- %1$d = zone count -->
+    <string name="notification_streak_body_zones">%1$d places on your map — walk to keep your streak.</string>
 
     <!-- Permission result toasts -->
     <string name="toast_location_granted">Location permission granted</string>
