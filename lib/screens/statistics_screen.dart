@@ -530,20 +530,43 @@ class _StatisticsScreenState extends State<StatisticsScreen>
     final km2 = zones * kKm2PerCell;
     final showKm2 = zones > 0;
 
+    // Quality-based left accent — green (≥70), amber (40-69), red (<40).
+    // Omit accent when quality unknown so the card doesn't look broken on first load.
+    final qualityAccent = _qualityPct == null
+        ? null
+        : _qualityPct! >= 70
+            ? AppColors.primary
+            : _qualityPct! >= 40
+                ? AppColors.warning
+                : AppColors.error;
+
     return PressScaleDetector(
       onTap: _showStatsDetailSheet,
       child: Container(
         padding: const EdgeInsets.all(AppTheme.spaceMd),
-        decoration: AppTheme.surfaceContainer(isDark: isDark),
+        decoration: AppTheme.surfaceContainer(
+          isDark: isDark,
+          border: qualityAccent != null
+              ? Border(left: BorderSide(color: qualityAccent, width: 3))
+              : null,
+        ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Eyebrow — lifetime scope only, no weekly verdict here
-          Text(
-            showKm2 ? l10n.statsKmMapped : l10n.statsDataPtsLabel,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: AppTheme.eyebrowLabel(isDark),
+          // Eyebrow — quality badge inline when score is available
+          Row(
+            children: [
+              Expanded(child: Text(
+                showKm2 ? l10n.statsKmMapped : l10n.statsDataPtsLabel,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: AppTheme.eyebrowLabel(isDark),
+              )),
+              if (_qualityPct != null) ...[
+                const SizedBox(width: AppTheme.spaceXxs),
+                _QualityBadge(pct: _qualityPct!, isDark: isDark),
+              ],
+            ],
           ),
           const SizedBox(height: AppTheme.spaceXxxs),
           // Hero number
@@ -669,11 +692,18 @@ class _StatisticsScreenState extends State<StatisticsScreen>
       }
     }
 
+    // "Today" cell: green if already mapped today, amber nudge if past 2pm with nothing yet.
+    final todayColor = uploadsToday > 0
+        ? AppColors.primary
+        : DateTime.now().hour >= 14
+            ? AppColors.warning
+            : null;
+
     return Container(
       decoration: AppTheme.surfaceContainer(isDark: isDark),
       child: Column(children: [
         IntrinsicHeight(child: Row(children: [
-          Expanded(child: _KpiCell(label: l10n.statsToday, value: '$uploadsToday', isDark: isDark, theme: theme)),
+          Expanded(child: _KpiCell(label: l10n.statsToday, value: '$uploadsToday', isDark: isDark, theme: theme, valueColor: todayColor)),
           Container(width: 1, color: hairline),
           Expanded(child: _KpiCell(label: l10n.statsThisWeek, value: '$uploadsThisWeek', isDark: isDark, theme: theme, trend: weekTrend)),
         ])),
@@ -704,9 +734,16 @@ class _StatisticsScreenState extends State<StatisticsScreen>
     final streakAtRisk = streak > 0 && !mappedToday;
     final streakColor = streakAtRisk ? AppColors.warning : AppColors.primary;
 
+    // Day progress 0→1: how much of today has elapsed. Used for the urgency bar.
+    final now = DateTime.now();
+    final dayProgress = (now.hour * 60 + now.minute) / (24 * 60);
+
     return Container(
       decoration: AppTheme.surfaceContainer(isDark: isDark),
-      child: IntrinsicHeight(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+        IntrinsicHeight(
         child: Row(children: [
           Expanded(
             child: Padding(
@@ -781,7 +818,30 @@ class _StatisticsScreenState extends State<StatisticsScreen>
             ),
           ),
         ]),
-      ),
+        ),  // IntrinsicHeight
+        // Urgency bar — only shown when streak is at risk.
+        // Fills left→right as the day elapses, amber, so the user viscerally sees time running out.
+        if (streakAtRisk) ...[
+          Padding(
+            padding: const EdgeInsets.fromLTRB(AppTheme.spaceMd, 0, AppTheme.spaceMd, AppTheme.spaceXs),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(1),
+              child: TweenAnimationBuilder<double>(
+                tween: Tween(begin: 0, end: dayProgress),
+                duration: const Duration(milliseconds: 700),
+                curve: Curves.easeOut,
+                builder: (_, v, __) => LinearProgressIndicator(
+                  value: v,
+                  minHeight: 2,
+                  backgroundColor: AppColors.warning.withValues(alpha: 0.10),
+                  valueColor: AlwaysStoppedAnimation(AppColors.warning.withValues(alpha: 0.55)),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ],  // Column children
+      ),  // Column
     );
   }
 
@@ -1030,40 +1090,56 @@ class _StatisticsScreenState extends State<StatisticsScreen>
   // ─── Weekly civic insight card ───────────────────────────────────────────────
 
   Widget _buildInsightCard(ThemeData theme, bool isDark, AppLocalizations l10n, WeeklyInsightResponse insight) {
-    final rows = <Widget>[];
+    // Headline insight: one dominant stat shown large (Strava card pattern),
+    // with secondary insights as compact sub-rows below.
+    // Priority: new zones > roughest percentile > solo > brightest.
 
-    if (insight.roughestStreet != null && insight.roughestPercentile != null) {
-      rows.add(Text(
-        l10n.statsInsightRoughest(insight.roughestStreet!, insight.roughestPercentile!),
-        style: theme.textTheme.bodySmall?.copyWith(color: AppColors.textTertiary(isDark)),
-      ));
-    }
+    Widget? headline;
+    final secondaryRows = <Widget>[];
 
     if (insight.newZonesThisWeek > 0) {
-      if (rows.isNotEmpty) rows.add(const SizedBox(height: AppTheme.spaceXxxs + 1));
-      rows.add(Text(
-        l10n.statsInsightNewZones(insight.newZonesThisWeek),
+      headline = _InsightHeadline(
+        number: '${insight.newZonesThisWeek}',
+        label: l10n.statsInsightNewZones(insight.newZonesThisWeek),
+        color: AppColors.primary,
+        theme: theme,
+        isDark: isDark,
+      );
+    } else if (insight.roughestStreet != null && insight.roughestPercentile != null) {
+      headline = _InsightHeadline(
+        number: '${insight.roughestPercentile}%',
+        label: l10n.statsInsightRoughest(insight.roughestStreet!, insight.roughestPercentile!),
+        color: AppColors.warning,
+        theme: theme,
+        isDark: isDark,
+      );
+    }
+
+    // Secondary rows — everything that didn't become the headline
+    if (headline != null && insight.roughestStreet != null && insight.roughestPercentile != null && insight.newZonesThisWeek > 0) {
+      secondaryRows.add(Text(
+        l10n.statsInsightRoughest(insight.roughestStreet!, insight.roughestPercentile!),
+        maxLines: 1, overflow: TextOverflow.ellipsis,
         style: theme.textTheme.bodySmall?.copyWith(color: AppColors.textTertiary(isDark)),
       ));
     }
-
     if (insight.soloZones > 0) {
-      if (rows.isNotEmpty) rows.add(const SizedBox(height: AppTheme.spaceXxxs + 1));
-      rows.add(Text(
+      secondaryRows.add(Text(
         l10n.statsInsightSolo(insight.soloZones),
+        maxLines: 1, overflow: TextOverflow.ellipsis,
         style: theme.textTheme.bodySmall?.copyWith(color: AppColors.textTertiary(isDark)),
       ));
     }
-
     if (insight.brightestStreet != null) {
-      if (rows.isNotEmpty) rows.add(const SizedBox(height: AppTheme.spaceXxxs + 1));
-      rows.add(Text(
+      secondaryRows.add(Text(
         l10n.statsInsightBrightest(insight.brightestStreet!),
+        maxLines: 1, overflow: TextOverflow.ellipsis,
         style: theme.textTheme.bodySmall?.copyWith(color: AppColors.textTertiary(isDark)),
       ));
     }
 
-    if (rows.isEmpty) return const SizedBox.shrink();
+    // No data — hide the card entirely
+    if (headline == null && secondaryRows.isEmpty) return const SizedBox.shrink();
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceMd, vertical: AppTheme.spaceXs + 2),
@@ -1083,7 +1159,14 @@ class _StatisticsScreenState extends State<StatisticsScreen>
               ),
             ),
             const SizedBox(height: AppTheme.spaceXxxs + 1),
-            ...rows,
+            if (headline != null) ...[
+              headline,
+              if (secondaryRows.isNotEmpty) const SizedBox(height: AppTheme.spaceXxs),
+            ],
+            for (int i = 0; i < secondaryRows.length; i++) ...[
+              if (i > 0) const SizedBox(height: AppTheme.spaceXxxs + 1),
+              secondaryRows[i],
+            ],
           ]),
         ),
       ]),
@@ -2573,16 +2656,94 @@ class _RingPainter extends CustomPainter {
   bool shouldRepaint(_RingPainter old) => old.progress != progress;
 }
 
+// ── Quality score badge — shown in hero card eyebrow when score is available ──
+
+class _QualityBadge extends StatelessWidget {
+  const _QualityBadge({required this.pct, required this.isDark});
+  final int pct;
+  final bool isDark;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = pct >= 70 ? AppColors.primary : pct >= 40 ? AppColors.warning : AppColors.error;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMin),
+        border: Border.all(color: color.withValues(alpha: 0.25)),
+      ),
+      child: Row(mainAxisSize: MainAxisSize.min, children: [
+        Icon(Icons.verified_outlined, size: 9, color: color),
+        const SizedBox(width: 2),
+        Text(
+          '$pct%',
+          style: TextStyle(fontSize: 10, color: color, fontWeight: FontWeight.w600, height: 1.2),
+        ),
+      ]),
+    );
+  }
+}
+
+// ── Insight headline — dominant stat shown large, caption below ───────────────
+
+class _InsightHeadline extends StatelessWidget {
+  const _InsightHeadline({
+    required this.number,
+    required this.label,
+    required this.color,
+    required this.theme,
+    required this.isDark,
+  });
+  final String number;
+  final String label;
+  final Color color;
+  final ThemeData theme;
+  final bool isDark;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.baseline,
+      textBaseline: TextBaseline.alphabetic,
+      children: [
+        Text(
+          number,
+          style: theme.textTheme.titleLarge?.copyWith(
+            fontWeight: AppFontWeights.bold,
+            color: color,
+            height: AppLineHeights.numeric,
+            letterSpacing: AppTheme.letterSpacingNumeric,
+          ),
+        ),
+        const SizedBox(width: AppTheme.spaceXxs),
+        Expanded(
+          child: Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: AppColors.textTertiary(isDark),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 // ── KPI hairline grid cell ────────────────────────────────────────────────────
 
 class _KpiCell extends StatelessWidget {
-  const _KpiCell({required this.label, required this.value, required this.isDark, required this.theme, this.trend});
+  const _KpiCell({required this.label, required this.value, required this.isDark, required this.theme, this.trend, this.valueColor});
   final String label;
   final String? value;
   final bool isDark;
   final ThemeData theme;
   /// Week-over-week delta as integer percentage (e.g. 15 = +15%, -8 = -8%).
   final int? trend;
+  /// Optional override for the value number color (e.g. green when mapped today).
+  final Color? valueColor;
 
   @override
   Widget build(BuildContext context) {
@@ -2602,6 +2763,7 @@ class _KpiCell extends StatelessWidget {
                         fontWeight: AppFontWeights.bold,
                         height: AppLineHeights.numeric,
                         letterSpacing: AppTheme.letterSpacingNumeric,
+                        color: valueColor,
                       ))
                     : SizedBox(key: const ValueKey('loading'), width: 36, height: 22, child: LinearProgressIndicator(
                         borderRadius: BorderRadius.circular(AppTheme.radiusXxs),
