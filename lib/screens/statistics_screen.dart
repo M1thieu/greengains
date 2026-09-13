@@ -294,7 +294,6 @@ class _StatisticsScreenState extends State<StatisticsScreen>
         : (_backendTotalUploads ?? 0);
     final stillLoading = _isLoading || (_isLoadingWeekly && _backendTotalUploads == null && effectiveTotal == 0);
 
-    final topPad = MediaQuery.paddingOf(context).top;
     final bottomPad = MediaQuery.paddingOf(context).bottom + AppTheme.floatingNavHeight + AppTheme.spaceMd;
 
     if (stillLoading) return Scaffold(body: SafeArea(child: _buildLoadingSkeleton(isDark)));
@@ -303,62 +302,72 @@ class _StatisticsScreenState extends State<StatisticsScreen>
     return Stack(
       children: [
         Scaffold(
-          body: Column(
-            children: [
-              SizedBox(height: topPad, child: ColoredBox(color: theme.scaffoldBackgroundColor)),
-              Expanded(
-                child: RefreshIndicator(
-                  onRefresh: _refresh,
-                  color: AppColors.primary,
-                  child: ListView(
-                    padding: AppTheme.pagePadding.copyWith(top: AppTheme.spaceSm, bottom: bottomPad),
-                    children: [
-                      _withEntrance(_buildHeroCard(theme, isDark, l10n), 0),
-                      if (_weeklyTarget != null) ...[
-                        const SizedBox(height: AppTheme.spaceSm),
-                        _withEntrance(_buildWeeklyTargetCard(theme, isDark, l10n, _weeklyTarget!), 1),
-                      ],
-                      if (_localRank != null && _localRank!.hasActivity && _localRank!.totalMappers > 1) ...[
-                        const SizedBox(height: AppTheme.spaceSm),
-                        _withEntrance(_buildLocalRankCard(theme, isDark, l10n, _localRank!), 1),
-                      ],
-                      if (_impact != null && _impact!.soloCells > 0) ...[
-                        const SizedBox(height: AppTheme.spaceSm),
-                        _withEntrance(_buildImpactCard(theme, isDark, l10n, _impact!), 1),
-                      ],
-                      if (_insight != null && _insight!.hasActivity) ...[
-                        const SizedBox(height: AppTheme.spaceSm),
-                        _withEntrance(_buildInsightCard(theme, isDark, l10n, _insight!), 1),
-                      ],
-                      const SizedBox(height: AppTheme.spaceMd),
-                      Row(
-                        children: [
-                          Expanded(child: SectionHeader(l10n.statsActivitySection, bottom: 0)),
-                          if (_weeklyData != null && _weeklyData!.fold(0, (a, b) => a + b) > 0)
-                            _buildVerdictChip(isDark, l10n),
-                        ],
-                      ),
-                      const SizedBox(height: AppTheme.spaceXxs),
-                      _withEntrance(_buildSupportingTrio(theme, isDark), 2),
-                      const SizedBox(height: AppTheme.spaceXs),
-                      _withEntrance(_buildStreakCard(theme, isDark, l10n), 3),
-                      const SizedBox(height: AppTheme.spaceMd),
-                      SectionHeader(l10n.statsActivityTrend),
-                      const SizedBox(height: AppTheme.spaceXs),
-                      _withEntrance(_buildActivityChart(theme, isDark, l10n), 4),
-                      const SizedBox(height: AppTheme.spaceMd),
-                      SectionHeader(l10n.statsTerritorySection),
-                      const SizedBox(height: AppTheme.spaceXxs),
-                      _withEntrance(_buildMilestoneRow(theme, isDark, l10n), 5),
-                      const SizedBox(height: AppTheme.spaceXxs),
-                      _withEntrance(_buildTerritoryDetailsLink(theme, isDark, l10n), 6),
-                      const SizedBox(height: AppTheme.spaceLg),
-                      _buildOpenDetailsLink(theme, isDark, l10n),
-                    ],
-                  ),
-                ),
+          appBar: AppBar(
+            automaticallyImplyLeading: false,
+            backgroundColor: theme.scaffoldBackgroundColor,
+            surfaceTintColor: Colors.transparent,
+            elevation: 0,
+            scrolledUnderElevation: 0,
+            toolbarHeight: 40,
+            actions: [
+              IconButton(
+                icon: Icon(Icons.query_stats_rounded, size: AppIconSizes.sm),
+                color: AppColors.textTertiary(isDark),
+                tooltip: l10n.statsOpenDetails,
+                onPressed: () {
+                  HapticFeedback.lightImpact();
+                  _openDetailsScreen();
+                },
               ),
             ],
+          ),
+          body: RefreshIndicator(
+            onRefresh: _refresh,
+            color: AppColors.primary,
+            child: ListView(
+              padding: AppTheme.pagePadding.copyWith(top: AppTheme.spaceXxs, bottom: bottomPad),
+              children: [
+                _withEntrance(_buildHeroCard(theme, isDark, l10n), 0),
+                if (_weeklyTarget != null) ...[
+                  const SizedBox(height: AppTheme.spaceSm),
+                  _withEntrance(_buildWeeklyTargetCard(theme, isDark, l10n, _weeklyTarget!), 1),
+                ],
+                if (_localRank != null && _localRank!.hasActivity && _localRank!.totalMappers > 1) ...[
+                  const SizedBox(height: AppTheme.spaceSm),
+                  _withEntrance(_buildLocalRankCard(theme, isDark, l10n, _localRank!), 1),
+                ],
+                if (_impact != null && _impact!.soloCells > 0) ...[
+                  const SizedBox(height: AppTheme.spaceSm),
+                  _withEntrance(_buildImpactCard(theme, isDark, l10n, _impact!), 1),
+                ],
+                if (_insight != null && _insight!.hasActivity) ...[
+                  const SizedBox(height: AppTheme.spaceSm),
+                  _withEntrance(_buildInsightCard(theme, isDark, l10n, _insight!), 1),
+                ],
+                const SizedBox(height: AppTheme.spaceMd),
+                Row(
+                  children: [
+                    Expanded(child: SectionHeader(l10n.statsActivitySection, bottom: 0)),
+                    if (_weeklyData != null && _weeklyData!.fold(0, (a, b) => a + b) > 0)
+                      _buildVerdictChip(isDark, l10n),
+                  ],
+                ),
+                const SizedBox(height: AppTheme.spaceXxs),
+                _withEntrance(_buildSupportingTrio(theme, isDark), 2),
+                const SizedBox(height: AppTheme.spaceXs),
+                _withEntrance(_buildStreakCard(theme, isDark, l10n), 3),
+                const SizedBox(height: AppTheme.spaceMd),
+                SectionHeader(l10n.statsActivityTrend),
+                const SizedBox(height: AppTheme.spaceXs),
+                _withEntrance(_buildActivityChart(theme, isDark, l10n), 4),
+                const SizedBox(height: AppTheme.spaceMd),
+                SectionHeader(l10n.statsTerritorySection),
+                const SizedBox(height: AppTheme.spaceXxs),
+                _withEntrance(_buildMilestoneRow(theme, isDark, l10n), 5),
+                const SizedBox(height: AppTheme.spaceXxs),
+                _withEntrance(_buildTerritoryDetailsLink(theme, isDark, l10n), 6),
+              ],
+            ),
           ),
         ),
         if (_showWeeklyCelebration)
@@ -427,33 +436,6 @@ class _StatisticsScreenState extends State<StatisticsScreen>
             weeklyData: _weeklyData,
             longestStreak: _longestStreak ?? (_stats?.currentStreak ?? 0),
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildOpenDetailsLink(ThemeData theme, bool isDark, AppLocalizations l10n) {
-    return GestureDetector(
-      onTap: () {
-        HapticFeedback.lightImpact();
-        _openDetailsScreen();
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceMd, vertical: AppTheme.spaceSm),
-        decoration: AppTheme.surfaceContainer(isDark: isDark),
-        child: Row(
-          children: [
-            Expanded(
-              child: Text(
-                l10n.statsOpenDetails,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: AppColors.textPrimary(isDark),
-                  fontWeight: AppFontWeights.medium,
-                ),
-              ),
-            ),
-            Icon(Icons.chevron_right_rounded, size: AppIconSizes.sm, color: AppColors.textTertiary(isDark)),
-          ],
         ),
       ),
     );
@@ -2671,33 +2653,42 @@ class StatisticsDetailScreen extends StatelessWidget {
           ],
           SectionHeader(l10n.statsAllTimeSection),
           const SizedBox(height: AppTheme.spaceXs),
-          IntrinsicHeight(child: Row(children: [
-            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text('${args.totalUploads}', style: theme.textTheme.headlineLarge?.copyWith(
-                fontWeight: AppFontWeights.bold,
-                height: AppLineHeights.numeric,
-                letterSpacing: AppTheme.letterSpacingDisplay,
+          Container(
+            decoration: AppTheme.surfaceContainer(isDark: isDark),
+            child: IntrinsicHeight(child: Row(children: [
+              Expanded(child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceMd, vertical: AppTheme.spaceSm),
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text('${args.totalUploads}', style: theme.textTheme.headlineLarge?.copyWith(
+                    fontWeight: AppFontWeights.bold,
+                    height: AppLineHeights.numeric,
+                    letterSpacing: AppTheme.letterSpacingDisplay,
+                  )),
+                  const SizedBox(height: AppTheme.spaceXxxs),
+                  Text(l10n.statsUploadsUnit, style: theme.textTheme.labelSmall?.copyWith(
+                    color: AppColors.textSecondary(isDark),
+                  )),
+                ]),
               )),
-              const SizedBox(height: AppTheme.spaceXxxs),
-              Text(l10n.statsUploadsUnit, style: theme.textTheme.labelSmall?.copyWith(
-                color: AppColors.textSecondary(isDark),
-              )),
+              if (args.zones > 0) ...[
+                Container(width: 1, color: hairline),
+                Expanded(child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceMd, vertical: AppTheme.spaceSm),
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Text(km2Str, style: theme.textTheme.headlineLarge?.copyWith(
+                      fontWeight: AppFontWeights.bold,
+                      height: AppLineHeights.numeric,
+                      letterSpacing: AppTheme.letterSpacingDisplay,
+                    )),
+                    const SizedBox(height: AppTheme.spaceXxxs),
+                    Text(l10n.statsKm2Unit, style: theme.textTheme.labelSmall?.copyWith(
+                      color: AppColors.textSecondary(isDark),
+                    )),
+                  ]),
+                )),
+              ],
             ])),
-            if (args.zones > 0) ...[
-              Container(width: 1, margin: const EdgeInsets.symmetric(horizontal: AppTheme.spaceMd), color: hairline),
-              Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(km2Str, style: theme.textTheme.headlineLarge?.copyWith(
-                  fontWeight: AppFontWeights.bold,
-                  height: AppLineHeights.numeric,
-                  letterSpacing: AppTheme.letterSpacingDisplay,
-                )),
-                const SizedBox(height: AppTheme.spaceXxxs),
-                Text(l10n.statsKm2Unit, style: theme.textTheme.labelSmall?.copyWith(
-                  color: AppColors.textSecondary(isDark),
-                )),
-              ])),
-            ],
-          ])),
+          ),
           const SizedBox(height: AppTheme.spaceLg),
           if (args.qualityPct != null) ...[
             _qualityBar(theme, isDark, l10n, args.qualityPct!),
@@ -2706,44 +2697,56 @@ class StatisticsDetailScreen extends StatelessWidget {
           if (counts30 != null) ...[
             SectionHeader(l10n.statsInDepthHabits),
             const SizedBox(height: AppTheme.spaceXs),
-            IntrinsicHeight(child: Row(children: [
-              Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text('$activeDays30', style: theme.textTheme.headlineMedium?.copyWith(
-                  fontWeight: AppFontWeights.bold, height: AppLineHeights.numeric,
-                  letterSpacing: AppTheme.letterSpacingDisplay,
+            Container(
+              decoration: AppTheme.surfaceContainer(isDark: isDark),
+              child: IntrinsicHeight(child: Row(children: [
+                Expanded(child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceMd, vertical: AppTheme.spaceSm),
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Text('$activeDays30', style: theme.textTheme.headlineMedium?.copyWith(
+                      fontWeight: AppFontWeights.bold, height: AppLineHeights.numeric,
+                      letterSpacing: AppTheme.letterSpacingDisplay,
+                    )),
+                    Text(l10n.statsLast30DaysUnit, style: theme.textTheme.labelSmall?.copyWith(
+                        color: AppColors.textSecondary(isDark))),
+                    const SizedBox(height: AppTheme.spaceXxxs + 1),
+                    Text(l10n.statsInDepthActiveDays, maxLines: 1, overflow: TextOverflow.ellipsis,
+                        style: AppTheme.statLabel(isDark)),
+                  ]),
                 )),
-                Text(l10n.statsLast30DaysUnit, style: theme.textTheme.labelSmall?.copyWith(
-                    color: AppColors.textSecondary(isDark))),
-                const SizedBox(height: AppTheme.spaceXxxs + 1),
-                Text(l10n.statsInDepthActiveDays, maxLines: 1, overflow: TextOverflow.ellipsis,
-                    style: AppTheme.statLabel(isDark)),
-              ])),
-              Container(width: 1, margin: const EdgeInsets.symmetric(horizontal: AppTheme.spaceSm), color: hairline),
-              Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text('$avgPerActiveDay', style: theme.textTheme.headlineMedium?.copyWith(
-                  fontWeight: AppFontWeights.bold, height: AppLineHeights.numeric,
-                  letterSpacing: AppTheme.letterSpacingDisplay,
+                Container(width: 1, color: hairline),
+                Expanded(child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceMd, vertical: AppTheme.spaceSm),
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Text('$avgPerActiveDay', style: theme.textTheme.headlineMedium?.copyWith(
+                      fontWeight: AppFontWeights.bold, height: AppLineHeights.numeric,
+                      letterSpacing: AppTheme.letterSpacingDisplay,
+                    )),
+                    Text(l10n.statsUploadsUnit, style: theme.textTheme.labelSmall?.copyWith(
+                        color: AppColors.textSecondary(isDark))),
+                    const SizedBox(height: AppTheme.spaceXxxs + 1),
+                    Text(l10n.statsInDepthAvgPerDay, maxLines: 1, overflow: TextOverflow.ellipsis,
+                        style: AppTheme.statLabel(isDark)),
+                  ]),
                 )),
-                Text(l10n.statsUploadsUnit, style: theme.textTheme.labelSmall?.copyWith(
-                    color: AppColors.textSecondary(isDark))),
-                const SizedBox(height: AppTheme.spaceXxxs + 1),
-                Text(l10n.statsInDepthAvgPerDay, maxLines: 1, overflow: TextOverflow.ellipsis,
-                    style: AppTheme.statLabel(isDark)),
-              ])),
-              if (bestWeekday != null) ...[
-                Container(width: 1, margin: const EdgeInsets.symmetric(horizontal: AppTheme.spaceSm), color: hairline),
-                Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text(bestWeekday, style: theme.textTheme.headlineMedium?.copyWith(
-                    fontWeight: AppFontWeights.bold, height: AppLineHeights.numeric,
+                if (bestWeekday != null) ...[
+                  Container(width: 1, color: hairline),
+                  Expanded(child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceMd, vertical: AppTheme.spaceSm),
+                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      Text(bestWeekday, style: theme.textTheme.headlineMedium?.copyWith(
+                        fontWeight: AppFontWeights.bold, height: AppLineHeights.numeric,
+                      )),
+                      Text('${l10n.statsAvgPrefix} $bestWeekdayAvg', style: theme.textTheme.labelSmall?.copyWith(
+                          color: AppColors.textSecondary(isDark))),
+                      const SizedBox(height: AppTheme.spaceXxxs + 1),
+                      Text(l10n.statsInDepthBestWeekday, maxLines: 1, overflow: TextOverflow.ellipsis,
+                          style: AppTheme.statLabel(isDark)),
+                    ]),
                   )),
-                  Text('${l10n.statsAvgPrefix} $bestWeekdayAvg', style: theme.textTheme.labelSmall?.copyWith(
-                      color: AppColors.textSecondary(isDark))),
-                  const SizedBox(height: AppTheme.spaceXxxs + 1),
-                  Text(l10n.statsInDepthBestWeekday, maxLines: 1, overflow: TextOverflow.ellipsis,
-                      style: AppTheme.statLabel(isDark)),
-                ])),
-              ],
-            ])),
+                ],
+              ])),
+            ),
             const SizedBox(height: AppTheme.spaceLg),
           ],
           if (weekdayTotals != null) ...[
