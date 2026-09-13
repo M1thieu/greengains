@@ -605,6 +605,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get statsTabInDepth => 'In depth';
 
   @override
+  String get statsOpenDetails => 'In depth';
+
+  @override
   String get statsInDepth30Days => 'Last 30 days';
 
   @override

@@ -244,6 +244,7 @@
   "statsUploadExplainer": "Light, heat and surface quality captured at that moment.",
   "statsTabCore": "Overview",
   "statsTabInDepth": "In depth",
+  "statsOpenDetails": "In depth",
   "statsInDepth30Days": "Last 30 days",
   "statsHeatmapLess": "less",
   "statsHeatmapMore": "more",

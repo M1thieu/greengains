@@ -12,7 +12,6 @@ import com.eremat.greengains.MainActivity
 import com.eremat.greengains.R
 import com.eremat.greengains.notification.NotificationsHelper
 import com.eremat.greengains.util.AppPrefs
-import com.eremat.greengains.util.AppPrefs
 
 /**
  * Fires a passive weekly digest Sunday morning: "Your map this week — +X new places."

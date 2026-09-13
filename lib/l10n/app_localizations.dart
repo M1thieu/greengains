@@ -1052,6 +1052,12 @@ abstract class AppLocalizations {
   /// **'In depth'**
   String get statsTabInDepth;
 
+  /// No description provided for @statsOpenDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'In depth'**
+  String get statsOpenDetails;
+
   /// No description provided for @statsInDepth30Days.
   ///
   /// In en, this message translates to:
