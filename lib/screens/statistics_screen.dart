@@ -777,7 +777,9 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                     ],
                   ]),
                   const SizedBox(height: AppTheme.spaceXxxs),
-                  Text(l10n.statsCurrentStreakLabel, style: AppTheme.statLabel(isDark)),
+                  Text(l10n.statsCurrentStreakLabel, style: AppTheme.statLabel(isDark).copyWith(
+                    color: streakColor.withValues(alpha: 0.75),
+                  )),
                 ],
               ),
             ),
@@ -806,7 +808,9 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                     )),
                   ]),
                   const SizedBox(height: AppTheme.spaceXxxs),
-                  Text(l10n.statsLongestLabel, style: AppTheme.statLabel(isDark)),
+                  Text(l10n.statsLongestLabel, style: AppTheme.statLabel(isDark).copyWith(
+                    color: isRecord ? AppColors.primary.withValues(alpha: 0.75) : null,
+                  )),
                 ],
               ),
             ),

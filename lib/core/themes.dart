@@ -581,19 +581,19 @@ class AppTheme {
             : Border.all(color: AppColors.border(isDark), width: AppBorderWidths.hairline),
       );
 
-  /// Standard section eyebrow label — ALL CAPS, small, muted.
+  /// Standard section eyebrow label — ALL CAPS, small, F-pattern scan anchor.
   /// Use above charts, KPI rows, and data sections.
   static TextStyle eyebrowLabel(bool isDark) => TextStyle(
         fontSize: fontSizeXs,
         fontWeight: AppFontWeights.semibold,
-        color: AppColors.textTertiary(isDark),
-        letterSpacing: 0.8,
+        color: AppColors.textSecondary(isDark),
+        letterSpacing: 1.0,
       );
 
   /// Label below a big stat number — consistent across all stat cells.
   static TextStyle statLabel(bool isDark) => TextStyle(
         fontSize: fontSizeXs,
-        color: AppColors.textTertiary(isDark),
+        color: AppColors.textSecondary(isDark).withValues(alpha: 0.75),
         fontWeight: AppFontWeights.medium,
         height: AppLineHeights.snug,
       );

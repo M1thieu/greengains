@@ -1,5 +1,6 @@
 ﻿import 'dart:async';
 import 'dart:convert';
+import 'dart:math' show exp;
 import 'dart:ui' as ui;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:h3_flutter/h3_flutter.dart' as h3f;
@@ -303,6 +304,16 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   bool _actionBusy = false;
   DateTime? _lastPosSave;
+
+  // ODE 2: 1D Kalman filter for GPS display smoothing.
+  // State equations: x_pred = x_prev; P_pred = P_prev + Q
+  //   Kalman gain K = P_pred / (P_pred + R)
+  //   x = x_pred + K·(z − x_pred);  P = (1−K)·P_pred
+  // Q: process noise (how far device can move between GPS ticks, ~10s × walking ~1.5m/s = 15m → ~0.000135°)
+  // R: measurement noise = (accuracy_m / 111000)²
+  static const double _kKalmanQ = 1.35e-8; // (15m / 111000)²
+  double? _kalmanLat, _kalmanLon;
+  double _kalmanPLat = 1e-4, _kalmanPLon = 1e-4; // initial covariance (high uncertainty)
 
   Future<bool> _requestAndCheckPermission() async {
     final current = await Geolocator.checkPermission();
@@ -781,11 +792,30 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     _locationStreamSub =
         _locationService.locationStream.listen((locationData) {
       if (!mounted) return;
-      final pos = LatLng(locationData.latitude, locationData.longitude);
-      _userLocationNotifier.value = pos;
+
+      // Kalman filter: smooth display position. Raw coords preserved for upload/prefs.
+      final acc = locationData.accuracy.clamp(1.0, 100.0);
+      final R = (acc / 111000) * (acc / 111000);
+      // Predict
+      _kalmanPLat += _kKalmanQ;
+      _kalmanPLon += _kKalmanQ;
+      // Update
+      final kLat = _kalmanPLat / (_kalmanPLat + R);
+      final kLon = _kalmanPLon / (_kalmanPLon + R);
+      _kalmanLat = (_kalmanLat == null)
+          ? locationData.latitude
+          : _kalmanLat! + kLat * (locationData.latitude - _kalmanLat!);
+      _kalmanLon = (_kalmanLon == null)
+          ? locationData.longitude
+          : _kalmanLon! + kLon * (locationData.longitude - _kalmanLon!);
+      _kalmanPLat = (1 - kLat) * _kalmanPLat;
+      _kalmanPLon = (1 - kLon) * _kalmanPLon;
+
+      final smoothPos = LatLng(_kalmanLat!, _kalmanLon!);
+      _userLocationNotifier.value = smoothPos;
       _userAccuracyNotifier.value = locationData.accuracy;
-      _updateCurrentH3Cell(pos);
-      // Debounce position persistence — GPS fires every ~10s, disk write every 60s is enough.
+      _updateCurrentH3Cell(smoothPos);
+      // Debounce persistence — raw GPS coords, not filtered
       final now = DateTime.now();
       if (_lastPosSave == null || now.difference(_lastPosSave!) >= const Duration(seconds: 60)) {
         _lastPosSave = now;
@@ -2706,6 +2736,17 @@ class _LiveEnvironmentCardState extends State<_LiveEnvironmentCard>
     with SingleTickerProviderStateMixin {
   late final AnimationController _dotCtrl;
 
+  // ODE 1 + ODE 3: first-order IIR low-pass filter — discrete form of τ·dx/dt + x = u
+  // ODE 3: alpha is NOT hardcoded — it is computed from the measured update interval:
+  //   alpha = 1 - exp(-dt / tau)  (exact discretization of the continuous ODE)
+  // tau = 30s target time constant. When sensor events arrive in rapid succession
+  // (FIFO batch flush), dt is tiny → alpha ≈ 0, heavy intra-batch smoothing.
+  // When a new batch arrives after 60s silence, dt ≈ 60s → alpha ≈ 0.86 → fast follow.
+  static const double _kTau = 30.0; // target time constant in seconds
+  DateTime? _lastConditionsUpdate;
+  double? _smoothLux;
+  double? _smoothHpa;
+
   @override
   void initState() {
     super.initState();
@@ -2715,16 +2756,37 @@ class _LiveEnvironmentCardState extends State<_LiveEnvironmentCard>
     );
     widget.locationService.isRunning.addListener(_onActiveChanged);
     widget.locationService.isPaused.addListener(_onActiveChanged);
-    widget.locationService.liveConditions.addListener(_onActiveChanged);
+    widget.locationService.liveConditions.addListener(_onConditionsChanged);
   }
 
   @override
   void dispose() {
     widget.locationService.isRunning.removeListener(_onActiveChanged);
     widget.locationService.isPaused.removeListener(_onActiveChanged);
-    widget.locationService.liveConditions.removeListener(_onActiveChanged);
+    widget.locationService.liveConditions.removeListener(_onConditionsChanged);
     _dotCtrl.dispose();
     super.dispose();
+  }
+
+  void _onConditionsChanged() {
+    final cond = widget.locationService.liveConditions.value;
+    // Compute alpha from measured dt: alpha = 1 - exp(-dt / tau)
+    final now = DateTime.now();
+    final dt = _lastConditionsUpdate == null
+        ? _kTau // first update: treat as one full time constant → alpha ≈ 0.63
+        : now.difference(_lastConditionsUpdate!).inMilliseconds / 1000.0;
+    _lastConditionsUpdate = now;
+    final alpha = 1.0 - exp(-dt / _kTau);
+    // x[n] = alpha * u[n] + (1 - alpha) * x[n-1]
+    if (cond.lux != null) {
+      final u = cond.lux!.toDouble();
+      _smoothLux = _smoothLux == null ? u : alpha * u + (1 - alpha) * _smoothLux!;
+    }
+    if (cond.hpa != null) {
+      final u = cond.hpa!;
+      _smoothHpa = _smoothHpa == null ? u : alpha * u + (1 - alpha) * _smoothHpa!;
+    }
+    _onActiveChanged();
   }
 
   void _onActiveChanged() {
@@ -2777,8 +2839,9 @@ class _LiveEnvironmentCardState extends State<_LiveEnvironmentCard>
       BuildContext context, ({int? lux, double? hpa, double? rms}) cond) {
     final l10n = context.l10n;
     final isNight = DateTime.now().hour < 6 || DateTime.now().hour >= 20;
-    final lux = cond.lux?.toDouble();
-    final hpa = cond.hpa;
+    // Use IIR-smoothed values for display — raw values are preserved upstream for upload
+    final lux = _smoothLux ?? cond.lux?.toDouble();
+    final hpa = _smoothHpa ?? cond.hpa;
 
     final character = SensorInsights.sessionCharacter(
       isNight: isNight,
@@ -2816,15 +2879,17 @@ class _LiveEnvironmentCardState extends State<_LiveEnvironmentCard>
           ),
           child: Row(
             children: [
-              AnimatedBuilder(
-                animation: _dotCtrl,
-                builder: (_, __) => Container(
-                  width: 6,
-                  height: 6,
-                  decoration: BoxDecoration(
-                    color: accentColor
-                        .withValues(alpha: _dotCtrl.value * 0.5 + 0.5),
-                    shape: BoxShape.circle,
+              RepaintBoundary(
+                child: AnimatedBuilder(
+                  animation: _dotCtrl,
+                  builder: (_, __) => Container(
+                    width: 6,
+                    height: 6,
+                    decoration: BoxDecoration(
+                      color: accentColor
+                          .withValues(alpha: _dotCtrl.value * 0.5 + 0.5),
+                      shape: BoxShape.circle,
+                    ),
                   ),
                 ),
               ),

@@ -1,3 +1,4 @@
+import 'dart:math' show pow;
 import 'package:flutter/material.dart';
 import '../l10n/app_localizations.dart';
 
@@ -10,6 +11,24 @@ import '../l10n/app_localizations.dart';
 /// - Movement score: 0=stationary, 0.3=slow walk, 0.7=active walk, 1.0=running/vehicle
 class SensorInsights {
   SensorInsights._();
+
+  // ── ISA constants (International Standard Atmosphere) ────────────────────
+  // All pressure-derived calculations use these rather than inline magic numbers.
+  static const double _kP0 = 1013.25; // sea-level pressure, hPa
+  static const double _kT0 = 288.15;  // sea-level temperature, K
+  static const double _kL  = 0.0065;  // temperature lapse rate, K/m
+  // Derived: R*L/(g*M) = 8.31446*0.0065 / (9.80665*0.028964)
+  static const double _kBaroExp = 0.19029;
+  // Derived: T0/L
+  static const double _kBaroScale = _kT0 / _kL; // ≈ 44330 m
+
+  /// ODE 4: Barometric altitude (m) from measured pressure.
+  /// Closed-form solution of the hydrostatic ODE dp/dz = -rho*g
+  /// combined with the ideal gas law (rho = p*M / (R*T)):
+  ///   z = (T0/L) * [1 - (p/p0)^(R*L/(g*M))]
+  /// Valid for the troposphere (0–11 km). Returns metres above sea level.
+  static double baroAltitudeM(double hPa) =>
+      _kBaroScale * (1.0 - pow(hPa / _kP0, _kBaroExp));
 
   // ── Light / luminosity ────────────────────────────────────────────────────
 
@@ -47,7 +66,7 @@ class SensorInsights {
   /// relative urban heat exposure. Returns a 0–3 heat index.
   /// Baseline pressure 1013 hPa — lower = higher altitude or storm, higher = heat dome.
   static HeatLevel heatLevel(double lux, double hPa) {
-    final pressureDeviation = (hPa - 1013.0).clamp(-30.0, 30.0);
+    final pressureDeviation = (hPa - _kP0).clamp(-30.0, 30.0);
     // High lux + high pressure → heat dome conditions
     final score = (lux / 20000.0).clamp(0.0, 1.0) +
                   (pressureDeviation / 60.0).clamp(-0.5, 0.5);
