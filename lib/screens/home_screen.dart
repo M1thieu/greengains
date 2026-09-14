@@ -302,6 +302,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   // ── Bottom action bar controls ──────────────────────────────────────────────
 
   bool _actionBusy = false;
+  DateTime? _lastPosSave;
 
   Future<bool> _requestAndCheckPermission() async {
     final current = await Geolocator.checkPermission();
@@ -784,8 +785,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       _userLocationNotifier.value = pos;
       _userAccuracyNotifier.value = locationData.accuracy;
       _updateCurrentH3Cell(pos);
-      // Persist so next cold start opens at correct location
-      _prefs.saveLastPosition(locationData.latitude, locationData.longitude);
+      // Debounce position persistence — GPS fires every ~10s, disk write every 60s is enough.
+      final now = DateTime.now();
+      if (_lastPosSave == null || now.difference(_lastPosSave!) >= const Duration(seconds: 60)) {
+        _lastPosSave = now;
+        _prefs.saveLastPosition(locationData.latitude, locationData.longitude);
+      }
     });
   }
 
@@ -1517,12 +1522,16 @@ class _MyLocationButton extends StatelessWidget {
             child: SizedBox(
               width: _kLocationBtnSize,
               height: _kLocationBtnSize,
-              child: Icon(
-                isFollowing ? Icons.gps_fixed : Icons.gps_not_fixed,
-                color: isFollowing
-                    ? AppColors.primary
-                    : Colors.white.withValues(alpha: 0.55),
-                size: AppIconSizes.sm,
+              child: AnimatedSwitcher(
+                duration: AppDurations.fast,
+                child: Icon(
+                  isFollowing ? Icons.gps_fixed : Icons.gps_not_fixed,
+                  key: ValueKey(isFollowing),
+                  color: isFollowing
+                      ? AppColors.primary
+                      : Colors.white.withValues(alpha: 0.55),
+                  size: AppIconSizes.sm,
+                ),
               ),
             ),
           ),
@@ -2680,7 +2689,7 @@ class _Seg extends StatelessWidget {
 /// Live environmental insight card — shown above the session pill while tracking.
 /// Translates the current sensor readings into a single human sentence.
 /// Tapping opens the full sensor live sheet.
-class _LiveEnvironmentCard extends StatelessWidget {
+class _LiveEnvironmentCard extends StatefulWidget {
   const _LiveEnvironmentCard({
     required this.locationService,
     required this.onTap,
@@ -2690,16 +2699,58 @@ class _LiveEnvironmentCard extends StatelessWidget {
   final VoidCallback onTap;
 
   @override
+  State<_LiveEnvironmentCard> createState() => _LiveEnvironmentCardState();
+}
+
+class _LiveEnvironmentCardState extends State<_LiveEnvironmentCard>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _dotCtrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _dotCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1600),
+    );
+    widget.locationService.isRunning.addListener(_onActiveChanged);
+    widget.locationService.isPaused.addListener(_onActiveChanged);
+    widget.locationService.liveConditions.addListener(_onActiveChanged);
+  }
+
+  @override
+  void dispose() {
+    widget.locationService.isRunning.removeListener(_onActiveChanged);
+    widget.locationService.isPaused.removeListener(_onActiveChanged);
+    widget.locationService.liveConditions.removeListener(_onActiveChanged);
+    _dotCtrl.dispose();
+    super.dispose();
+  }
+
+  void _onActiveChanged() {
+    final active = widget.locationService.isRunning.value &&
+        !widget.locationService.isPaused.value;
+    final cond = widget.locationService.liveConditions.value;
+    final hasSensorData = cond.lux != null || cond.hpa != null;
+    if (active && hasSensorData) {
+      if (!_dotCtrl.isAnimating) _dotCtrl.repeat(reverse: true);
+    } else {
+      if (_dotCtrl.isAnimating) _dotCtrl.stop();
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return ListenableBuilder(
       listenable: Listenable.merge([
-        locationService.isRunning,
-        locationService.isPaused,
-        locationService.liveConditions,
+        widget.locationService.isRunning,
+        widget.locationService.isPaused,
+        widget.locationService.liveConditions,
       ]),
       builder: (context, _) {
-        final active = locationService.isRunning.value && !locationService.isPaused.value;
-        final cond = locationService.liveConditions.value;
+        final active = widget.locationService.isRunning.value &&
+            !widget.locationService.isPaused.value;
+        final cond = widget.locationService.liveConditions.value;
         final hasSensorData = cond.lux != null || cond.hpa != null;
 
         return AnimatedSwitcher(
@@ -2722,7 +2773,8 @@ class _LiveEnvironmentCard extends StatelessWidget {
     );
   }
 
-  Widget _buildCard(BuildContext context, ({int? lux, double? hpa, double? rms}) cond) {
+  Widget _buildCard(
+      BuildContext context, ({int? lux, double? hpa, double? rms}) cond) {
     final l10n = context.l10n;
     final isNight = DateTime.now().hour < 6 || DateTime.now().hour >= 20;
     final lux = cond.lux?.toDouble();
@@ -2751,7 +2803,7 @@ class _LiveEnvironmentCard extends StatelessWidget {
         bottom: AppTheme.spaceXs,
       ),
       child: PressScaleDetector(
-        onTap: onTap,
+        onTap: widget.onTap,
         child: Container(
           padding: const EdgeInsets.symmetric(
             horizontal: AppTheme.spaceMd,
@@ -2764,12 +2816,16 @@ class _LiveEnvironmentCard extends StatelessWidget {
           ),
           child: Row(
             children: [
-              Container(
-                width: 6,
-                height: 6,
-                decoration: BoxDecoration(
-                  color: accentColor,
-                  shape: BoxShape.circle,
+              AnimatedBuilder(
+                animation: _dotCtrl,
+                builder: (_, __) => Container(
+                  width: 6,
+                  height: 6,
+                  decoration: BoxDecoration(
+                    color: accentColor
+                        .withValues(alpha: _dotCtrl.value * 0.5 + 0.5),
+                    shape: BoxShape.circle,
+                  ),
                 ),
               ),
               const SizedBox(width: AppTheme.spaceSm),
@@ -2793,8 +2849,7 @@ class _LiveEnvironmentCard extends StatelessWidget {
                         color: AppColors.darkTextSecondary,
                         height: AppLineHeights.tight,
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                      maxLines: 2,
                     ),
                   ],
                 ),
@@ -2952,6 +3007,10 @@ class _ReturnDeltaCardState extends State<_ReturnDeltaCard>
     super.dispose();
   }
 
+  void _dismiss() {
+    _ctrl.reverse().then((_) => widget.onDismiss());
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
@@ -3017,9 +3076,9 @@ class _ReturnDeltaCardState extends State<_ReturnDeltaCard>
               ),
               const SizedBox(width: AppTheme.spaceXs),
               GestureDetector(
-                onTap: widget.onDismiss,
+                onTap: _dismiss,
                 child: Padding(
-                  padding: const EdgeInsets.all(AppTheme.spaceXxs),
+                  padding: const EdgeInsets.all(AppTheme.spaceSm),
                   child: Icon(Icons.close_rounded,
                     size: AppIconSizes.xs,
                     color: AppColors.darkTextSecondary,

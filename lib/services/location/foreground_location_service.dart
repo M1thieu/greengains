@@ -34,6 +34,11 @@ class ForegroundLocationService {
   LocationData? _lastLocation;
   LocationData? get lastLocation => _lastLocation;
 
+  DateTime? _lastLightSave;
+  DateTime? _lastPressureSave;
+  DateTime? _lastMagneticSave;
+  static const _kSensorSaveInterval = Duration(seconds: 30);
+
   LightData? _lastLight;
   LightData? get lastLight => _lastLight;
 
@@ -114,7 +119,11 @@ class ForegroundLocationService {
           final light = LightData.fromMap(call.arguments as Map);
           _lastLight = light;
           _lightController.add(light);
-          unawaited(AppPreferences.instance.saveLastLight(light.lux, light.timestamp));
+          final nowLight = DateTime.now();
+          if (_lastLightSave == null || nowLight.difference(_lastLightSave!) >= _kSensorSaveInterval) {
+            _lastLightSave = nowLight;
+            unawaited(AppPreferences.instance.saveLastLight(light.lux, light.timestamp));
+          }
           liveConditions.value = (lux: light.lux.round(), hpa: liveConditions.value.hpa, rms: liveConditions.value.rms);
           break;
         case 'onAccelerometerUpdate':
@@ -132,14 +141,22 @@ class ForegroundLocationService {
           final pressure = PressureData.fromMap(call.arguments as Map);
           _lastPressure = pressure;
           _pressureController.add(pressure);
-          unawaited(AppPreferences.instance.saveLastPressure(pressure.hPa, pressure.timestamp));
+          final nowPressure = DateTime.now();
+          if (_lastPressureSave == null || nowPressure.difference(_lastPressureSave!) >= _kSensorSaveInterval) {
+            _lastPressureSave = nowPressure;
+            unawaited(AppPreferences.instance.saveLastPressure(pressure.hPa, pressure.timestamp));
+          }
           liveConditions.value = (lux: liveConditions.value.lux, hpa: pressure.hPa, rms: liveConditions.value.rms);
           break;
         case 'onMagneticFieldUpdate':
           final magnetic = MagneticFieldData.fromMap(call.arguments as Map);
           _lastMagneticField = magnetic;
           _magneticFieldController.add(magnetic);
-          unawaited(AppPreferences.instance.saveLastMagnetic(magnetic.magnitude, magnetic.timestamp));
+          final nowMagnetic = DateTime.now();
+          if (_lastMagneticSave == null || nowMagnetic.difference(_lastMagneticSave!) >= _kSensorSaveInterval) {
+            _lastMagneticSave = nowMagnetic;
+            unawaited(AppPreferences.instance.saveLastMagnetic(magnetic.magnitude, magnetic.timestamp));
+          }
           break;
         case 'collectSensors':
           // This is called periodically by the native service
