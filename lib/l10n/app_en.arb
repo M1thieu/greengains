@@ -869,7 +869,7 @@
       "milestone": { "type": "int" }
     }
   },
-  "sessionSummaryNextHook": "Come back tomorrow.",
+  "sessionSummaryNextHook": "Runs silently wherever you carry it.",
   "sessionSummaryNextHookEmpty": "Recorded silently every time you go out.",
   "sessionStatArea": "AREA",
   "sessionStatDuration": "TIME",
@@ -960,7 +960,7 @@
   "streakResetBanner": "Streak reset. Start fresh today.",
 
   "sessionSummaryNextHookStreak": "Streak alive.",
-  "sessionSummaryNextHookFirst": "Your streak starts tomorrow. Go out once more.",
+  "sessionSummaryNextHookFirst": "Your contribution builds automatically — just keep going.",
 
   "weeklyGoalTitle": "Week complete.",
   "weeklyGoalBody": "See you next week.",

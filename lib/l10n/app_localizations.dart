@@ -3462,7 +3462,7 @@ abstract class AppLocalizations {
   /// No description provided for @sessionSummaryNextHook.
   ///
   /// In en, this message translates to:
-  /// **'Come back tomorrow.'**
+  /// **'Runs silently wherever you carry it.'**
   String get sessionSummaryNextHook;
 
   /// No description provided for @sessionSummaryNextHookEmpty.
@@ -3768,7 +3768,7 @@ abstract class AppLocalizations {
   /// No description provided for @sessionSummaryNextHookFirst.
   ///
   /// In en, this message translates to:
-  /// **'Your streak starts tomorrow. Go out once more.'**
+  /// **'Your contribution builds automatically — just keep going.'**
   String get sessionSummaryNextHookFirst;
 
   /// No description provided for @weeklyGoalTitle.

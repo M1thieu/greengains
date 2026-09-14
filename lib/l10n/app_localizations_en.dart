@@ -2027,7 +2027,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get sessionSummaryNextHook => 'Come back tomorrow.';
+  String get sessionSummaryNextHook => 'Runs silently wherever you carry it.';
 
   @override
   String get sessionSummaryNextHookEmpty =>
@@ -2223,7 +2223,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get sessionSummaryNextHookFirst =>
-      'Your streak starts tomorrow. Go out once more.';
+      'Your contribution builds automatically — just keep going.';
 
   @override
   String get weeklyGoalTitle => 'Week complete.';

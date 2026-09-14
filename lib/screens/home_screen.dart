@@ -2901,6 +2901,8 @@ class _LiveEnvironmentCardState extends State<_LiveEnvironmentCard>
                   children: [
                     Text(
                       characterLabel,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
                         color: accentColor,
                         fontWeight: AppFontWeights.semibold,

@@ -869,7 +869,7 @@
       "milestone": { "type": "int" }
     }
   },
-  "sessionSummaryNextHook": "Reviens demain.",
+  "sessionSummaryNextHook": "Tourne en silence partout où tu vas.",
   "sessionSummaryNextHookEmpty": "Enregistré en silence à chaque sortie.",
   "sessionStatArea": "SURFACE",
   "sessionStatDuration": "TEMPS",
@@ -960,7 +960,7 @@
   "streakResetBanner": "Série réinitialisée. Recommence aujourd’hui.",
 
   "sessionSummaryNextHookStreak": "Série en vie.",
-  "sessionSummaryNextHookFirst": "Ta série commence demain. Ressors une fois.",
+  "sessionSummaryNextHookFirst": "Ta contribution se construit automatiquement — continue comme ça.",
 
   "weeklyGoalTitle": "Semaine complète.",
   "weeklyGoalBody": "À la semaine prochaine.",

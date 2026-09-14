@@ -2060,7 +2060,7 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get sessionSummaryNextHook => 'Reviens demain.';
+  String get sessionSummaryNextHook => 'Tourne en silence partout où tu vas.';
 
   @override
   String get sessionSummaryNextHookEmpty =>
@@ -2257,7 +2257,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get sessionSummaryNextHookFirst =>
-      'Ta série commence demain. Ressors une fois.';
+      'Ta contribution se construit automatiquement — continue comme ça.';
 
   @override
   String get weeklyGoalTitle => 'Semaine complète.';
