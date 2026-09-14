@@ -344,7 +344,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                   const SizedBox(height: AppTheme.spaceSm),
                   _withEntrance(_buildInsightCard(theme, isDark, l10n, _insight!), 1),
                 ],
-                const SizedBox(height: AppTheme.spaceMd),
+                const SizedBox(height: AppTheme.spaceLg),
                 Row(
                   children: [
                     Expanded(child: SectionHeader(l10n.statsActivitySection, bottom: 0)),
@@ -650,7 +650,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                   ),
                 )
               else
-                Icon(Icons.info_outline_rounded, size: AppIconSizes.xxs, color: AppColors.textTertiary(isDark).withValues(alpha: 0.5)),
+                Icon(Icons.info_outline_rounded, size: AppIconSizes.xxs, color: AppColors.textTertiary(isDark).withValues(alpha: 0.65)),
             ],
           ),
         ],
@@ -1050,7 +1050,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
             const SizedBox(height: AppTheme.spaceXxxs + 1),
             Text(
               l10n.statsImpactSolo(impact.soloCells),
-              style: theme.textTheme.bodySmall?.copyWith(color: AppColors.textTertiary(isDark)),
+              style: theme.textTheme.bodySmall?.copyWith(color: AppColors.textSecondary(isDark)),
             ),
           ]),
         ),
@@ -1090,7 +1090,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
             const SizedBox(height: AppTheme.spaceXxxs + 1),
             for (int i = 0; i < rows.length; i++) ...[
               if (i > 0) const SizedBox(height: AppTheme.spaceXxxs + 1),
-              Text(rows[i], maxLines: 1, overflow: TextOverflow.ellipsis,
+              Text(rows[i], maxLines: 2,
                   style: theme.textTheme.bodySmall?.copyWith(color: AppColors.textTertiary(isDark))),
             ],
           ]),
@@ -1407,7 +1407,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
             onTap: () => setState(() => _selectedBarIndex = null),
             behavior: HitTestBehavior.opaque,
             child: Padding(
-              padding: const EdgeInsets.all(AppTheme.spaceXs + 2),
+              padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceMd, vertical: AppTheme.spaceSm),
               child: Icon(Icons.close, size: AppIconSizes.xxs, color: AppColors.textTertiary(isDark)),
             ),
           ),
@@ -1505,7 +1505,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
     return PressScaleDetector(
       onTap: () => _showTerritorySheet(l10n),
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: AppTheme.spaceXs),
+        padding: const EdgeInsets.symmetric(vertical: AppTheme.spaceSm),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -2792,17 +2792,21 @@ class StatisticsDetailScreen extends StatelessWidget {
           ],
           SectionHeader(l10n.statsPersonalRecords),
           const SizedBox(height: AppTheme.spaceXs),
-          Column(children: [
-            _RecordRow(dot: AppColors.primary, label: l10n.statsRecordLongestStreak, value: '$longest', unit: l10n.statsDaysUnit, isDark: isDark),
-            _Divider(isDark: isDark),
-            _RecordRow(dot: AppColors.warning, label: l10n.statsBestWeekLabel, value: '$bestWeek', unit: l10n.statsUploadsUnit, isDark: isDark),
-            _Divider(isDark: isDark),
-            if (daysActive > 0) ...[
-              _RecordRow(dot: AppColors.movement, label: l10n.statsDaysActive, value: '$daysActive', unit: l10n.statsDaysUnit, isDark: isDark),
+          Container(
+            decoration: AppTheme.surfaceContainer(isDark: isDark),
+            padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceMd),
+            child: Column(children: [
+              _RecordRow(dot: AppColors.primary, label: l10n.statsRecordLongestStreak, value: '$longest', unit: l10n.statsDaysUnit, isDark: isDark),
               _Divider(isDark: isDark),
-            ],
-            _RecordRow(dot: AppColors.light, label: l10n.statsRecordBestDay, value: '$bestDay', unit: l10n.statsUploadsUnit, isDark: isDark),
-          ]),
+              _RecordRow(dot: AppColors.warning, label: l10n.statsBestWeekLabel, value: '$bestWeek', unit: l10n.statsUploadsUnit, isDark: isDark),
+              _Divider(isDark: isDark),
+              if (daysActive > 0) ...[
+                _RecordRow(dot: AppColors.movement, label: l10n.statsDaysActive, value: '$daysActive', unit: l10n.statsDaysUnit, isDark: isDark),
+                _Divider(isDark: isDark),
+              ],
+              _RecordRow(dot: AppColors.light, label: l10n.statsRecordBestDay, value: '$bestDay', unit: l10n.statsUploadsUnit, isDark: isDark),
+            ]),
+          ),
           const SizedBox(height: AppTheme.spaceLg),
           SectionHeader(l10n.statsTerritoryWhatRecorded),
           const SizedBox(height: AppTheme.spaceXs),
