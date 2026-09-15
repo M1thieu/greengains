@@ -2843,12 +2843,6 @@ class _LiveEnvironmentCardState extends State<_LiveEnvironmentCard>
     final lux = _smoothLux ?? cond.lux?.toDouble();
     final hpa = _smoothHpa ?? cond.hpa;
 
-    final character = SensorInsights.sessionCharacter(
-      isNight: isNight,
-      avgLux: lux,
-      avgHpa: hpa,
-    );
-    final characterLabel = SensorInsights.sessionCharacterLabel(l10n, character);
     final conditionLine = SensorInsights.tileConditionLine(
       l10n,
       isNight: isNight,
@@ -2895,30 +2889,14 @@ class _LiveEnvironmentCardState extends State<_LiveEnvironmentCard>
               ),
               const SizedBox(width: AppTheme.spaceSm),
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      characterLabel,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: accentColor,
-                        fontWeight: AppFontWeights.semibold,
-                        letterSpacing: AppTheme.letterSpacingCaps,
-                        height: AppLineHeights.tight,
-                      ),
-                    ),
-                    Text(
-                      conditionLine,
-                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: AppColors.darkTextSecondary,
-                        height: AppLineHeights.tight,
-                      ),
-                      maxLines: 2,
-                    ),
-                  ],
+                child: Text(
+                  conditionLine,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: AppColors.darkTextPrimary,
+                    height: AppLineHeights.tight,
+                  ),
                 ),
               ),
             ],
