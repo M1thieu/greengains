@@ -70,9 +70,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   int _sessionStartZoneCount = 0;
   /// Wall-clock time when tracking started — drives elapsed timer in hint pill.
   DateTime? _sessionStartTime;
-  /// Zones gained since last app open — shown as return delta card on next open.
-  int _returnDeltaZones = 0;
-  bool _showReturnDelta = false;
   /// True when map is actively following the user's GPS position.
   final _followModeNotifier = ValueNotifier<bool>(false);
   StreamSubscription? _locationStreamSub;
@@ -150,7 +147,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     _loadUserLocation();
     _subscribeToLocationUpdates();
     unawaited(_loadStreak());
-    _loadReturnDelta();
     _maybeShowPendingFirstUpload();
   }
 
@@ -159,22 +155,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     Future.delayed(const Duration(milliseconds: 400), () {
       if (!mounted || !context.mounted) return;
       _showFirstUploadSheet();
-    });
-  }
-
-  void _loadReturnDelta() {
-    final zones = _prefs.lastSessionZonesGained;
-    final endAt = _prefs.lastSessionEndAt;
-    if (zones <= 0 || endAt == null) return;
-    // Only show if last session ended more than 10 min ago (not an immediate re-open
-    // after the session summary was already shown) but less than 24h ago.
-    final age = DateTime.now().difference(endAt);
-    if (age < const Duration(minutes: 10) || age > const Duration(hours: 24)) return;
-    // Don't re-show if user already dismissed this exact delta.
-    if (_prefs.dismissedReturnDeltaZones == zones) return;
-    setState(() {
-      _returnDeltaZones = zones;
-      _showReturnDelta = true;
     });
   }
 
@@ -1137,24 +1117,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                               ),
                             ],
                           ),
-                        ),
-                      ),
-
-                    // Return delta — shows zones gained last session on next open
-                    if (_showReturnDelta && !_locationService.isRunning.value)
-                      Padding(
-                        padding: const EdgeInsets.only(
-                          left: AppTheme.spaceMd,
-                          right: AppTheme.spaceMd,
-                          bottom: AppTheme.spaceSm,
-                        ),
-                        child: _ReturnDeltaCard(
-                          zones: _returnDeltaZones,
-                          territory: _prefs.territoryLabel,
-                          onDismiss: () {
-                            unawaited(_prefs.setDismissedReturnDeltaZones(_returnDeltaZones));
-                            setState(() => _showReturnDelta = false);
-                          },
                         ),
                       ),
 
@@ -3020,124 +2982,6 @@ class _InfoButton extends StatelessWidget {
 
 /// Persistent banner shown when background location permission was revoked
 /// while tracking is supposed to be running. Not dismissable — stays until fixed.
-class _ReturnDeltaCard extends StatefulWidget {
-  const _ReturnDeltaCard({required this.zones, required this.onDismiss, this.territory});
-  final int zones;
-  final String? territory;
-  final VoidCallback onDismiss;
-
-  @override
-  State<_ReturnDeltaCard> createState() => _ReturnDeltaCardState();
-}
-
-class _ReturnDeltaCardState extends State<_ReturnDeltaCard>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _ctrl;
-  late final Animation<double> _fade;
-  late final Animation<Offset> _slide;
-
-  @override
-  void initState() {
-    super.initState();
-    _ctrl = AnimationController(vsync: this, duration: AppDurations.medium);
-    _fade = CurvedAnimation(parent: _ctrl, curve: Curves.easeOut);
-    _slide = Tween<Offset>(begin: const Offset(0, 0.4), end: Offset.zero)
-        .animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeOut));
-    _ctrl.forward();
-  }
-
-  @override
-  void dispose() {
-    _ctrl.dispose();
-    super.dispose();
-  }
-
-  void _dismiss() {
-    _ctrl.reverse().then((_) => widget.onDismiss());
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = context.l10n;
-    return FadeTransition(
-      opacity: _fade,
-      child: SlideTransition(
-        position: _slide,
-        child: Container(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppTheme.spaceMd,
-            vertical: AppTheme.spaceSm,
-          ),
-          decoration: BoxDecoration(
-            color: AppColors.mapOverlayMid,
-            borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-            border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
-          ),
-          child: Row(
-            children: [
-              // Prominent delta count
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppTheme.spaceXs,
-                  vertical: AppTheme.spaceXxxs,
-                ),
-                decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(AppTheme.radiusSm),
-                ),
-                child: Text(
-                  '+${widget.zones}',
-                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                    color: AppColors.primary,
-                    fontWeight: AppFontWeights.bold,
-                    fontFeatures: const [ui.FontFeature.tabularFigures()],
-                  ),
-                ),
-              ),
-              const SizedBox(width: AppTheme.spaceSm),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      l10n.returnDeltaTitle(widget.zones),
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        fontWeight: AppFontWeights.semibold,
-                        color: AppColors.darkTextPrimary,
-                      ),
-                    ),
-                    if (widget.territory != null) ...[
-                      const SizedBox(height: 1),
-                      Text(
-                        widget.territory!,
-                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          color: AppColors.darkTextSecondary,
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-              const SizedBox(width: AppTheme.spaceXs),
-              GestureDetector(
-                onTap: _dismiss,
-                child: Padding(
-                  padding: const EdgeInsets.all(AppTheme.spaceSm),
-                  child: Icon(Icons.close_rounded,
-                    size: AppIconSizes.xs,
-                    color: AppColors.darkTextSecondary,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 class _PermissionLostCard extends StatelessWidget {
   const _PermissionLostCard({required this.onFix});
   final VoidCallback onFix;

@@ -95,9 +95,6 @@ class _StatisticsScreenState extends State<StatisticsScreen>
 
   StreamSubscription<UploadSuccessEvent>? _uploadSuccessSub;
   StreamSubscription<StatsUpdatedEvent>? _statsUpdatedSub;
-  /// True while the weekly-goal celebration overlay is visible.
-  bool _showWeeklyCelebration = false;
-
   // ── Entrance animations ───────────────────────────────────────────────────────
   late final AnimationController _entranceCtrl;
   late final List<Animation<double>> _cardAnims;
@@ -227,10 +224,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                   : 0.0);
           if (profile.qualityPct != null) _qualityPct = profile.qualityPct;
           if (profile.prevWeekTotal != null) _prevWeekTotal = profile.prevWeekTotal;
-          if (weeklyTarget != null) {
-            _weeklyTarget = weeklyTarget;
-            _maybeFireWeeklyCelebration(weeklyTarget);
-          }
+          if (weeklyTarget != null) _weeklyTarget = weeklyTarget;
           if (localRank != null) _localRank = localRank;
           if (impact != null) _impact = impact;
           if (insight != null) _insight = insight;
@@ -265,22 +259,6 @@ class _StatisticsScreenState extends State<StatisticsScreen>
 
   Future<void> _refresh() async {
     await Future.wait([_loadStats(), _loadWeeklyStats(), _loadDailyCounts()]);
-  }
-
-  void _maybeFireWeeklyCelebration(WeeklyTargetResponse target) {
-    if (target.newCellsThisWeek < target.target) return;
-    // ISO week: "2026-W20"
-    final now = DateTime.now();
-    final weekNum = ((now.difference(DateTime(now.year, 1, 1)).inDays + DateTime(now.year, 1, 1).weekday) / 7).ceil();
-    final weekKey = '${now.year}-W$weekNum';
-    final prefs = AppPreferences.instance;
-    if (prefs.weeklyGoalCelebratedWeek == weekKey) return;
-    unawaited(prefs.setWeeklyGoalCelebratedWeek(weekKey));
-    HapticFeedback.mediumImpact();
-    setState(() => _showWeeklyCelebration = true);
-    Future.delayed(const Duration(seconds: 4), () {
-      if (mounted) setState(() => _showWeeklyCelebration = false);
-    });
   }
 
   @override
@@ -369,8 +347,6 @@ class _StatisticsScreenState extends State<StatisticsScreen>
             ),
           ),
         ),
-        if (_showWeeklyCelebration)
-          _WeeklyGoalCelebration(onDismiss: () => setState(() => _showWeeklyCelebration = false)),
       ],
     );
   }
@@ -2354,111 +2330,6 @@ class _Divider extends StatelessWidget {
       color: AppColors.textTertiary(isDark).withValues(alpha: 0.12),
       indent: AppTheme.spaceMd,
       endIndent: AppTheme.spaceMd,
-    );
-  }
-}
-
-// ── Weekly goal celebration overlay ──────────────────────────────────────────
-// Full-screen dimmed overlay with a centered card.
-// Auto-dismisses after 4s; tappable anywhere to dismiss early.
-class _WeeklyGoalCelebration extends StatefulWidget {
-  const _WeeklyGoalCelebration({required this.onDismiss});
-  final VoidCallback onDismiss;
-
-  @override
-  State<_WeeklyGoalCelebration> createState() => _WeeklyGoalCelebrationState();
-}
-
-class _WeeklyGoalCelebrationState extends State<_WeeklyGoalCelebration>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _ctrl;
-  late Animation<double> _scaleAnim;
-  late Animation<double> _fadeAnim;
-
-  @override
-  void initState() {
-    super.initState();
-    _ctrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 350));
-    _scaleAnim = Tween<double>(begin: 0.88, end: 1.0).animate(
-      CurvedAnimation(parent: _ctrl, curve: Curves.easeOutBack),
-    );
-    _fadeAnim = CurvedAnimation(parent: _ctrl, curve: Curves.easeOut);
-    _ctrl.forward();
-  }
-
-  @override
-  void dispose() {
-    _ctrl.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = context.l10n;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return GestureDetector(
-      onTap: widget.onDismiss,
-      child: AnimatedBuilder(
-        animation: _ctrl,
-        builder: (_, child) => Opacity(
-          opacity: _fadeAnim.value,
-          child: ColoredBox(
-            color: Colors.black.withValues(alpha: 0.55 * _fadeAnim.value),
-            child: Center(
-              child: Transform.scale(
-                scale: _scaleAnim.value,
-                child: child,
-              ),
-            ),
-          ),
-        ),
-        child: Container(
-          margin: const EdgeInsets.symmetric(horizontal: AppTheme.spaceLg),
-          padding: const EdgeInsets.all(AppTheme.spaceLg),
-          decoration: BoxDecoration(
-            color: AppColors.surface(isDark),
-            borderRadius: BorderRadius.circular(AppTheme.radiusLg),
-            border: Border.all(color: AppColors.primary.withValues(alpha: 0.30)),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 64, height: 64,
-                decoration: BoxDecoration(
-                  color: AppColors.primaryAlpha(0.12),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.check_rounded, size: 36, color: AppColors.primary),
-              ),
-              const SizedBox(height: AppTheme.spaceMd),
-              Text(
-                l10n.weeklyGoalTitle,
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: AppFontWeights.bold,
-                  letterSpacing: AppTheme.letterSpacingSubtle,
-                ),
-              ),
-              const SizedBox(height: AppTheme.spaceXs),
-              Text(
-                l10n.weeklyGoalBody,
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: AppColors.textSecondary(isDark),
-                ),
-              ),
-              const SizedBox(height: AppTheme.spaceLg),
-              SizedBox(
-                width: double.infinity,
-                child: FilledButton(
-                  onPressed: widget.onDismiss,
-                  child: Text(l10n.weeklyGoalDismiss),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 }
