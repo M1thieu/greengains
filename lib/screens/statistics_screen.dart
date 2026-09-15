@@ -323,13 +323,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                   _withEntrance(_buildInsightCard(theme, isDark, l10n, _insight!), 1),
                 ],
                 const SizedBox(height: AppTheme.spaceLg),
-                Row(
-                  children: [
-                    Expanded(child: SectionHeader(l10n.statsActivitySection, bottom: 0)),
-                    if (_weeklyData != null && _weeklyData!.fold(0, (a, b) => a + b) > 0)
-                      _buildVerdictChip(isDark, l10n),
-                  ],
-                ),
+                SectionHeader(l10n.statsActivitySection, bottom: 0),
                 const SizedBox(height: AppTheme.spaceXxs),
                 _withEntrance(_buildSupportingTrio(theme, isDark), 2),
                 const SizedBox(height: AppTheme.spaceMd),
@@ -348,49 +342,6 @@ class _StatisticsScreenState extends State<StatisticsScreen>
           ),
         ),
       ],
-    );
-  }
-
-  // ─── Verdict chip (compact inline badge shown next to hero eyebrow) ──────────
-
-  Widget _buildVerdictChip(bool isDark, AppLocalizations l10n) {
-    final weekly = _weeklyData ?? [];
-    final daysActive = weekly.where((v) => v > 0).length;
-
-    final String label;
-    final Color color;
-
-    if (daysActive >= 5) {
-      label = l10n.statsVerdictStrong;
-      color = AppColors.primary;
-    } else if (daysActive >= 3) {
-      label = l10n.statsVerdictGood;
-      color = AppColors.movement;
-    } else {
-      label = l10n.statsVerdictSlow;
-      color = AppColors.warning;
-    }
-
-    return ConstrainedBox(
-      constraints: const BoxConstraints(maxWidth: 160),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceXs, vertical: AppTheme.spaceXxxs + 1),
-        decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.12),
-          borderRadius: BorderRadius.circular(AppTheme.radiusSm - 2),
-          border: Border.all(color: color.withValues(alpha: 0.25)),
-        ),
-        child: Text(
-          label,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: Theme.of(context).textTheme.labelSmall?.copyWith(
-            fontWeight: AppFontWeights.semibold,
-            color: color,
-            letterSpacing: 0.2,
-          ),
-        ),
-      ),
     );
   }
 
@@ -668,12 +619,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
       }
     }
 
-    // "Today" cell: green if already mapped today, amber nudge if past 2pm with nothing yet.
-    final todayColor = uploadsToday > 0
-        ? AppColors.primary
-        : DateTime.now().hour >= 14
-            ? AppColors.warning
-            : null;
+    final todayColor = uploadsToday > 0 ? AppColors.primary : null;
 
     return Container(
       decoration: AppTheme.surfaceContainer(isDark: isDark),
@@ -703,12 +649,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
     final isRecord = streak > 0 && streak >= longest && longest > 0;
     final hairline = AppColors.textTertiary(isDark).withValues(alpha: 0.12);
 
-    // Streak at risk — user hasn't mapped today and has a streak to lose.
-    final lastSession = AppPreferences.instance.lastSessionEndAt;
-    final mappedToday = lastSession != null &&
-        DateTime.now().difference(lastSession).inHours < 20;
-    final streakAtRisk = streak > 0 && !mappedToday;
-    final streakColor = streakAtRisk ? AppColors.warning : AppColors.primary;
+    const streakColor = AppColors.primary;
 
     return Container(
       decoration: AppTheme.surfaceContainer(isDark: isDark),

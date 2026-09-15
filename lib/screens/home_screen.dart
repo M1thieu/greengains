@@ -1018,17 +1018,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                 ],
                                 if (_currentStreak > 0) ...[
                                   const SizedBox(height: AppTheme.spaceXxs),
-                                  Builder(builder: (context) {
-                                    final lastEnd = _prefs.lastSessionEndAt;
-                                    final mappedToday = _locationService.isRunning.value ||
-                                        (lastEnd != null &&
-                                            DateTime.now().difference(lastEnd).inHours < 20);
-                                    return _StatPill(
-                                      icon: Icons.bolt_rounded,
-                                      label: context.l10n.homeStatStreak(_currentStreak),
-                                      color: mappedToday ? null : AppColors.warning,
-                                    );
-                                  }),
+                                  _StatPill(
+                                    icon: Icons.bolt_rounded,
+                                    label: context.l10n.homeStatStreak(_currentStreak),
+                                  ),
                                 ],
                                 Builder(builder: (context) {
                                   final lastEnd = _prefs.lastSessionEndAt;
