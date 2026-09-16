@@ -235,6 +235,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           showModalBottomSheet(
             context: context,
             backgroundColor: Colors.transparent,
+            isScrollControlled: true,
             builder: (_) => _SessionSummarySheet(
               zonesGained: clampedGained,
               totalZones: total,
@@ -387,6 +388,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
+      isScrollControlled: true,
       builder: (_) => const _FirstUploadSheet(),
     );
   }

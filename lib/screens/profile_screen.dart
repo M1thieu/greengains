@@ -165,9 +165,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
           const SizedBox(height: AppTheme.spaceXl),
 
           // Google Sign In Button
-          InkWell(
+          PressScaleDetector(
             onTap: _signingIn ? null : _handleGoogleSignIn,
-            borderRadius: BorderRadius.circular(AppTheme.radiusMin),
             child: _signingIn
                 ? Container(
                     height: 56,

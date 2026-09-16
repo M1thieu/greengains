@@ -7,6 +7,7 @@ import 'core/extensions/context_extensions.dart';
 import 'core/services/time_ago_service.dart';
 import 'core/themes.dart';
 import 'services/location/foreground_location_service.dart';
+import 'widgets/press_scale_detector.dart';
 
 // ── Floating nav bar constants ─────────────────────────────────────────────────
 const _kNavBackgroundAlpha = 0.60;
@@ -184,9 +185,8 @@ class _NavItem extends StatelessWidget {
     final color = selected ? AppColors.primary : AppColors.textSecondary(isDark);
 
     return Expanded(
-      child: GestureDetector(
+      child: PressScaleDetector(
         onTap: onTap,
-        behavior: HitTestBehavior.opaque,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
