@@ -2830,16 +2830,18 @@ class _LiveEnvironmentCardState extends State<_LiveEnvironmentCard>
           ),
           child: Row(
             children: [
-              RepaintBoundary(
-                child: AnimatedBuilder(
-                  animation: _dotCtrl,
-                  builder: (_, __) => Container(
-                    width: 6,
-                    height: 6,
-                    decoration: BoxDecoration(
-                      color: accentColor
-                          .withValues(alpha: _dotCtrl.value * 0.5 + 0.5),
-                      shape: BoxShape.circle,
+              ExcludeSemantics(
+                child: RepaintBoundary(
+                  child: AnimatedBuilder(
+                    animation: _dotCtrl,
+                    builder: (_, __) => Container(
+                      width: 6,
+                      height: 6,
+                      decoration: BoxDecoration(
+                        color: accentColor
+                            .withValues(alpha: _dotCtrl.value * 0.5 + 0.5),
+                        shape: BoxShape.circle,
+                      ),
                     ),
                   ),
                 ),

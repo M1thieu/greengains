@@ -188,6 +188,15 @@ class _MyAppState extends State<MyApp> {
           darkTheme: AppTheme.themeDark(),
           themeMode: ThemeController.instance.mode,
           themeAnimationDuration: Duration.zero,
+          // Clamp system font scale: prevents nav/display layout breaks at Android
+          // "Largest font" setting (which can reach 200%). 1.3× still helps low-vision
+          // users while keeping all fixed-height containers intact.
+          builder: (ctx, child) => MediaQuery(
+            data: MediaQuery.of(ctx).copyWith(
+              textScaler: MediaQuery.of(ctx).textScaler.clamp(maxScaleFactor: 1.3),
+            ),
+            child: child!,
+          ),
           // Show loading indicator if not ready, otherwise show onboarding
           home: _isInitialized
               ? const OnboardingWrapper()

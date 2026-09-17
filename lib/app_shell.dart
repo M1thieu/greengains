@@ -185,12 +185,16 @@ class _NavItem extends StatelessWidget {
     final color = selected ? AppColors.primary : AppColors.textSecondary(isDark);
 
     return Expanded(
-      child: PressScaleDetector(
-        onTap: onTap,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Badge(
+      child: Semantics(
+        button: true,
+        label: label,
+        selected: selected,
+        child: PressScaleDetector(
+          onTap: onTap,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Badge(
               isLabelVisible: badge,
               backgroundColor: AppColors.primary,
               child: Icon(
@@ -219,6 +223,7 @@ class _NavItem extends StatelessWidget {
                   : const SizedBox.shrink(),
             ),
           ],
+          ),
         ),
       ),
     );
