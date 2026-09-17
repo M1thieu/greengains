@@ -56,6 +56,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   final _locationService = ForegroundLocationService.instance;
   final _prefs = AppPreferences.instance;
+  final _contributionRepo = ContributionRepository();
   final _h3 = const h3f.H3Factory().load();
   late final _userLocationNotifier = ValueNotifier<LatLng?>(_cachedLocation());
   final _userAccuracyNotifier = ValueNotifier<double?>(null);
@@ -160,7 +161,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   Future<void> _loadStreak() async {
     try {
-      final stats = await ContributionRepository().getStats();
+      final stats = await _contributionRepo.getStats();
       if (!mounted) return;
       final next = stats.currentStreak;
       await _prefs.setLastKnownStreak(next);

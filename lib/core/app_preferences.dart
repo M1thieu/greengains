@@ -17,7 +17,6 @@ class PreferenceKeys {
   static const batteryOptimizationPromptDismissed = 'battery_optimization_prompt_dismissed';
   static const batteryOptimizationPromptLastShown = 'battery_optimization_prompt_last_shown';
   static const postOnboardingAuthPrompted = 'post_onboarding_auth_prompted';
-  static const homeSheetSize = 'home_sheet_size';
   static const referralCode = 'referral_code';
   static const consentDate = 'consent_date';
 
@@ -52,12 +51,10 @@ class PreferenceKeys {
 
   static const currentStreak = 'current_streak';
   static const lastKnownStreak = 'last_known_streak';
-  static const weeklyGoalCelebratedWeek = 'weekly_goal_celebrated_week';
   static const referralShared = 'referral_shared';
   static const lastSessionZonesGained = 'last_session_zones_gained';
   static const lastSessionEndAt = 'last_session_end_at';
   static const bestSessionZonesGained = 'best_session_zones_gained';
-  static const dismissedReturnDeltaZones = 'dismissed_return_delta_zones';
 
   /// Whether the weekly map digest notification is enabled (default true).
   static const weeklyDigestEnabled = 'weekly_digest_enabled';
@@ -284,12 +281,6 @@ class AppPreferences {
     await _sp.setBool(PreferenceKeys.postOnboardingAuthPrompted, value);
   }
 
-  double? get homeSheetSize => _sp.getDouble(PreferenceKeys.homeSheetSize);
-
-  Future<void> setHomeSheetSize(double value) async {
-    await _sp.setDouble(PreferenceKeys.homeSheetSize, value);
-  }
-
   /// Cached referral code — allocated once by the server, never changes.
   String? get referralCode => _sp.getString(PreferenceKeys.referralCode);
 
@@ -471,14 +462,6 @@ class AppPreferences {
     await _sp.setInt(PreferenceKeys.lastKnownStreak, streak);
   }
 
-  /// ISO week string e.g. "2026-W20" — used to dedup weekly goal celebration.
-  String get weeklyGoalCelebratedWeek =>
-      _sp.getString(PreferenceKeys.weeklyGoalCelebratedWeek) ?? '';
-
-  Future<void> setWeeklyGoalCelebratedWeek(String week) async {
-    await _sp.setString(PreferenceKeys.weeklyGoalCelebratedWeek, week);
-  }
-
   bool get referralShared => _sp.getBool(PreferenceKeys.referralShared) ?? false;
 
   Future<void> setReferralShared() async {
@@ -539,11 +522,6 @@ class AppPreferences {
       await _sp.setInt(PreferenceKeys.bestSessionZonesGained, zonesGained);
     }
   }
-
-  int get dismissedReturnDeltaZones =>
-      _sp.getInt(PreferenceKeys.dismissedReturnDeltaZones) ?? -1;
-  Future<void> setDismissedReturnDeltaZones(int zones) =>
-      _sp.setInt(PreferenceKeys.dismissedReturnDeltaZones, zones);
 
   bool get firstUploadCelebrated =>
       _sp.getBool(PreferenceKeys.firstUploadCelebrated) ?? false;
