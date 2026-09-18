@@ -15,7 +15,7 @@ class AppEventBus {
 
   void emit(AppEvent event) {
     _controller.add(event);
-    debugPrint('[EventBus] ${event.runtimeType}: ${event.debugInfo}');
+    assert(() { debugPrint('[EventBus] ${event.runtimeType}: ${event.debugInfo}'); return true; }());
   }
 
   void dispose() {

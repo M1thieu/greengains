@@ -114,18 +114,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   int _sessionUploadCount = 0;
   /// Whether community tiles are visible on the map.
   bool _showCommunity = true;
-  /// Session-level sensor averages — accumulated from the live sensor stream.
-  /// Updated on every liveConditions change so the session summary always has data,
-  /// even for new users whose tiles don't yet carry sensor aggregates.
-  double? _sessionAvgLux;
-  double? _sessionAvgHpa;
-  double? _sessionAvgVibration;
-  int _sessionLuxCount = 0;
-  int _sessionHpaCount = 0;
-  int _sessionRmsCount = 0;
-  double _sessionLuxSum = 0;
-  double _sessionHpaSum = 0;
-  double _sessionRmsSum = 0;
+  /// Running averages for session sensor data — each accumulates as liveConditions fires.
+  final _luxAcc = _RunningAverage();
+  final _hpaAcc = _RunningAverage();
+  final _rmsAcc = _RunningAverage();
 
   @override
   void initState() {
@@ -182,21 +174,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   void _accumulateSessionSensors() {
     if (!_locationService.isRunning.value || _locationService.isPaused.value) return;
     final cond = _locationService.liveConditions.value;
-    if (cond.lux != null) {
-      _sessionLuxSum += cond.lux!;
-      _sessionLuxCount++;
-      _sessionAvgLux = _sessionLuxSum / _sessionLuxCount;
-    }
-    if (cond.hpa != null) {
-      _sessionHpaSum += cond.hpa!;
-      _sessionHpaCount++;
-      _sessionAvgHpa = _sessionHpaSum / _sessionHpaCount;
-    }
-    if (cond.rms != null) {
-      _sessionRmsSum += cond.rms!;
-      _sessionRmsCount++;
-      _sessionAvgVibration = _sessionRmsSum / _sessionRmsCount;
-    }
+    if (cond.lux != null) _luxAcc.add(cond.lux!.toDouble());
+    if (cond.hpa != null) _hpaAcc.add(cond.hpa!);
+    if (cond.rms != null) _rmsAcc.add(cond.rms!);
   }
 
   void _handleServiceRunningChange() {
@@ -207,10 +187,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       _sessionUploadCount = 0;
       _sessionVisitedCells.clear();
       _pendingCellBoundaries = [];
-      // Reset session sensor accumulators for fresh session
-      _sessionAvgLux = null; _sessionLuxSum = 0; _sessionLuxCount = 0;
-      _sessionAvgHpa = null; _sessionHpaSum = 0; _sessionHpaCount = 0;
-      _sessionAvgVibration = null; _sessionRmsSum = 0; _sessionRmsCount = 0;
+      _luxAcc.reset(); _hpaAcc.reset(); _rmsAcc.reset();
       _checkBatteryOptimization();
       _maybeShowFirstStart();
     } else {
@@ -231,8 +208,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           if (!mounted || !context.mounted) return;
           // Fall back to last cached sensor readings if the live stream
           // didn't accumulate enough data (e.g. very short session or sensors slow to start).
-          final lux = _sessionAvgLux ?? _prefs.lastLux;
-          final hpa = _sessionAvgHpa ?? _prefs.lastHpa;
+          final lux = _luxAcc.value ?? _prefs.lastLux;
+          final hpa = _hpaAcc.value ?? _prefs.lastHpa;
           showModalBottomSheet(
             context: context,
             backgroundColor: Colors.transparent,
@@ -247,7 +224,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               onViewStats: widget.onGoToStats,
               sessionAvgLux: lux,
               sessionAvgHpa: hpa,
-              sessionAvgVibration: _sessionAvgVibration,
+              sessionAvgVibration: _rmsAcc.value,
             ),
           );
         });
@@ -3097,5 +3074,14 @@ class _SummaryStatCell extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Incremental running average — add samples one at a time, read [value] at any point.
+class _RunningAverage {
+  int _n = 0;
+  double _sum = 0;
+  double? get value => _n > 0 ? _sum / _n : null;
+  void add(double v) { _sum += v; _n++; }
+  void reset() { _n = 0; _sum = 0; }
 }
 
