@@ -8,6 +8,7 @@ import 'package:shimmer/shimmer.dart';
 import '../core/extensions/context_extensions.dart';
 import '../widgets/press_scale_detector.dart';
 import '../core/events/app_events.dart';
+import '../core/utils/composite_subscription.dart';
 import '../services/network/backend_client.dart';
 import '../core/constants.dart';
 import '../core/themes.dart';
@@ -45,15 +46,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
   double _prevDaysActive = 0;
   double _prevKm2 = 0;
 
-  StreamSubscription<ProfileUpdatedEvent>? _profileSub;
+  final _subs = <StreamSubscription>[];
 
   @override
   void initState() {
     super.initState();
     _loadProfileStats();
-    _profileSub = AppEventBus.instance
-        .on<ProfileUpdatedEvent>()
-        .listen((event) {
+    _subs.add(AppEventBus.instance.on<ProfileUpdatedEvent>().listen((event) {
       if (mounted) {
         setState(() {
           _totalUploads = event.totalUploads;
@@ -61,7 +60,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           _coverageCells = event.coverageCells;
         });
       }
-    });
+    }));
   }
 
   Future<void> _loadProfileStats() async {
@@ -84,7 +83,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   void dispose() {
-    _profileSub?.cancel();
+    _subs.cancelAll();
     super.dispose();
   }
 

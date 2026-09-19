@@ -13,6 +13,7 @@ import '../data/repositories/contribution_repository.dart';
 import '../core/constants.dart';
 import '../core/events/app_events.dart';
 import '../core/app_preferences.dart';
+import '../core/utils/composite_subscription.dart';
 import '../services/stats/stats_service.dart';
 import '../widgets/press_scale_detector.dart';
 import '../widgets/section_header.dart';
@@ -93,8 +94,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
   // 30-day heatmap: key = 'yyyy-MM-dd', value = upload count
   Map<String, int>? _dailyCounts;
 
-  StreamSubscription<UploadSuccessEvent>? _uploadSuccessSub;
-  StreamSubscription<StatsUpdatedEvent>? _statsUpdatedSub;
+  final _subs = <StreamSubscription>[];
   // ── Entrance animations ───────────────────────────────────────────────────────
   late final AnimationController _entranceCtrl;
   late final List<Animation<double>> _cardAnims;
@@ -118,18 +118,16 @@ class _StatisticsScreenState extends State<StatisticsScreen>
     _loadWeeklyStats();
     _loadDailyCounts();
 
-    _uploadSuccessSub =
-        AppEventBus.instance.on<UploadSuccessEvent>().listen((_) {
+    _subs.add(AppEventBus.instance.on<UploadSuccessEvent>().listen((_) {
       if (mounted) {
         _loadStats();
         _loadWeeklyStats(force: true);
         _loadDailyCounts();
       }
-    });
-    _statsUpdatedSub =
-        AppEventBus.instance.on<StatsUpdatedEvent>().listen((event) {
+    }));
+    _subs.add(AppEventBus.instance.on<StatsUpdatedEvent>().listen((event) {
       if (mounted) setState(() { _stats = event.stats; _isLoading = false; });
-    });
+    }));
 
     _entranceCtrl = AnimationController(
       vsync: this,
@@ -152,8 +150,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    _uploadSuccessSub?.cancel();
-    _statsUpdatedSub?.cancel();
+    _subs.cancelAll();
     _entranceCtrl.dispose();
     super.dispose();
   }

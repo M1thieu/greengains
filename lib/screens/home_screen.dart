@@ -19,6 +19,7 @@ import '../core/themes.dart';
 import '../services/location/foreground_location_service.dart';
 import '../services/network/backend_client.dart';
 import '../core/events/app_events.dart';
+import '../core/utils/composite_subscription.dart';
 import '../utils/app_snackbars.dart';
 import '../core/app_preferences.dart';
 import '../services/widget/home_widget_service.dart';
@@ -65,7 +66,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   bool _batteryPromptOpen = false;
   bool _permissionLost = false;
-  StreamSubscription<UploadSuccessEvent>? _uploadSuccessSub;
+  final _subs = <StreamSubscription>[];
+  StreamSubscription? _locationStreamSub; // kept separate — reassigned on reconnect
   /// Zone count at the moment tracking started (this foreground session).
   /// 0 = tracking was already running when app opened — no delta shown.
   int _sessionStartZoneCount = 0;
@@ -73,7 +75,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   DateTime? _sessionStartTime;
   /// True when map is actively following the user's GPS position.
   final _followModeNotifier = ValueNotifier<bool>(false);
-  StreamSubscription? _locationStreamSub;
   List<H3Tile> _h3Tiles = [];
   List<H3Tile> _globalTiles = [];
   bool _h3TilesLoading = true;
@@ -355,8 +356,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   }
 
   void _setupUploadSuccessListener() {
-    _uploadSuccessSub =
-        AppEventBus.instance.on<UploadSuccessEvent>().listen(_onUploadSuccess);
+    _subs.add(AppEventBus.instance.on<UploadSuccessEvent>().listen(_onUploadSuccess));
   }
 
   void _showFirstUploadSheet() {
@@ -469,7 +469,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _locationStreamSub?.cancel();
-    _uploadSuccessSub?.cancel();
+    _subs.cancelAll();
     _slowLoadTimer?.cancel();
     _locationService.isRunning.removeListener(_handleServiceRunningChange);
     _locationService.liveConditions.removeListener(_accumulateSessionSensors);
