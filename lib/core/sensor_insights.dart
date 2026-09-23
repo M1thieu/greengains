@@ -31,49 +31,85 @@ class SensorInsights {
       _kBaroScale * (1.0 - pow(hPa / _kP0, _kBaroExp));
 
   // ── Light / luminosity ────────────────────────────────────────────────────
+  // Night thresholds approximate Bortle sky-brightness classes; day thresholds
+  // are standard illuminance references (overcast ≈ 1–2k lux, full daylight
+  // ≈ 10–25k lux). Empirical perceptual scales, not derivable from an ODE —
+  // a luminance classification has no governing differential equation.
+  static const double _kLuxPristine  = 0.5;    // true dark sky
+  static const double _kLuxRural     = 5.0;    // rural edge
+  static const double _kLuxSuburban  = 25.0;   // suburban
+  static const double _kLuxUrban     = 100.0;  // city core / stadium above this
+  static const double _kLuxShaded    = 300.0;  // deep shadow / indoor
+  static const double _kLuxOvercast  = 2000.0; // overcast / covered
+  static const double _kLuxDaylight  = 15000.0; // direct sun above this
 
   /// Returns a 0–4 light pollution level for a given lux reading taken at night.
   /// Only meaningful when collected after civil twilight (sun below -6°).
   static LightPollutionLevel lightPollutionLevel(double lux) {
-    if (lux < 0.5)  return LightPollutionLevel.pristine;   // true dark sky
-    if (lux < 5)    return LightPollutionLevel.low;         // rural edge
-    if (lux < 25)   return LightPollutionLevel.moderate;    // suburban
-    if (lux < 100)  return LightPollutionLevel.high;        // urban
-    return           LightPollutionLevel.severe;             // city core / stadium
+    if (lux < _kLuxPristine) return LightPollutionLevel.pristine;
+    if (lux < _kLuxRural)    return LightPollutionLevel.low;
+    if (lux < _kLuxSuburban) return LightPollutionLevel.moderate;
+    if (lux < _kLuxUrban)    return LightPollutionLevel.high;
+    return                          LightPollutionLevel.severe;
   }
 
   /// Returns a 0–3 sunlight exposure level for daytime lux readings.
   static SunlightLevel sunlightLevel(double lux) {
-    if (lux < 300)    return SunlightLevel.shaded;    // deep shadow / indoor
-    if (lux < 2000)   return SunlightLevel.partial;   // overcast / covered
-    if (lux < 15000)  return SunlightLevel.bright;    // normal outdoor
-    return             SunlightLevel.intense;          // direct sun / heat risk
+    if (lux < _kLuxShaded)   return SunlightLevel.shaded;
+    if (lux < _kLuxOvercast) return SunlightLevel.partial;
+    if (lux < _kLuxDaylight) return SunlightLevel.bright;
+    return                          SunlightLevel.intense;
   }
 
   // ── Surface quality ───────────────────────────────────────────────────────
+  // UNVALIDATED: these cut a normalised 0–1 vibration score into four labels,
+  // but the cut points were chosen by hand, not fitted to observed data. They
+  // cannot come from an ODE (a classification boundary is not a dynamical
+  // quantity) — the principled replacement is percentiles of the real
+  // distribution of vibration_score in sensor_aggregates_5m.
+  static const double _kSurfaceSmooth = 0.15;
+  static const double _kSurfaceNormal = 0.35;
+  static const double _kSurfaceRough  = 0.60;
+
+  // Same caveat as the surface cut points: hand-picked boundaries on a
+  // normalised 0–1 movement score, not fitted to observed data.
+  static const double _kMovementCalm     = 0.25;
+  static const double _kMovementModerate = 0.55;
+  static const double _kMovementActive   = 0.80;
 
   /// Vibration score 0–1 → surface quality label.
   static SurfaceQuality surfaceQuality(double vibrationScore) {
-    if (vibrationScore < 0.15) return SurfaceQuality.smooth;
-    if (vibrationScore < 0.35) return SurfaceQuality.normal;
-    if (vibrationScore < 0.60) return SurfaceQuality.rough;
-    return                      SurfaceQuality.poor;
+    if (vibrationScore < _kSurfaceSmooth) return SurfaceQuality.smooth;
+    if (vibrationScore < _kSurfaceNormal) return SurfaceQuality.normal;
+    if (vibrationScore < _kSurfaceRough)  return SurfaceQuality.rough;
+    return SurfaceQuality.poor;
   }
 
   // ── Urban heat proxy ──────────────────────────────────────────────────────
+  // WEAKEST MODEL IN THIS FILE. Pressure does not drive temperature; this
+  // linear lux+pressure blend is a stand-in for a measurement we did not have
+  // when it was written. It is not a surface energy balance and should not be
+  // mistaken for one. Now that the backend fetches real weather
+  // (utils/weatherService.ts), the principled fix is to read actual air
+  // temperature rather than infer heat from a barometer.
+  static const double _kHeatLuxScale      = 20000.0; // lux → 0–1 radiance term
+  static const double _kHeatPressureClamp = 30.0;    // hPa, typical weather swing
+  static const double _kHeatPressureScale = 60.0;    // hPa → ±0.5 term
+  static const double _kHeatCool          = 0.2;
+  static const double _kHeatNeutral       = 0.5;
+  static const double _kHeatWarm          = 0.75;
 
   /// Combines lux (daytime radiance) + pressure deviation to estimate
   /// relative urban heat exposure. Returns a 0–3 heat index.
-  /// Baseline pressure 1013 hPa — lower = higher altitude or storm, higher = heat dome.
   static HeatLevel heatLevel(double lux, double hPa) {
-    final pressureDeviation = (hPa - _kP0).clamp(-30.0, 30.0);
-    // High lux + high pressure → heat dome conditions
-    final score = (lux / 20000.0).clamp(0.0, 1.0) +
-                  (pressureDeviation / 60.0).clamp(-0.5, 0.5);
-    if (score < 0.2)  return HeatLevel.cool;
-    if (score < 0.5)  return HeatLevel.neutral;
-    if (score < 0.75) return HeatLevel.warm;
-    return             HeatLevel.hot;
+    final pressureDeviation =
+        (hPa - _kP0).clamp(-_kHeatPressureClamp, _kHeatPressureClamp);
+    final score = (lux / _kHeatLuxScale).clamp(0.0, 1.0) +
+                  (pressureDeviation / _kHeatPressureScale).clamp(-0.5, 0.5);
+    if (score < _kHeatCool)    return HeatLevel.cool;
+    if (score < _kHeatNeutral) return HeatLevel.neutral;
+    if (score < _kHeatWarm)    return HeatLevel.warm;
+    return                            HeatLevel.hot;
   }
 
   // ── Insight sentence builders ─────────────────────────────────────────────
@@ -126,13 +162,23 @@ class SensorInsights {
     return l10n.insightNormal;
   }
 
+  // Role tiers in lifetime coverage cells. Deliberately arbitrary: these are a
+  // product decision about when a label changes, not a measurement, so there is
+  // nothing to derive them from. Roughly log-spaced so each tier takes
+  // meaningfully longer than the last.
+  static const List<(int, MapperRole)> _kRoleTiers = [
+    (1000, MapperRole.urbanScientist),
+    (500,  MapperRole.cityMapper),
+    (100,  MapperRole.cartographer),
+    (25,   MapperRole.explorer),
+    (5,    MapperRole.pioneer),
+  ];
+
   /// Mapper role based on lifetime coverage cells — used on profile + session summary.
   static MapperRole mapperRole(int coverageCells) {
-    if (coverageCells >= 1000) return MapperRole.urbanScientist;
-    if (coverageCells >= 500)  return MapperRole.cityMapper;
-    if (coverageCells >= 100)  return MapperRole.cartographer;
-    if (coverageCells >= 25)   return MapperRole.explorer;
-    if (coverageCells >= 5)    return MapperRole.pioneer;
+    for (final (threshold, role) in _kRoleTiers) {
+      if (coverageCells >= threshold) return role;
+    }
     return MapperRole.contributor;
   }
 
@@ -221,11 +267,11 @@ class SensorInsights {
       }
     }
     if (avgMovement != null) {
-      if (avgMovement < 0.25) {
+      if (avgMovement < _kMovementCalm) {
         parts.add(l10n.tileCondActivityCalm);
-      } else if (avgMovement < 0.55) {
+      } else if (avgMovement < _kMovementModerate) {
         parts.add(l10n.tileCondActivityModerate);
-      } else if (avgMovement < 0.80) {
+      } else if (avgMovement < _kMovementActive) {
         parts.add(l10n.tileCondActivityActive);
       } else {
         parts.add(l10n.tileCondActivityBusy);
