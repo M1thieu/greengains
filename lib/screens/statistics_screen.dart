@@ -96,8 +96,27 @@ class _StatisticsScreenState extends State<StatisticsScreen>
 
   final _subs = <StreamSubscription>[];
   // ── Entrance animations ───────────────────────────────────────────────────────
+  /// Delay added per card so they cascade in instead of arriving together.
+  static const _kEntranceStagger = 0.10;
+  /// Portion of the controller's run each card animates over.
+  static const _kEntranceSpan = 0.55;
+
   late final AnimationController _entranceCtrl;
-  late final List<Animation<double>> _cardAnims;
+  /// Built on demand and cached — no fixed length, so adding a card never
+  /// requires bumping a count (and can never overrun it).
+  final Map<int, CurvedAnimation> _cardAnims = {};
+
+  CurvedAnimation _cardAnim(int index) => _cardAnims.putIfAbsent(index, () {
+        final start = (index * _kEntranceStagger).clamp(0.0, 1.0);
+        return CurvedAnimation(
+          parent: _entranceCtrl,
+          curve: Interval(
+            start,
+            (start + _kEntranceSpan).clamp(0.0, 1.0),
+            curve: Curves.easeOut,
+          ),
+        );
+      });
   // ── Bar chart selection + range ──────────────────────────────────────────────
   int? _selectedBarIndex;
   bool _chartMonthView = false; // false = 7-day, true = 30-day (needs backend)
@@ -133,10 +152,6 @@ class _StatisticsScreenState extends State<StatisticsScreen>
       vsync: this,
       duration: const Duration(milliseconds: 800),
     )..forward();
-    _cardAnims = List.generate(7, (i) => CurvedAnimation(
-      parent: _entranceCtrl,
-      curve: Interval(i * 0.10, (i * 0.10 + 0.55).clamp(0.0, 1.0), curve: Curves.easeOut),
-    ));
   }
 
   @override
@@ -151,13 +166,31 @@ class _StatisticsScreenState extends State<StatisticsScreen>
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _subs.cancelAll();
+    for (final anim in _cardAnims.values) { anim.dispose(); }
     _entranceCtrl.dispose();
     super.dispose();
   }
 
+  /// Spacing + entrance for a card that only renders when its data is present.
+  /// [builder] receives the non-null value, so call sites need no `!`. Returns
+  /// an empty list when absent, so the caller spreads it straight into the
+  /// ListView — no extra wrapper widget, identical layout to an inline `if`.
+  List<Widget> _optionalCard<T>(
+    T? value,
+    int animIndex,
+    Widget Function(T) builder, {
+    bool Function(T)? when,
+  }) {
+    if (value == null || (when != null && !when(value))) return const [];
+    return [
+      const SizedBox(height: AppTheme.spaceSm),
+      _withEntrance(builder(value), animIndex),
+    ];
+  }
+
   /// Wraps a card widget with a staggered fade+slide entrance.
   Widget _withEntrance(Widget child, int index) {
-    final anim = _cardAnims[index];
+    final anim = _cardAnim(index);
     return FadeTransition(
       opacity: anim,
       child: AnimatedBuilder(
@@ -303,22 +336,17 @@ class _StatisticsScreenState extends State<StatisticsScreen>
               padding: AppTheme.pagePadding.copyWith(top: AppTheme.spaceXxs, bottom: bottomPad),
               children: [
                 _withEntrance(_buildHeroCard(theme, isDark, l10n), 0),
-                if (_weeklyTarget != null) ...[
-                  const SizedBox(height: AppTheme.spaceSm),
-                  _withEntrance(_buildWeeklyTargetCard(theme, isDark, l10n, _weeklyTarget!), 1),
-                ],
-                if (_localRank != null && _localRank!.hasActivity && _localRank!.totalMappers > 1) ...[
-                  const SizedBox(height: AppTheme.spaceSm),
-                  _withEntrance(_buildLocalRankCard(theme, isDark, l10n, _localRank!), 1),
-                ],
-                if (_impact != null && _impact!.soloCells > 0) ...[
-                  const SizedBox(height: AppTheme.spaceSm),
-                  _withEntrance(_buildImpactCard(theme, isDark, l10n, _impact!), 1),
-                ],
-                if (_insight != null && _insight!.hasActivity) ...[
-                  const SizedBox(height: AppTheme.spaceSm),
-                  _withEntrance(_buildInsightCard(theme, isDark, l10n, _insight!), 1),
-                ],
+                ..._optionalCard(_weeklyTarget, 1,
+                    (t) => _buildWeeklyTargetCard(theme, isDark, l10n, t)),
+                ..._optionalCard(_localRank, 1,
+                    (r) => _buildLocalRankCard(theme, isDark, l10n, r),
+                    when: (r) => r.hasActivity && r.totalMappers > 1),
+                ..._optionalCard(_impact, 1,
+                    (i) => _buildImpactCard(theme, isDark, l10n, i),
+                    when: (i) => i.soloCells > 0),
+                ..._optionalCard(_insight, 1,
+                    (i) => _buildInsightCard(theme, isDark, l10n, i),
+                    when: (i) => i.hasActivity),
                 const SizedBox(height: AppTheme.spaceLg),
                 SectionHeader(l10n.statsActivitySection, bottom: 0),
                 const SizedBox(height: AppTheme.spaceXxs),
