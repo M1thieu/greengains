@@ -3,7 +3,7 @@ import { PoolClient } from 'pg';
 import { latLngToCell, gridDisk, cellToLatLng } from 'h3-js';
 import { getPool } from '../database';
 import { decodeGeohash } from '../utils/geo';
-import { getSurfacePressureHpa } from '../utils/weatherService';
+import { getWeatherAt } from '../utils/weatherService';
 import {
   AGGREGATION_WINDOW_MINUTES,
   AGGREGATION_JOB_INTERVAL_MS,
@@ -374,17 +374,23 @@ export async function runAggregationJob(): Promise<void> {
     const pocketRatio =
       qualitySamples > 0 ? bucket.pocketLikelySamples / qualitySamples : null;
 
-    // Weather-baseline anomaly: local pressure minus regional background —
-    // isolates local effects (tunnels, elevation, microclimate) from passing
-    // weather systems. Optimal-Interpolation-style "observation minus background".
+    // Regional weather background for this cell/window. Powers two things:
+    // - pressureAnomalyHpa: local pressure minus background, isolating local
+    //   effects (tunnels, elevation, microclimate) from passing weather systems.
+    //   Optimal-Interpolation-style "observation minus background".
+    // - weatherTempC: stored raw, since phones have no reliable ambient
+    //   thermometer to difference against.
     let pressureAnomalyHpa: number | null = null;
-    if (avgPressure !== null) {
-      const centroid = bucket.h3Index
-        ? { lat: cellToLatLng(bucket.h3Index)[0], lon: cellToLatLng(bucket.h3Index)[1] }
-        : decodeGeohash(bucket.geohash);
-      if (centroid) {
-        const baseline = await getSurfacePressureHpa(centroid.lat, centroid.lon, bucket.windowStart);
-        if (baseline !== null) pressureAnomalyHpa = avgPressure - baseline;
+    let weatherTempC: number | null = null;
+    const centroid = bucket.h3Index
+      ? { lat: cellToLatLng(bucket.h3Index)[0], lon: cellToLatLng(bucket.h3Index)[1] }
+      : decodeGeohash(bucket.geohash);
+    if (centroid) {
+      const weather = await getWeatherAt(centroid.lat, centroid.lon, bucket.windowStart);
+      weatherTempC = weather?.temperatureC ?? null;
+      const baseline = weather?.surfacePressureHpa;
+      if (avgPressure !== null && baseline != null) {
+        pressureAnomalyHpa = avgPressure - baseline;
       }
     }
 
@@ -403,6 +409,7 @@ export async function runAggregationJob(): Promise<void> {
       avgGyroRms,
       avgPressure,
       pressureAnomalyHpa,
+      weatherTempC,
       movementScore: windowMovementScore,
       vibrationScore: windowVibrationScore,
       batteryAvg,
@@ -533,6 +540,7 @@ async function upsertWindowResults(
     avgGyroRms: number;
     avgPressure: number | null;
     pressureAnomalyHpa: number | null;
+    weatherTempC: number | null;
     movementScore: number;
     vibrationScore: number;
     batteryAvg: number | null;
@@ -558,6 +566,7 @@ async function upsertWindowResults(
   const avgGyroRms = results.map(r => r.avgGyroRms);
   const avgPressures = results.map(r => r.avgPressure);
   const pressureAnomalies = results.map(r => r.pressureAnomalyHpa);
+  const weatherTemps = results.map(r => r.weatherTempC);
   const movementScores = results.map(r => r.movementScore);
   const vibrationScores = results.map(r => r.vibrationScore);
   const batteryAvgs = results.map(r => r.batteryAvg);
@@ -570,7 +579,7 @@ async function upsertWindowResults(
     `INSERT INTO sensor_aggregates_5m (
       window_start, window_end, geohash, h3_index, samples_count, device_count,
       avg_light, avg_light_min, avg_light_max, avg_accel_rms,
-      avg_gyro_rms, avg_pressure, pressure_anomaly_hpa, movement_score, vibration_score, battery_avg, location_share,
+      avg_gyro_rms, avg_pressure, pressure_anomaly_hpa, weather_temp_c, movement_score, vibration_score, battery_avg, location_share,
       quality_samples, quality_valid_ratio, quality_pocket_ratio
     )
     SELECT * FROM UNNEST(
@@ -578,11 +587,11 @@ async function upsertWindowResults(
       $5::int[], $6::int[], $7::double precision[], $8::double precision[],
       $9::double precision[], $10::double precision[], $11::double precision[],
       $12::double precision[], $13::double precision[], $14::double precision[],
-      $15::double precision[], $16::double precision[], $17::double precision[], $18::bigint[], $19::double precision[], $20::double precision[]
+      $15::double precision[], $16::double precision[], $17::double precision[], $18::double precision[], $19::bigint[], $20::double precision[], $21::double precision[]
     ) AS t(
       window_start, window_end, geohash, h3_index, samples_count, device_count,
       avg_light, avg_light_min, avg_light_max, avg_accel_rms,
-      avg_gyro_rms, avg_pressure, pressure_anomaly_hpa, movement_score, vibration_score, battery_avg, location_share,
+      avg_gyro_rms, avg_pressure, pressure_anomaly_hpa, weather_temp_c, movement_score, vibration_score, battery_avg, location_share,
       quality_samples, quality_valid_ratio, quality_pocket_ratio
     )
     ON CONFLICT (window_start, geohash)
@@ -597,6 +606,7 @@ async function upsertWindowResults(
       avg_gyro_rms = EXCLUDED.avg_gyro_rms,
       avg_pressure = EXCLUDED.avg_pressure,
       pressure_anomaly_hpa = EXCLUDED.pressure_anomaly_hpa,
+      weather_temp_c = EXCLUDED.weather_temp_c,
       movement_score = EXCLUDED.movement_score,
       vibration_score = EXCLUDED.vibration_score,
       battery_avg = EXCLUDED.battery_avg,
@@ -608,7 +618,7 @@ async function upsertWindowResults(
     [
       windowStarts, windowEnds, geohashes, h3Indexes, samplesCounts,
       deviceCounts, avgLights, lightMins, lightMaxes,
-      avgAccelRms, avgGyroRms, avgPressures, pressureAnomalies, movementScores, vibrationScores, batteryAvgs, locationShares,
+      avgAccelRms, avgGyroRms, avgPressures, pressureAnomalies, weatherTemps, movementScores, vibrationScores, batteryAvgs, locationShares,
       qualitySampleCounts, qualityValidRatios, pocketRatios
     ],
   );
