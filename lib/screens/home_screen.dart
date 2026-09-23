@@ -944,87 +944,15 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                           ),
                           const Spacer(),
                           // Stats pills stacked top-right — tap navigates to Stats
-                          PressScaleDetector(
-                            onTap: () {
-                              HapticFeedback.lightImpact();
-                              widget.onGoToStats?.call();
-                            },
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [
-                                if (_claimedTileCount > 0) ...[
-                                  _StatPill(
-                                    icon: Icons.hexagon_outlined,
-                                    label: () {
-                                      final km2 = _claimedTileCount * kKm2PerCell;
-                                      final area = km2 < 1.0
-                                          ? '${km2.toStringAsFixed(2)} km²'
-                                          : '${km2.toStringAsFixed(1)} km²';
-                                      return context.l10n.homeStatArea(area);
-                                    }(),
-                                  ),
-                                  if (_prefs.territoryLabel != null) ...[
-                                    const SizedBox(height: 3),
-                                    Padding(
-                                      padding: const EdgeInsets.only(right: AppTheme.spaceXs),
-                                      child: Text(
-                                        _prefs.territoryLabel!,
-                                        style: TextStyle(
-                                          fontSize: AppTheme.fontSizeXs,
-                                          color: AppColors.textTertiary(true),
-                                          fontWeight: AppFontWeights.medium,
-                                          letterSpacing: 0.2,
-                                        ),
-                                        textAlign: TextAlign.end,
-                                      ),
-                                    ),
-                                  ],
-                                  if (_areaConditionLine != null) ...[
-                                    const SizedBox(height: 2),
-                                    Padding(
-                                      padding: const EdgeInsets.only(right: AppTheme.spaceXs),
-                                      child: Text(
-                                        _areaConditionLine!,
-                                        style: TextStyle(
-                                          fontSize: 9.5,
-                                          color: AppColors.textTertiary(true).withValues(alpha: 0.6),
-                                          fontWeight: AppFontWeights.regular,
-                                          letterSpacing: 0.1,
-                                        ),
-                                        textAlign: TextAlign.end,
-                                      ),
-                                    ),
-                                  ],
-                                ],
-                                if (_currentStreak > 0) ...[
-                                  const SizedBox(height: AppTheme.spaceXxs),
-                                  _StatPill(
-                                    icon: Icons.bolt_rounded,
-                                    label: context.l10n.homeStatStreak(_currentStreak),
-                                  ),
-                                ],
-                                Builder(builder: (context) {
-                                  final lastEnd = _prefs.lastSessionEndAt;
-                                  final todayZones = _prefs.lastSessionZonesGained;
-                                  final isToday = lastEnd != null &&
-                                      DateTime.now().difference(lastEnd).inHours < 20 &&
-                                      !_locationService.isRunning.value &&
-                                      todayZones > 0;
-                                  if (!isToday) return const SizedBox.shrink();
-                                  return Column(
-                                    crossAxisAlignment: CrossAxisAlignment.end,
-                                    children: [
-                                      const SizedBox(height: AppTheme.spaceXxs),
-                                      _StatPill(
-                                        icon: Icons.add_rounded,
-                                        label: context.l10n.homeStatToday(todayZones),
-                                        color: AppColors.primary,
-                                      ),
-                                    ],
-                                  );
-                                }),
-                              ],
-                            ),
+                          _StatPillStack(
+                            claimedTileCount: _claimedTileCount,
+                            territoryLabel: _prefs.territoryLabel,
+                            areaConditionLine: _areaConditionLine,
+                            currentStreak: _currentStreak,
+                            lastSessionEndAt: _prefs.lastSessionEndAt,
+                            lastSessionZonesGained: _prefs.lastSessionZonesGained,
+                            isTracking: _locationService.isRunning.value,
+                            onTap: () => widget.onGoToStats?.call(),
                           ),
                         ],
                       ),
@@ -1034,64 +962,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
                     // Zero-state — shown once to new users before first zone
                     if (_h3Tiles.isEmpty && !_h3TilesLoading && !_locationService.isRunning.value)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: AppTheme.spaceLg, vertical: AppTheme.spaceSm),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: AppTheme.spaceMd, vertical: AppTheme.spaceSm),
-                          decoration: BoxDecoration(
-                            color: AppColors.mapOverlayMid,
-                            borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-                            border: Border.all(
-                                color: AppColors.primary.withValues(alpha: 0.25)),
-                          ),
-                          child: Row(
-                            children: [
-                              const Icon(Icons.hexagon_outlined,
-                                  size: AppIconSizes.sm, color: AppColors.primary),
-                              const SizedBox(width: AppTheme.spaceSm),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Text(
-                                      context.l10n.mapZeroStateTitle,
-                                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                        fontWeight: AppFontWeights.semibold,
-                                        color: AppColors.darkTextPrimary,
-                                        letterSpacing: AppTheme.letterSpacingSubtle,
-                                      ),
-                                    ),
-                                    const SizedBox(height: AppTheme.spaceXxxs),
-                                    Text(
-                                      context.l10n.mapZeroStateBody,
-                                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                        color: AppColors.darkTextSecondary,
-                                        height: AppLineHeights.normal,
-                                      ),
-                                    ),
-                                    const SizedBox(height: AppTheme.spaceSm),
-                                    // Ghost sensor preview — teases what will appear
-                                    Row(
-                                      children: [
-                                        _GhostSensorChip(icon: Icons.light_mode_rounded, color: AppColors.light),
-                                        const SizedBox(width: AppTheme.spaceXxs),
-                                        _GhostSensorChip(icon: Icons.compress_rounded, color: AppColors.pressure),
-                                        const SizedBox(width: AppTheme.spaceXxs),
-                                        _GhostSensorChip(icon: Icons.directions_walk_rounded, color: AppColors.movement),
-                                        const SizedBox(width: AppTheme.spaceXxs),
-                                        _GhostSensorChip(icon: Icons.eco_rounded, color: AppColors.quality),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
+                      const _ZeroStateCard(),
 
                     // Live environmental insight — shown during active tracking
                     _LiveEnvironmentCard(
@@ -1100,58 +971,11 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     ),
 
                     // Live session counter pill
-                    ListenableBuilder(
-                      listenable: Listenable.merge([
-                        _locationService.isRunning,
-                        _locationService.isPaused,
-                      ]),
-                      builder: (context, _) {
-                        final active = _locationService.isRunning.value && !_locationService.isPaused.value;
-                        final show = active;
-                        final zonesGained = (_claimedTileCount - _sessionStartZoneCount).clamp(0, 9999);
-                        final l10n = context.l10n;
-                        final pillText = _sessionUploadCount == 0
-                            ? l10n.sensorCollectingFirst
-                            : zonesGained > 0
-                                ? l10n.homeSessionPillWithZones(_sessionUploadCount, zonesGained)
-                                : l10n.homeSessionPill(_sessionUploadCount);
-                        return AnimatedSwitcher(
-                          duration: AppDurations.medium,
-                          transitionBuilder: (child, anim) => FadeTransition(
-                            opacity: anim,
-                            child: SlideTransition(
-                              position: Tween<Offset>(
-                                begin: const Offset(0, 0.3),
-                                end: Offset.zero,
-                              ).animate(CurvedAnimation(parent: anim, curve: Curves.easeOut)),
-                              child: child,
-                            ),
-                          ),
-                          child: show ? Padding(
-                            key: ValueKey('$_sessionUploadCount-$zonesGained'),
-                            padding: const EdgeInsets.only(bottom: AppTheme.spaceXs),
-                            child: Center(
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: AppTheme.spaceMd, vertical: AppTheme.spaceXxs + 2),
-                                decoration: BoxDecoration(
-                                  color: AppColors.primary.withValues(alpha: 0.12),
-                                  borderRadius: BorderRadius.circular(AppTheme.radiusSm),
-                                  border: Border.all(color: AppColors.primary.withValues(alpha: 0.25)),
-                                ),
-                                child: Text(
-                                  pillText,
-                                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                                    fontWeight: AppFontWeights.semibold,
-                                    color: AppColors.primary,
-                                    letterSpacing: AppTheme.letterSpacingSubtle,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ) : const SizedBox.shrink(key: ValueKey('pill_hidden')),
-                        );
-                      },
+                    _SessionCounterPill(
+                      locationService: _locationService,
+                      sessionUploadCount: _sessionUploadCount,
+                      zonesGained:
+                          (_claimedTileCount - _sessionStartZoneCount).clamp(0, 9999),
                     ),
 
                     // Permission lost banner
@@ -1222,8 +1046,250 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   }
 }
 
-// ─── Constants ───────────────────────────────────────────────────────────────
+// ─── Map overlay pieces ───────────────────────────────────────────────────────
 
+/// Stats pills stacked top-right — area, territory, condition, streak, today.
+/// Every input is an explicit parameter so the stack can be reasoned about
+/// without tracing back into HomeScreen's state.
+class _StatPillStack extends StatelessWidget {
+  const _StatPillStack({
+    required this.claimedTileCount,
+    required this.territoryLabel,
+    required this.areaConditionLine,
+    required this.currentStreak,
+    required this.lastSessionEndAt,
+    required this.lastSessionZonesGained,
+    required this.isTracking,
+    required this.onTap,
+  });
+
+  final int claimedTileCount;
+  final String? territoryLabel;
+  final String? areaConditionLine;
+  final int currentStreak;
+  final DateTime? lastSessionEndAt;
+  final int lastSessionZonesGained;
+  final bool isTracking;
+  final VoidCallback onTap;
+
+  String _areaLabel(BuildContext context) {
+    final km2 = claimedTileCount * kKm2PerCell;
+    final area = km2 < 1.0
+        ? '${km2.toStringAsFixed(2)} km²'
+        : '${km2.toStringAsFixed(1)} km²';
+    return context.l10n.homeStatArea(area);
+  }
+
+  /// Today's gain shows only after a session ended within 20h, while idle.
+  bool get _showTodayPill =>
+      lastSessionEndAt != null &&
+      DateTime.now().difference(lastSessionEndAt!).inHours < 20 &&
+      !isTracking &&
+      lastSessionZonesGained > 0;
+
+  @override
+  Widget build(BuildContext context) {
+    return PressScaleDetector(
+      onTap: () {
+        HapticFeedback.lightImpact();
+        onTap();
+      },
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          if (claimedTileCount > 0) ...[
+            _StatPill(icon: Icons.hexagon_outlined, label: _areaLabel(context)),
+            if (territoryLabel != null) ...[
+              const SizedBox(height: 3),
+              Padding(
+                padding: const EdgeInsets.only(right: AppTheme.spaceXs),
+                child: Text(
+                  territoryLabel!,
+                  style: TextStyle(
+                    fontSize: AppTheme.fontSizeXs,
+                    color: AppColors.textTertiary(true),
+                    fontWeight: AppFontWeights.medium,
+                    letterSpacing: 0.2,
+                  ),
+                  textAlign: TextAlign.end,
+                ),
+              ),
+            ],
+            if (areaConditionLine != null) ...[
+              const SizedBox(height: 2),
+              Padding(
+                padding: const EdgeInsets.only(right: AppTheme.spaceXs),
+                child: Text(
+                  areaConditionLine!,
+                  style: TextStyle(
+                    fontSize: 9.5,
+                    color: AppColors.textTertiary(true).withValues(alpha: 0.6),
+                    fontWeight: AppFontWeights.regular,
+                    letterSpacing: 0.1,
+                  ),
+                  textAlign: TextAlign.end,
+                ),
+              ),
+            ],
+          ],
+          if (currentStreak > 0) ...[
+            const SizedBox(height: AppTheme.spaceXxs),
+            _StatPill(
+              icon: Icons.bolt_rounded,
+              label: context.l10n.homeStatStreak(currentStreak),
+            ),
+          ],
+          if (_showTodayPill) ...[
+            const SizedBox(height: AppTheme.spaceXxs),
+            _StatPill(
+              icon: Icons.add_rounded,
+              label: context.l10n.homeStatToday(lastSessionZonesGained),
+              color: AppColors.primary,
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+/// Shown once to new users before their first zone — fully static, so `const`
+/// keeps it out of every rebuild.
+class _ZeroStateCard extends StatelessWidget {
+  const _ZeroStateCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+          horizontal: AppTheme.spaceLg, vertical: AppTheme.spaceSm),
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+            horizontal: AppTheme.spaceMd, vertical: AppTheme.spaceSm),
+        decoration: BoxDecoration(
+          color: AppColors.mapOverlayMid,
+          borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+          border: Border.all(color: AppColors.primary.withValues(alpha: 0.25)),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.hexagon_outlined,
+                size: AppIconSizes.sm, color: AppColors.primary),
+            const SizedBox(width: AppTheme.spaceSm),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    context.l10n.mapZeroStateTitle,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      fontWeight: AppFontWeights.semibold,
+                      color: AppColors.darkTextPrimary,
+                      letterSpacing: AppTheme.letterSpacingSubtle,
+                    ),
+                  ),
+                  const SizedBox(height: AppTheme.spaceXxxs),
+                  Text(
+                    context.l10n.mapZeroStateBody,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: AppColors.darkTextSecondary,
+                      height: AppLineHeights.normal,
+                    ),
+                  ),
+                  const SizedBox(height: AppTheme.spaceSm),
+                  // Ghost sensor preview — teases what will appear
+                  const Row(
+                    children: [
+                      _GhostSensorChip(icon: Icons.light_mode_rounded, color: AppColors.light),
+                      SizedBox(width: AppTheme.spaceXxs),
+                      _GhostSensorChip(icon: Icons.compress_rounded, color: AppColors.pressure),
+                      SizedBox(width: AppTheme.spaceXxs),
+                      _GhostSensorChip(icon: Icons.directions_walk_rounded, color: AppColors.movement),
+                      SizedBox(width: AppTheme.spaceXxs),
+                      _GhostSensorChip(icon: Icons.eco_rounded, color: AppColors.quality),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Live upload/zone counter shown while tracking. Listens to the service
+/// directly so it re-renders without a HomeScreen setState.
+class _SessionCounterPill extends StatelessWidget {
+  const _SessionCounterPill({
+    required this.locationService,
+    required this.sessionUploadCount,
+    required this.zonesGained,
+  });
+
+  final ForegroundLocationService locationService;
+  final int sessionUploadCount;
+  final int zonesGained;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListenableBuilder(
+      listenable: Listenable.merge([
+        locationService.isRunning,
+        locationService.isPaused,
+      ]),
+      builder: (context, _) {
+        final active = locationService.isRunning.value && !locationService.isPaused.value;
+        final l10n = context.l10n;
+        final pillText = sessionUploadCount == 0
+            ? l10n.sensorCollectingFirst
+            : zonesGained > 0
+                ? l10n.homeSessionPillWithZones(sessionUploadCount, zonesGained)
+                : l10n.homeSessionPill(sessionUploadCount);
+        return AnimatedSwitcher(
+          duration: AppDurations.medium,
+          transitionBuilder: (child, anim) => FadeTransition(
+            opacity: anim,
+            child: SlideTransition(
+              position: Tween<Offset>(
+                begin: const Offset(0, 0.3),
+                end: Offset.zero,
+              ).animate(CurvedAnimation(parent: anim, curve: Curves.easeOut)),
+              child: child,
+            ),
+          ),
+          child: active
+              ? Padding(
+                  key: ValueKey('$sessionUploadCount-$zonesGained'),
+                  padding: const EdgeInsets.only(bottom: AppTheme.spaceXs),
+                  child: Center(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: AppTheme.spaceMd, vertical: AppTheme.spaceXxs + 2),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+                        border: Border.all(color: AppColors.primary.withValues(alpha: 0.25)),
+                      ),
+                      child: Text(
+                        pillText,
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          fontWeight: AppFontWeights.semibold,
+                          color: AppColors.primary,
+                          letterSpacing: AppTheme.letterSpacingSubtle,
+                        ),
+                      ),
+                    ),
+                  ),
+                )
+              : const SizedBox.shrink(key: ValueKey('pill_hidden')),
+        );
+      },
+    );
+  }
+}
 
 // ─── Bottom action bar ────────────────────────────────────────────────────────
 
