@@ -14,6 +14,8 @@ export const H3_RES_GLOBAL = 8;
 export const MAX_USER_TILES = 5_000;
 /** Max H3 tiles returned for the global community map. */
 export const MAX_GLOBAL_TILES = 2_000;
+/** Max rows returned by a user's personal data export (GET /api/user/export). */
+export const MAX_USER_EXPORT_ROWS = 50_000;
 
 // ─── Time ─────────────────────────────────────────────────────────────────────
 export const MS_PER_HOUR = 3_600_000;

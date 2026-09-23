@@ -4,6 +4,7 @@ import { getPool } from '../database';
 import { requireFirebaseAuth } from '../middleware/auth';
 import { QueryBuilder, generateCursor, parseCursor } from '../utils/pagination';
 import { numOrNull } from '../utils/response-utils';
+import { rowsToCsv } from '../utils/csv';
 import {
   getOrgSubscriptionTier,
   requireTier,
@@ -308,25 +309,7 @@ export async function dataRoutes(fastify: FastifyInstance) {
               .send('No data available for the selected time range');
           }
 
-          // Build CSV
-          const headers = Object.keys(result.rows[0]);
-          const csv = [
-            headers.join(','),
-            ...result.rows.map((row) =>
-              headers
-                .map((h) => {
-                  const val = row[h];
-                  if (val === null || val === undefined) return '';
-                  if (typeof val === 'string') {
-                    // Quote all strings; escape internal quotes; strip leading =+-@ to prevent formula injection
-                    const safe = val.replace(/^[=+\-@\t\r]/, "'$&");
-                    return `"${safe.replace(/"/g, '""')}"`;
-                  }
-                  return val;
-                })
-                .join(',')
-            ),
-          ].join('\n');
+          const csv = rowsToCsv(result.rows);
 
           return reply
             .header('Content-Type', 'text/csv; charset=utf-8')

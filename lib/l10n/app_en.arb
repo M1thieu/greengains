@@ -386,7 +386,6 @@
   "sensorInactiveSubtitle": "Enable tracking to see live readings.",
   "sensorPausedTitle": "Recording paused",
   "sensorPausedSubtitle": "Resume to see live readings.",
-  "sensorCollectingFirst": "Reading…",
   "sensorAroundYou": "Around You",
   "sensorPressure": "Pressure",
   "sensorUnitLux": "lx",
@@ -453,6 +452,9 @@
   "settingsDataTransparency": "Data Transparency",
   "settingsDataDeletion": "Request Data Deletion",
   "settingsDataDeletionDesc": "Erase all your recorded data",
+  "settingsExportData": "Export My Data",
+  "settingsExportDataPreparing": "Preparing your export…",
+  "settingsExportDataFailed": "Couldn't export your data. Try again later.",
   "settingsDataSection": "Data",
   "settingsConsentDate": "Consented: {date}",
   "@settingsConsentDate": {
@@ -879,19 +881,6 @@
   "sessionStatDurationExplain": "How long tracking was active during this session.",
   "sessionStatUploadsExplain": "Number of times your sensor data was uploaded during this session.",
   "sessionStatTotalExplain": "Total unique zones you've ever mapped across all sessions.",
-  "homeSessionPill": "{uploads} synced",
-  "@homeSessionPill": {
-    "placeholders": {
-      "uploads": { "type": "int" }
-    }
-  },
-  "homeSessionPillWithZones": "{uploads} synced · +{zones} zones",
-  "@homeSessionPillWithZones": {
-    "placeholders": {
-      "uploads": { "type": "int" },
-      "zones": { "type": "int" }
-    }
-  },
   "statsUploadsHint": "uploads",
   "statsKpiTodayExplain": "Syncs sent today.",
   "statsKpiWeekExplain": "Syncs sent this week.",

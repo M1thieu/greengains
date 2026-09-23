@@ -1658,12 +1658,6 @@ abstract class AppLocalizations {
   /// **'Resume to see live readings.'**
   String get sensorPausedSubtitle;
 
-  /// No description provided for @sensorCollectingFirst.
-  ///
-  /// In en, this message translates to:
-  /// **'Reading…'**
-  String get sensorCollectingFirst;
-
   /// No description provided for @sensorAroundYou.
   ///
   /// In en, this message translates to:
@@ -2011,6 +2005,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Erase all your recorded data'**
   String get settingsDataDeletionDesc;
+
+  /// No description provided for @settingsExportData.
+  ///
+  /// In en, this message translates to:
+  /// **'Export My Data'**
+  String get settingsExportData;
+
+  /// No description provided for @settingsExportDataPreparing.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparing your export…'**
+  String get settingsExportDataPreparing;
+
+  /// No description provided for @settingsExportDataFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t export your data. Try again later.'**
+  String get settingsExportDataFailed;
 
   /// No description provided for @settingsDataSection.
   ///
@@ -3518,18 +3530,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Total unique zones you\'ve ever mapped across all sessions.'**
   String get sessionStatTotalExplain;
-
-  /// No description provided for @homeSessionPill.
-  ///
-  /// In en, this message translates to:
-  /// **'{uploads} synced'**
-  String homeSessionPill(int uploads);
-
-  /// No description provided for @homeSessionPillWithZones.
-  ///
-  /// In en, this message translates to:
-  /// **'{uploads} synced · +{zones} zones'**
-  String homeSessionPillWithZones(int uploads, int zones);
 
   /// No description provided for @statsUploadsHint.
   ///

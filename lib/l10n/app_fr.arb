@@ -386,7 +386,6 @@
   "sensorInactiveSubtitle": "Active le suivi pour voir les données en direct.",
   "sensorPausedTitle": "Enregistrement en pause",
   "sensorPausedSubtitle": "Reprenez le suivi pour continuer à enregistrer",
-  "sensorCollectingFirst": "Lecture…",
   "sensorAroundYou": "Autour de vous",
   "sensorPressure": "Pression",
   "sensorUnitLux": "lx",
@@ -453,6 +452,9 @@
   "settingsDataTransparency": "Transparence des données",
   "settingsDataDeletion": "Demande de suppression des données",
   "settingsDataDeletionDesc": "Effacer toutes vos données enregistrées",
+  "settingsExportData": "Exporter mes données",
+  "settingsExportDataPreparing": "Préparation de l'export…",
+  "settingsExportDataFailed": "Impossible d'exporter tes données. Réessaie plus tard.",
   "settingsDataSection": "Données",
   "settingsConsentDate": "Consentement : {date}",
   "@settingsConsentDate": {
@@ -879,19 +881,6 @@
   "sessionStatDurationExplain": "Durée pendant laquelle le suivi était actif lors de cette session.",
   "sessionStatUploadsExplain": "Nombre d'envois de données pendant cette session.",
   "sessionStatTotalExplain": "Total des zones uniques cartographiées sur toutes tes sessions.",
-  "homeSessionPill": "{uploads} synchros",
-  "@homeSessionPill": {
-    "placeholders": {
-      "uploads": { "type": "int" }
-    }
-  },
-  "homeSessionPillWithZones": "{uploads} synchros · +{zones} zones",
-  "@homeSessionPillWithZones": {
-    "placeholders": {
-      "uploads": { "type": "int" },
-      "zones": { "type": "int" }
-    }
-  },
   "statsUploadsHint": "envois",
   "statsKpiTodayExplain": "Syncs envoyés aujourd'hui.",
   "statsKpiWeekExplain": "Syncs envoyés cette semaine.",

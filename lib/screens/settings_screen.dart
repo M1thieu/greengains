@@ -1,12 +1,19 @@
+import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
 import '../core/extensions/context_extensions.dart';
 import '../core/themes.dart';
 import '../core/theme_controller.dart';
 import '../core/language_controller.dart';
 import '../core/app_preferences.dart';
 import '../services/location/foreground_location_service.dart';
+import '../services/network/backend_client.dart';
+import '../utils/app_snackbars.dart';
 import 'diagnostics_screen.dart';
 import 'webview_screen.dart';
 import '../l10n/app_localizations.dart';
@@ -31,6 +38,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   final _themeController = ThemeController.instance;
   final _languageController = LanguageController.instance;
   String _version = '';
+  bool _exportBusy = false;
 
   @override
   void initState() {
@@ -266,9 +274,30 @@ class _SettingsScreenState extends State<SettingsScreen> {
             _legalItem(context, l10n.settingsDataTransparency, _kDataTransparencyUrl, isDark),
             Divider(height: AppTheme.spaceLg, thickness: 0.5, color: AppColors.divider(isDark)),
             _legalItem(context, l10n.settingsDataDeletion, _kDataDeletionUrl, isDark),
+            Divider(height: AppTheme.spaceLg, thickness: 0.5, color: AppColors.divider(isDark)),
+            _exportDataItem(context, l10n, isDark),
           ]),
         );
       },
+    );
+  }
+
+  Widget _exportDataItem(BuildContext sheetContext, AppLocalizations l10n, bool isDark) {
+    final theme = Theme.of(sheetContext);
+    return PressScaleDetector(
+      onTap: () {
+        Navigator.of(sheetContext).pop();
+        // Use the screen's own context — the sheet's is unmounted right after pop.
+        if (!mounted) return;
+        AppSnackbars.show(context, message: l10n.settingsExportDataPreparing, type: AppSnackbarType.info);
+        unawaited(_exportMyData(context, l10n));
+      },
+      child: Row(children: [
+        Expanded(child: Text(l10n.settingsExportData, maxLines: 1, overflow: TextOverflow.ellipsis, style: theme.textTheme.bodyMedium?.copyWith(
+          color: AppColors.textPrimary(isDark),
+        ))),
+        Icon(Icons.ios_share_rounded, size: AppIconSizes.sm, color: AppColors.textTertiary(isDark)),
+      ]),
     );
   }
 
@@ -286,6 +315,32 @@ class _SettingsScreenState extends State<SettingsScreen> {
         Icon(Icons.chevron_right, size: AppIconSizes.sm, color: AppColors.textTertiary(isDark)),
       ]),
     );
+  }
+
+  /// Personal data export — a right, not a paid feature, so it hits
+  /// GET /api/user/export directly rather than the org-tier-gated dashboard
+  /// endpoint. Fetches JSON, writes it to a temp file, then hands off to the
+  /// OS share sheet so the user picks where it goes (email, Drive, Files…).
+  Future<void> _exportMyData(BuildContext context, AppLocalizations l10n) async {
+    if (_exportBusy) return;
+    setState(() => _exportBusy = true);
+    try {
+      final data = await BackendClient.get('/api/user/export?format=json');
+      final pretty = const JsonEncoder.withIndent('  ').convert(data);
+
+      final dir = await getTemporaryDirectory();
+      final file = File('${dir.path}/greengains-my-data-${DateTime.now().millisecondsSinceEpoch}.json');
+      await file.writeAsString(pretty);
+
+      if (!context.mounted) return;
+      await SharePlus.instance.share(ShareParams(files: [XFile(file.path)]));
+    } catch (e) {
+      if (context.mounted) {
+        AppSnackbars.show(context, message: l10n.settingsExportDataFailed, type: AppSnackbarType.error);
+      }
+    } finally {
+      if (mounted) setState(() => _exportBusy = false);
+    }
   }
 
 }

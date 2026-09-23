@@ -4,10 +4,12 @@ import { latLngToCell, cellToBoundary, cellToLatLng, cellToParent } from 'h3-js'
 import { getPool } from '../database';
 import { requireFirebaseAuth } from '../middleware/auth';
 import { decodeGeohash } from '../utils/geo';
+import { rowsToCsv } from '../utils/csv';
 import {
   H3_RES_GLOBAL,
   MAX_USER_TILES,
   MAX_GLOBAL_TILES,
+  MAX_USER_EXPORT_ROWS,
   GLOBAL_TILE_WINDOW_HOURS,
   MS_PER_DAY,
   MAX_TILE_RESPONSE_BYTES,
@@ -19,6 +21,10 @@ import {
   GLOBAL_STATS_CACHE_TTL_MS,
   GLOBAL_STATS_CACHE_TTL_S,
 } from '../constants';
+
+const exportQuerySchema = z.object({
+  format: z.enum(['csv', 'json']).default('csv'),
+});
 
 // ─── In-memory cache for global tiles (5-min TTL, avoids per-request DB hits) ─
 interface TileCacheEntry { data: unknown; expiresAt: number; }
@@ -945,6 +951,70 @@ export async function userRoutes(fastify: FastifyInstance) {
         return reply.send({ agreedAt: row.rows[0].agreed_at });
       } catch (error) {
         request.log.error({ err: error, userId }, 'Consent record error');
+        return reply.code(500).send({ error: 'Internal Server Error', requestId: request.id });
+      }
+    },
+  );
+
+  /**
+   * GET /api/user/export
+   * Exports the caller's own raw contributions — a personal-data right, not a
+   * paid feature. Unlike POST /api/v1/data/export (organization-tier, gated by
+   * requireTier), this has no tier check: every authenticated user can export
+   * everything that belongs to them.
+   * Location is already rounded to ~110m at ingest (see
+   * db/20260611_scrub_precise_location.sql), so it is safe to include as-is.
+   */
+  fastify.get(
+    '/api/user/export',
+    { preHandler: requireFirebaseAuth },
+    async (request: FastifyRequest, reply: FastifyReply) => {
+      const userId = request.user!.uid;
+
+      try {
+        const query = exportQuerySchema.parse(request.query);
+        const pool = getPool();
+
+        const result = await pool.query(
+          `SELECT
+             id, timestamp_utc, h3_res9,
+             batch_json->'location'->>'lat'  AS lat,
+             batch_json->'location'->>'lon'  AS lon,
+             batch_json->>'geohash'          AS geohash,
+             batch_json->'summary'->'light'->>'avg'    AS avg_lux,
+             batch_json->'summary'->'pressure'->>'avg' AS avg_hpa,
+             batch_json->'summary'->>'accel_rms'       AS avg_movement,
+             batch_json->'summary'->>'accel_std_dev'   AS avg_vibration,
+             batch_json->>'samples_count'    AS samples_count
+           FROM sensor_batches
+           WHERE user_id = $1
+           ORDER BY timestamp_utc DESC
+           LIMIT $2`,
+          [userId, MAX_USER_EXPORT_ROWS + 1],
+        );
+
+        const truncated = result.rows.length > MAX_USER_EXPORT_ROWS;
+        const rows = truncated ? result.rows.slice(0, MAX_USER_EXPORT_ROWS) : result.rows;
+
+        if (query.format === 'json') {
+          return reply.send({
+            count: rows.length,
+            truncated,
+            data: rows,
+            exported_at: new Date().toISOString(),
+          });
+        }
+
+        const csv = rowsToCsv(rows);
+        return reply
+          .header('Content-Type', 'text/csv; charset=utf-8')
+          .header('Content-Disposition', `attachment; filename="greengains-my-data-${Date.now()}.csv"`)
+          .send(csv || 'No data to export');
+      } catch (error) {
+        if (error instanceof z.ZodError) {
+          return reply.code(422).send({ error: 'Validation Error', details: error.errors });
+        }
+        request.log.error({ err: error, userId }, '/api/user/export failed');
         return reply.code(500).send({ error: 'Internal Server Error', requestId: request.id });
       }
     },

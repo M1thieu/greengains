@@ -954,9 +954,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sensorPausedSubtitle => 'Resume to see live readings.';
 
   @override
-  String get sensorCollectingFirst => 'Reading…';
-
-  @override
   String get sensorAroundYou => 'Around You';
 
   @override
@@ -1141,6 +1138,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsDataDeletionDesc => 'Erase all your recorded data';
+
+  @override
+  String get settingsExportData => 'Export My Data';
+
+  @override
+  String get settingsExportDataPreparing => 'Preparing your export…';
+
+  @override
+  String get settingsExportDataFailed =>
+      'Couldn\'t export your data. Try again later.';
 
   @override
   String get settingsDataSection => 'Data';
@@ -2060,16 +2067,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get sessionStatTotalExplain =>
       'Total unique zones you\'ve ever mapped across all sessions.';
-
-  @override
-  String homeSessionPill(int uploads) {
-    return '$uploads synced';
-  }
-
-  @override
-  String homeSessionPillWithZones(int uploads, int zones) {
-    return '$uploads synced · +$zones zones';
-  }
 
   @override
   String get statsUploadsHint => 'uploads';
