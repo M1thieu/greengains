@@ -1,8 +1,9 @@
 import * as Sentry from '@sentry/node';
 import { PoolClient } from 'pg';
-import { latLngToCell, gridDisk } from 'h3-js';
+import { latLngToCell, gridDisk, cellToLatLng } from 'h3-js';
 import { getPool } from '../database';
 import { decodeGeohash } from '../utils/geo';
+import { getSurfacePressureHpa } from '../utils/weatherService';
 import {
   AGGREGATION_WINDOW_MINUTES,
   AGGREGATION_JOB_INTERVAL_MS,
@@ -373,6 +374,20 @@ export async function runAggregationJob(): Promise<void> {
     const pocketRatio =
       qualitySamples > 0 ? bucket.pocketLikelySamples / qualitySamples : null;
 
+    // Weather-baseline anomaly: local pressure minus regional background —
+    // isolates local effects (tunnels, elevation, microclimate) from passing
+    // weather systems. Optimal-Interpolation-style "observation minus background".
+    let pressureAnomalyHpa: number | null = null;
+    if (avgPressure !== null) {
+      const centroid = bucket.h3Index
+        ? { lat: cellToLatLng(bucket.h3Index)[0], lon: cellToLatLng(bucket.h3Index)[1] }
+        : decodeGeohash(bucket.geohash);
+      if (centroid) {
+        const baseline = await getSurfacePressureHpa(centroid.lat, centroid.lon, bucket.windowStart);
+        if (baseline !== null) pressureAnomalyHpa = avgPressure - baseline;
+      }
+    }
+
     windowResults.push({
       windowStart: bucket.windowStart,
       windowEnd: bucket.windowEnd,
@@ -387,6 +402,7 @@ export async function runAggregationJob(): Promise<void> {
       avgAccelStdDev,
       avgGyroRms,
       avgPressure,
+      pressureAnomalyHpa,
       movementScore: windowMovementScore,
       vibrationScore: windowVibrationScore,
       batteryAvg,
@@ -516,6 +532,7 @@ async function upsertWindowResults(
     avgAccelStdDev: number;
     avgGyroRms: number;
     avgPressure: number | null;
+    pressureAnomalyHpa: number | null;
     movementScore: number;
     vibrationScore: number;
     batteryAvg: number | null;
@@ -541,6 +558,7 @@ async function upsertWindowResults(
   const avgAccelStdDevs = results.map(r => r.avgAccelStdDev);
   const avgGyroRms = results.map(r => r.avgGyroRms);
   const avgPressures = results.map(r => r.avgPressure);
+  const pressureAnomalies = results.map(r => r.pressureAnomalyHpa);
   const movementScores = results.map(r => r.movementScore);
   const vibrationScores = results.map(r => r.vibrationScore);
   const batteryAvgs = results.map(r => r.batteryAvg);
@@ -553,7 +571,7 @@ async function upsertWindowResults(
     `INSERT INTO sensor_aggregates_5m (
       window_start, window_end, geohash, h3_index, samples_count, device_count,
       avg_light, avg_light_min, avg_light_max, avg_accel_rms,
-      avg_gyro_rms, avg_pressure, movement_score, vibration_score, battery_avg, location_share,
+      avg_gyro_rms, avg_pressure, pressure_anomaly_hpa, movement_score, vibration_score, battery_avg, location_share,
       quality_samples, quality_valid_ratio, quality_pocket_ratio
     )
     SELECT * FROM UNNEST(
@@ -561,11 +579,11 @@ async function upsertWindowResults(
       $5::int[], $6::int[], $7::double precision[], $8::double precision[],
       $9::double precision[], $10::double precision[], $11::double precision[],
       $12::double precision[], $13::double precision[], $14::double precision[],
-      $15::double precision[], $16::double precision[], $17::bigint[], $18::double precision[], $19::double precision[]
+      $15::double precision[], $16::double precision[], $17::double precision[], $18::bigint[], $19::double precision[], $20::double precision[]
     ) AS t(
       window_start, window_end, geohash, h3_index, samples_count, device_count,
       avg_light, avg_light_min, avg_light_max, avg_accel_rms,
-      avg_gyro_rms, avg_pressure, movement_score, vibration_score, battery_avg, location_share,
+      avg_gyro_rms, avg_pressure, pressure_anomaly_hpa, movement_score, vibration_score, battery_avg, location_share,
       quality_samples, quality_valid_ratio, quality_pocket_ratio
     )
     ON CONFLICT (window_start, geohash)
@@ -579,6 +597,7 @@ async function upsertWindowResults(
       avg_accel_rms = EXCLUDED.avg_accel_rms,
       avg_gyro_rms = EXCLUDED.avg_gyro_rms,
       avg_pressure = EXCLUDED.avg_pressure,
+      pressure_anomaly_hpa = EXCLUDED.pressure_anomaly_hpa,
       movement_score = EXCLUDED.movement_score,
       vibration_score = EXCLUDED.vibration_score,
       battery_avg = EXCLUDED.battery_avg,
@@ -590,7 +609,7 @@ async function upsertWindowResults(
     [
       windowStarts, windowEnds, geohashes, h3Indexes, samplesCounts,
       deviceCounts, avgLights, lightMins, lightMaxes,
-      avgAccelRms, avgGyroRms, avgPressures, movementScores, vibrationScores, batteryAvgs, locationShares,
+      avgAccelRms, avgGyroRms, avgPressures, pressureAnomalies, movementScores, vibrationScores, batteryAvgs, locationShares,
       qualitySampleCounts, qualityValidRatios, pocketRatios
     ],
   );
