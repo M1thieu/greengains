@@ -17,10 +17,28 @@ export { AGGREGATION_WINDOW_MINUTES };
 
 const WINDOW_MS = AGGREGATION_WINDOW_MINUTES * 60 * 1000;
 
-// Movement score: deviation from gravitational baseline (phone at rest ≈ 9.81 m/s²).
-// MOVEMENT_THRESHOLD m/s² above/below resting = full score of 1.0.
-const movementScore = (accelRms: number) =>
-  Math.min(1, Math.max(0, Math.abs(accelRms - MOVEMENT_GRAVITY_BASELINE) / MOVEMENT_THRESHOLD));
+// Movement score: how much real motion a reading implies, 0–1.
+//
+// accel_rms arrives under two conventions depending on what the device exposed.
+// ForegroundService prefers TYPE_LINEAR_ACCELERATION (gravity already removed,
+// magnitude ~0 at rest) and falls back to TYPE_ACCELEROMETER (gravity included,
+// magnitude ~9.81 at rest) — both land in the same field, so the convention has
+// to be resolved here rather than assumed.
+//
+// Rule: evaluate both interpretations, keep whichever implies LESS motion. A
+// resting reading is ~0 under one convention and ~9.81 under the other; each is
+// correctly read as "still" by its own interpretation and as "extreme motion" by
+// the wrong one, so the minimum always selects the right convention. Continuous,
+// no cut-off, and no sensor-provenance tag needed on the payload.
+//
+// Assuming gravity unconditionally (the previous behaviour) inverted the score
+// for every linear-acceleration reading: a motionless phone scored 1.0. That was
+// 74% of stored rows.
+const movementScore = (accelRms: number) => {
+  const asLinear = Math.abs(accelRms);
+  const asGravityInclusive = Math.abs(accelRms - MOVEMENT_GRAVITY_BASELINE);
+  return Math.min(1, Math.max(0, Math.min(asLinear, asGravityInclusive) / MOVEMENT_THRESHOLD));
+};
 
 // Vibration/road roughness score: normalized accel std dev.
 // 0 = smooth (stationary/glassy road), 1 = severe vibration (potholes/rough terrain).
