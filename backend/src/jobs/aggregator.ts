@@ -8,6 +8,7 @@ import {
   AGGREGATION_JOB_INTERVAL_MS,
   MOVEMENT_GRAVITY_BASELINE,
   MOVEMENT_THRESHOLD,
+  RING1_SPATIAL_CORRELATION,
   SENSOR_BATCH_RETENTION_DAYS,
 } from '../constants';
 
@@ -24,6 +25,24 @@ const movementScore = (accelRms: number) =>
 // 0 = smooth (stationary/glassy road), 1 = severe vibration (potholes/rough terrain).
 // Threshold 5 m/s² std dev = full score — calibrated against walk vs rough driving data.
 const vibrationScore = (accelStdDev: number) => Math.min(1, Math.max(0, accelStdDev / 5.0));
+
+// Inverse-variance blend of a local estimate with correlated neighbor estimates.
+// Assumes per-sample observation variance is roughly constant within a window, so
+// weight ∝ sample count (Optimal-Interpolation-style analysis with equal error
+// variance). Neighbor weight is discounted by RING1_SPATIAL_CORRELATION since
+// adjacent H3 cells are correlated but not identical to the local cell — this
+// replaces a fixed blend ratio that over-smoothed well-sampled cells and
+// under-smoothed sparse/noisy ones.
+function blendWithNeighbors(
+  ownValue: number,
+  ownN: number,
+  neighbors: { value: number; n: number }[],
+): number {
+  if (neighbors.length === 0) return ownValue;
+  const neighborWeight = neighbors.reduce((sum, nb) => sum + nb.n, 0) * RING1_SPATIAL_CORRELATION;
+  const neighborWeightedSum = neighbors.reduce((sum, nb) => sum + nb.value * nb.n, 0) * RING1_SPATIAL_CORRELATION;
+  return (ownValue * ownN + neighborWeightedSum) / (ownN + neighborWeight);
+}
 
 type WindowKey = string;
 type DayKey = string;
@@ -319,7 +338,7 @@ export async function runAggregationJob(): Promise<void> {
     const avgGyroRms = bucket.gyroRmsSum / samples;
     const avgPressureRaw = bucket.pressureSamples > 0 ? bucket.pressureSum / bucket.pressureSamples : null;
 
-    // Ring-1 spatial smoothing: blend this cell 80% with the average of present neighbors 20%.
+    // Ring-1 spatial smoothing via inverse-variance weighting — see blendWithNeighbors().
     // Only considers neighbors present in the same 5-min window — no DB queries, no latency.
     let avgLight = avgLightRaw;
     let avgPressure = avgPressureRaw;
@@ -331,21 +350,15 @@ export async function runAggregationJob(): Promise<void> {
       if (neighborBuckets.length > 0) {
         if (avgLightRaw !== null) {
           const neighborLights = neighborBuckets
-            .map(nb => nb.samples > 0 && isFinite(nb.lightSum) ? nb.lightSum / nb.samples : null)
-            .filter((v): v is number => v !== null);
-          if (neighborLights.length > 0) {
-            const neighborAvg = neighborLights.reduce((a, b) => a + b, 0) / neighborLights.length;
-            avgLight = avgLightRaw * 0.8 + neighborAvg * 0.2;
-          }
+            .filter(nb => nb.samples > 0 && isFinite(nb.lightSum))
+            .map(nb => ({ value: nb.lightSum / nb.samples, n: nb.samples }));
+          avgLight = blendWithNeighbors(avgLightRaw, samples, neighborLights);
         }
         if (avgPressureRaw !== null) {
           const neighborPressures = neighborBuckets
-            .map(nb => nb.pressureSamples > 0 ? nb.pressureSum / nb.pressureSamples : null)
-            .filter((v): v is number => v !== null);
-          if (neighborPressures.length > 0) {
-            const neighborAvg = neighborPressures.reduce((a, b) => a + b, 0) / neighborPressures.length;
-            avgPressure = avgPressureRaw * 0.8 + neighborAvg * 0.2;
-          }
+            .filter(nb => nb.pressureSamples > 0)
+            .map(nb => ({ value: nb.pressureSum / nb.pressureSamples, n: nb.pressureSamples }));
+          avgPressure = blendWithNeighbors(avgPressureRaw, bucket.pressureSamples, neighborPressures);
         }
       }
     }
