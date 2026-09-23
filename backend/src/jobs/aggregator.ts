@@ -555,7 +555,6 @@ async function upsertWindowResults(
   const lightMins = results.map(r => r.lightMin);
   const lightMaxes = results.map(r => r.lightMax);
   const avgAccelRms = results.map(r => r.avgAccelRms);
-  const avgAccelStdDevs = results.map(r => r.avgAccelStdDev);
   const avgGyroRms = results.map(r => r.avgGyroRms);
   const avgPressures = results.map(r => r.avgPressure);
   const pressureAnomalies = results.map(r => r.pressureAnomalyHpa);
