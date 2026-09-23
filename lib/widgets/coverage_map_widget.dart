@@ -533,29 +533,34 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> {
     return '#f87171';              // red-400
   }
 
+  /// Continuous exponential freshness decay — the time term of a
+  /// spatiotemporal covariance kernel (Gneiting/Cressie-Huang class), used
+  /// here instead of a stepped multiplier so opacity never visibly "jumps"
+  /// between app opens (a sudden jump reads as a glitch). Floors at
+  /// [_kFreshnessFloor] so a tile recedes but never fades to invisible —
+  /// full fade would read as lost data, not a design signal.
+  static const _kFreshnessHalfLifeDays = 45.0;
+  static const _kFreshnessFloor = 0.35;
+
+  static double _freshnessFactor(H3Tile tile) {
+    if (tile.lastUpdate == null) return 1.0;
+    final ageDays = DateTime.now().difference(tile.lastUpdate!).inHours / 24.0;
+    final decay = exp(-ln2 * ageDays / _kFreshnessHalfLifeDays);
+    return _kFreshnessFloor + (1 - _kFreshnessFloor) * decay;
+  }
+
   static double _fillOpacity(H3Tile tile) {
     if (tile.isGlobal) return 0.18;
     final q = _qualityPct(tile);
-    double base = q >= 75 ? 0.45 : q >= 50 ? 0.36 : 0.28;
-    if (tile.lastUpdate != null) {
-      final age = DateTime.now().difference(tile.lastUpdate!).inDays;
-      // Two-step decay: fresh → aging → stale
-      if (age > 21)     { base *= 0.45; }
-      else if (age > 7) { base *= 0.72; }
-    }
-    return base;
+    final base = q >= 75 ? 0.45 : q >= 50 ? 0.36 : 0.28;
+    return base * _freshnessFactor(tile);
   }
 
   static double _strokeOpacity(H3Tile tile) {
     if (tile.isGlobal) return 0.0;
     final q = _qualityPct(tile);
-    double base = q >= 75 ? 0.75 : q >= 50 ? 0.60 : 0.45;
-    if (tile.lastUpdate != null) {
-      final age = DateTime.now().difference(tile.lastUpdate!).inDays;
-      if (age > 21)     { base *= 0.45; }
-      else if (age > 7) { base *= 0.72; }
-    }
-    return base;
+    final base = q >= 75 ? 0.75 : q >= 50 ? 0.60 : 0.45;
+    return base * _freshnessFactor(tile);
   }
 
   // ── MapLibre lifecycle ──────────────────────────────────────────────────────
