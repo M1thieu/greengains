@@ -199,7 +199,6 @@ class AppColors {
 
   // Action button colors — home screen floating controls
   static const Color actionPrimaryFg  = Color(0xFF04221a); // dark forest on green bg
-  static const Color actionSecondaryBg = Color(0xFF1c2f2a); // dark green surface
   static const Color actionDangerBg    = Color(0xFF2a1c1c); // dark red surface
   static const Color actionSegActiveFg = Color(0xFF04221a); // segment active fg (same as primary)
 

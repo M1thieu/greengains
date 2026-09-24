@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
@@ -176,6 +177,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           const SizedBox(height: _kSectionSpacing),
 
+          // ── Account ───────────────────────────────────────────────────────
+          _SectionCard(
+            label: l10n.settingsAccount,
+            children: [
+              _ActionRow(
+                icon: Icons.logout_rounded,
+                title: l10n.settingsSignOut,
+                onTap: () => _handleSignOut(context, l10n),
+              ),
+            ],
+          ),
+          const SizedBox(height: _kSectionSpacing),
+
           // ── About ─────────────────────────────────────────────────────────
           Padding(
             padding: const EdgeInsets.only(left: AppTheme.spaceXxs, bottom: AppTheme.spaceXs),
@@ -317,6 +331,30 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  Future<void> _handleSignOut(BuildContext context, AppLocalizations l10n) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l10n.settingsSignOutConfirmTitle),
+        content: Text(l10n.settingsSignOutConfirmBody),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: Text(l10n.settingsSignOutCancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: Text(l10n.settingsSignOutConfirm),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    // No explicit navigation needed: OnboardingWrapper's authStateChanges
+    // stream swaps the whole app shell for onboarding automatically.
+    await FirebaseAuth.instance.signOut();
+  }
+
   /// Personal data export — a right, not a paid feature, so it hits
   /// GET /api/user/export directly rather than the org-tier-gated dashboard
   /// endpoint. Fetches JSON, writes it to a temp file, then hands off to the
@@ -441,6 +479,47 @@ class _ToggleRow extends StatelessWidget {
           },
         ),
       ],
+    );
+  }
+}
+
+/// Tappable row — icon, title, chevron. Same visual language as _ToggleRow
+/// but for actions rather than settings toggles.
+class _ActionRow extends StatelessWidget {
+  const _ActionRow({
+    required this.icon,
+    required this.title,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String title;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return PressScaleDetector(
+      onTap: onTap,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          _IconBox(icon: icon, color: AppColors.primary),
+          const SizedBox(width: AppTheme.spaceMd),
+          Expanded(
+            child: Text(
+              title,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                fontWeight: AppFontWeights.semibold,
+                color: AppColors.textPrimary(isDark),
+              ),
+            ),
+          ),
+          Icon(Icons.chevron_right, size: AppIconSizes.sm, color: AppColors.textTertiary(isDark)),
+        ],
+      ),
     );
   }
 }

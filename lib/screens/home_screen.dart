@@ -1224,112 +1224,96 @@ class _HomeActionBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     if (!isRunning) {
-      return _ActionButton.primary(
-        label: l10n.homeActionStart,
+      // Icon-only, like a media player's play button — no label needed, the
+      // icon language is already universal.
+      return _ActionButton(
+        semanticLabel: l10n.homeActionStart,
         icon: Icons.play_arrow_rounded,
+        iconSize: AppIconSizes.lg,
+        padding: AppTheme.spaceLg,
         busy: isBusy,
         onPressed: onStart,
+        style: _ActionBtnStyle.primary,
       );
     }
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        _ActionButton.danger(
-          label: l10n.homeActionStop,
-          icon: Icons.stop_rounded,
-          busy: isBusy,
-          onPressed: onStop,
-        ),
-      ],
+    return _ActionButton(
+      semanticLabel: l10n.homeActionStop,
+      icon: Icons.stop_rounded,
+      iconSize: AppIconSizes.sm,
+      padding: AppTheme.spaceSm,
+      busy: isBusy,
+      onPressed: onStop,
+      style: _ActionBtnStyle.danger,
     );
   }
 }
 
+/// Icon-only circular action button. [semanticLabel] carries the meaning for
+/// screen readers since there is no visible text — the icon alone (play/stop,
+/// same convention as any media player) is enough for sighted users.
 class _ActionButton extends StatelessWidget {
-  const _ActionButton._({
-    required this.label,
+  const _ActionButton({
+    required this.semanticLabel,
     required this.icon,
+    required this.iconSize,
+    required this.padding,
     required this.busy,
     required this.onPressed,
     required this.style,
-    this.disabled = false,
   });
 
-  factory _ActionButton.primary({required String label, required IconData icon, required bool busy, required VoidCallback onPressed}) =>
-      _ActionButton._(label: label, icon: icon, busy: busy, onPressed: onPressed, style: _ActionBtnStyle.primary);
-  factory _ActionButton.danger({required String label, required IconData icon, required bool busy, required VoidCallback onPressed, bool disabled = false}) =>
-      _ActionButton._(label: label, icon: icon, busy: busy, onPressed: onPressed, style: _ActionBtnStyle.danger, disabled: disabled);
-
-  final String label;
+  final String semanticLabel;
   final IconData icon;
+  final double iconSize;
+  final double padding;
   final bool busy;
-  final bool disabled;
   final VoidCallback onPressed;
   final _ActionBtnStyle style;
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     final bgColor = switch (style) {
-      _ActionBtnStyle.primary   => AppColors.primary,
-      _ActionBtnStyle.secondary => AppColors.actionSecondaryBg,
-      _ActionBtnStyle.danger    => AppColors.actionDangerBg,
+      _ActionBtnStyle.primary => AppColors.primary,
+      _ActionBtnStyle.danger  => AppColors.actionDangerBg,
     };
     final fgColor = switch (style) {
-      _ActionBtnStyle.primary   => AppColors.actionPrimaryFg,
-      _ActionBtnStyle.secondary => Colors.white,
-      _ActionBtnStyle.danger    => AppColors.error,
+      _ActionBtnStyle.primary => AppColors.actionPrimaryFg,
+      _ActionBtnStyle.danger  => AppColors.error,
     };
     final borderColor = switch (style) {
-      _ActionBtnStyle.primary   => Colors.transparent,
-      _ActionBtnStyle.secondary => Colors.white.withValues(alpha: 0.12),
-      _ActionBtnStyle.danger    => AppColors.error.withValues(alpha: 0.25),
+      _ActionBtnStyle.primary => Colors.transparent,
+      _ActionBtnStyle.danger  => AppColors.error.withValues(alpha: 0.25),
     };
 
-    return AnimatedOpacity(
-      duration: AppDurations.press,
-      opacity: disabled ? 0.35 : (busy ? 0.65 : 1.0),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: (busy || disabled) ? null : onPressed,
-          borderRadius: BorderRadius.circular(AppTheme.radiusPill),
-          child: Ink(
-            decoration: BoxDecoration(
-              color: bgColor,
-              borderRadius: BorderRadius.circular(AppTheme.radiusPill),
-              border: Border.all(color: borderColor, width: AppBorderWidths.thin),
-              boxShadow: style == _ActionBtnStyle.primary
-                  ? [BoxShadow(color: AppColors.primary.withValues(alpha: 0.3), blurRadius: 12, offset: const Offset(0, 3))]
-                  : [BoxShadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 8, offset: const Offset(0, 2))],
-            ),
-            child: Padding(
-              // Danger button is icon-only (compact) — primary keeps full label
-              padding: style == _ActionBtnStyle.danger
-                  ? const EdgeInsets.all(AppTheme.spaceSm)
-                  : const EdgeInsets.symmetric(horizontal: AppTheme.spaceLg, vertical: AppTheme.spaceMd),
-              child: busy
-                  ? SizedBox(
-                      width: AppIconSizes.sm, height: AppIconSizes.sm,
-                      child: CircularProgressIndicator(strokeWidth: 2, color: fgColor),
-                    )
-                  : style == _ActionBtnStyle.danger
-                      ? Icon(icon, size: AppIconSizes.sm, color: fgColor)
-                      : Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(icon, size: AppIconSizes.sm, color: fgColor),
-                            const SizedBox(width: AppTheme.spaceSm),
-                            Text(
-                              label,
-                              style: theme.textTheme.titleSmall?.copyWith(
-                                color: fgColor,
-                                fontWeight: AppFontWeights.bold,
-                              ),
-                            ),
-                          ],
-                        ),
+    return Semantics(
+      button: true,
+      label: semanticLabel,
+      child: AnimatedOpacity(
+        duration: AppDurations.press,
+        opacity: busy ? 0.65 : 1.0,
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: busy ? null : onPressed,
+            borderRadius: BorderRadius.circular(AppTheme.radiusPill),
+            child: Ink(
+              decoration: BoxDecoration(
+                color: bgColor,
+                borderRadius: BorderRadius.circular(AppTheme.radiusPill),
+                border: Border.all(color: borderColor, width: AppBorderWidths.thin),
+                boxShadow: style == _ActionBtnStyle.primary
+                    ? [BoxShadow(color: AppColors.primary.withValues(alpha: 0.3), blurRadius: 12, offset: const Offset(0, 3))]
+                    : [BoxShadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 8, offset: const Offset(0, 2))],
+              ),
+              child: Padding(
+                padding: EdgeInsets.all(padding),
+                child: busy
+                    ? SizedBox(
+                        width: iconSize, height: iconSize,
+                        child: CircularProgressIndicator(strokeWidth: 2, color: fgColor),
+                      )
+                    : Icon(icon, size: iconSize, color: fgColor),
+              ),
             ),
           ),
         ),
@@ -1338,7 +1322,7 @@ class _ActionButton extends StatelessWidget {
   }
 }
 
-enum _ActionBtnStyle { primary, secondary, danger }
+enum _ActionBtnStyle { primary, danger }
 
 // ─── Private widgets ────────────────────────────────────────────────────────
 

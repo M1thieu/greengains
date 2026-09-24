@@ -202,16 +202,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  /// Handle Google Sign In - preserves existing tracking data
-  Future<void> _handleSignOut() async {
-    try {
-      await FirebaseAuth.instance.signOut();
-      if (mounted) setState(() {});
-    } catch (e) {
-      debugPrint('Sign-out error: $e');
-    }
-  }
-
   Future<void> _handleGoogleSignIn() async {
     final l10n = context.l10n; // capture before async gap
     if (_signingIn) return;
@@ -336,29 +326,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ],
           ),
         ),
-        // Top-right buttons — settings gear + logout
+        // Top-right button — settings gear (sign out lives in Settings > Account)
         Positioned(
           top: topPad + AppTheme.spaceXxs,
           right: AppTheme.spaceXs,
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              PressScaleDetector(
-                onTap: _handleSignOut,
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: AppColors.surfaceElevated(isDark),
-                    borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-                  ),
-                  padding: const EdgeInsets.all(AppTheme.spaceXs),
-                  child: Icon(
-                    Icons.logout_rounded,
-                    size: AppIconSizes.sm,
-                    color: AppColors.textSecondary(isDark),
-                  ),
-                ),
-              ),
-              const SizedBox(width: AppTheme.spaceXxs),
               PressScaleDetector(
                 onTap: () => Navigator.of(context).push(
                   MaterialPageRoute(builder: (_) => const SettingsScreen()),
