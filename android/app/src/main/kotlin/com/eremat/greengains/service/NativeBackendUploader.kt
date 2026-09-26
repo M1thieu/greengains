@@ -725,6 +725,7 @@ class NativeBackendUploader(
                 "gyro"     to reading.gyroscope?.let { listOf(it.x, it.y, it.z) },
                 "pressure" to reading.pressure,
                 "magnetic" to reading.magneticField?.toPayloadList(),
+                "aux"      to reading.aux?.takeIf { it.isNotEmpty() },
                 "quality"  to reading.quality?.toPayloadMap()?.takeIf { it.isNotEmpty() },
             ).filterValues { it != null }
         }

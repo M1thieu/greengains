@@ -30,6 +30,7 @@ import com.eremat.greengains.models.NativeUploadStatusEvent
 import com.eremat.greengains.models.SensorReading
 import com.eremat.greengains.notification.NotificationsHelper
 import com.eremat.greengains.util.AppPrefs
+import com.eremat.greengains.service.sensors.AuxSensors
 import com.eremat.greengains.service.sensors.Barometer
 import com.eremat.greengains.service.sensors.LightSensor
 import com.eremat.greengains.service.sensors.Magnetometer
@@ -82,6 +83,8 @@ class ForegroundService : Service() {
     private lateinit var motionSensors: MotionSensors
     private lateinit var proximitySensor: ProximitySensor
     private lateinit var magnetometer: Magnetometer
+    /** Optional channels only some phones have. Runs only while the sampler runs. */
+    private lateinit var auxSensors: AuxSensors
 
     // Monitors
     private lateinit var batteryMonitor: BatteryStateMonitor
@@ -184,6 +187,7 @@ class ForegroundService : Service() {
         motionSensors = MotionSensors(sensorManager)
         proximitySensor = ProximitySensor(sensorManager)
         magnetometer = Magnetometer(sensorManager)
+        auxSensors = AuxSensors(sensorManager)
 
         // Create Notification Channel (Required for Android O+)
         NotificationsHelper.createNotificationChannel(this)
@@ -477,6 +481,7 @@ class ForegroundService : Service() {
         barometer.flush()
         motionSensors.flush()
         magnetometer.flush()
+        auxSensors.flush()
         // ProximitySensor is a wakeup sensor — no FIFO to flush
         Log.d(TAG, "FIFO buffers flushed")
     }
@@ -618,6 +623,7 @@ class ForegroundService : Service() {
             )
         }
         nativeUploader?.start()
+        auxSensors.start()
 
         if (nativeSamplerJob?.isActive == true) return
 
@@ -655,6 +661,7 @@ class ForegroundService : Service() {
     private fun stopNativeUploader() {
         nativeSamplerJob?.cancel()
         nativeSamplerJob = null
+        auxSensors.stop()
         nativeUploader?.stop()
         nativeUploader = null
     }
@@ -687,6 +694,9 @@ class ForegroundService : Service() {
         val cleanAccel    = rejectOutliersVectors(rawLinearAccel)
         val cleanGyro     = rejectOutliersVectors(rawGyro)
         val cleanMagnetic = rejectOutliersVectors(rawMagnetic)
+
+        // Optional channels: medians drained here, so they cover exactly this reading's window.
+        val aux = auxSensors.drain()
 
         val sampleCount = maxOf(cleanLight.size, cleanPressure.size, cleanAccel.size, 1)
 
@@ -740,7 +750,8 @@ class ForegroundService : Service() {
             pressure      = pressure,
             location      = locationData,
             quality       = quality,
-            magneticField = magnetic
+            magneticField = magnetic,
+            aux           = aux
         )
     }
 

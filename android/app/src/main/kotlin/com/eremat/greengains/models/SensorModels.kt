@@ -16,7 +16,9 @@ data class SensorReading(
     val pressure: Float?,
     val location: LocationData?,
     val quality: QualityMetadata?,
-    val magneticField: MagneticData? = null
+    val magneticField: MagneticData? = null,
+    /** Channels only some phones have (ambient temp, humidity, rear light...). Key -> raw value. */
+    val aux: Map<String, Float>? = null
 )
 
 data class AccelData(val x: Float, val y: Float, val z: Float)
