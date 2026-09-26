@@ -4,11 +4,58 @@ on:
   push:
     branches: [main, master]
   pull_request:
-    branches: ["*"]
+  workflow_dispatch:
+
+# A newer push to the same ref supersedes the run in progress.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  # Keep equal to the Flutter used locally: the committed lib/l10n/app_localizations*.dart are
+  # generated output and the "generated files in sync" check compares against this version.
+  FLUTTER_VERSION: "3.38.7"
+  NODE_VERSION: "20"
 
 jobs:
-  backend-build:
+  # Fast, no toolchains: rules that are cheap to break and expensive to notice later.
+  hygiene:
+    name: Repo hygiene
     runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: No secrets or signing material tracked
+        # These are gitignored on purpose. If one becomes tracked it is one push from public.
+        # (lib/firebase_options.dart and ios/Runner/GoogleService-Info.plist are deliberately
+        # tracked: Firebase client config is public, see the note in firebase_options.dart.)
+        run: |
+          bad=$(git ls-files | grep -E '(^|/)(dart_defines\.json|google-services\.json|key\.properties|\.env(\..+)?)$|\.(jks|keystore|p12)$|serviceAccount.*\.json$' | grep -v '\.example$' || true)
+          if [ -n "$bad" ]; then
+            echo "::error::Sensitive files are tracked by git:"
+            echo "$bad"
+            exit 1
+          fi
+          echo "No sensitive files tracked."
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: EN/FR translations in sync
+        # CLAUDE.md rule: every key in BOTH lib/l10n/app_en.arb and app_fr.arb.
+        run: node tools/check-l10n.mjs
+
+  backend:
+    name: Backend (build + tests)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
     defaults:
       run:
         working-directory: backend
@@ -19,21 +66,27 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: ${{ env.NODE_VERSION }}
           cache: npm
           cache-dependency-path: backend/package-lock.json
 
       - name: Install
         run: npm ci
 
-      - name: Build
+      - name: Build (type check)
         run: npm run build
+
+      - name: Tests
+        # Supplies fake DATABASE_URL / API_KEY / HASH_SECRET itself; no real secrets in CI.
+        run: npm test
 
   # dashboard-build intentionally omitted:
   # dashboard-web/src is gitignored (deployed directly to Hostinger, not via CI).
 
-  flutter-analyze:
+  flutter:
+    name: Flutter (analyze + l10n)
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -41,30 +94,99 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: stable
+          cache: true
 
-      - name: Generate Firebase options stub
-        # firebase_options.dart is gitignored (contains real API keys).
-        # CI only needs a syntactically valid stub so flutter analyze can resolve imports.
+      - name: Pub get
+        run: flutter pub get
+
+      - name: Analyze
+        run: flutter analyze
+
+      - name: Generated l10n files are in sync with the .arb files
+        # Fails if someone edited an .arb and forgot `flutter gen-l10n` (CLAUDE.md rule).
         run: |
-          cat > lib/firebase_options.dart << 'EOF'
-          // CI stub — not used at runtime.
-          // ignore_for_file: type=lint
-          import 'package:firebase_core/firebase_core.dart' show FirebaseOptions;
-          class DefaultFirebaseOptions {
-            static FirebaseOptions get currentPlatform => android;
-            static const FirebaseOptions android = FirebaseOptions(
-              apiKey: 'ci-stub',
-              appId: '1:000000000000:android:0000000000000000000000',
-              messagingSenderId: '000000000000',
-              projectId: 'ci-stub',
-              storageBucket: 'ci-stub.firebasestorage.app',
-            );
+          flutter gen-l10n
+          git diff --exit-code -- lib/l10n || {
+            echo "::error::lib/l10n is out of date. Run 'flutter gen-l10n' and commit the result."
+            exit 1
+          }
+
+  # The only place the native Kotlin code (position filter, aux sensors) is compiled and tested.
+  android-unit-tests:
+    name: Android (native unit tests)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Pub get
+        # Also writes android/local.properties (flutter.sdk), which Gradle needs.
+        run: flutter pub get
+
+      - name: Firebase config stub
+        # android/app/google-services.json is gitignored; the Google Services Gradle plugin
+        # only checks that an entry for the package exists. Not used at runtime.
+        run: |
+          cat > android/app/google-services.json << 'EOF'
+          {
+            "project_info": {
+              "project_number": "000000000000",
+              "project_id": "ci-stub",
+              "storage_bucket": "ci-stub.firebasestorage.app"
+            },
+            "client": [
+              {
+                "client_info": {
+                  "mobilesdk_app_id": "1:000000000000:android:0000000000000000000000",
+                  "android_client_info": { "package_name": "com.eremat.greengains" }
+                },
+                "api_key": [ { "current_key": "ci-stub" } ]
+              }
+            ],
+            "configuration_version": "1"
           }
           EOF
 
-      - name: Flutter Pub Get
-        run: flutter pub get
+      - name: Read Gradle version from the wrapper config
+        # android/gradlew is gitignored (Flutter regenerates it), so install the same Gradle
+        # the project pins instead of relying on the wrapper script being present.
+        id: gradle
+        run: |
+          version=$(sed -n 's#.*gradle-\([0-9][0-9.]*\)-.*#\1#p' android/gradle/wrapper/gradle-wrapper.properties)
+          test -n "$version"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
 
-      - name: Flutter Analyze
-        run: flutter analyze
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: ${{ steps.gradle.outputs.version }}
+
+      - name: Unit tests
+        working-directory: android
+        run: gradle :app:testDebugUnitTest --stacktrace
+
+      - name: Upload test reports
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-test-reports
+          path: |
+            build/app/reports/tests
+            build/app/test-results
+          if-no-files-found: ignore
