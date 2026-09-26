@@ -43,12 +43,20 @@ export interface Summary {
 /**
  * Median Absolute Deviation outlier filter (openSenseMap/MAD pattern).
  *
- * Returns the subset of values within `multiplier × MAD` of the median.
- * If fewer than 4 values are provided, or if MAD is 0 (all identical),
- * the original array is returned unchanged (no false positives on flat signals).
+ * Returns the subset of values within `multiplier` standard deviations of the median, where the
+ * standard deviation is estimated robustly as 1.4826 × MAD. If fewer than 4 values are provided,
+ * or if MAD is 0 (all identical), the original array is returned unchanged (no false positives on
+ * flat signals).
  *
- * Reference: openSenseMap outlierTransformer uses 3σ-equivalent MAD threshold.
+ * Why 1.4826: for Gaussian data MAD = 0.6745 σ, so the raw MAD underestimates σ by that factor and
+ * "3 × MAD" is really a 2 σ cut that discards ~5 % of perfectly good samples (measured: 5.1 %,
+ * sensor-analytics.test.ts). The consistency constant is 1 / Φ⁻¹(3/4) (Rousseeuw & Croux 1993).
+ * With it, `multiplier = 3` means 3 σ, i.e. 0.27 % of clean Gaussian data.
+ *
+ * Reference: openSenseMap outlierTransformer uses a 3σ-equivalent MAD threshold.
  */
+const MAD_TO_SIGMA = 1.4826;
+
 export function filterOutliersMad(values: number[], multiplier = 3): number[] {
   if (values.length < 4) return values;
 
@@ -66,7 +74,7 @@ export function filterOutliersMad(values: number[], multiplier = 3): number[] {
 
   if (mad === 0) return values; // flat signal — every value is the median, no outliers
 
-  const threshold = multiplier * mad;
+  const threshold = multiplier * MAD_TO_SIGMA * mad;
   return values.filter(v => Math.abs(v - median) <= threshold);
 }
 
