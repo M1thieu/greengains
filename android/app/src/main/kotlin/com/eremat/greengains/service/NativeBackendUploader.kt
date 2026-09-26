@@ -123,6 +123,14 @@ class NativeBackendUploader(
     /** What happened to one attempted batch — decides whether the rest of the flush continues. */
     private enum class UploadResult { SUCCESS, DROPPED, RETRY_LATER }
 
+    // Weights for the batch centroid. A reported accuracy below the floor is not trusted
+    // (fixes claiming 0-2 m are usually a stale or synthetic value); a missing one is treated
+    // pessimistically rather than as perfect.
+    private val MIN_FIX_ACCURACY_M = 3.0
+    private val UNKNOWN_FIX_ACCURACY_M = 100.0
+    private val METRES_PER_DEG_LAT = 111_320.0
+    private fun sq(v: Double) = v * v
+
     // ── Connectivity telemetry ────────────────────────────────────────────────
     // Cumulative counters. Each upload reports the DELTA since the last SUCCESSFUL upload
     // (see TelemetryMark), so failures that happen while offline are reported by the first
@@ -142,6 +150,68 @@ class NativeBackendUploader(
         val droppedBatches: Int = 0,
     )
     private var lastSentMark = TelemetryMark()
+
+    // ── Sync health (developer tooling, debug builds only) ─────────────────────
+    // A failing uploader used to be completely silent: the last successful upload was months
+    // old and nothing on the phone said so. Persisted once per cycle for a debug-only panel.
+    private var lastAttemptAtMs = 0L
+    private var lastSuccessAtMs = 0L
+    private var consecutiveFailures = 0
+    private var lastErrorClass: String? = null
+
+    /** Short, body-free label for a failure reason: never leaks a response body or token. */
+    private fun errorClass(reason: String): String = when {
+        reason.startsWith("HTTP ") -> reason.substringBefore(":").take(12)
+        reason.startsWith("Network error") -> "Network error"
+        else -> "Unexpected error"
+    }
+
+    /** Keep "last success" across service restarts, so a restart does not read as "never". */
+    private fun loadPreviousHealth() {
+        try {
+            val raw = context.getSharedPreferences(AppPrefs.NAME, Context.MODE_PRIVATE)
+                .getString(AppPrefs.UPLOAD_HEALTH, null) ?: return
+            @Suppress("UNCHECKED_CAST")
+            val previous = gson.fromJson(raw, Map::class.java) as? Map<String, Any?> ?: return
+            lastSuccessAtMs = (previous["last_success_at"] as? Double)?.toLong() ?: 0L
+        } catch (e: Exception) {
+            Log.w(TAG, "Could not read previous upload health: ${e.message}")
+        }
+    }
+
+    // Developer tooling only: the snapshot is read by a debug-build panel and nothing else, so
+    // release builds never write it at all.
+    private val isDebuggable =
+        (context.applicationInfo.flags and android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE) != 0
+
+    private fun persistHealth() {
+        if (!isDebuggable) return
+        try {
+            val s = networkMonitor?.snapshot()
+            val health = mutableMapOf<String, Any?>(
+                "at"                   to System.currentTimeMillis(),
+                "last_success_at"      to lastSuccessAtMs.takeIf { it > 0 },
+                "last_attempt_at"      to lastAttemptAtMs.takeIf { it > 0 },
+                "consecutive_failures" to consecutiveFailures,
+                "last_error"           to lastErrorClass,
+                "buffer"               to getBufferSize(),
+                "retry_queue"          to synchronized(retryQueue) { retryQueue.size },
+                "dropped_batches"      to droppedBatches,
+                "dropped_readings"     to droppedReadings.get(),
+                "interrupted"          to interruptedAttempts,
+                "transitions"          to (networkMonitor?.transitionCount() ?: 0L),
+                "unusable_s"           to ((networkMonitor?.unusableMs() ?: 0L) / 1000),
+                "transport"            to s?.transport?.wire,
+                "validated"            to s?.validated,
+                "metered"              to s?.metered,
+            )
+            context.getSharedPreferences(AppPrefs.NAME, Context.MODE_PRIVATE).edit()
+                .putString(AppPrefs.UPLOAD_HEALTH, gson.toJson(health.filterValues { it != null }))
+                .apply()
+        } catch (e: Exception) {
+            Log.w(TAG, "Could not persist upload health: ${e.message}")
+        }
+    }
 
     private fun currentMark() = TelemetryMark(
         transitions = networkMonitor?.transitionCount() ?: 0,
@@ -213,6 +283,9 @@ class NativeBackendUploader(
         networkMonitor?.transitionListener = { _, _ ->
             coroutineScope.launch { httpClient.connectionPool.evictAll() }
         }
+
+        loadPreviousHealth()
+        persistHealth()
 
         uploadJob = coroutineScope.launch {
             while (isActive) {
@@ -330,6 +403,7 @@ class NativeBackendUploader(
             }
         }
         } finally {
+            persistHealth() // every path, including "skipped: no validated network"
             if (uploadWakeLock?.isHeld == true) uploadWakeLock.release()
         }
     }
@@ -382,7 +456,8 @@ class NativeBackendUploader(
             }
 
             totalUploadsAttempted++
-            val attemptLog = "Attempt #$totalUploadsAttempted: uploading ${batch.readings.size} readings"
+            lastAttemptAtMs = System.currentTimeMillis()
+            val attemptLog ="Attempt #$totalUploadsAttempted: uploading ${batch.readings.size} readings"
             Log.i(TAG, attemptLog)
             AppLogger.i(TAG, attemptLog)
 
@@ -424,6 +499,9 @@ class NativeBackendUploader(
     private fun handleSuccess(batchSize: Int, statusCode: Int) {
         totalUploadsSucceeded++
         lastUploadTime = System.currentTimeMillis()
+        lastSuccessAtMs = lastUploadTime
+        consecutiveFailures = 0
+        lastErrorClass = null
         val logMsg = "Upload succeeded. batch=$batchSize status=$statusCode total=$totalUploadsSucceeded"
         Log.i(TAG, logMsg)
         AppLogger.i(TAG, logMsg)
@@ -450,6 +528,8 @@ class NativeBackendUploader(
 
     private fun handleFailure(batch: PendingBatch, reason: String) {
         totalUploadsFailed++
+        consecutiveFailures++
+        lastErrorClass = errorClass(reason)
         Log.e(TAG, "Upload FAILED id=${batch.batchId} retry=${batch.retryCount}: $reason")
         AppLogger.e(TAG, "Upload FAILED id=${batch.batchId} retry=${batch.retryCount}: $reason")
 
@@ -487,6 +567,8 @@ class NativeBackendUploader(
     private fun handleHttpFailure(batch: PendingBatch, code: Int, reason: String): UploadResult {
         if (code == 400 || code == 413 || code == 422) {
             totalUploadsFailed++
+            consecutiveFailures++
+            lastErrorClass = errorClass(reason)
             Log.e(TAG, "Upload REJECTED permanently id=${batch.batchId}: $reason")
             AppLogger.e(TAG, "Upload REJECTED permanently id=${batch.batchId}: $reason")
             countDropped(batch)
@@ -511,6 +593,7 @@ class NativeBackendUploader(
      */
     private fun deferInterrupted(batch: PendingBatch, reason: String): UploadResult {
         interruptedAttempts++
+        lastErrorClass = "Network changed"
         Log.w(TAG, "Upload interrupted by network change id=${batch.batchId}: $reason — retry budget kept")
         AppLogger.w(TAG, "Upload interrupted by network change id=${batch.batchId}")
         synchronized(retryQueue) {
@@ -599,13 +682,35 @@ class NativeBackendUploader(
         var avgLat: Double? = null
         var avgLon: Double? = null
         var avgAccuracy: Double? = null
+        var spreadM: Double? = null
 
         if (shareLocation) {
             val locations = batch.readings.mapNotNull { it.location }
             if (locations.isNotEmpty()) {
-                avgLat      = locations.mapNotNull { it.latitude  }.average()
-                avgLon      = locations.mapNotNull { it.longitude }.average()
+                // Inverse-variance weighted centroid: accuracy is the 68 % radius (~1 sigma), so
+                // a 5 m fix counts 400x a 100 m one instead of the two averaging as equals.
+                val weights = locations.map { 1.0 / sq((it.accuracy ?: UNKNOWN_FIX_ACCURACY_M).coerceAtLeast(MIN_FIX_ACCURACY_M)) }
+                val wSum = weights.sum()
+                val centroidLat = locations.indices.sumOf { locations[it].latitude  * weights[it] } / wSum
+                val centroidLon = locations.indices.sumOf { locations[it].longitude * weights[it] } / wSum
+                avgLat = centroidLat
+                avgLon = centroidLon
+                // Kept as the plain mean of reported accuracies: downstream thresholds
+                // (personal-tile filter, quality bands) were tuned against this meaning.
                 avgAccuracy = locations.mapNotNull { it.accuracy  }.average()
+
+                // A batch is stored as ONE point. This says how much travel that point hides:
+                // RMS distance of the batch's positions from the centroid. Deliberately
+                // UNweighted: weighting by accuracy would down-weight exactly the coarse fixes
+                // and understate the movement. Without it a 5-minute walk and a 5-minute
+                // stand-still look equally precise.
+                val mPerDegLon = METRES_PER_DEG_LAT * kotlin.math.cos(Math.toRadians(centroidLat))
+                val meanSq = locations.sumOf { p ->
+                    val dy = (p.latitude  - centroidLat) * METRES_PER_DEG_LAT
+                    val dx = (p.longitude - centroidLon) * mPerDegLon
+                    dx * dx + dy * dy
+                } / locations.size
+                spreadM = kotlin.math.sqrt(meanSq)
             }
         }
 
@@ -629,6 +734,7 @@ class NativeBackendUploader(
                 "lat"        to avgLat,
                 "lon"        to avgLon,
                 "accuracy_m" to avgAccuracy,
+                "spread_m"   to spreadM?.let { Math.round(it * 10) / 10.0 },
             ).filterValues { it != null }
         } else null
 

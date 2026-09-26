@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
@@ -13,6 +14,8 @@ class PreferenceKeys {
   static const trackingPaused = 'flutter.tracking_paused';
   static const shareLocation = 'flutter.share_location';
   static const lastUploadAt = 'flutter.last_upload_at';
+  /// JSON snapshot of upload/network health, written by the native uploader (never by Dart).
+  static const uploadHealth = 'flutter.upload_health';
   static const dismissedTips = 'dismissed_tips';
   static const batteryOptimizationPromptDismissed = 'battery_optimization_prompt_dismissed';
   static const batteryOptimizationPromptLastShown = 'battery_optimization_prompt_last_shown';
@@ -312,6 +315,22 @@ class AppPreferences {
     }
     final parsed = DateTime.tryParse(raw);
     return parsed?.toLocal();
+  }
+
+  /// Re-reads the store from disk. The native uploader writes [PreferenceKeys.uploadHealth]
+  /// outside this plugin instance, so the in-memory cache is stale until reloaded.
+  Future<void> reload() => _sp.reload();
+
+  /// Upload/network health snapshot written by the native uploader, or null if none yet.
+  Map<String, dynamic>? get uploadHealth {
+    final raw = _sp.getString(PreferenceKeys.uploadHealth);
+    if (raw == null || raw.isEmpty) return null;
+    try {
+      final decoded = jsonDecode(raw);
+      return decoded is Map<String, dynamic> ? decoded : null;
+    } catch (_) {
+      return null;
+    }
   }
 
   Future<void> setLastUploadAt(DateTime timestamp) async {

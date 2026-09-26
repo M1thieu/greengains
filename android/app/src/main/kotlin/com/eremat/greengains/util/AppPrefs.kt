@@ -55,6 +55,13 @@ object AppPrefs {
     /** ISO 8601 timestamp of the last successful upload, shown in the notification. */
     const val LAST_UPLOAD_AT = "flutter.flutter.last_upload_at"
 
+    /**
+     * JSON snapshot of upload/network health, written by the native uploader once per cycle and
+     * read by the Diagnostics screen. Contains counts, timestamps and short error classes only —
+     * never a response body, token or identifier.
+     */
+    const val UPLOAD_HEALTH = "flutter.flutter.upload_health"
+
     // ── Daily count tracking (native-only, not shared with Flutter) ──────────
 
     /** ISO date (YYYY-MM-DD) of the last counted upload — used to reset counter at midnight. */
