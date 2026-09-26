@@ -3,6 +3,7 @@ package com.eremat.greengains.service
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.hypot
+import kotlin.math.ln
 import kotlin.math.sqrt
 
 /** A smoothed position. Deliberately carries no accuracy: see [PositionFilter]. */
@@ -11,9 +12,12 @@ data class FilteredPosition(val latitude: Double, val longitude: Double)
 /**
  * Accuracy-weighted position filter (a Kalman filter on an isotropic 2-D random walk).
  *
- * Why: Android reports each fix's `accuracy` as the radius of 68 % confidence, i.e. about one
- * standard deviation. That makes it directly usable as a measurement variance, so a 5 m fix
- * outweighs a 100 m one instead of the two simply replacing each other. It matters most when
+ * Why: Android reports each fix's `accuracy` as the radius of the circle holding the true
+ * position with 68 % probability. For an isotropic 2-D Gaussian error that radius is
+ * sigma * sqrt(-2 ln(1 - 0.68)) = 1.51 sigma (the Rayleigh distribution), so the per-axis standard
+ * deviation is accuracy / 1.51, NOT the accuracy itself. That makes it directly usable as a
+ * measurement variance, so a 5 m fix outweighs a 100 m one instead of the two simply replacing
+ * each other. It matters most when
  * the phone is stationary: the app drops to a coarse network-based provider (~50-150 m) to save
  * battery, and without a filter every coarse fix overwrites a previous good one, so the stored
  * position wanders inside a ~174 m hexagon and can flip between neighbouring cells.
@@ -30,28 +34,42 @@ data class FilteredPosition(val latitude: Double, val longitude: Double)
  */
 class PositionFilter {
     companion object {
-        /** Reported accuracy is clamped up to this: a fix claiming 0-2 m is not trusted blindly. */
-        const val MIN_SIGMA_M = 3.0
-
-        /** Used when a fix carries no accuracy at all. Deliberately pessimistic. */
-        const val UNKNOWN_SIGMA_M = 100.0
+        /** Confidence level Android documents for `Location.getAccuracy()`. */
+        const val ACCURACY_CONFIDENCE = 0.68
 
         /**
-         * Assumed drift speed of a phone the motion sensors say is stationary: small movements
-         * while sitting or standing, not a real displacement.
+         * Per-axis sigma per metre of reported accuracy. For 2-D isotropic Gaussian error the
+         * radius holding probability p is sigma * sqrt(-2 ln(1 - p)) (Rayleigh), so this is
+         * 1 / sqrt(-2 ln(1 - 0.68)) = 0.662. Derived from the documented definition, not tuned.
          */
+        val SIGMA_PER_ACCURACY: Double = 1.0 / sqrt(-2.0 * ln(1.0 - ACCURACY_CONFIDENCE))
+
+        /**
+         * HEURISTIC, not derived: reported accuracy is clamped up to this. A fix claiming 0-2 m is
+         * not trusted blindly. GPS.gov quotes about 5 m as typical smartphone open-sky accuracy
+         * (confidence level not stated on the page), which is the right order of magnitude.
+         */
+        const val MIN_ACCURACY_M = 3.0
+
+        /** HEURISTIC: used when a fix carries no accuracy at all. Deliberately pessimistic. */
+        const val UNKNOWN_ACCURACY_M = 100.0
+
+        /** HEURISTIC: assumed drift speed of a phone the motion sensors say is stationary. */
         const val STATIONARY_SPEED_MPS = 0.2
 
-        /** Assumed speed when moving but the fix has no Doppler speed: ordinary walking, 5 km/h. */
+        /** Assumed speed when moving but the fix has no Doppler speed: preferred walking speed, ~1.4 m/s (5 km/h). */
         const val DEFAULT_MOVING_SPEED_MPS = 1.4
 
         /**
-         * A new fix further than this many predicted standard deviations from the estimate is a
-         * genuine move (or a wrong "stationary" flag), not noise: the filter restarts on it
-         * instead of dragging toward it over several updates. 3 sigma gives ~1 % false restarts
-         * for Gaussian 2-D error.
+         * Probability that an honest fix (noise only, no real move) is wrongly treated as a move
+         * and restarts the filter. Gate on the squared normalised innovation: with per-axis
+         * variance S it is chi-square with 2 degrees of freedom, whose tail is exp(-x / 2), so
+         * the threshold is x = -2 ln(alpha). This is a risk the designer chooses, stated as a
+         * probability instead of a bare "3 sigma" (which is the same thing, alpha = 1.1 %).
          */
-        const val GATE_SIGMAS = 3.0
+        const val FALSE_RESTART_PROBABILITY = 0.01
+
+        private val GATE_CHI2 = -2.0 * ln(FALSE_RESTART_PROBABILITY)
 
         private const val METRES_PER_DEG_LAT = 111_320.0
     }
@@ -91,8 +109,9 @@ class PositionFilter {
             return raw
         }
 
-        val sigma = (accuracyM?.takeIf { it.isFinite() && it > 0.0 } ?: UNKNOWN_SIGMA_M)
-            .coerceAtLeast(MIN_SIGMA_M)
+        val accuracy = (accuracyM?.takeIf { it.isFinite() && it > 0.0 } ?: UNKNOWN_ACCURACY_M)
+            .coerceAtLeast(MIN_ACCURACY_M)
+        val sigma = accuracy * SIGMA_PER_ACCURACY
         val measurementVariance = sigma * sigma
 
         if (!isInitialized) {
@@ -115,7 +134,7 @@ class PositionFilter {
 
         // Gate: a fix this far from the estimate is a real move, not noise.
         val innovation = hypot(mx - x, my - y)
-        if (innovation > GATE_SIGMAS * sqrt(predictedVariance + measurementVariance)) {
+        if (innovation * innovation > GATE_CHI2 * (predictedVariance + measurementVariance)) {
             start(latitude, longitude, measurementVariance, timeMs)
             return raw
         }

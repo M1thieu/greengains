@@ -23,6 +23,9 @@ class PositionFilterTest {
 
     private fun rms(errors: List<Double>) = sqrt(errors.sumOf { it * it } / errors.size)
 
+    /** Per-axis noise of a fix whose reported accuracy (68 % radius) is [accuracyM]. */
+    private fun noise(rnd: Random, accuracyM: Double) = rnd.nextGaussian() * accuracyM * PositionFilter.SIGMA_PER_ACCURACY
+
     @Test
     fun stationary_noisy_fixes_are_smoothed_toward_the_true_position() {
         val rnd = Random(42)
@@ -31,7 +34,7 @@ class PositionFilterTest {
         val filtered = mutableListOf<Double>()
         var t = 0L
         repeat(300) { i ->
-            val (lat, lon) = offset(rnd.nextGaussian() * 20.0, rnd.nextGaussian() * 20.0)
+            val (lat, lon) = offset(noise(rnd, 20.0), noise(rnd, 20.0))
             val out = f.update(lat, lon, 20.0, t, null, stationary = true)
             t += 60_000
             if (i >= 20) { // burn-in
@@ -49,14 +52,14 @@ class PositionFilterTest {
         // (last fix wins) would wander with the coarse fixes; the filter must stay near the good one.
         val rnd = Random(7)
         val f = PositionFilter()
-        val (glat, glon) = offset(rnd.nextGaussian() * 5.0, rnd.nextGaussian() * 5.0)
+        val (glat, glon) = offset(noise(rnd, 5.0), noise(rnd, 5.0))
         f.update(glat, glon, 5.0, 0L, null, stationary = true)
 
         val lastFixWins = mutableListOf<Double>()
         val filtered = mutableListOf<Double>()
         var t = 60_000L
         repeat(60) {
-            val (lat, lon) = offset(rnd.nextGaussian() * 100.0, rnd.nextGaussian() * 100.0)
+            val (lat, lon) = offset(noise(rnd, 100.0), noise(rnd, 100.0))
             val out = f.update(lat, lon, 100.0, t, null, stationary = true)
             t += 60_000
             lastFixWins += errM(lat, lon, 0.0, 0.0)
@@ -76,7 +79,7 @@ class PositionFilterTest {
         var t = 0L
         repeat(120) { i ->
             val trueEast = speed * (i * 10.0)
-            val (lat, lon) = offset(trueEast + rnd.nextGaussian() * 10.0, rnd.nextGaussian() * 10.0)
+            val (lat, lon) = offset(trueEast + noise(rnd, 10.0), noise(rnd, 10.0))
             val out = f.update(lat, lon, 10.0, t, speed, stationary = false)
             t += 10_000
             if (i >= 5) {
@@ -127,5 +130,37 @@ class PositionFilterTest {
         val movedM = errM(out.latitude, out.longitude, 0.0, 0.0)
         println("unknown-accuracy fix moved the estimate by %.1f m of a 40 m offset".format(movedM))
         assertTrue(movedM < 20.0)
+    }
+
+    @Test
+    fun sigma_factor_follows_from_the_documented_68_percent_radius() {
+        // Rayleigh: P(r <= R) = 1 - exp(-R^2 / 2 sigma^2). Put R = 1 and sigma = the factor:
+        // the probability must come back as the documented 0.68.
+        val sigma = PositionFilter.SIGMA_PER_ACCURACY
+        val p = 1.0 - Math.exp(-1.0 / (2.0 * sigma * sigma))
+        assertEquals(0.68, p, 1e-12)
+        assertEquals(0.6624, sigma, 5e-4)
+    }
+
+    @Test
+    fun honest_noise_restarts_the_filter_no_more_often_than_the_chosen_probability() {
+        // Stationary phone, honest fixes whose 68 % radius matches the reported accuracy. Every
+        // restart here is a false alarm. The predicted variance is never below the true estimate
+        // variance, so the observed rate may sit BELOW alpha but must not exceed it.
+        val rnd = Random(2024)
+        val f = PositionFilter()
+        var restarts = 0
+        val n = 20_000
+        var t = 0L
+        repeat(n) { i ->
+            val (lat, lon) = offset(noise(rnd, 30.0), noise(rnd, 30.0))
+            val out = f.update(lat, lon, 30.0, t, null, stationary = true)
+            t += 30_000
+            // A restart returns the raw fix unchanged (the first fix is that too).
+            if (i > 0 && out.latitude == lat && out.longitude == lon) restarts++
+        }
+        val rate = restarts.toDouble() / n
+        println("false restart rate = %.4f (chosen alpha = %.2f)".format(rate, PositionFilter.FALSE_RESTART_PROBABILITY))
+        assertTrue("rate $rate exceeds alpha", rate <= PositionFilter.FALSE_RESTART_PROBABILITY * 1.25)
     }
 }
