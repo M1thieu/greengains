@@ -50,14 +50,6 @@ export const AGGREGATION_JOB_INTERVAL_MS = 60_000;
 export const MOVEMENT_GRAVITY_BASELINE = 9.81;
 /** Deviation above/below rest that maps to movement_score = 1.0. */
 export const MOVEMENT_THRESHOLD = 5.0;
-/**
- * Ring-1 spatial correlation coefficient for light/pressure smoothing.
- * Used as an inverse-variance weight discount: a neighboring H3 cell's samples
- * count as `n * RING1_SPATIAL_CORRELATION` toward the blended estimate, vs. the
- * local cell's samples which count fully. Adjacent hexes are correlated but not
- * identical — 0.35 is an initial placeholder pending empirical calibration.
- */
-export const RING1_SPATIAL_CORRELATION = 0.35;
 
 // ─── Data Retention ───────────────────────────────────────────────────────────
 /**
