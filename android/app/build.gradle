@@ -89,4 +89,7 @@ dependencies {
 
     // Geohash library for location encoding
     implementation "ch.hsr:geohash:1.4.0"
+
+    // JVM unit tests for pure-Kotlin logic (no Android runtime needed)
+    testImplementation "junit:junit:4.13.2"
 }

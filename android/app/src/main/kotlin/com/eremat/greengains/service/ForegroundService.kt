@@ -145,6 +145,11 @@ class ForegroundService : Service() {
     // GPS jump detection — track last physically-plausible location to reject multipath glitches.
     private var lastAcceptedLocation: Location? = null
 
+    // Accuracy-weighted smoothing of the position that is UPLOADED. _locationFlow stays the raw
+    // fix (the map UI has its own smoothing and the quality analyzer needs the raw accuracy).
+    private val positionFilter = PositionFilter()
+    @Volatile private var filteredPosition: FilteredPosition? = null
+
     // Adaptive GPS optimization with interval-based battery savings:
     // - Always uses Priority.PRIORITY_HIGH_ACCURACY for fresh GPS/network locations
     // - Stationary: 60s interval (~50% battery savings, still fresh data)
@@ -215,6 +220,14 @@ class ForegroundService : Service() {
 
                     }
                     lastAcceptedLocation = location
+                    filteredPosition = positionFilter.update(
+                        latitude   = location.latitude,
+                        longitude  = location.longitude,
+                        accuracyM  = if (location.hasAccuracy()) location.accuracy.toDouble() else null,
+                        timeMs     = location.time,
+                        speedMps   = if (location.hasSpeed()) location.speed.toDouble() else null,
+                        stationary = currentMotionState == MotionState.STATIONARY,
+                    )
                     Log.d(TAG, "Location accepted: lat=${location.latitude}, lon=${location.longitude}, accuracy=${location.accuracy}m")
                     _locationFlow.value = location
                 }
@@ -591,6 +604,10 @@ class ForegroundService : Service() {
     }
 
     private fun startNativeUploader() {
+        // New collection session: never smooth across a gap (screen off for hours, paused, etc.).
+        positionFilter.reset()
+        filteredPosition = null
+
         if (nativeUploader == null) {
             nativeUploader = NativeBackendUploader(
                 context = applicationContext,
@@ -700,10 +717,13 @@ class ForegroundService : Service() {
 
         val accel = avgAccel?.takeIf { it.size >= 3 }?.let { AccelData(it[0], it[1], it[2]) }
         val gyro  = avgGyro?.takeIf  { it.size >= 3 }?.let { GyroData(it[0], it[1], it[2]) }
+        // Smoothed position, but the RAW fix's accuracy: filtered errors are correlated in time,
+        // so a filter-derived accuracy would be over-confident and inflate quality scores.
+        val smoothed = filteredPosition
         val locationData = location?.let {
             LocationData(
-                latitude  = it.latitude,
-                longitude = it.longitude,
+                latitude  = smoothed?.latitude ?: it.latitude,
+                longitude = smoothed?.longitude ?: it.longitude,
                 accuracy  = if (it.hasAccuracy()) it.accuracy.toDouble() else null
             )
         }
