@@ -36,7 +36,8 @@ import { referralRoutes } from './routes/referral';
 import { telemetryRoutes } from './routes/telemetry';
 import { insightsRoutes } from './routes/insights';
 import { roadQualityRoutes } from './routes/road-quality';
-import { startAggregationJob, stopAggregationJob } from './jobs/aggregator';
+import { startAggregationJob, stopAggregationJob, getAggregationStatus } from './jobs/aggregator';
+import { getWeatherStats } from './utils/weatherService';
 import { runH3Backfill } from './jobs/h3-backfill';
 import { ErrorCodes, createErrorResponse } from './utils/errors';
 import './middleware/auth'; // import FastifyRequest augmentation (user field)
@@ -115,7 +116,7 @@ fastify.get('/health', async (request, reply) => {
   const health: {
     status: string;
     timestamp: string;
-    checks: Record<string, { status: string; latency_ms?: number; error?: string }>;
+    checks: Record<string, { status: string; [detail: string]: unknown }>;
   } = {
     status: 'healthy',
     timestamp: new Date().toISOString(),
@@ -148,6 +149,28 @@ fastify.get('/health', async (request, reply) => {
   health.checks.firebase = {
     status: isFirebaseInitialized() ? 'enabled' : 'disabled',
   };
+
+  // Data freshness — INFORMATIONAL ONLY, never affects `status`. "Database is up" says nothing
+  // about whether data is still arriving; a quiet system is legitimately quiet, so staleness
+  // must not mark the service unhealthy (it would page on every idle weekend). Index-only
+  // MAX() on timestamp_utc; any failure here is swallowed so it can never fail the probe.
+  if (health.checks.database?.status === 'up') {
+    try {
+      const { getPool } = await import('./database');
+      const r = await getPool().query('SELECT MAX(timestamp_utc) AS last FROM sensor_batches');
+      const last: Date | null = r.rows[0]?.last ? new Date(r.rows[0].last) : null;
+      health.checks.ingest = {
+        status: last ? 'ok' : 'empty',
+        last_batch_at: last ? last.toISOString() : null,
+        age_s: last ? Math.round((Date.now() - last.getTime()) / 1000) : null,
+      };
+    } catch {
+      health.checks.ingest = { status: 'unknown' };
+    }
+  }
+
+  health.checks.aggregation = { status: 'ok', ...getAggregationStatus() };
+  health.checks.weather = { status: 'ok', ...getWeatherStats() };
 
   return health;
 });

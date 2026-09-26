@@ -115,15 +115,45 @@ interface DayAccumulator {
 let aggregationTimer: NodeJS.Timeout | null = null;
 let lastPurgeDate: string | null = null; // UTC date string — purge runs at most once per day
 
+// A job that fails every minute and one that never ran look identical from outside — and the
+// error only reaches Sentry. This makes the last outcome readable from /health.
+const aggregationStatus = {
+  runs: 0,
+  failures: 0,
+  lastRunAt: null as string | null,
+  lastDurationMs: null as number | null,
+  lastError: null as string | null,
+};
+
+export function getAggregationStatus() {
+  return { ...aggregationStatus };
+}
+
+async function runTracked(): Promise<void> {
+  const started = Date.now();
+  aggregationStatus.runs++;
+  try {
+    await runAggregationJob();
+    aggregationStatus.lastError = null;
+  } catch (error) {
+    aggregationStatus.failures++;
+    aggregationStatus.lastError = error instanceof Error ? error.message.slice(0, 200) : 'unknown error';
+    throw error;
+  } finally {
+    aggregationStatus.lastRunAt = new Date().toISOString();
+    aggregationStatus.lastDurationMs = Date.now() - started;
+  }
+}
+
 export async function startAggregationJob(): Promise<void> {
   // Run once immediately, then schedule interval
-  await runAggregationJob().catch((error) => {
+  await runTracked().catch((error) => {
     console.error('[aggregation] initial run failed:', { err: error });
     Sentry.captureException(error, { tags: { job: 'aggregation', phase: 'initial' } });
   });
   aggregationTimer = setInterval(() => {
     const start = Date.now();
-    runAggregationJob().catch((error) => {
+    runTracked().catch((error) => {
       const elapsedMs = Date.now() - start;
       console.error('[aggregation] scheduled run failed', { err: error, elapsedMs });
       Sentry.captureException(error, { tags: { job: 'aggregation', phase: 'scheduled' }, extra: { elapsedMs } });

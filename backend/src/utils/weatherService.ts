@@ -25,6 +25,21 @@ const _cache = new Map<string, CacheEntry>();
 const CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour
 const MAX_CACHE_ENTRIES = 500; // self-limiting; buckets rotate hourly anyway
 
+// Lookups return null on any failure by design, so without counters a broken or rate-limited
+// weather API is invisible: pressure_anomaly_hpa would just silently stay empty.
+const _stats = { ok: 0, failed: 0, cacheHits: 0, lastSuccessAt: null as string | null, lastFailureAt: null as string | null };
+
+/** Cumulative since process start. Exposed on /health. */
+export function getWeatherStats() {
+  return { ..._stats };
+}
+
+function _fail(): null {
+  _stats.failed++;
+  _stats.lastFailureAt = new Date().toISOString();
+  return null;
+}
+
 function _cacheKey(lat: number, lon: number, at: Date): string {
   const roundedLat = Math.round(lat * 4) / 4; // 0.25° grid
   const roundedLon = Math.round(lon * 4) / 4;
@@ -64,20 +79,23 @@ function _closestIndex(times: string[], at: Date): number {
 export async function getWeatherAt(lat: number, lon: number, at: Date): Promise<WeatherObservation | null> {
   const key = _cacheKey(lat, lon, at);
   const cached = _cache.get(key);
-  if (cached && cached.expiresAt > Date.now()) return cached.value;
+  if (cached && cached.expiresAt > Date.now()) {
+    _stats.cacheHits++;
+    return cached.value;
+  }
 
   try {
     const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}` +
       `&hourly=${HOURLY_VARS.join(',')}&past_days=1&forecast_days=1&timezone=UTC`;
     const res = await fetch(url, { signal: AbortSignal.timeout(5000) });
-    if (!res.ok) return null;
+    if (!res.ok) return _fail();
 
     const data = await res.json() as { hourly?: HourlyBlock };
     const times = data.hourly?.time;
-    if (!times || times.length === 0) return null;
+    if (!times || times.length === 0) return _fail();
 
     const idx = _closestIndex(times, at);
-    if (idx < 0) return null;
+    if (idx < 0) return _fail();
 
     const pick = (name: (typeof HOURLY_VARS)[number]): number | null => {
       const series = data.hourly?.[name];
@@ -92,8 +110,10 @@ export async function getWeatherAt(lat: number, lon: number, at: Date): Promise<
 
     if (_cache.size >= MAX_CACHE_ENTRIES) _cache.clear();
     _cache.set(key, { value, expiresAt: Date.now() + CACHE_TTL_MS });
+    _stats.ok++;
+    _stats.lastSuccessAt = new Date().toISOString();
     return value;
   } catch {
-    return null;
+    return _fail();
   }
 }

@@ -7,6 +7,12 @@ export const LocationDataSchema = z.object({
   accuracy_m: z.number(),
   speed_mps: z.number().optional(),
   bearing_deg: z.number().optional(),
+  /**
+   * RMS distance in metres of the batch's individual fixes from the reported centroid. A batch
+   * is stored as ONE point, so this is how much travel that point hides (a 5-min walk ~100+ m,
+   * a stand-still ~0). Optional and additive: nothing has to read it yet.
+   */
+  spread_m: z.number().min(0).max(1_000_000).optional().catch(undefined),
 });
 
 const OrientationEnum = z.enum([
