@@ -18,6 +18,7 @@ import android.content.ContentValues
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.net.wifi.WifiManager
+import android.os.SystemClock
 import android.util.Log
 import ch.hsr.geohash.GeoHash
 import com.google.gson.Gson
@@ -38,6 +39,7 @@ import java.io.File
 import java.io.IOException
 import java.util.UUID
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicInteger
 import java.util.zip.GZIPOutputStream
 
 /**
@@ -110,6 +112,46 @@ class NativeBackendUploader(
     private val MAX_RETRIES = 5
     private val MAX_BATCH_AGE_MS = 4L * 60 * 60_000L  // 4 hours
 
+    // The server rejects batches over 500 readings (UploadBatchSchema); stay well under it.
+    private val MAX_BATCH_READINGS = 400
+    // A batch is stored as ONE averaged position. After a long deferral (offline, WiFi-only
+    // walk) the buffer can span hours of travel; capping the span bounds how far that one
+    // point can be from where any reading was actually taken. 10 min sits just above the
+    // normal 5-min cycle, so ordinary batches are never split.
+    private val MAX_BATCH_SPAN_MS = 10L * 60_000L
+
+    /** What happened to one attempted batch — decides whether the rest of the flush continues. */
+    private enum class UploadResult { SUCCESS, DROPPED, RETRY_LATER }
+
+    // ── Connectivity telemetry ────────────────────────────────────────────────
+    // Cumulative counters. Each upload reports the DELTA since the last SUCCESSFUL upload
+    // (see TelemetryMark), so failures that happen while offline are reported by the first
+    // batch that gets through instead of being lost with the failed attempt.
+    private val droppedReadings = AtomicInteger(0)   // also touched by the sampler thread
+    private var droppedBatches = 0
+    private var interruptedAttempts = 0
+    private var lastUploadMs = 0L                    // round trip of the last successful upload
+    private var lastUploadBytes = 0                  // compressed size of that upload
+
+    private data class TelemetryMark(
+        val transitions: Long = 0,
+        val unusableMs: Long = 0,
+        val interrupted: Int = 0,
+        val failed: Int = 0,
+        val droppedReadings: Int = 0,
+        val droppedBatches: Int = 0,
+    )
+    private var lastSentMark = TelemetryMark()
+
+    private fun currentMark() = TelemetryMark(
+        transitions = networkMonitor?.transitionCount() ?: 0,
+        unusableMs = networkMonitor?.unusableMs() ?: 0,
+        interrupted = interruptedAttempts,
+        failed = totalUploadsFailed,
+        droppedReadings = droppedReadings.get(),
+        droppedBatches = droppedBatches,
+    )
+
     /** 30s → 1m → 2m → 4m → 8m → capped at 30m */
     private fun backoffMs(retryCount: Int): Long = minOf(30_000L shl retryCount, 30 * 60_000L)
 
@@ -164,6 +206,14 @@ class NativeBackendUploader(
         Log.i(TAG, "* Endpoint: $baseUrl/upload | Gzip: enabled")
         Log.i(TAG, "************************************************************")
 
+        // Pooled keep-alive sockets stay bound to the network they were opened on. After a
+        // Wi-Fi <-> cellular handoff they are dead, so drop them and let the next call open a
+        // fresh connection. (Sourced only from a public OkHttp issue, square/okhttp#4789 —
+        // there is no maintainer-endorsed fix — so this is a defensive measure, not a guarantee.)
+        networkMonitor?.transitionListener = { _, _ ->
+            coroutineScope.launch { httpClient.connectionPool.evictAll() }
+        }
+
         uploadJob = coroutineScope.launch {
             while (isActive) {
                 try {
@@ -178,6 +228,7 @@ class NativeBackendUploader(
 
     fun stop() {
         Log.i(TAG, "Native backend uploader stopping. success=$totalUploadsSucceeded failure=$totalUploadsFailed")
+        networkMonitor?.transitionListener = null
         uploadJob?.cancel()
         coroutineScope.coroutineContext.cancelChildren()
     }
@@ -190,6 +241,7 @@ class NativeBackendUploader(
             // Circular buffer: drop oldest entries beyond maxBufferSize
             while (sensorBuffer.size > maxBufferSize) {
                 val removed = sensorBuffer.removeAt(0)
+                droppedReadings.incrementAndGet()
                 Log.w(TAG, "Buffer overflow. Dropping reading timestamp=${removed.timestamp}")
             }
 
@@ -220,51 +272,69 @@ class NativeBackendUploader(
 
         val now = System.currentTimeMillis()
 
-        // 1. Check if a pending retry is due
-        val retryBatch: PendingBatch? = synchronized(retryQueue) {
-            val head = retryQueue.firstOrNull() ?: return@synchronized null
-            when {
-                now - head.capturedAt >= MAX_BATCH_AGE_MS -> {
-                    // Stale — drop silently
+        // 1. Every retry whose backoff has expired, oldest first. Stale batches are dropped.
+        //    All of them go out in this cycle: once one upload gets through the network is
+        //    evidently fine, and after a long outage a one-batch-per-cycle drain would take
+        //    an hour to clear a two-hour backlog.
+        val toSend = ArrayDeque<PendingBatch>()
+        synchronized(retryQueue) {
+            while (true) {
+                val head = retryQueue.firstOrNull() ?: break
+                if (now - head.capturedAt >= MAX_BATCH_AGE_MS) {
                     retryQueue.removeFirst()
                     val ageHours = (now - head.capturedAt) / 3_600_000L
                     Log.w(TAG, "Dropped stale batch id=${head.batchId} age=${ageHours}h (limit=4h)")
-                    null
-                }
-                now >= head.nextRetryAfter -> {
+                    countDropped(head)
+                } else if (now >= head.nextRetryAfter) {
                     retryQueue.removeFirst()
-                    head  // backoff expired — ready to retry
+                    Log.i(TAG, "Retrying batch id=${head.batchId} attempt=${head.retryCount + 1}/$MAX_RETRIES")
+                    toSend.addLast(head)
+                } else {
+                    break // still in its backoff window
                 }
-                else -> null  // still in backoff window — fall through to live buffer
             }
         }
 
-        val batch: PendingBatch = if (retryBatch != null) {
-            Log.i(TAG, "Retrying batch id=${retryBatch.batchId} attempt=${retryBatch.retryCount + 1}/$MAX_RETRIES")
-            retryBatch
-        } else {
-            // 2. Drain the live sensor buffer into a fresh batch
-            val readings: List<SensorReading> = synchronized(sensorBuffer) {
-                if (sensorBuffer.isEmpty()) {
-                    Log.d(TAG, "No sensor readings collected yet, skipping upload cycle")
-                    return@withContext
-                }
-                sensorBuffer.toList().also { sensorBuffer.clear() }
+        // 2. Then the live buffer, split into bounded batches (a long deferral must not
+        //    become one giant, mislocated batch).
+        val readings: List<SensorReading> = synchronized(sensorBuffer) {
+            sensorBuffer.toList().also { sensorBuffer.clear() }
+        }
+        if (readings.isNotEmpty()) {
+            val chunks = chunkReadings(readings)
+            if (chunks.size > 1) {
+                Log.i(TAG, "Flushing ${readings.size} readings as ${chunks.size} batches")
             }
-            PendingBatch(
-                batchId    = UUID.randomUUID().toString(),
-                readings   = readings,
-                capturedAt = now,
-            )
+            toSend.addAll(chunks)
         }
 
-        uploadPendingBatch(batch, apiKey)
+        if (toSend.isEmpty()) {
+            Log.d(TAG, "Nothing to upload this cycle")
+            return@withContext
+        }
+
+        // 3. Send in order. Stop at the first batch that must be retried and park the rest
+        //    behind it, so a network that dies mid-flush never loses the unsent chunks.
+        var first = true
+        while (toSend.isNotEmpty()) {
+            val next = toSend.removeFirst()
+            if (!first) uploadWakeLock?.acquire(60_000L) // auto-releases by timeout if interrupted
+            first = false
+
+            if (uploadPendingBatch(next, apiKey) == UploadResult.RETRY_LATER) {
+                val retryAt = System.currentTimeMillis() + backoffMs(1)
+                synchronized(retryQueue) {
+                    toSend.forEach { retryQueue.addLast(it.copy(nextRetryAfter = retryAt)) }
+                }
+                break
+            }
+        }
         } finally {
             if (uploadWakeLock?.isHeld == true) uploadWakeLock.release()
         }
     }
 
-    private suspend fun uploadPendingBatch(batch: PendingBatch, apiKey: String) = withContext(Dispatchers.IO) {
+    private suspend fun uploadPendingBatch(batch: PendingBatch, apiKey: String): UploadResult = withContext(Dispatchers.IO) {
         statusListener?.onStatus(
             NativeUploadStatusEvent(
                 type       = NativeUploadEventType.STARTED,
@@ -278,13 +348,17 @@ class NativeBackendUploader(
         Log.i(TAG, "------------------------------------------------------------")
         Log.i(TAG, "Uploading id=${batch.batchId} readings=${batch.readings.size} retry=${batch.retryCount} sinceLastUpload=$sinceLastStr")
 
+        // Captured before the request so the catch block can tell whether the network moved.
+        val netBefore = networkMonitor?.snapshot()
+
         try {
             val deviceId = getOrCreateDeviceId()
             val shareLocation = context
                 .getSharedPreferences(AppPrefs.NAME, Context.MODE_PRIVATE)
                 .getBoolean(AppPrefs.SHARE_LOCATION, true)
 
-            val payload     = buildPayload(deviceId, batch, shareLocation)
+            val mark        = currentMark()
+            val payload     = buildPayload(deviceId, batch, shareLocation, mark)
             val jsonBytes   = gson.toJson(payload).toByteArray(Charsets.UTF_8)
             val compressed  = gzip(jsonBytes)
             Log.d(TAG, "Payload: ${jsonBytes.size}B → ${compressed.size}B gzip (${100 - compressed.size * 100 / jsonBytes.size}% saved)")
@@ -296,14 +370,15 @@ class NativeBackendUploader(
                 .addHeader("Content-Encoding", "gzip")
                 .addHeader("X-API-Key", apiKey)
 
+            // Log presence only — never any part of a secret or token.
             prefs.getString(AppPrefs.DEVICE_SECRET, null)?.let {
                 reqBuilder.addHeader("x-device-secret", it)
-                Log.d(TAG, "Auth: device secret ${it.take(5)}…")
+                Log.d(TAG, "Auth: device secret present")
             } ?: Log.w(TAG, "Device Secret NOT found in SharedPreferences")
 
             prefs.getString(AppPrefs.FIREBASE_AUTH_TOKEN, null)?.let {
                 reqBuilder.addHeader("Authorization", "Bearer $it")
-                Log.d(TAG, "Auth: Firebase token ${it.take(10)}…")
+                Log.d(TAG, "Auth: Firebase token present")
             }
 
             totalUploadsAttempted++
@@ -315,18 +390,34 @@ class NativeBackendUploader(
                 .post(compressed.toRequestBody("application/json".toMediaType()))
                 .build()
 
+            val startedAt = SystemClock.elapsedRealtime()
             httpClient.newCall(request).execute().use { resp ->
                 if (resp.isSuccessful) {
+                    lastUploadMs = SystemClock.elapsedRealtime() - startedAt
+                    lastUploadBytes = compressed.size
+                    lastSentMark = mark
                     handleSuccess(batch.readings.size, resp.code)
+                    UploadResult.SUCCESS
                 } else {
                     val errorBody = resp.body?.string() ?: "empty body"
-                    handleFailure(batch, "HTTP ${resp.code}: $errorBody")
+                    handleHttpFailure(batch, resp.code, "HTTP ${resp.code}: $errorBody")
                 }
             }
         } catch (ioe: IOException) {
-            handleFailure(batch, "Network error: ${ioe.message}")
+            // If the network changed or dropped while this request was in flight, the batch is
+            // not at fault: keep its retry budget instead of burning one of five on a handoff.
+            val netAfter = networkMonitor?.snapshot()
+            val networkMoved = netBefore != null && netAfter != null &&
+                (netAfter.epoch != netBefore.epoch || !netAfter.usable)
+            if (networkMoved) {
+                deferInterrupted(batch, "Network error: ${ioe.message}")
+            } else {
+                handleFailure(batch, "Network error: ${ioe.message}")
+                UploadResult.RETRY_LATER
+            }
         } catch (t: Throwable) {
             handleFailure(batch, "Unexpected error: ${t.message}")
+            UploadResult.RETRY_LATER
         }
     }
 
@@ -364,6 +455,7 @@ class NativeBackendUploader(
 
         if (batch.retryCount >= MAX_RETRIES) {
             Log.w(TAG, "Dropping batch ${batch.batchId} — exhausted $MAX_RETRIES retries")
+            countDropped(batch)
         } else {
             val delay = backoffMs(batch.retryCount + 1)
             Log.i(TAG, "Scheduling retry #${batch.retryCount + 1} in ${delay / 1000}s")
@@ -387,10 +479,122 @@ class NativeBackendUploader(
         )
     }
 
+    /**
+     * 400 / 413 / 422 mean the server understood the request and rejected THIS payload —
+     * resending the identical bytes can never succeed, so drop instead of burning five
+     * retries. Everything else (5xx, 401/403 while a token refreshes, 408, 429) can heal.
+     */
+    private fun handleHttpFailure(batch: PendingBatch, code: Int, reason: String): UploadResult {
+        if (code == 400 || code == 413 || code == 422) {
+            totalUploadsFailed++
+            Log.e(TAG, "Upload REJECTED permanently id=${batch.batchId}: $reason")
+            AppLogger.e(TAG, "Upload REJECTED permanently id=${batch.batchId}: $reason")
+            countDropped(batch)
+            statusListener?.onStatus(
+                NativeUploadStatusEvent(
+                    type         = NativeUploadEventType.FAILURE,
+                    batchSize    = batch.readings.size,
+                    bufferSize   = getBufferSize(),
+                    errorMessage = reason,
+                )
+            )
+            return UploadResult.DROPPED
+        }
+        handleFailure(batch, reason)
+        return UploadResult.RETRY_LATER
+    }
+
+    /**
+     * The network changed or dropped while a request was in flight. That says nothing about
+     * the batch, so it goes back with its retry budget intact and is eligible next cycle.
+     * Bounded by MAX_BATCH_AGE_MS, so it cannot loop forever.
+     */
+    private fun deferInterrupted(batch: PendingBatch, reason: String): UploadResult {
+        interruptedAttempts++
+        Log.w(TAG, "Upload interrupted by network change id=${batch.batchId}: $reason — retry budget kept")
+        AppLogger.w(TAG, "Upload interrupted by network change id=${batch.batchId}")
+        synchronized(retryQueue) {
+            retryQueue.addLast(batch.copy(nextRetryAfter = System.currentTimeMillis()))
+        }
+        statusListener?.onStatus(
+            NativeUploadStatusEvent(
+                type         = NativeUploadEventType.FAILURE,
+                batchSize    = batch.readings.size,
+                bufferSize   = getBufferSize(),
+                errorMessage = reason,
+            )
+        )
+        return UploadResult.RETRY_LATER
+    }
+
+    private fun countDropped(batch: PendingBatch) {
+        droppedBatches++
+        droppedReadings.addAndGet(batch.readings.size)
+    }
+
+    /**
+     * Splits drained readings into batches that stay under the server's per-batch cap AND
+     * never cover more than [MAX_BATCH_SPAN_MS]. Each batch's capturedAt is its newest reading
+     * (not "now"): it stays unique per batch for the server's (device, timestamp) dedupe key,
+     * and it is when the data was actually collected.
+     */
+    private fun chunkReadings(readings: List<SensorReading>): List<PendingBatch> {
+        val chunks = mutableListOf<MutableList<SensorReading>>()
+        var current = mutableListOf<SensorReading>()
+        for (reading in readings) {
+            val full = current.size >= MAX_BATCH_READINGS ||
+                (current.isNotEmpty() && reading.timestamp - current.first().timestamp > MAX_BATCH_SPAN_MS)
+            if (full) {
+                chunks.add(current)
+                current = mutableListOf()
+            }
+            current.add(reading)
+        }
+        if (current.isNotEmpty()) chunks.add(current)
+
+        return chunks.map { chunk ->
+            PendingBatch(
+                batchId    = UUID.randomUUID().toString(),
+                readings   = chunk,
+                capturedAt = chunk.maxOf { it.timestamp },
+            )
+        }
+    }
+
+    /** Connectivity context for the backend. Deltas cover everything since the last SUCCESSFUL upload. */
+    private fun buildNetworkTelemetry(batch: PendingBatch, mark: TelemetryMark): Map<String, Any>? {
+        val s = networkMonitor?.snapshot() ?: return null
+        val since = lastSentMark
+        val oldest = batch.readings.minOfOrNull { it.timestamp }
+
+        val out = mutableMapOf<String, Any>(
+            "transport"        to s.transport.wire,
+            "validated"        to s.validated,
+            "metered"          to s.metered,
+            "roaming"          to s.roaming,
+            "down_kbps"        to s.downKbps,
+            "up_kbps"          to s.upKbps,
+            "attempt"          to (batch.retryCount + 1),
+            "transitions"      to (mark.transitions - since.transitions).coerceAtLeast(0),
+            "unusable_s"       to ((mark.unusableMs - since.unusableMs) / 1000).coerceAtLeast(0),
+            "interrupted"      to (mark.interrupted - since.interrupted).coerceAtLeast(0),
+            "failed"           to (mark.failed - since.failed).coerceAtLeast(0),
+            "dropped_readings" to (mark.droppedReadings - since.droppedReadings).coerceAtLeast(0),
+            "dropped_batches"  to (mark.droppedBatches - since.droppedBatches).coerceAtLeast(0),
+        )
+        if (oldest != null) out["queued_s"] = ((System.currentTimeMillis() - oldest) / 1000).coerceAtLeast(0)
+        if (lastUploadMs > 0) {
+            out["last_upload_ms"] = lastUploadMs
+            out["last_upload_bytes"] = lastUploadBytes
+        }
+        return out
+    }
+
     private fun buildPayload(
         deviceId: String,
         batch: PendingBatch,
         shareLocation: Boolean,
+        mark: TelemetryMark,
     ): Map<String, Any?> {
         var avgLat: Double? = null
         var avgLon: Double? = null
@@ -454,6 +658,7 @@ class NativeBackendUploader(
             "battery_level" to (batteryMonitor?.getBatteryLevel() ?: -1),
             "is_charging"   to (batteryMonitor?.isCharging() ?: false),
             "sensor_flags"  to sensorFlags,
+            "network"       to buildNetworkTelemetry(batch, mark),
         ).filterValues { it != null }
     }
 
