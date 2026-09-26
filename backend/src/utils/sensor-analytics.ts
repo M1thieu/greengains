@@ -25,6 +25,12 @@ export interface Summary {
   gyro_rms: number;
   pressure?: { avg: number; min: number; max: number };
   magnetic_magnitude?: { avg: number; min: number; max: number };
+  /**
+   * Extra channels only some phones have (ambient temperature, humidity, rear light, chip
+   * temperatures), one entry per key, MAD-filtered like the core sensors. Present so queries
+   * never have to unnest the raw readings array.
+   */
+  aux?: Record<string, { avg: number; min: number; max: number; n: number }>;
   /** Std dev of raw accel magnitudes — high = rough surface / vibration. */
   accel_std_dev: number;
   /** Quality counters baked in at ingest so the aggregator never needs the raw batch array. */

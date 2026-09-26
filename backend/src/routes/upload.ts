@@ -142,7 +142,7 @@ function pressureToSeaLevel(hpa: number, altitudeM: number): number {
   return factor > 0 ? hpa / factor : hpa;
 }
 
-function summarizeBatch(readings: SensorReading[], batchAccuracyM?: number, speedMps?: number, altitudeM?: number): Summary {
+export function summarizeBatch(readings: SensorReading[], batchAccuracyM?: number, speedMps?: number, altitudeM?: number): Summary {
   // Light — filter statistical outliers (MAD method) before averaging.
   // E.g. a single 65535 lux spike from sensor glitch won't skew the window average.
   const lightRaw = readings.filter(r => r.light !== undefined).map(r => r.light!);
@@ -199,6 +199,28 @@ function summarizeBatch(readings: SensorReading[], batchAccuracyM?: number, spee
       }
     : undefined;
 
+  // Extra channels (only some phones have them): same MAD-filtered avg/min/max as the core
+  // sensors, per key. Generic, so a new sensor needs no change here.
+  const auxSamples = new Map<string, number[]>();
+  for (const r of readings) {
+    if (!r.aux) continue;
+    for (const [key, value] of Object.entries(r.aux)) {
+      const list = auxSamples.get(key);
+      if (list) list.push(value); else auxSamples.set(key, [value]);
+    }
+  }
+  const aux: NonNullable<Summary['aux']> = {};
+  for (const [key, samples] of auxSamples) {
+    const clean = filterOutliersMad(samples);
+    if (clean.length === 0) continue;
+    aux[key] = {
+      avg: clean.reduce((a, b) => a + b, 0) / clean.length,
+      min: Math.min(...clean),
+      max: Math.max(...clean),
+      n: clean.length,
+    };
+  }
+
   // Quality counters — computed once here so the aggregator never needs to pull
   // the full raw batch array across the wire. ~80-95% reduction in wire transfer
   // for the aggregation job on batches with many readings.
@@ -209,6 +231,7 @@ function summarizeBatch(readings: SensorReading[], batchAccuracyM?: number, spee
     period_start: periodStart,
     period_end: periodEnd,
     light: lightSummary,
+    aux: Object.keys(aux).length > 0 ? aux : undefined,
     accel_rms: accelMagnitudes.length > 0
       ? accelMagnitudes.reduce((a, b) => a + b, 0) / accelMagnitudes.length
       : 0,

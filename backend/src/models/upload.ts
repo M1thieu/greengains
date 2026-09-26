@@ -39,9 +39,24 @@ export const QualityMetadataSchema = z.object({
   proximity_near: z.boolean().optional(),
 });
 
+/**
+ * Extra channels that only SOME phones have: ambient temperature, relative humidity, a second
+ * (rear) light sensor, sensor-chip temperatures. Generic on purpose — a new sensor needs no
+ * server change, only a new key. Keys are lowercase snake_case, values finite numbers, at most
+ * MAX_AUX_CHANNELS of them. Anything else drops this map and never the reading: an optional
+ * channel must not be able to cost us the core sensor data. Value ranges are validated by
+ * whoever consumes a given key, because a generic map cannot know that humidity is 0-100 and
+ * a chip temperature can legitimately exceed any ambient record.
+ */
+const MAX_AUX_CHANNELS = 16;
+const AuxChannelsSchema = z
+  .record(z.string().regex(/^[a-z][a-z0-9_]{0,31}$/), z.number().finite().min(-1e6).max(1e9))
+  .refine(o => Object.keys(o).length <= MAX_AUX_CHANNELS);
+
 export const SensorReadingSchema = z.object({
   t: z.coerce.date(),
   light: z.number().optional(),
+  aux: AuxChannelsSchema.optional().catch(undefined),
   accel: z.array(z.number()).length(3).optional(),
   gyro: z.array(z.number()).length(3).optional(),
   // [x, y, z, magnitude] in µT — magnitude pre-computed on device to avoid backend recomputation
