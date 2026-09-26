@@ -263,6 +263,7 @@ function buildStoragePayload(batch: UploadBatch, qualityMultiplier = 1.0): Stora
   if (batch.is_charging !== undefined) payload.is_charging = batch.is_charging;
   if (batch.wifi_rssi_avg !== undefined) payload.wifi_rssi_avg = batch.wifi_rssi_avg;
   if (batch.wifi_ap_count !== undefined) payload.wifi_ap_count = batch.wifi_ap_count;
+  if (batch.network) payload.network = batch.network;
 
   return payload;
 }

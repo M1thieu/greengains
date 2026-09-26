@@ -44,6 +44,39 @@ export const SensorReadingSchema = z.object({
   quality: QualityMetadataSchema.optional(),
 });
 
+/**
+ * Connectivity context the client attaches to each batch. Pure telemetry: coarse and
+ * categorical, no SSID / BSSID / cell identity. Delta fields count what happened since
+ * the client's previous SUCCESSFUL upload, so a burst of failures while offline is
+ * reported by the first batch that gets through.
+ */
+export const NetworkTelemetrySchema = z.object({
+  transport: z.enum(['none', 'wifi', 'cellular', 'ethernet', 'vpn', 'other']).optional(),
+  /** System-verified internet reachability (not just "connected"). */
+  validated: z.boolean().optional(),
+  metered: z.boolean().optional(),
+  roaming: z.boolean().optional(),
+  /** Android's own link-speed estimates in kbps — estimates only, 0 = unspecified. */
+  down_kbps: z.number().int().min(0).max(10_000_000).optional(),
+  up_kbps: z.number().int().min(0).max(10_000_000).optional(),
+  /** 1 = first attempt; >1 means earlier attempts failed. */
+  attempt: z.number().int().min(1).max(50).optional(),
+  /** Age in seconds of the oldest reading at send time — delay caused by deferral. */
+  queued_s: z.number().int().min(0).max(30 * 24 * 3600).optional(),
+  /** Round-trip ms and compressed bytes of the previous successful upload. */
+  last_upload_ms: z.number().int().min(0).max(600_000).optional(),
+  last_upload_bytes: z.number().int().min(0).max(50_000_000).optional(),
+  /** Default-network changes (wifi<->cellular, loss, validation flips). */
+  transitions: z.number().int().min(0).max(100_000).optional(),
+  /** Seconds with no validated network. */
+  unusable_s: z.number().int().min(0).max(30 * 24 * 3600).optional(),
+  /** Attempts cut short because the network changed mid-request (not the batch's fault). */
+  interrupted: z.number().int().min(0).max(100_000).optional(),
+  failed: z.number().int().min(0).max(100_000).optional(),
+  dropped_readings: z.number().int().min(0).max(1_000_000).optional(),
+  dropped_batches: z.number().int().min(0).max(100_000).optional(),
+});
+
 export const UploadBatchSchema = z.object({
   device_id: z.string().min(1).max(128),
   /** Stable UUID frozen at batch creation on the client. Never changes on retry.
@@ -64,11 +97,14 @@ export const UploadBatchSchema = z.object({
   wifi_ap_count: z.number().int().min(0).max(500).optional(),
   /** Bitmask: LIGHT=1, MOTION=2, PRESSURE=4, GYRO=8, MAGNETIC=16 */
   sensor_flags: z.number().int().min(0).max(31).optional(),
+  /** .catch(undefined): telemetry is best-effort — a malformed block must never cost us the sensor data. */
+  network: NetworkTelemetrySchema.optional().catch(undefined),
 });
 
 export type LocationData = z.infer<typeof LocationDataSchema>;
 export type SensorReading = z.infer<typeof SensorReadingSchema>;
 export type QualityMetadata = z.infer<typeof QualityMetadataSchema>;
+export type NetworkTelemetry = z.infer<typeof NetworkTelemetrySchema>;
 export type UploadBatch = z.infer<typeof UploadBatchSchema>;
 
 /** Shape of the JSONB payload stored in sensor_batches.batch_json */
@@ -96,5 +132,6 @@ export interface StoragePayload {
   is_charging?: boolean;
   wifi_rssi_avg?: number;
   wifi_ap_count?: number;
+  network?: NetworkTelemetry;
   quality_multiplier?: number;
 }
