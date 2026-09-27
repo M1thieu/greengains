@@ -51,16 +51,34 @@ type HourlyBlock = Partial<Record<(typeof HOURLY_VARS)[number], number[]>> & {
   time?: string[];
 };
 
-/** Index of the hourly sample closest to [at], or -1 when there are none. */
-function _closestIndex(times: string[], at: Date): number {
+/**
+ * Linear-interpolation weights for [at] between two bracketing hourly samples: the index just
+ * at-or-before it and the fraction of the hour elapsed since. Surface pressure and temperature
+ * both move smoothly on an hourly timescale outside of sharp frontal passages, so the true value
+ * between two samples is close to their straight-line interpolation — closer than either sample
+ * alone, which is what picking the single nearest hour amounts to.
+ *
+ * Returns null when [at] falls outside the fetched series (before the first sample or after the
+ * last): extrapolating past the data would silently invent a value instead of reporting the gap.
+ */
+export function _interpolationWeights(times: string[], at: Date): { i: number; frac: number } | null {
   const targetMs = at.getTime();
-  let bestIdx = -1;
-  let bestDiff = Infinity;
-  for (let i = 0; i < times.length; i++) {
-    const diff = Math.abs(new Date(`${times[i]}Z`).getTime() - targetMs);
-    if (diff < bestDiff) { bestDiff = diff; bestIdx = i; }
-  }
-  return bestIdx;
+  const ts = times.map(t => new Date(`${t}Z`).getTime());
+  if (ts.length === 0 || targetMs < ts[0] || targetMs > ts[ts.length - 1]) return null;
+  let i = 0;
+  while (i + 1 < ts.length && ts[i + 1] <= targetMs) i++;
+  if (i + 1 >= ts.length) return { i, frac: 0 }; // exact last sample
+  const span = ts[i + 1] - ts[i];
+  return { i, frac: span > 0 ? (targetMs - ts[i]) / span : 0 };
+}
+
+/** Value of an hourly series at [w], linearly interpolated; null if either bracketing sample is missing. */
+export function _interpolate(series: (number | undefined)[] | undefined, w: { i: number; frac: number }): number | null {
+  const a = series?.[w.i];
+  if (typeof a !== 'number') return null;
+  if (w.frac === 0) return a;
+  const b = series?.[w.i + 1];
+  return typeof b === 'number' ? a + (b - a) * w.frac : null;
 }
 
 /**
@@ -85,8 +103,23 @@ export async function getWeatherAt(lat: number, lon: number, at: Date): Promise<
   }
 
   try {
+    // `past_days`/`forecast_days` are counted back/forward from TODAY, not from [at] — a fixed
+    // past_days=1 only ever covers "yesterday to tomorrow". The aggregator can fall behind (a
+    // stalled job, a redeploy) and then processes a backlog of older windows; before this, any
+    // [at] older than ~1 day fell outside the fetched series, and the old nearest-sample lookup
+    // still returned whatever it had — silently comparing a batch to the wrong day's weather
+    // instead of failing. Requesting enough past_days to cover [at] turns that into a real fetch
+    // that succeeds, and _interpolationWeights below still refuses to extrapolate past whatever
+    // the request did cover.
+    // 92 is the Open-Meteo forecast API's documented maximum for past_days, and SENSOR_BATCH_RETENTION_DAYS
+    // (90) is how old a raw batch needing this lookup can ever be, so every in-retention batch fits.
+    const daysAgo = Math.max(0, Math.ceil((Date.now() - at.getTime()) / 86_400_000));
+    const daysAhead = Math.max(0, Math.ceil((at.getTime() - Date.now()) / 86_400_000));
+    const pastDays = Math.min(92, daysAgo + 1); // +1: rounding up whole days can still land a UTC hour short
+    const forecastDays = Math.min(16, Math.max(1, daysAhead + 1));
+
     const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}` +
-      `&hourly=${HOURLY_VARS.join(',')}&past_days=1&forecast_days=1&timezone=UTC`;
+      `&hourly=${HOURLY_VARS.join(',')}&past_days=${pastDays}&forecast_days=${forecastDays}&timezone=UTC`;
     const res = await fetch(url, { signal: AbortSignal.timeout(5000) });
     if (!res.ok) return _fail();
 
@@ -94,18 +127,12 @@ export async function getWeatherAt(lat: number, lon: number, at: Date): Promise<
     const times = data.hourly?.time;
     if (!times || times.length === 0) return _fail();
 
-    const idx = _closestIndex(times, at);
-    if (idx < 0) return _fail();
-
-    const pick = (name: (typeof HOURLY_VARS)[number]): number | null => {
-      const series = data.hourly?.[name];
-      const v = series?.[idx];
-      return typeof v === 'number' ? v : null;
-    };
+    const w = _interpolationWeights(times, at);
+    if (!w) return _fail(); // [at] fell outside the fetched series — do not extrapolate
 
     const value: WeatherObservation = {
-      surfacePressureHpa: pick('surface_pressure'),
-      temperatureC: pick('temperature_2m'),
+      surfacePressureHpa: _interpolate(data.hourly?.surface_pressure, w),
+      temperatureC: _interpolate(data.hourly?.temperature_2m, w),
     };
 
     if (_cache.size >= MAX_CACHE_ENTRIES) _cache.clear();
