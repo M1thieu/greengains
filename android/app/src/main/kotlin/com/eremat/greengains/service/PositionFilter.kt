@@ -44,13 +44,17 @@ class PositionFilter {
          *
          * ASSUMPTION, NOT VERIFIED ON HARDWARE: this takes the strict "68 % radius" definition.
          * The same Android documentation also glosses that circle as "one standard deviation",
-         * which would make the factor 1.0. Then this value over-trusts every fix (variance 2.3x
-         * too small): the filter follows raw fixes more closely and smooths less than optimal,
-         * and the gate restarts more often. Both degrade toward the raw fix, so it cannot do
-         * worse than not filtering, only less well than intended. Only a stationary logging
-         * session can settle it: for 2-D Gaussian error
-         * the share of fixes falling within their reported accuracy of the true position is 68 %
-         * under the strict reading and 39 % under the "1 sigma per axis" reading.
+         * which would make the factor 1.0 (the value this filter used before). Then this value
+         * over-trusts every fix (variance 2.28x too small): the filter follows raw fixes more
+         * closely and smooths less than optimal, and the gate fires far more often, since
+         * [FALSE_RESTART_PROBABILITY] only holds if the variances are right: a 9.21 threshold
+         * on an innovation inflated 2.28x gives about exp(-9.21 / 2.28 / 2) = 13 % false restarts,
+         * not 1 %. Both effects degrade toward the raw fix, so it cannot do worse than not
+         * filtering, only less well than intended.
+         *
+         * To settle it, record a still phone (debug build logs raw fixes under the GG_FIX tag) and
+         * run tools/gps-calibration.mjs: it estimates the factor from differences between fixes,
+         * without needing a surveyed point.
          */
         val SIGMA_PER_ACCURACY: Double = 1.0 / sqrt(-2.0 * ln(1.0 - ACCURACY_CONFIDENCE))
 

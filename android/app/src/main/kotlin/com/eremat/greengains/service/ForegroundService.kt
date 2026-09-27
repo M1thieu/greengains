@@ -20,6 +20,7 @@ import android.os.PowerManager
 import android.util.Log
 import androidx.core.app.ServiceCompat
 import androidx.core.content.PermissionChecker
+import com.eremat.greengains.BuildConfig
 import com.eremat.greengains.models.AccelData
 import com.eremat.greengains.models.GyroData
 import com.eremat.greengains.models.LocationData
@@ -224,6 +225,13 @@ class ForegroundService : Service() {
 
                     }
                     lastAcceptedLocation = location
+                    if (BuildConfig.DEBUG) {
+                        // Raw fix as CSV for tools/gps-calibration.mjs, which measures what
+                        // `accuracy` means on this phone (see PositionFilter.SIGMA_PER_ACCURACY).
+                        // Debug builds only: coordinates never reach a release log.
+                        Log.d(CALIBRATION_TAG, "${location.time},${location.latitude},${location.longitude}," +
+                            "${if (location.hasAccuracy()) location.accuracy else ""},${location.provider ?: ""},$currentMotionState")
+                    }
                     filteredPosition = positionFilter.update(
                         latitude   = location.latitude,
                         longitude  = location.longitude,
@@ -1036,6 +1044,7 @@ class ForegroundService : Service() {
 
     companion object {
         private const val TAG = "GreenGainsFGService"
+        private const val CALIBRATION_TAG = "GG_FIX"
         private val LOCATION_UPDATES_INTERVAL_MS = 10.seconds.inWholeMilliseconds
         // Adaptive snapshot intervals — motion state drives how often we flush the averaging window.
         // More samples per window = better SNR. Fewer snapshots = fewer DB rows.

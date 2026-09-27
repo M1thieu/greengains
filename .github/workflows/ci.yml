@@ -52,6 +52,9 @@ jobs:
         # CLAUDE.md rule: every key in BOTH lib/l10n/app_en.arb and app_fr.arb.
         run: node tools/check-l10n.mjs
 
+      - name: GPS calibration tool
+        run: node --test tools/gps-calibration.test.mjs
+
   backend:
     name: Backend (build + tests)
     runs-on: ubuntu-latest
