@@ -40,7 +40,17 @@ class PositionFilter {
         /**
          * Per-axis sigma per metre of reported accuracy. For 2-D isotropic Gaussian error the
          * radius holding probability p is sigma * sqrt(-2 ln(1 - p)) (Rayleigh), so this is
-         * 1 / sqrt(-2 ln(1 - 0.68)) = 0.662. Derived from the documented definition, not tuned.
+         * 1 / sqrt(-2 ln(1 - 0.68)) = 0.662.
+         *
+         * ASSUMPTION, NOT VERIFIED ON HARDWARE: this takes the strict "68 % radius" definition.
+         * The same Android documentation also glosses that circle as "one standard deviation",
+         * which would make the factor 1.0. Then this value over-trusts every fix (variance 2.3x
+         * too small): the filter follows raw fixes more closely and smooths less than optimal,
+         * and the gate restarts more often. Both degrade toward the raw fix, so it cannot do
+         * worse than not filtering, only less well than intended. Only a stationary logging
+         * session can settle it: for 2-D Gaussian error
+         * the share of fixes falling within their reported accuracy of the true position is 68 %
+         * under the strict reading and 39 % under the "1 sigma per axis" reading.
          */
         val SIGMA_PER_ACCURACY: Double = 1.0 / sqrt(-2.0 * ln(1.0 - ACCURACY_CONFIDENCE))
 
