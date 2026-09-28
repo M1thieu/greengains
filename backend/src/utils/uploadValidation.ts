@@ -108,7 +108,14 @@ export async function checkRateLimits(
 
 const SENSOR_BOUNDS = {
   light:    { min: 0,    max: 130_000 }, // lux: pitch dark → direct sunlight
-  pressure: { min: 870,  max: 1084 },    // hPa: 870 = all-time surface record (Typhoon Tip 1979) → Dead Sea; covers storm chasers
+  // hPa. The measuring range of the phone's own barometer (TDK ICP-20100, the Pixel 7's: 30-110 kPa),
+  // so this rejects only what a working sensor cannot report (garbage, a value in Pa, a stuck bus).
+  // It must NOT be a "plausible weather" bound: 870 hPa is a SEA-LEVEL record (Typhoon Tip, 1979), but this
+  // is raw station pressure, which falls ~12 hPa per 100 m. The old 870 floor rejected the whole batch of
+  // anyone above ~1300 m: Denver 834, Nairobi 815, Mexico City 772, a ski resort at 2300 m 766 (ISA
+  // barometric formula; see uploadValidation.test.ts). Whether a value fits the location is what the
+  // GPS-altitude cross-check below is for.
+  pressure: { min: 300,  max: 1100 },
   accelMag: { min: 0,    max: 25 },      // m/s² vector magnitude — ~2.5g, covers hard drops; tightened from 50
   gyroMag:  { min: 0,    max: 15 },      // rad/s vector magnitude — covers vigorous wrist flicks; tightened from 20
   magMag:   { min: 0,    max: 2000 },    // µT magnitude — 4× Earth's strongest field
