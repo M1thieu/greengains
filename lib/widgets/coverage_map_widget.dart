@@ -215,7 +215,7 @@ class CoverageMapWidget extends StatefulWidget {
   CoverageMapWidgetState createState() => CoverageMapWidgetState();
 }
 
-class CoverageMapWidgetState extends State<CoverageMapWidget> {
+class CoverageMapWidgetState extends State<CoverageMapWidget> with WidgetsBindingObserver {
   MapLibreMapController? _ctrl;
   bool _styleLoaded = false;
   bool _pendingStyleLoad = false; // style fired before _ctrl was ready
@@ -1002,10 +1002,31 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> {
   // ── Widget lifecycle ────────────────────────────────────────────────────────
 
   @override
-  @override
   void initState() {
     super.initState();
     _showMapHint = !AppPreferences.instance.isTipDismissed('map_tap_hint');
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  /// The halo pulse is a purely decorative 16fps loop (`_startHaloPulse`). Nothing
+  /// stopped it while the app was backgrounded or the screen was off — a foreground
+  /// service keeps the process (and the Dart isolate's timers) alive well past
+  /// screen-off, so it kept firing forever: measured ~19% sustained CPU with the
+  /// screen off and locked, most of it this timer repeatedly failing to apply its
+  /// own style properties (the native layer only accepts them while the map surface
+  /// is actually visible). Pausing it here and restarting on resume is the standard
+  /// Flutter pattern for exactly this (WidgetsBindingObserver.didChangeAppLifecycleState).
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    switch (state) {
+      case AppLifecycleState.resumed:
+        if (_styleLoaded && mounted) _startHaloPulse();
+      case AppLifecycleState.inactive:
+      case AppLifecycleState.paused:
+      case AppLifecycleState.hidden:
+      case AppLifecycleState.detached:
+        _haloTimer?.cancel();
+    }
   }
 
   @override
@@ -1072,6 +1093,7 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _gridTimer?.cancel();
     _haloTimer?.cancel();
     widget.recenterTrigger?.removeListener(_onRecenter);
