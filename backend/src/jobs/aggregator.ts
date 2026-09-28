@@ -1,106 +1,39 @@
 import * as Sentry from '@sentry/node';
 import { PoolClient } from 'pg';
-import { latLngToCell, gridDisk, cellToLatLng } from 'h3-js';
 import { getPool } from '../database';
-import { decodeGeohash } from '../utils/geo';
-import { getWeatherAt } from '../utils/weatherService';
+import { getWeatherAt, WeatherObservation } from '../utils/weatherService';
+import { mapWithConcurrency } from '../utils/concurrency';
 import {
   AGGREGATION_WINDOW_MINUTES,
   AGGREGATION_JOB_INTERVAL_MS,
-  MOVEMENT_GRAVITY_BASELINE,
-  MOVEMENT_THRESHOLD,
   SENSOR_BATCH_RETENTION_DAYS,
 } from '../constants';
-import { blendCell, CellEstimate, lagSemivariance, rangeVariance } from '../utils/spatialBlend';
+import {
+  accumulateWindows,
+  buildDayBuckets,
+  computeWindowResults,
+  planWeatherLookups,
+  truncateToWindow,
+  nextWindowStart,
+  movementScore,
+  vibrationScore,
+  BatchRow,
+  DayAccumulator,
+  DayKey,
+  WindowResult,
+} from './aggregationCore';
 
 export { AGGREGATION_WINDOW_MINUTES };
 
 const WINDOW_MS = AGGREGATION_WINDOW_MINUTES * 60 * 1000;
 
-// Movement score: how much real motion a reading implies, 0–1.
-//
-// accel_rms arrives under two conventions depending on what the device exposed.
-// ForegroundService prefers TYPE_LINEAR_ACCELERATION (gravity already removed,
-// magnitude ~0 at rest) and falls back to TYPE_ACCELEROMETER (gravity included,
-// magnitude ~9.81 at rest) — both land in the same field, so the convention has
-// to be resolved here rather than assumed.
-//
-// Rule: evaluate both interpretations, keep whichever implies LESS motion. A
-// resting reading is ~0 under one convention and ~9.81 under the other; each is
-// correctly read as "still" by its own interpretation and as "extreme motion" by
-// the wrong one, so the minimum always selects the right convention. Continuous,
-// no cut-off, and no sensor-provenance tag needed on the payload.
-//
-// Assuming gravity unconditionally (the previous behaviour) inverted the score
-// for every linear-acceleration reading: a motionless phone scored 1.0. That was
-// 74% of stored rows.
-const movementScore = (accelRms: number) => {
-  const asLinear = Math.abs(accelRms);
-  const asGravityInclusive = Math.abs(accelRms - MOVEMENT_GRAVITY_BASELINE);
-  return Math.min(1, Math.max(0, Math.min(asLinear, asGravityInclusive) / MOVEMENT_THRESHOLD));
-};
-
-// Vibration/road roughness score: normalized accel std dev.
-// 0 = smooth (stationary/glassy road), 1 = severe vibration (potholes/rough terrain).
-// Threshold 5 m/s² std dev = full score — calibrated against walk vs rough driving data.
-const vibrationScore = (accelStdDev: number) => Math.min(1, Math.max(0, accelStdDev / 5.0));
-
-// Neighbour smoothing (see utils/spatialBlend.ts): weights come from the data, not a constant.
-// Applied to PRESSURE ONLY. Light is deliberately left raw: it is heavy-tailed and changes
-// within a single cell (indoor/outdoor, shade), and simulation shows a linear-domain blend is
-// several times WORSE than no blend on such a field (spatialBlend.test.ts).
-
-type WindowKey = string;
-type DayKey = string;
-
-interface WindowAccumulator {
-  windowStart: Date;
-  windowEnd: Date;
-  geohash: string;
-  h3Index: string | null; // H3 res-9 cell — derived from h3_res9 column or geohash decode
-  samples: number;
-  deviceIds: Set<string>;
-  lightSum: number;
-  lightMin: number;
-  lightMax: number;
-  accelRmsSum: number;
-  accelStdDevSum: number;
-  gyroRmsSum: number;
-  pressureSum: number;
-  pressureSamples: number;
-  /** Σ n_b·σ²_b over batches whose within-batch spread is estimable, and Σ n_b of those batches. */
-  pressureNoiseNum: number;
-  pressureNoiseN: number;
-  batterySum: number;
-  batterySamples: number;
-  locationSamples: number;
-  qualitySamples: number;
-  qualityValidSamples: number;
-  pocketLikelySamples: number;
-}
-
-interface DayAccumulator {
-  day: Date;
-  geohash: string;
-  h3Index: string | null;
-  samples: number;
-  deviceIds: Set<string>;
-  lightSum: number;
-  lightMin: number;
-  lightMax: number;
-  accelRmsSum: number;
-  accelStdDevSum: number;
-  gyroRmsSum: number;
-  pressureSum: number;
-  pressureSamples: number;
-  batterySum: number;
-  batterySamples: number;
-  locationSamples: number;
-  deviceActiveMinutes: number;
-  qualitySamples: number;
-  qualityValidSamples: number;
-  pocketLikelySamples: number;
-}
+/**
+ * Defensive cap on simultaneous outbound requests to Open-Meteo while fetching the weather
+ * lookups a run's window buckets need (deduped by {@link planWeatherLookups} first, so this is
+ * "how many distinct regions/hours at once", not "how many buckets"). An operational safety
+ * value, not a statistical one — chosen to be comfortably polite to a third-party API, not tuned.
+ */
+const WEATHER_FETCH_CONCURRENCY = 8;
 
 let aggregationTimer: NodeJS.Timeout | null = null;
 let lastPurgeDate: string | null = null; // UTC date string — purge runs at most once per day
@@ -158,19 +91,6 @@ export async function stopAggregationJob(): Promise<void> {
   }
 }
 
-function truncateToWindow(date: Date): Date {
-  const ms = date.getTime();
-  return new Date(Math.floor(ms / WINDOW_MS) * WINDOW_MS);
-}
-
-function nextWindowStart(date: Date): Date {
-  return new Date(date.getTime() + WINDOW_MS);
-}
-
-function dayStartUtc(date: Date): Date {
-  return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
-}
-
 export async function runAggregationJob(): Promise<void> {
   const pool = getPool();
 
@@ -187,37 +107,19 @@ export async function runAggregationJob(): Promise<void> {
     if (!minRes.rows[0]?.min) {
       return; // nothing to aggregate
     }
-    const minDate = truncateToWindow(new Date(minRes.rows[0].min));
-    fromWindowEnd = nextWindowStart(minDate);
+    const minDate = truncateToWindow(new Date(minRes.rows[0].min), WINDOW_MS);
+    fromWindowEnd = nextWindowStart(minDate, WINDOW_MS);
   }
 
   // process only fully elapsed windows
-  const upToExclusive = truncateToWindow(new Date());
+  const upToExclusive = truncateToWindow(new Date(), WINDOW_MS);
   if (!fromWindowEnd || fromWindowEnd >= upToExclusive) {
     return; // nothing new
   }
 
   // Select only the sub-fields the aggregator needs — avoids pulling the raw
   // batch readings array (often 80–95% of the payload) across the wire.
-  const rows = await pool.query<{
-    device_hash: string;
-    timestamp_utc: Date;
-    geohash: string | null;
-    summary: {
-      count: number;
-      period_end: string;
-      light?: { avg: number; min: number; max: number };
-      accel_rms: number;
-      accel_std_dev?: number;
-      gyro_rms: number;
-      pressure?: { avg: number; min: number; max: number };
-      quality_valid?: number;
-      quality_pocket_likely?: number;
-    } | null;
-    battery_level: number | null;
-    has_location: boolean;
-    h3_res9: string | null;
-  }>(
+  const rows = await pool.query<BatchRow>(
     `SELECT
        device_hash,
        timestamp_utc,
@@ -236,299 +138,30 @@ export async function runAggregationJob(): Promise<void> {
     return;
   }
 
-  const windowBuckets = new Map<WindowKey, WindowAccumulator>();
-  const dayBuckets = new Map<DayKey, DayAccumulator>();
-
-  for (const row of rows.rows) {
-    const geohash: string | undefined = row.geohash ?? undefined;
-    if (!geohash) {
-      continue;
-    }
-
-    const summary = row.summary;
-    const readingsCount: number = typeof summary?.count === 'number' ? summary.count : 0;
-    if (readingsCount <= 0) {
-      continue;
-    }
-
-    const periodEnd = summary?.period_end ? new Date(summary.period_end) : new Date(row.timestamp_utc);
-    const windowStart = truncateToWindow(periodEnd);
-    if (windowStart >= upToExclusive) {
-      continue; // skip partial current window
-    }
-    const windowEnd = nextWindowStart(windowStart);
-    const windowKey = `${windowStart.toISOString()}|${geohash}`;
-
-    // Resolve H3 index: prefer pre-computed column, fall back to geohash decode
-    const rowH3 = row.h3_res9 ?? (() => {
-      const c = decodeGeohash(geohash);
-      return c ? latLngToCell(c.lat, c.lon, 9) : null;
-    })();
-
-    let windowAcc = windowBuckets.get(windowKey);
-    if (!windowAcc) {
-      windowAcc = {
-        windowStart,
-        windowEnd,
-        geohash,
-        h3Index: rowH3,
-        samples: 0,
-        deviceIds: new Set<string>(),
-        lightSum: 0,
-        lightMin: Number.POSITIVE_INFINITY,
-        lightMax: Number.NEGATIVE_INFINITY,
-        accelRmsSum: 0,
-        accelStdDevSum: 0,
-        gyroRmsSum: 0,
-        pressureSum: 0,
-        pressureSamples: 0,
-        pressureNoiseNum: 0,
-        pressureNoiseN: 0,
-        batterySum: 0,
-        batterySamples: 0,
-        locationSamples: 0,
-        qualitySamples: 0,
-        qualityValidSamples: 0,
-        pocketLikelySamples: 0,
-      };
-      windowBuckets.set(windowKey, windowAcc);
-    } else if (!windowAcc.h3Index && rowH3) {
-      windowAcc.h3Index = rowH3; // fill in if earlier rows in bucket lacked it
-    }
-
-    windowAcc.samples += readingsCount;
-    windowAcc.deviceIds.add(row.device_hash);
-
-    const lightAvg = summary?.light?.avg;
-    const lightMin = summary?.light?.min;
-    const lightMax = summary?.light?.max;
-    if (typeof lightAvg === 'number') {
-      windowAcc.lightSum += lightAvg * readingsCount;
-    }
-    if (typeof lightMin === 'number') {
-      windowAcc.lightMin = Math.min(windowAcc.lightMin, lightMin);
-    }
-    if (typeof lightMax === 'number') {
-      windowAcc.lightMax = Math.max(windowAcc.lightMax, lightMax);
-    }
-
-    const accelRms = summary?.accel_rms;
-    if (typeof accelRms === 'number') {
-      windowAcc.accelRmsSum += accelRms * readingsCount;
-    }
-    const accelStd = summary?.accel_std_dev;
-    if (typeof accelStd === 'number') {
-      windowAcc.accelStdDevSum += accelStd * readingsCount;
-    }
-
-    const gyroRms = summary?.gyro_rms;
-    if (typeof gyroRms === 'number') {
-      windowAcc.gyroRmsSum += gyroRms * readingsCount;
-    }
-
-    const pressureAvg = summary?.pressure?.avg;
-    if (typeof pressureAvg === 'number') {
-      windowAcc.pressureSum += pressureAvg * readingsCount;
-      windowAcc.pressureSamples += readingsCount;
-      const pv = summary?.pressure ? rangeVariance(summary.pressure.min, summary.pressure.max, readingsCount) : null;
-      if (pv !== null) {
-        windowAcc.pressureNoiseNum += readingsCount * pv;
-        windowAcc.pressureNoiseN += readingsCount;
-      }
-    }
-
-    if (typeof row.battery_level === 'number' && row.battery_level >= 0) {
-      windowAcc.batterySum += row.battery_level;
-      windowAcc.batterySamples += 1;
-    }
-
-    if (row.has_location) {
-      windowAcc.locationSamples += readingsCount;
-    }
-
-    // Quality counters baked into summary at ingest time — no need to re-read batch.
-    const qualityValid       = summary?.quality_valid       ?? 0;
-    const qualityPocketLikely = summary?.quality_pocket_likely ?? 0;
-    if (qualityValid > 0 || qualityPocketLikely > 0) {
-      windowAcc.qualitySamples       += readingsCount;
-      windowAcc.qualityValidSamples  += qualityValid;
-      windowAcc.pocketLikelySamples  += qualityPocketLikely;
-    }
-  }
-
+  // ── Functional core: pure bucketing + weather-lookup planning (no I/O) ──────────────────────
+  const windowBuckets = accumulateWindows(rows.rows, WINDOW_MS, upToExclusive);
   if (windowBuckets.size === 0) {
     return;
   }
 
-  // Build H3-keyed lookup for ring-1 spatial smoothing (same window only, no DB query).
-  const h3WindowIndex = new Map<string, WindowAccumulator>();
-  for (const bucket of windowBuckets.values()) {
-    if (bucket.h3Index) {
-      h3WindowIndex.set(`${bucket.windowStart.toISOString()}|${bucket.h3Index}`, bucket);
-    }
-  }
+  // ── Imperative shell: fetch exactly the weather this run needs, once per distinct region+hour,
+  // with bounded concurrency instead of one sequential `await` per window bucket (a run with many
+  // active cells — routine multi-user traffic, or catching up a backlog after downtime — used to
+  // serialize one network round-trip per bucket; see the request-coalescing note on
+  // weatherRegionKey and the p-limit-style cap on WEATHER_FETCH_CONCURRENCY above). ────────────
+  const weatherLookups = planWeatherLookups(windowBuckets);
+  const weatherResults = await mapWithConcurrency(
+    weatherLookups,
+    WEATHER_FETCH_CONCURRENCY,
+    (lookup) => getWeatherAt(lookup.lat, lookup.lon, lookup.at),
+  );
+  const weatherByKey = new Map<string, WeatherObservation | null>(
+    weatherLookups.map((lookup, i) => [lookup.key, weatherResults[i]]),
+  );
 
-  // Pressure as a cell estimate, or null when its sampling variance cannot be estimated
-  // (then that cell neither informs the neighbour statistics nor gets blended).
-  const pressureCell = (b: WindowAccumulator): CellEstimate | null =>
-    b.pressureSamples > 0 && b.pressureNoiseN > 0
-      ? { mean: b.pressureSum / b.pressureSamples, n: b.pressureSamples, noiseVar: b.pressureNoiseNum / b.pressureNoiseN }
-      : null;
-  const neighborsOf = (b: WindowAccumulator): WindowAccumulator[] =>
-    b.h3Index
-      ? gridDisk(b.h3Index, 1)
-          .filter(h => h !== b.h3Index)
-          .map(h => h3WindowIndex.get(`${b.windowStart.toISOString()}|${h}`))
-          .filter((nb): nb is WindowAccumulator => nb !== undefined)
-      : [];
-
-  // How fast pressure changes from one cell to the next is measured from this run's own
-  // adjacent pairs (semivariance at the neighbour lag). No pairs -> null -> nothing is blended.
-  const pressurePairs: Array<[CellEstimate, CellEstimate]> = [];
-  for (const bucket of windowBuckets.values()) {
-    const own = pressureCell(bucket);
-    if (!own || !bucket.h3Index) continue;
-    for (const nb of neighborsOf(bucket)) {
-      const other = pressureCell(nb);
-      if (other && nb.h3Index && bucket.h3Index < nb.h3Index) pressurePairs.push([own, other]); // each pair once
-    }
-  }
-  const pressureGamma = lagSemivariance(pressurePairs);
-
-  const windowResults = [];
-  for (const bucket of windowBuckets.values()) {
-    const samples = bucket.samples;
-    if (samples === 0) {
-      continue;
-    }
-    const deviceCount = bucket.deviceIds.size;
-    const avgLightRaw =
-      samples > 0 && isFinite(bucket.lightSum) ? bucket.lightSum / samples : null;
-    const lightMin = bucket.lightMin === Number.POSITIVE_INFINITY ? null : bucket.lightMin;
-    const lightMax = bucket.lightMax === Number.NEGATIVE_INFINITY ? null : bucket.lightMax;
-    const avgAccelRms = bucket.accelRmsSum / samples;
-    const avgAccelStdDev = bucket.accelStdDevSum / samples;
-    const avgGyroRms = bucket.gyroRmsSum / samples;
-    const avgPressureRaw = bucket.pressureSamples > 0 ? bucket.pressureSum / bucket.pressureSamples : null;
-
-    // Neighbour smoothing of pressure in the same 5-min window (no DB queries, no latency).
-    // Light stays raw on purpose — see the note above WindowKey.
-    const avgLight = avgLightRaw;
-    let avgPressure = avgPressureRaw;
-    const ownPressure = pressureCell(bucket);
-    if (ownPressure && pressureGamma !== null) {
-      const neighborCells = neighborsOf(bucket).map(pressureCell).filter((c): c is CellEstimate => c !== null);
-      avgPressure = blendCell(ownPressure, neighborCells, pressureGamma);
-    }
-    const windowMovementScore = movementScore(avgAccelRms);
-    const windowVibrationScore = vibrationScore(avgAccelStdDev);
-    const batteryAvg =
-      bucket.batterySamples > 0 ? bucket.batterySum / bucket.batterySamples : null;
-    const locationShare = samples > 0 ? bucket.locationSamples / samples : 0;
-    const qualitySamples = bucket.qualitySamples;
-    const qualityValidRatio =
-      qualitySamples > 0 ? bucket.qualityValidSamples / qualitySamples : null;
-    const pocketRatio =
-      qualitySamples > 0 ? bucket.pocketLikelySamples / qualitySamples : null;
-
-    // Regional weather background for this cell/window. Powers two things:
-    // - pressureAnomalyHpa: local pressure minus background, isolating local
-    //   effects (tunnels, elevation, microclimate) from passing weather systems.
-    //   Optimal-Interpolation-style "observation minus background".
-    // - weatherTempC: stored raw, since phones have no reliable ambient
-    //   thermometer to difference against.
-    let pressureAnomalyHpa: number | null = null;
-    let weatherTempC: number | null = null;
-    const centroid = bucket.h3Index
-      ? { lat: cellToLatLng(bucket.h3Index)[0], lon: cellToLatLng(bucket.h3Index)[1] }
-      : decodeGeohash(bucket.geohash);
-    if (centroid) {
-      const weather = await getWeatherAt(centroid.lat, centroid.lon, bucket.windowStart);
-      weatherTempC = weather?.temperatureC ?? null;
-      const baseline = weather?.surfacePressureHpa;
-      if (avgPressure !== null && baseline != null) {
-        pressureAnomalyHpa = avgPressure - baseline;
-      }
-    }
-
-    windowResults.push({
-      windowStart: bucket.windowStart,
-      windowEnd: bucket.windowEnd,
-      geohash: bucket.geohash,
-      h3Index: bucket.h3Index,
-      samplesCount: samples,
-      deviceCount,
-      avgLight,
-      lightMin,
-      lightMax,
-      avgAccelRms,
-      avgAccelStdDev,
-      avgGyroRms,
-      avgPressure,
-      pressureAnomalyHpa,
-      weatherTempC,
-      movementScore: windowMovementScore,
-      vibrationScore: windowVibrationScore,
-      batteryAvg,
-      locationShare,
-      qualitySamples,
-      qualityValidRatio,
-      pocketRatio,
-    });
-
-    const dayKey = buildDayKey(bucket.windowStart, bucket.geohash);
-    let dayAcc = dayBuckets.get(dayKey);
-    if (!dayAcc) {
-      const dayStart = dayStartUtc(bucket.windowStart);
-      dayAcc = {
-        day: dayStart,
-        geohash: bucket.geohash,
-        h3Index: bucket.h3Index,
-        samples: 0,
-        deviceIds: new Set<string>(),
-        lightSum: 0,
-        lightMin: Number.POSITIVE_INFINITY,
-        lightMax: Number.NEGATIVE_INFINITY,
-        accelRmsSum: 0,
-        accelStdDevSum: 0,
-        gyroRmsSum: 0,
-        pressureSum: 0,
-        pressureSamples: 0,
-        batterySum: 0,
-        batterySamples: 0,
-        locationSamples: 0,
-        deviceActiveMinutes: 0,
-        qualitySamples: 0,
-        qualityValidSamples: 0,
-        pocketLikelySamples: 0,
-      };
-      dayBuckets.set(dayKey, dayAcc);
-    } else if (!dayAcc.h3Index && bucket.h3Index) {
-      dayAcc.h3Index = bucket.h3Index;
-    }
-
-    dayAcc.samples += samples;
-    dayAcc.deviceIds = mergeSets(dayAcc.deviceIds, bucket.deviceIds);
-    dayAcc.lightSum += bucket.lightSum;
-    if (bucket.lightMin !== Number.POSITIVE_INFINITY) {
-      dayAcc.lightMin = Math.min(dayAcc.lightMin, bucket.lightMin);
-    }
-    if (bucket.lightMax !== Number.NEGATIVE_INFINITY) {
-      dayAcc.lightMax = Math.max(dayAcc.lightMax, bucket.lightMax);
-    }
-    dayAcc.accelRmsSum += bucket.accelRmsSum;
-    dayAcc.accelStdDevSum += bucket.accelStdDevSum;
-    dayAcc.gyroRmsSum += bucket.gyroRmsSum;
-    dayAcc.pressureSum += bucket.pressureSum;
-    dayAcc.pressureSamples += bucket.pressureSamples;
-    dayAcc.batterySum += bucket.batterySum;
-    dayAcc.batterySamples += bucket.batterySamples;
-    dayAcc.locationSamples += bucket.locationSamples;
-    dayAcc.deviceActiveMinutes += deviceCount * AGGREGATION_WINDOW_MINUTES;
-    dayAcc.qualitySamples += bucket.qualitySamples;
-    dayAcc.qualityValidSamples += bucket.qualityValidSamples;
-    dayAcc.pocketLikelySamples += bucket.pocketLikelySamples;
-  }
+  // ── Back to the functional core: everything from here on is pure, given the fetched weather. ──
+  const windowResults: WindowResult[] = computeWindowResults(windowBuckets, weatherByKey);
+  const dayBuckets: Map<DayKey, DayAccumulator> = buildDayBuckets(windowBuckets);
 
   const client = await pool.connect();
   try {
@@ -568,44 +201,9 @@ export async function runAggregationJob(): Promise<void> {
   }
 }
 
-function mergeSets<T>(target: Set<T>, source: Set<T>): Set<T> {
-  for (const value of source) {
-    target.add(value);
-  }
-  return target;
-}
-
-function buildDayKey(windowStart: Date, geohash: string): DayKey {
-  const day = dayStartUtc(windowStart);
-  return `${day.toISOString()}|${geohash}`;
-}
-
 async function upsertWindowResults(
   client: PoolClient,
-  results: Array<{
-    windowStart: Date;
-    windowEnd: Date;
-    geohash: string;
-    h3Index: string | null;
-    samplesCount: number;
-    deviceCount: number;
-    avgLight: number | null;
-    lightMin: number | null;
-    lightMax: number | null;
-    avgAccelRms: number;
-    avgAccelStdDev: number;
-    avgGyroRms: number;
-    avgPressure: number | null;
-    pressureAnomalyHpa: number | null;
-    weatherTempC: number | null;
-    movementScore: number;
-    vibrationScore: number;
-    batteryAvg: number | null;
-    locationShare: number;
-    qualitySamples: number;
-    qualityValidRatio: number | null;
-    pocketRatio: number | null;
-  }>,
+  results: WindowResult[],
 ): Promise<void> {
   if (results.length === 0) return;
 

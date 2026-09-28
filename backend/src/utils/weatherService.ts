@@ -40,11 +40,23 @@ function _fail(): null {
   return null;
 }
 
-function _cacheKey(lat: number, lon: number, at: Date): string {
+/**
+ * The region+hour a lookup collapses to: two calls with this same key always return the same
+ * observation (one becomes a cache hit for the other). Exported so a caller that is about to fire
+ * many lookups — the aggregator, one per 5-minute window bucket — can dedupe them into one call
+ * per unique key BEFORE calling {@link getWeatherAt}, instead of relying on the cache to absorb
+ * near-simultaneous duplicates (a request-coalescing / single-flight pattern: a bare in-memory
+ * cache does not stop concurrent callers from all missing it at once and each firing a fetch).
+ */
+export function weatherRegionKey(lat: number, lon: number, at: Date): string {
   const roundedLat = Math.round(lat * 4) / 4; // 0.25° grid
   const roundedLon = Math.round(lon * 4) / 4;
   const hourBucket = at.toISOString().slice(0, 13); // yyyy-MM-ddTHH
   return `${roundedLat},${roundedLon},${hourBucket}`;
+}
+
+function _cacheKey(lat: number, lon: number, at: Date): string {
+  return weatherRegionKey(lat, lon, at);
 }
 
 type HourlyBlock = Partial<Record<(typeof HOURLY_VARS)[number], number[]>> & {
