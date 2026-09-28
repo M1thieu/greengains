@@ -173,6 +173,14 @@ class ForegroundService : Service() {
         sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
         val powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
         uploadWakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "greengains:upload")
+        // Not reference-counted: NativeBackendUploader.uploadBatch() may call acquire() again for
+        // each extra batch in the same cycle without an intervening release(). Reference-counted
+        // (the WakeLock default — developer.android.com/reference/android/os/PowerManager.WakeLock)
+        // requires one release() per acquire(); its single release() in `finally` would then only
+        // undo the LAST acquire(), leaving the lock held — and the CPU unable to suspend — for up
+        // to the 60s timeout of every earlier acquire() in that cycle. With this off, one release()
+        // always fully releases it, matching what every call site's comment already assumes.
+        uploadWakeLock.setReferenceCounted(false)
 
         // Initialize Monitors
         batteryMonitor = BatteryStateMonitor(this) {
