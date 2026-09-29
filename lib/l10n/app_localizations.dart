@@ -278,6 +278,12 @@ abstract class AppLocalizations {
   /// **'Stop'**
   String get homeActionStop;
 
+  /// No description provided for @homeActionResume.
+  ///
+  /// In en, this message translates to:
+  /// **'Resume'**
+  String get homeActionResume;
+
   /// No description provided for @startTracking.
   ///
   /// In en, this message translates to:

@@ -121,6 +121,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get homeActionStop => 'Arrêter';
 
   @override
+  String get homeActionResume => 'Reprendre';
+
+  @override
   String get startTracking => 'Démarrer le suivi';
 
   @override

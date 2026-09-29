@@ -230,11 +230,24 @@ class _InitializingScreen extends StatelessWidget {
 /// - Signed in + onboarding not done → OnboardingScreen (page 0)
 /// - Signed out + onboarding done  → OnboardingScreen (page 1 — sign-in only)
 /// - Signed out + onboarding not done → OnboardingScreen (page 0)
-class OnboardingWrapper extends StatelessWidget {
+class OnboardingWrapper extends StatefulWidget {
   const OnboardingWrapper({super.key});
+
+  @override
+  State<OnboardingWrapper> createState() => _OnboardingWrapperState();
+}
+
+class _OnboardingWrapperState extends State<OnboardingWrapper> {
+  // AppPreferences.onboardingComplete is a plain synchronous flag, not a
+  // ChangeNotifier/Stream — writing it does nothing to make StreamBuilder
+  // below re-run, since that only reacts to authStateChanges(). Without this,
+  // OnboardingScreen stayed on screen (its button stuck mid-spinner) after a
+  // successful completion until some unrelated auth event happened to fire.
+  bool _justCompleted = false;
 
   Future<void> _handleOnboardingComplete() async {
     await AppPreferences.instance.setOnboardingComplete(true);
+    if (mounted) setState(() => _justCompleted = true);
   }
 
   @override
@@ -247,7 +260,7 @@ class OnboardingWrapper extends StatelessWidget {
         }
 
         final user = snapshot.data;
-        final onboardingDone = AppPreferences.instance.onboardingComplete;
+        final onboardingDone = _justCompleted || AppPreferences.instance.onboardingComplete;
 
         if (user != null && onboardingDone) {
           return const AppShell();

@@ -115,6 +115,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeActionStop => 'Stop';
 
   @override
+  String get homeActionResume => 'Resume';
+
+  @override
   String get startTracking => 'Start Tracking';
 
   @override

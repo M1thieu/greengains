@@ -316,6 +316,20 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     }
   }
 
+  /// Resumes a session paused from the notification. Pausing has no in-app
+  /// trigger (only the notification's Pause action), so this is the only
+  /// place a resume can start from other than reopening that notification.
+  Future<void> _actionResume() async {
+    if (_actionBusy) return;
+    setState(() => _actionBusy = true);
+    try {
+      HapticFeedback.mediumImpact();
+      await _locationService.resumeTracking();
+    } finally {
+      if (mounted) setState(() => _actionBusy = false);
+    }
+  }
+
   Future<void> _checkBatteryOptimization() async {
     await Future.delayed(AppDurations.fast);
     if (!mounted) return;
@@ -510,6 +524,13 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   }
 
   Future<void> _checkServiceStatus() async {
+    // The shared_preferences plugin caches the whole file in memory and only
+    // re-reads it on an explicit reload() — it has no way to know the native
+    // side wrote to the same file directly (ForegroundService.stopForegroundService()
+    // does, while the app was backgrounded). Without this, foregroundServiceEnabled
+    // below could still read the stale "true" from before a Stop tapped from the
+    // notification, and auto-restart a session the user explicitly stopped.
+    await _prefs.reload();
     final isRunning = await _locationService.isServiceRunning();
     if (!isRunning && _prefs.foregroundServiceEnabled) {
       final wasUserStopped = await _locationService.wasAppUserStopped();
@@ -986,10 +1007,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                       child: ListenableBuilder(
                         listenable: Listenable.merge([
                           _locationService.isRunning,
+                          _locationService.isPaused,
                           _userLocationNotifier,
                         ]),
                         builder: (context, _) {
                           final isRunning = _locationService.isRunning.value;
+                          final isPaused  = _locationService.isPaused.value;
                           final hasLoc    = _userLocationNotifier.value != null;
                           return Row(
                             children: [
@@ -998,9 +1021,11 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                 child: Center(
                                   child: _HomeActionBar(
                                     isRunning: isRunning,
+                                    isPaused: isPaused,
                                     isBusy: _actionBusy,
                                     onStart: _actionStart,
                                     onStop: _actionStop,
+                                    onResume: _actionResume,
                                   ),
                                 ),
                               ),
@@ -1210,15 +1235,21 @@ class _ZeroStateCard extends StatelessWidget {
 class _HomeActionBar extends StatelessWidget {
   const _HomeActionBar({
     required this.isRunning,
+    required this.isPaused,
     required this.isBusy,
     required this.onStart,
     required this.onStop,
+    required this.onResume,
   });
 
   final bool isRunning;
+  /// Only meaningful while [isRunning]: true when paused from the
+  /// notification's Pause action (there is no in-app pause trigger).
+  final bool isPaused;
   final bool isBusy;
   final VoidCallback onStart;
   final VoidCallback onStop;
+  final VoidCallback onResume;
 
   @override
   Widget build(BuildContext context) {
@@ -1233,6 +1264,20 @@ class _HomeActionBar extends StatelessWidget {
         padding: AppTheme.spaceLg,
         busy: isBusy,
         onPressed: onStart,
+        style: _ActionBtnStyle.primary,
+      );
+    }
+    if (isPaused) {
+      // Distinct from both Start and Stop: this used to render identically to
+      // the active Stop button, so pausing from the notification looked like
+      // nothing had happened in the app.
+      return _ActionButton(
+        semanticLabel: l10n.homeActionResume,
+        icon: Icons.play_arrow_rounded,
+        iconSize: AppIconSizes.lg,
+        padding: AppTheme.spaceLg,
+        busy: isBusy,
+        onPressed: onResume,
         style: _ActionBtnStyle.primary,
       );
     }

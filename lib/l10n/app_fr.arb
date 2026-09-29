@@ -43,6 +43,7 @@
   "@homeStatToday": { "placeholders": { "count": { "type": "int" } } },
   "homeActionStart": "Démarrer",
   "homeActionStop": "Arrêter",
+  "homeActionResume": "Reprendre",
   "startTracking": "Démarrer le suivi",
   "stopTracking": "Arrêter le suivi",
   "trackingActive": "Suivi actif",

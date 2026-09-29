@@ -43,6 +43,7 @@
   "@homeStatToday": { "placeholders": { "count": { "type": "int" } } },
   "homeActionStart": "Start",
   "homeActionStop": "Stop",
+  "homeActionResume": "Resume",
   "startTracking": "Start Tracking",
   "stopTracking": "Stop Tracking",
   "trackingActive": "Tracking Active",
