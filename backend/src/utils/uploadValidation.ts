@@ -12,9 +12,27 @@ const MAX_BATCHES_PER_HOUR = 120;
 // Allows ~2 active devices simultaneously without throttling legitimate users.
 const MAX_USER_BATCHES_PER_HOUR = 300;
 
-// Speed threshold for GPS velocity anomaly detection (m/s).
-// 100 m/s ≈ 360 km/h — above any road/rail vehicle; tightened from 300 (which let low-altitude aircraft through).
-const MAX_GPS_SPEED_MPS = 100;
+/**
+ * Speed threshold for GPS velocity anomaly detection (m/s): implied travel this fast between two
+ * batches from the same device is rejected, not merely flagged.
+ *
+ * Anchored on the fastest ground transport a real phone owner can plausibly be riding, not a round
+ * number: CR450, China's next-generation high-speed train, has a published commercial operating
+ * speed of 400 km/h = 111.1 m/s and is slated for the Beijing-Shanghai line in 2026 (had not yet
+ * entered revenue service as of the source's last check, so this is a near-term fix, not a live
+ * one). 115 m/s (414 km/h) clears that with a small margin.
+ *
+ * This does not reopen the "low-altitude aircraft" hole the previous 300->100 tightening closed:
+ * a Cessna 172, the world's most common small aircraft, cruises at 110-124 knots = 56.6-63.8 m/s
+ * and tops out near 140 knots = 72 m/s — already well under even the OLD 100 m/s bound. The
+ * Shanghai Maglev, once the fastest revenue rail service at 431 km/h, was itself slowed to
+ * 300 km/h = 83.3 m/s in 2021 and no longer factors in.
+ *
+ * Sources: en.wikipedia.org/wiki/CR450 ("service speed 400 km/h", "Number in service: 0" as of
+ * 2026-08-17, expected on Beijing-Shanghai in 2026); en.wikipedia.org/wiki/Shanghai_maglev_train
+ * (300 km/h cruise since May 2021); Cessna 172 cruise/max speed, multiple aviation sources.
+ */
+const MAX_GPS_SPEED_MPS = 115;
 
 // ─── In-Memory Rate Limiting ──────────────────────────────────────────────────
 //

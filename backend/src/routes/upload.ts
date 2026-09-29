@@ -412,7 +412,10 @@ export async function uploadRoutes(fastify: FastifyInstance) {
           });
         }
 
-        // 3. GPS velocity check: reject if implied speed > 300 m/s
+        // 3. GPS velocity check: reject if implied speed exceeds MAX_GPS_SPEED_MPS
+        // (uploadValidation.ts — kept there, not duplicated as a number here, so this comment
+        // can't go stale again the way it did before: it used to say "300 m/s" after the
+        // constant itself had already been tightened to 100).
         if (await checkGpsVelocity(pool, deviceHash, batch)) {
           return reply.code(422).send({
             error: 'Unprocessable Entity',
