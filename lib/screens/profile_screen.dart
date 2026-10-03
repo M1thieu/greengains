@@ -333,28 +333,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ],
           ),
         ),
-        // Top-right button - settings gear (sign out lives in Settings > Account)
+        // Top-right: standard settings icon (48px target, no box)
         Positioned(
           top: topPad + AppTheme.spaceXxs,
           right: AppTheme.spaceXs,
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              PressScaleDetector(
-                onTap: () => Navigator.of(context).push(
+              IconButton(
+                icon: Icon(Icons.settings_outlined, color: AppColors.textSecondary(isDark)),
+                tooltip: l10n.settingsTitle,
+                onPressed: () => Navigator.of(context).push(
                   MaterialPageRoute(builder: (_) => const SettingsScreen()),
-                ),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: AppColors.surfaceElevated(isDark),
-                    borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-                  ),
-                  padding: const EdgeInsets.all(AppTheme.spaceXs),
-                  child: Icon(
-                    Icons.settings_outlined,
-                    size: AppIconSizes.sm,
-                    color: AppColors.textSecondary(isDark),
-                  ),
                 ),
               ),
             ],
