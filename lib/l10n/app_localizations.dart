@@ -3351,12 +3351,6 @@ abstract class AppLocalizations {
   /// **'Got it'**
   String get returnDeltaDismiss;
 
-  /// No description provided for @settingsAccount.
-  ///
-  /// In en, this message translates to:
-  /// **'Account'**
-  String get settingsAccount;
-
   /// No description provided for @settingsSignOut.
   ///
   /// In en, this message translates to:

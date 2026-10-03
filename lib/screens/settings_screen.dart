@@ -61,7 +61,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       body: ListView(
         padding: AppTheme.pagePadding,
         children: [
-          // ── Display ──────────────────────────────────────────────────────
+          // Display
           _SectionCard(
             label: l10n.settingsDisplay,
             children: [
@@ -109,7 +109,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           const SizedBox(height: _kSectionSpacing),
 
-          // ── Tracking ──────────────────────────────────────────────────────
+          // Tracking
           _SectionCard(
             label: l10n.settingsTracking,
             children: [
@@ -147,20 +147,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           const SizedBox(height: _kSectionSpacing),
 
-          // ── Account ───────────────────────────────────────────────────────
-          _SectionCard(
-            label: l10n.settingsAccount,
-            children: [
-              _ActionRow(
-                icon: Icons.logout_rounded,
-                title: l10n.settingsSignOut,
-                onTap: () => _handleSignOut(context),
-              ),
-            ],
+          OutlinedButton(
+            onPressed: () => _handleSignOut(context),
+            child: Text(l10n.settingsSignOut),
           ),
           const SizedBox(height: _kSectionSpacing),
 
-          // ── About (debug only: its one entry is the diagnostics screen) ─────
+          // About (debug only: its one entry is the diagnostics screen)
           if (kDebugMode) Padding(
             padding: const EdgeInsets.only(left: AppTheme.spaceXxs, bottom: AppTheme.spaceXs),
             child: Text(l10n.settingsAbout.toUpperCase(), style: AppTheme.eyebrowLabel(isDark)),
@@ -195,7 +188,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           const SizedBox(height: AppTheme.spaceXl),
 
-          // ── Footer: version + legal ───────────────────────────────────────
+          // Footer: version + legal
           Center(
             child: Padding(
               padding: const EdgeInsets.only(bottom: AppTheme.spaceXl),
@@ -272,7 +265,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return PressScaleDetector(
       onTap: () {
         Navigator.of(sheetContext).pop();
-        // Use the screen's own context — the sheet's is unmounted right after pop.
+        // Use the screen's own context - the sheet's is unmounted right after pop.
         if (!mounted) return;
         AppSnackbars.show(context, message: l10n.settingsExportDataPreparing, type: AppSnackbarType.info);
         unawaited(_exportMyData(context, l10n));
@@ -303,7 +296,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   /// No confirmation dialog: tapping "Sign out" is already the intent.
-  /// Settings is a pushed route, so it is popped explicitly — otherwise it
+  /// Settings is a pushed route, so it is popped explicitly - otherwise it
   /// stays on top of the sign-in page that OnboardingWrapper swaps in below.
   Future<void> _handleSignOut(BuildContext context) async {
     final navigator = Navigator.of(context);
@@ -311,7 +304,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     navigator.popUntil((route) => route.isFirst);
   }
 
-  /// Personal data export — a right, not a paid feature, so it hits
+  /// Personal data export - a right, not a paid feature, so it hits
   /// GET /api/user/export directly rather than the org-tier-gated dashboard
   /// endpoint. Fetches JSON, writes it to a temp file, then hands off to the
   /// OS share sheet so the user picks where it goes (email, Drive, Files…).
@@ -370,7 +363,7 @@ class _SectionCard extends StatelessWidget {
 }
 
 
-// ── Row variants ──────────────────────────────────────────────────────────────
+// Row variants
 
 class _ToggleRow extends StatelessWidget {
   const _ToggleRow({
@@ -439,47 +432,8 @@ class _ToggleRow extends StatelessWidget {
   }
 }
 
-/// Tappable row — icon, title, chevron. Same visual language as _ToggleRow
+/// Tappable row - icon, title, chevron. Same visual language as _ToggleRow
 /// but for actions rather than settings toggles.
-class _ActionRow extends StatelessWidget {
-  const _ActionRow({
-    required this.icon,
-    required this.title,
-    required this.onTap,
-  });
-
-  final IconData icon;
-  final String title;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
-    return PressScaleDetector(
-      onTap: onTap,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          _IconBox(icon: icon, color: AppColors.primary),
-          const SizedBox(width: AppTheme.spaceMd),
-          Expanded(
-            child: Text(
-              title,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                fontWeight: AppFontWeights.semibold,
-                color: AppColors.textPrimary(isDark),
-              ),
-            ),
-          ),
-          Icon(Icons.chevron_right, size: AppIconSizes.sm, color: AppColors.textTertiary(isDark)),
-        ],
-      ),
-    );
-  }
-}
-
 class _LegalLink extends StatelessWidget {
   const _LegalLink({required this.label, required this.onTap, required this.isDark});
   final String label;

@@ -1955,9 +1955,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get returnDeltaDismiss => 'Got it';
 
   @override
-  String get settingsAccount => 'Account';
-
-  @override
   String get settingsSignOut => 'Sign out';
 
   @override

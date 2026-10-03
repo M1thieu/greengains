@@ -1972,9 +1972,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get returnDeltaDismiss => 'OK';
 
   @override
-  String get settingsAccount => 'Compte';
-
-  @override
   String get settingsSignOut => 'Se déconnecter';
 
   @override
