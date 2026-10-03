@@ -331,10 +331,10 @@ class _StatisticsScreenState extends State<StatisticsScreen>
             valueListenable: ForegroundLocationService.instance.isRunning,
             builder: (context, tracking, _) {
               if (_backendFailed) {
-                return _buildZeroStateMessage(theme, isDark, l10n.statsLoadErrorTitle, l10n.statsLoadErrorBody);
+                return _buildZeroStateMessage(theme, isDark, l10n.statsLoadErrorTitle);
               }
               if (tracking) {
-                return _buildZeroStateMessage(theme, isDark, l10n.statsCollectingTitle, l10n.statsCollectingBody);
+                return _buildZeroStateMessage(theme, isDark, l10n.statsCollectingTitle);
               }
               return _buildEmptyState(context, theme, isDark, l10n);
             },
@@ -1525,7 +1525,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
 
   /// Zero state for when there is nothing to show yet but the user has nothing
   /// to do either (collection running, or the server could not be reached).
-  Widget _buildZeroStateMessage(ThemeData theme, bool isDark, String title, String body) {
+  Widget _buildZeroStateMessage(ThemeData theme, bool isDark, String title) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(AppTheme.spaceLg),
@@ -1536,12 +1536,6 @@ class _StatisticsScreenState extends State<StatisticsScreen>
               title,
               textAlign: TextAlign.center,
               style: theme.textTheme.titleLarge?.copyWith(fontWeight: AppFontWeights.semibold),
-            ),
-            const SizedBox(height: AppTheme.spaceXs),
-            Text(
-              body,
-              textAlign: TextAlign.center,
-              style: theme.textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary(isDark)),
             ),
             const SizedBox(height: AppTheme.spaceLg),
             OutlinedButton.icon(
@@ -1569,12 +1563,6 @@ class _StatisticsScreenState extends State<StatisticsScreen>
             Text(
               l10n.statsStartContributing,
               style: theme.textTheme.titleLarge?.copyWith(fontWeight: AppFontWeights.semibold),
-            ),
-            const SizedBox(height: AppTheme.spaceXs),
-            Text(
-              l10n.statsEmptyDescription,
-              textAlign: TextAlign.center,
-              style: theme.textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary(isDark)),
             ),
             const SizedBox(height: AppTheme.spaceLg),
             // Preview of what tracking will record.

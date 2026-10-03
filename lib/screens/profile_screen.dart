@@ -160,14 +160,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: AppTheme.spaceSm),
-          Text(
-            l10n.profileUnlockBody,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: AppColors.textSecondary(isDark),
-            ),
-            textAlign: TextAlign.center,
-          ),
           const SizedBox(height: AppTheme.spaceXl),
 
           // Google Sign In Button

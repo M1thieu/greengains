@@ -128,12 +128,6 @@ abstract class AppLocalizations {
   /// **'Your map starts here.'**
   String get onboardingSignInTitle;
 
-  /// No description provided for @onboardingSignInSubtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Sign in to keep your map synced across devices.'**
-  String get onboardingSignInSubtitle;
-
   /// No description provided for @onboardingPrivacyNotice.
   ///
   /// In en, this message translates to:
@@ -1310,12 +1304,6 @@ abstract class AppLocalizations {
   /// **'No data yet.'**
   String get statsStartContributing;
 
-  /// No description provided for @statsEmptyDescription.
-  ///
-  /// In en, this message translates to:
-  /// **'Enable tracking once. Light, heat and surface quality are recorded silently.'**
-  String get statsEmptyDescription;
-
   /// No description provided for @statsEmptyGoMap.
   ///
   /// In en, this message translates to:
@@ -1328,23 +1316,11 @@ abstract class AppLocalizations {
   /// **'Couldn\'t load your stats'**
   String get statsLoadErrorTitle;
 
-  /// No description provided for @statsLoadErrorBody.
-  ///
-  /// In en, this message translates to:
-  /// **'The server didn\'t respond. Your readings are kept on the phone and sent when it\'s back.'**
-  String get statsLoadErrorBody;
-
   /// No description provided for @statsCollectingTitle.
   ///
   /// In en, this message translates to:
   /// **'Collecting'**
   String get statsCollectingTitle;
-
-  /// No description provided for @statsCollectingBody.
-  ///
-  /// In en, this message translates to:
-  /// **'Tracking is on. Your first readings appear here a few minutes after the first upload.'**
-  String get statsCollectingBody;
 
   /// No description provided for @statsEmptyUnlockHint.
   ///
@@ -1856,23 +1832,11 @@ abstract class AppLocalizations {
   /// **'Mapping'**
   String get settingsTracking;
 
-  /// No description provided for @settingsTrackingDesc.
-  ///
-  /// In en, this message translates to:
-  /// **'Turn off to stop all background mapping'**
-  String get settingsTrackingDesc;
-
   /// No description provided for @settingsLocationDescription.
   ///
   /// In en, this message translates to:
   /// **'Required for the live coverage map'**
   String get settingsLocationDescription;
-
-  /// No description provided for @settingsMobileDataDescription.
-  ///
-  /// In en, this message translates to:
-  /// **'Upload over LTE/5G when needed'**
-  String get settingsMobileDataDescription;
 
   /// No description provided for @settingsLegal.
   ///
@@ -2877,12 +2841,6 @@ abstract class AppLocalizations {
   /// **'Location access off'**
   String get permissionLostTitle;
 
-  /// No description provided for @permissionLostBody.
-  ///
-  /// In en, this message translates to:
-  /// **'Your map stopped updating. Tap to fix.'**
-  String get permissionLostBody;
-
   /// No description provided for @permissionLostCta.
   ///
   /// In en, this message translates to:
@@ -3273,12 +3231,6 @@ abstract class AppLocalizations {
   /// **'Your map is saving.'**
   String get profileUnlockTitle;
 
-  /// No description provided for @profileUnlockBody.
-  ///
-  /// In en, this message translates to:
-  /// **'Sign in to keep it forever and sync across devices.'**
-  String get profileUnlockBody;
-
   /// No description provided for @profileUnlockCta.
   ///
   /// In en, this message translates to:
@@ -3290,12 +3242,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Your first place is one walk away'**
   String get mapZeroStateTitle;
-
-  /// No description provided for @mapZeroStateBody.
-  ///
-  /// In en, this message translates to:
-  /// **'Start tracking once. Your street goes on the map the moment you move.'**
-  String get mapZeroStateBody;
 
   /// No description provided for @snapshotCardTitle.
   ///

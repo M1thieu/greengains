@@ -1001,14 +1001,6 @@ class _ZeroStateCard extends StatelessWidget {
                       letterSpacing: AppTheme.letterSpacingSubtle,
                     ),
                   ),
-                  const SizedBox(height: AppTheme.spaceXxxs),
-                  Text(
-                    context.l10n.mapZeroStateBody,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: AppColors.darkTextSecondary,
-                      height: AppLineHeights.normal,
-                    ),
-                  ),
                 ],
               ),
             ),
@@ -1464,13 +1456,6 @@ class _PermissionLostCard extends StatelessWidget {
                       fontWeight: AppFontWeights.semibold,
                       color: AppColors.warning,
                       letterSpacing: -0.1,
-                    ),
-                  ),
-                  const SizedBox(height: AppTheme.spaceXxxs),
-                  Text(
-                    l10n.permissionLostBody,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Colors.white.withValues(alpha: 0.72),
                     ),
                   ),
                 ],

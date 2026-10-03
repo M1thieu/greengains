@@ -24,10 +24,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get onboardingSignInTitle => 'Your map starts here.';
 
   @override
-  String get onboardingSignInSubtitle =>
-      'Sign in to keep your map synced across devices.';
-
-  @override
   String onboardingPrivacyNotice(String privacyPolicy, String termsOfService) {
     return 'By continuing, you agree to our $privacyPolicy and $termsOfService.';
   }
@@ -738,25 +734,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get statsStartContributing => 'No data yet.';
 
   @override
-  String get statsEmptyDescription =>
-      'Enable tracking once. Light, heat and surface quality are recorded silently.';
-
-  @override
   String get statsEmptyGoMap => 'Enable tracking';
 
   @override
   String get statsLoadErrorTitle => 'Couldn\'t load your stats';
 
   @override
-  String get statsLoadErrorBody =>
-      'The server didn\'t respond. Your readings are kept on the phone and sent when it\'s back.';
-
-  @override
   String get statsCollectingTitle => 'Collecting';
-
-  @override
-  String get statsCollectingBody =>
-      'Tracking is on. Your first readings appear here a few minutes after the first upload.';
 
   @override
   String get statsEmptyUnlockHint => 'Walk to unlock';
@@ -1054,14 +1038,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsTracking => 'Mapping';
 
   @override
-  String get settingsTrackingDesc => 'Turn off to stop all background mapping';
-
-  @override
   String get settingsLocationDescription =>
       'Required for the live coverage map';
-
-  @override
-  String get settingsMobileDataDescription => 'Upload over LTE/5G when needed';
 
   @override
   String get settingsLegal => 'Legal';
@@ -1682,9 +1660,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get permissionLostTitle => 'Location access off';
 
   @override
-  String get permissionLostBody => 'Your map stopped updating. Tap to fix.';
-
-  @override
   String get permissionLostCta => 'Fix in Settings';
 
   @override
@@ -1926,18 +1901,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileUnlockTitle => 'Your map is saving.';
 
   @override
-  String get profileUnlockBody =>
-      'Sign in to keep it forever and sync across devices.';
-
-  @override
   String get profileUnlockCta => 'Sign in to keep my map';
 
   @override
   String get mapZeroStateTitle => 'Your first place is one walk away';
-
-  @override
-  String get mapZeroStateBody =>
-      'Start tracking once. Your street goes on the map the moment you move.';
 
   @override
   String get snapshotCardTitle => 'YOUR NEIGHBOURHOOD';

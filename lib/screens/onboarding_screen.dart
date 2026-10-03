@@ -347,14 +347,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: AppTheme.spaceMd),
-            Text(
-              l10n.onboardingSignInSubtitle,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: AppColors.textSecondary(isDark),
-              ),
-              textAlign: TextAlign.center,
-            ),
             if (_activeMappers != null) ...[
               const SizedBox(height: AppTheme.spaceMd),
               Container(

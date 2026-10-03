@@ -6,7 +6,6 @@
   "onboardingFeature2Title": "Private by default",
   "onboardingFeature3Title": "See what's around you.",
   "onboardingSignInTitle": "Your map starts here.",
-  "onboardingSignInSubtitle": "Sign in to keep your map synced across devices.",
   "onboardingPrivacyNotice": "By continuing, you agree to our {privacyPolicy} and {termsOfService}.",
   "@onboardingPrivacyNotice": {
     "placeholders": {
@@ -294,12 +293,9 @@
   "statsHistoryNote": "Weekly history will appear once you have multiple days of data",
   "statsContributionTimeline": "Contribution Timeline",
   "statsStartContributing": "No data yet.",
-  "statsEmptyDescription": "Enable tracking once. Light, heat and surface quality are recorded silently.",
   "statsEmptyGoMap": "Enable tracking",
   "statsLoadErrorTitle": "Couldn't load your stats",
-  "statsLoadErrorBody": "The server didn't respond. Your readings are kept on the phone and sent when it's back.",
   "statsCollectingTitle": "Collecting",
-  "statsCollectingBody": "Tracking is on. Your first readings appear here a few minutes after the first upload.",
   "statsEmptyUnlockHint": "Walk to unlock",
   "statsUpdatedPrefix": "Updated ",
   "statsDayMon": "Mon",
@@ -422,9 +418,7 @@
   "settingsThemeDark": "Dark",
   "settingsThemeAuto": "Auto",
   "settingsTracking": "Mapping",
-  "settingsTrackingDesc": "Turn off to stop all background mapping",
   "settingsLocationDescription": "Required for the live coverage map",
-  "settingsMobileDataDescription": "Upload over LTE/5G when needed",
   "settingsLegal": "Legal",
   "settingsPrivacyPolicyDesc": "How we handle your data",
   "settingsTermsOfServiceDesc": "Usage terms and conditions",
@@ -722,7 +716,6 @@
   "ambientNearbyLabel": "Nearby",
   "ambientUnmappedLabel": "Walk here to reveal data",
   "permissionLostTitle": "Location access off",
-  "permissionLostBody": "Your map stopped updating. Tap to fix.",
   "permissionLostCta": "Fix in Settings",
   "referralNeighborhoodHook": "Help map {neighborhood}. Every neighbor fills in what you haven't reached.",
   "@referralNeighborhoodHook": {
@@ -835,11 +828,9 @@
   "onboardingCodeApplied": "Invite code applied.",
 
   "profileUnlockTitle": "Your map is saving.",
-  "profileUnlockBody": "Sign in to keep it forever and sync across devices.",
   "profileUnlockCta": "Sign in to keep my map",
 
   "mapZeroStateTitle": "Your first place is one walk away",
-  "mapZeroStateBody": "Start tracking once. Your street goes on the map the moment you move.",
 
   "snapshotCardTitle": "YOUR NEIGHBOURHOOD",
   "snapshotReadings": "{count, plural, =1{1 reading} other{{count} readings}}",

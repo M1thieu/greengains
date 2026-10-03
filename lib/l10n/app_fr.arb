@@ -6,7 +6,6 @@
   "onboardingFeature2Title": "Privé par défaut",
   "onboardingFeature3Title": "Vois ton environnement.",
   "onboardingSignInTitle": "Ta carte commence ici.",
-  "onboardingSignInSubtitle": "Connecte-toi pour garder ta carte synchronisée sur tous tes appareils.",
   "onboardingPrivacyNotice": "En continuant, tu acceptes notre {privacyPolicy} et nos {termsOfService}.",
   "@onboardingPrivacyNotice": {
     "placeholders": {
@@ -294,12 +293,9 @@
   "statsHistoryNote": "L'historique hebdomadaire apparaîtra après plusieurs jours de données",
   "statsContributionTimeline": "Historique des contributions",
   "statsStartContributing": "Pas encore de données.",
-  "statsEmptyDescription": "Active le suivi une fois. Lumière, chaleur et surfaces sont enregistrées en arrière-plan.",
   "statsEmptyGoMap": "Activer le suivi",
   "statsLoadErrorTitle": "Impossible de charger tes stats",
-  "statsLoadErrorBody": "Le serveur n'a pas répondu. Tes mesures restent sur le téléphone et seront envoyées dès son retour.",
   "statsCollectingTitle": "Collecte en cours",
-  "statsCollectingBody": "Le suivi est actif. Tes premières mesures apparaîtront ici quelques minutes après le premier envoi.",
   "statsEmptyUnlockHint": "Marche pour débloquer",
   "statsUpdatedPrefix": "Mis à jour ",
   "statsDayMon": "Lun",
@@ -422,9 +418,7 @@
   "settingsThemeDark": "Sombre",
   "settingsThemeAuto": "Auto",
   "settingsTracking": "Cartographie",
-  "settingsTrackingDesc": "Désactivez pour arrêter toute cartographie en arrière-plan",
   "settingsLocationDescription": "Nécessaire pour la carte de couverture en direct",
-  "settingsMobileDataDescription": "Envoyer via LTE/5G si nécessaire",
   "settingsLegal": "Légal",
   "settingsPrivacyPolicyDesc": "Comment nous gérons tes données",
   "settingsTermsOfServiceDesc": "Conditions générales d'utilisation",
@@ -722,7 +716,6 @@
   "ambientNearbyLabel": "À proximité",
   "ambientUnmappedLabel": "Passe par ici pour révéler les données",
   "permissionLostTitle": "Accès à la localisation désactivé",
-  "permissionLostBody": "Ta carte ne se met plus à jour. Appuie pour corriger.",
   "permissionLostCta": "Corriger dans les réglages",
   "referralNeighborhoodHook": "Aide à cartographier {neighborhood}. Chaque voisin couvre ce que tu n'as pas encore atteint.",
   "@referralNeighborhoodHook": {
@@ -835,11 +828,9 @@
   "onboardingCodeApplied": "Code d'invitation appliqué.",
 
   "profileUnlockTitle": "Ta carte est en train d'être sauvegardée.",
-  "profileUnlockBody": "Connecte-toi pour la conserver et la synchroniser sur tous tes appareils.",
   "profileUnlockCta": "Me connecter pour garder ma carte",
 
   "mapZeroStateTitle": "Ton premier endroit est à une marche",
-  "mapZeroStateBody": "Lance le suivi une fois. Ta rue apparaît sur la carte dès que tu bouges.",
 
   "snapshotCardTitle": "TON QUARTIER",
   "snapshotReadings": "{count, plural, =1{1 mesure} other{{count} mesures}}",

@@ -128,7 +128,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   icon: Icons.map_outlined,
                   iconColor: AppColors.primary,
                   title: l10n.settingsTracking,
-                  subtitle: l10n.settingsTrackingDesc,
                   value: _locationService.isRunning.value || _locationService.isPaused.value,
                   onChanged: (v) async {
                     if (v) {
@@ -145,7 +144,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 icon: Icons.signal_cellular_alt_outlined,
                 iconColor: AppColors.movement,
                 title: l10n.settingsMobileData,
-                subtitle: l10n.settingsMobileDataDescription,
                 value: _prefs.useMobileUploads,
                 onChanged: (v) async {
                   await _prefs.setUseMobileUploads(v);
@@ -361,7 +359,6 @@ class _ToggleRow extends StatelessWidget {
   const _ToggleRow({
     required this.icon,
     required this.title,
-    this.subtitle,
     required this.value,
     required this.onChanged,
     this.iconColor,
@@ -369,7 +366,6 @@ class _ToggleRow extends StatelessWidget {
 
   final IconData icon;
   final String title;
-  final String? subtitle;
   final bool value;
   final ValueChanged<bool>? onChanged;
   final Color? iconColor;
@@ -399,15 +395,6 @@ class _ToggleRow extends StatelessWidget {
                   color: disabled ? AppColors.textSecondary(isDark) : AppColors.textPrimary(isDark),
                 ),
               ),
-              if (subtitle != null) ...[
-                const SizedBox(height: AppTheme.spaceXxs),
-                Text(
-                  subtitle!,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: AppColors.textSecondary(isDark),
-                  ),
-                ),
-              ],
             ],
           ),
         ),

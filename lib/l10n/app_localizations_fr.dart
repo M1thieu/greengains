@@ -24,10 +24,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get onboardingSignInTitle => 'Ta carte commence ici.';
 
   @override
-  String get onboardingSignInSubtitle =>
-      'Connecte-toi pour garder ta carte synchronisée sur tous tes appareils.';
-
-  @override
   String onboardingPrivacyNotice(String privacyPolicy, String termsOfService) {
     return 'En continuant, tu acceptes notre $privacyPolicy et nos $termsOfService.';
   }
@@ -741,25 +737,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get statsStartContributing => 'Pas encore de données.';
 
   @override
-  String get statsEmptyDescription =>
-      'Active le suivi une fois. Lumière, chaleur et surfaces sont enregistrées en arrière-plan.';
-
-  @override
   String get statsEmptyGoMap => 'Activer le suivi';
 
   @override
   String get statsLoadErrorTitle => 'Impossible de charger tes stats';
 
   @override
-  String get statsLoadErrorBody =>
-      'Le serveur n\'a pas répondu. Tes mesures restent sur le téléphone et seront envoyées dès son retour.';
-
-  @override
   String get statsCollectingTitle => 'Collecte en cours';
-
-  @override
-  String get statsCollectingBody =>
-      'Le suivi est actif. Tes premières mesures apparaîtront ici quelques minutes après le premier envoi.';
 
   @override
   String get statsEmptyUnlockHint => 'Marche pour débloquer';
@@ -1061,16 +1045,8 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settingsTracking => 'Cartographie';
 
   @override
-  String get settingsTrackingDesc =>
-      'Désactivez pour arrêter toute cartographie en arrière-plan';
-
-  @override
   String get settingsLocationDescription =>
       'Nécessaire pour la carte de couverture en direct';
-
-  @override
-  String get settingsMobileDataDescription =>
-      'Envoyer via LTE/5G si nécessaire';
 
   @override
   String get settingsLegal => 'Légal';
@@ -1694,10 +1670,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get permissionLostTitle => 'Accès à la localisation désactivé';
 
   @override
-  String get permissionLostBody =>
-      'Ta carte ne se met plus à jour. Appuie pour corriger.';
-
-  @override
   String get permissionLostCta => 'Corriger dans les réglages';
 
   @override
@@ -1942,18 +1914,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get profileUnlockTitle => 'Ta carte est en train d\'être sauvegardée.';
 
   @override
-  String get profileUnlockBody =>
-      'Connecte-toi pour la conserver et la synchroniser sur tous tes appareils.';
-
-  @override
   String get profileUnlockCta => 'Me connecter pour garder ma carte';
 
   @override
   String get mapZeroStateTitle => 'Ton premier endroit est à une marche';
-
-  @override
-  String get mapZeroStateBody =>
-      'Lance le suivi une fois. Ta rue apparaît sur la carte dès que tu bouges.';
 
   @override
   String get snapshotCardTitle => 'TON QUARTIER';
