@@ -782,6 +782,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get statsEmptyGoMap => 'Enable tracking';
 
   @override
+  String get statsLoadErrorTitle => 'Couldn\'t load your stats';
+
+  @override
+  String get statsLoadErrorBody =>
+      'The server didn\'t respond. Your readings are kept on the phone and sent when it\'s back.';
+
+  @override
+  String get statsCollectingTitle => 'Collecting';
+
+  @override
+  String get statsCollectingBody =>
+      'Tracking is on. Your first readings appear here a few minutes after the first upload.';
+
+  @override
   String get statsEmptyUnlockHint => 'Walk to unlock';
 
   @override

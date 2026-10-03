@@ -9,7 +9,7 @@ export 'api_models.dart';
 
 const String kBackendBaseUrl = String.fromEnvironment(
   'BACKEND_URL',
-  defaultValue: 'https://greengains.onrender.com',
+  defaultValue: 'https://greengains-production.up.railway.app',
 );
 
 const String kBackendApiKey = String.fromEnvironment(

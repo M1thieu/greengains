@@ -14,6 +14,7 @@ import '../core/constants.dart';
 import '../core/events/app_events.dart';
 import '../core/app_preferences.dart';
 import '../core/utils/composite_subscription.dart';
+import '../services/location/foreground_location_service.dart';
 import '../services/stats/stats_service.dart';
 import '../widgets/press_scale_detector.dart';
 import '../widgets/section_header.dart';
@@ -69,6 +70,9 @@ class _StatisticsScreenState extends State<StatisticsScreen>
   int? _coverageCells; // distinct H3 res-9 cells ever contributed
   int? _daysActive;
   bool _isLoadingWeekly = true;
+  // True when the last profile fetch failed — lets the zero state say
+  // "server unreachable" instead of wrongly telling the user to start tracking.
+  bool _backendFailed = false;
   // Previous km² value — used as animation start on reload so it never resets to 0
   double _prevKm2 = 0;
   // Community stats — active mapper count from /api/stats/global (1h server cache)
@@ -238,6 +242,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
       final insight = await insightFuture;
       if (mounted) {
         setState(() {
+          _backendFailed = false;
           _weeklyData = profile.weekly;
           unawaited(AppPreferences.instance.setCachedWeeklyData(profile.weekly));
           _backendTotalUploads = profile.totalUploads;
@@ -273,8 +278,9 @@ class _StatisticsScreenState extends State<StatisticsScreen>
         // Persist streak for native StreakAlertWorker — no network call needed at 8pm.
         unawaited(AppPreferences.instance.setCurrentStreak(profile.currentStreak));
       }
-    } catch (_) {
-      // Silently fail — local stats still visible
+    } catch (e) {
+      debugPrint('Profile stats load failed: $e');
+      if (mounted) setState(() => _backendFailed = true);
     } finally {
       if (mounted) setState(() => _isLoadingWeekly = false);
     }
@@ -305,7 +311,24 @@ class _StatisticsScreenState extends State<StatisticsScreen>
     final bottomPad = MediaQuery.paddingOf(context).bottom + AppTheme.floatingNavHeight + AppTheme.spaceMd;
 
     if (stillLoading) return Scaffold(body: SafeArea(child: _buildLoadingSkeleton(isDark)));
-    if (effectiveTotal == 0) return Scaffold(body: SafeArea(child: _buildEmptyState(context, theme, isDark, l10n)));
+    if (effectiveTotal == 0) {
+      return Scaffold(
+        body: SafeArea(
+          child: ValueListenableBuilder<bool>(
+            valueListenable: ForegroundLocationService.instance.isRunning,
+            builder: (context, tracking, _) {
+              if (_backendFailed) {
+                return _buildZeroStateMessage(theme, isDark, l10n.statsLoadErrorTitle, l10n.statsLoadErrorBody);
+              }
+              if (tracking) {
+                return _buildZeroStateMessage(theme, isDark, l10n.statsCollectingTitle, l10n.statsCollectingBody);
+              }
+              return _buildEmptyState(context, theme, isDark, l10n);
+            },
+          ),
+        ),
+      );
+    }
 
     return Stack(
       children: [
@@ -1532,6 +1555,42 @@ class _StatisticsScreenState extends State<StatisticsScreen>
         ),
         );
       },
+    );
+  }
+
+  /// Zero state for when there is nothing to show yet but the user has nothing
+  /// to do either (collection running, or the server could not be reached).
+  Widget _buildZeroStateMessage(ThemeData theme, bool isDark, String title, String body) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(AppTheme.spaceLg),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              title,
+              textAlign: TextAlign.center,
+              style: theme.textTheme.titleLarge?.copyWith(fontWeight: AppFontWeights.semibold),
+            ),
+            const SizedBox(height: AppTheme.spaceXs),
+            Text(
+              body,
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary(isDark)),
+            ),
+            const SizedBox(height: AppTheme.spaceLg),
+            OutlinedButton.icon(
+              onPressed: () {
+                HapticFeedback.lightImpact();
+                _loadStats();
+                _loadWeeklyStats(force: true);
+              },
+              icon: const Icon(Icons.refresh_rounded, size: AppIconSizes.sm),
+              label: Text(context.l10n.buttonRetry),
+            ),
+          ],
+        ),
+      ),
     );
   }
 

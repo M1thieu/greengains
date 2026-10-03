@@ -245,6 +245,11 @@ class _OnboardingWrapperState extends State<OnboardingWrapper> {
   // successful completion until some unrelated auth event happened to fire.
   bool _justCompleted = false;
 
+  // Created once: calling authStateChanges() inside build() hands StreamBuilder
+  // a new stream on every setState, which resubscribes and flashes the
+  // initializing screen.
+  final Stream<User?> _authChanges = FirebaseAuth.instance.authStateChanges();
+
   Future<void> _handleOnboardingComplete() async {
     await AppPreferences.instance.setOnboardingComplete(true);
     if (mounted) setState(() => _justCompleted = true);
@@ -253,7 +258,7 @@ class _OnboardingWrapperState extends State<OnboardingWrapper> {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<User?>(
-      stream: FirebaseAuth.instance.authStateChanges(),
+      stream: _authChanges,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const _InitializingScreen();

@@ -1,4 +1,4 @@
 {
   "BACKEND_API_KEY": "your-api-key-here",
-  "BACKEND_URL": "https://greengains.onrender.com"
+  "BACKEND_URL": "https://greengains-production.up.railway.app"
 }

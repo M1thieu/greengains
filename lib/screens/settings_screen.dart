@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
@@ -12,6 +11,7 @@ import '../core/themes.dart';
 import '../core/theme_controller.dart';
 import '../core/language_controller.dart';
 import '../core/app_preferences.dart';
+import '../services/auth/auth_service.dart';
 import '../services/location/foreground_location_service.dart';
 import '../services/network/backend_client.dart';
 import '../utils/app_snackbars.dart';
@@ -184,7 +184,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               _ActionRow(
                 icon: Icons.logout_rounded,
                 title: l10n.settingsSignOut,
-                onTap: () => _handleSignOut(context, l10n),
+                onTap: () => _handleSignOut(context),
               ),
             ],
           ),
@@ -331,28 +331,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Future<void> _handleSignOut(BuildContext context, AppLocalizations l10n) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(l10n.settingsSignOutConfirmTitle),
-        content: Text(l10n.settingsSignOutConfirmBody),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: Text(l10n.settingsSignOutCancel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            child: Text(l10n.settingsSignOutConfirm),
-          ),
-        ],
-      ),
-    );
-    if (confirmed != true) return;
-    // No explicit navigation needed: OnboardingWrapper's authStateChanges
-    // stream swaps the whole app shell for onboarding automatically.
-    await FirebaseAuth.instance.signOut();
+  /// No confirmation dialog: tapping "Sign out" is already the intent.
+  /// Settings is a pushed route, so it is popped explicitly — otherwise it
+  /// stays on top of the sign-in page that OnboardingWrapper swaps in below.
+  Future<void> _handleSignOut(BuildContext context) async {
+    final navigator = Navigator.of(context);
+    await AuthService.signOut();
+    navigator.popUntil((route) => route.isFirst);
   }
 
   /// Personal data export — a right, not a paid feature, so it hits

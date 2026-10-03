@@ -1376,6 +1376,30 @@ abstract class AppLocalizations {
   /// **'Enable tracking'**
   String get statsEmptyGoMap;
 
+  /// No description provided for @statsLoadErrorTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load your stats'**
+  String get statsLoadErrorTitle;
+
+  /// No description provided for @statsLoadErrorBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The server didn\'t respond. Your readings are kept on the phone and sent when it\'s back.'**
+  String get statsLoadErrorBody;
+
+  /// No description provided for @statsCollectingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Collecting'**
+  String get statsCollectingTitle;
+
+  /// No description provided for @statsCollectingBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Tracking is on. Your first readings appear here a few minutes after the first upload.'**
+  String get statsCollectingBody;
+
   /// No description provided for @statsEmptyUnlockHint.
   ///
   /// In en, this message translates to:

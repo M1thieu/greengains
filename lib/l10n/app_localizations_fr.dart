@@ -791,6 +791,20 @@ class AppLocalizationsFr extends AppLocalizations {
   String get statsEmptyGoMap => 'Activer le suivi';
 
   @override
+  String get statsLoadErrorTitle => 'Impossible de charger tes stats';
+
+  @override
+  String get statsLoadErrorBody =>
+      'Le serveur n\'a pas répondu. Tes mesures restent sur le téléphone et seront envoyées dès son retour.';
+
+  @override
+  String get statsCollectingTitle => 'Collecte en cours';
+
+  @override
+  String get statsCollectingBody =>
+      'Le suivi est actif. Tes premières mesures apparaîtront ici quelques minutes après le premier envoi.';
+
+  @override
   String get statsEmptyUnlockHint => 'Marche pour débloquer';
 
   @override

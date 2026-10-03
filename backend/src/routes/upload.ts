@@ -134,15 +134,7 @@ function inferTransportMode(accelRms: number, speedMps?: number): string {
   return 'unknown';
 }
 
-// ISA standard atmosphere: normalize measured pressure to sea level so readings
-// from cells at different elevations are comparable across the map.
-// P_SL = P / (1 - 0.0000225577 × h)^5.25588  (h in metres, P in hPa)
-function pressureToSeaLevel(hpa: number, altitudeM: number): number {
-  const factor = Math.pow(1 - 0.0000225577 * altitudeM, 5.25588);
-  return factor > 0 ? hpa / factor : hpa;
-}
-
-export function summarizeBatch(readings: SensorReading[], batchAccuracyM?: number, speedMps?: number, altitudeM?: number): Summary {
+export function summarizeBatch(readings: SensorReading[], batchAccuracyM?: number, speedMps?: number): Summary {
   // Light — filter statistical outliers (MAD method) before averaging.
   // E.g. a single 65535 lux spike from sensor glitch won't skew the window average.
   const lightRaw = readings.filter(r => r.light !== undefined).map(r => r.light!);
@@ -173,10 +165,14 @@ export function summarizeBatch(readings: SensorReading[], batchAccuracyM?: numbe
   const periodStart = new Date(Math.min(...readings.map(r => r.t.getTime())));
   const periodEnd = new Date(Math.max(...readings.map(r => r.t.getTime())));
 
-  // Pressure — normalize to sea level (when altitude known), then filter spikes.
-  const pressureRaw = readings.filter(r => r.pressure !== undefined).map(r =>
-    altitudeM !== undefined ? pressureToSeaLevel(r.pressure!, altitudeM) : r.pressure!
-  );
+  // Pressure — kept as measured (station pressure), then filter spikes.
+  // Not reduced to sea level: Android's GPS altitude is height above the WGS84
+  // ellipsoid, not above sea level (~45-50 m apart in France, up to ±100 m
+  // worldwide), plus ±10-30 m of GPS vertical noise. At ~8 m/hPa that added a
+  // 1-6 hPa error to a sensor whose relative precision is ~0.1 hPa, and only to
+  // batches that carried an altitude. Elevation is instead handled downstream by
+  // comparing against Open-Meteo surface_pressure (pressureAnomalyHpa).
+  const pressureRaw = readings.filter(r => r.pressure !== undefined).map(r => r.pressure!);
   const pressureReadings = filterOutliersMad(pressureRaw);
   const pressureSummary = pressureReadings.length > 0
     ? {
@@ -253,7 +249,7 @@ export function summarizeBatch(readings: SensorReading[], batchAccuracyM?: numbe
 }
 
 function buildStoragePayload(batch: UploadBatch, qualityMultiplier = 1.0): StoragePayload {
-  const summary = summarizeBatch(batch.batch, batch.location?.accuracy_m, batch.location?.speed_mps, batch.location?.altitude);
+  const summary = summarizeBatch(batch.batch, batch.location?.accuracy_m, batch.location?.speed_mps);
 
   // Apply the integrity multiplier to quality_valid — batches flagged as static/high-speed/etc.
   // get proportionally fewer valid readings credited, which flows into per-tile qualityRatio.
@@ -287,6 +283,7 @@ function buildStoragePayload(batch: UploadBatch, qualityMultiplier = 1.0): Stora
   if (batch.wifi_rssi_avg !== undefined) payload.wifi_rssi_avg = batch.wifi_rssi_avg;
   if (batch.wifi_ap_count !== undefined) payload.wifi_ap_count = batch.wifi_ap_count;
   if (batch.network) payload.network = batch.network;
+  if (batch.device_model) payload.device_model = batch.device_model;
 
   return payload;
 }
@@ -468,10 +465,10 @@ export async function uploadRoutes(fastify: FastifyInstance) {
           await client.query('BEGIN');
 
           const insertResult = await client.query(
-            `INSERT INTO sensor_batches (device_hash, timestamp_utc, batch_json, user_id, h3_res9, h3_res8, sensor_flags)
-             VALUES ($1, $2, $3::jsonb, $4, $5, $6, $7)
+            `INSERT INTO sensor_batches (device_hash, timestamp_utc, batch_json, user_id, h3_res9, h3_res8, sensor_flags, device_model)
+             VALUES ($1, $2, $3::jsonb, $4, $5, $6, $7, $8)
              ON CONFLICT (device_hash, timestamp_utc) DO NOTHING`,
-            [deviceHash, batch.timestamp, payloadJson, userId, h3Res9, h3Res8, batch.sensor_flags ?? 0],
+            [deviceHash, batch.timestamp, payloadJson, userId, h3Res9, h3Res8, batch.sensor_flags ?? 0, batch.device_model ?? null],
           );
           insertRowCount = insertResult.rowCount ?? 0;
 

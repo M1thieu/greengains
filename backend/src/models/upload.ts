@@ -120,6 +120,12 @@ export const UploadBatchSchema = z.object({
   sensor_flags: z.number().int().min(0).max(31).optional(),
   /** .catch(undefined): telemetry is best-effort — a malformed block must never cost us the sensor data. */
   network: NetworkTelemetrySchema.optional().catch(undefined),
+  /**
+   * "<manufacturer> <model>" (Android Build.MANUFACTURER + Build.MODEL). Phone sensors carry a
+   * stable per-model bias (barometer ±1-2 hPa, light sensor up to ±60 %), so this is the key a
+   * per-model calibration needs. Low-entropy, shared by every unit of that model.
+   */
+  device_model: z.string().trim().min(1).max(80).regex(/^[\x20-\x7E]+$/).optional().catch(undefined),
 });
 
 export type LocationData = z.infer<typeof LocationDataSchema>;
@@ -154,5 +160,6 @@ export interface StoragePayload {
   wifi_rssi_avg?: number;
   wifi_ap_count?: number;
   network?: NetworkTelemetry;
+  device_model?: string;
   quality_multiplier?: number;
 }

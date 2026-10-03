@@ -464,6 +464,15 @@ class AppPreferences {
     await _sp.setString(PreferenceKeys.firebaseAuthToken, value);
   }
 
+  /// Removes the credentials the native uploader authenticates with, so no
+  /// further batch can be attributed to an account that has signed out.
+  Future<void> clearAuthCredentials() async {
+    await _sp.remove(PreferenceKeys.deviceSecret);
+    await _sp.remove(PreferenceKeys.firebaseAuthToken);
+    await _sp.remove(PreferenceKeys._legacyDeviceSecret);
+    await _sp.remove(PreferenceKeys._legacyFirebaseAuthToken);
+  }
+
   // ── Streak (shared with native StreakAlertWorker) ─────────────────────────────
 
   /// Written after each profile fetch so the native WorkManager worker can read it

@@ -18,6 +18,7 @@ import android.content.ContentValues
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.net.wifi.WifiManager
+import android.os.Build
 import android.os.SystemClock
 import android.util.Log
 import ch.hsr.geohash.GeoHash
@@ -225,15 +226,13 @@ class NativeBackendUploader(
     /** 30s → 1m → 2m → 4m → 8m → capped at 30m */
     private fun backoffMs(retryCount: Int): Long = minOf(30_000L shl retryCount, 30 * 60_000L)
 
-    // baseUrl is stable so cached at init; apiKey is read fresh each upload to handle
-    // the case where the service starts before Flutter has written the key (e.g. fresh install).
+    // baseUrl and apiKey are read fresh on each upload: the service can start before
+    // Flutter has written them (fresh install, boot restart), and a value cached at init
+    // would keep pointing at the fallback for the whole life of the service.
     private val baseUrl: String
-
-    init {
-        val prefs = context.getSharedPreferences(AppPrefs.NAME, Context.MODE_PRIVATE)
-        baseUrl = prefs.getString(AppPrefs.BACKEND_URL, null)
-            ?: "https://greengains.onrender.com"
-    }
+        get() = context.getSharedPreferences(AppPrefs.NAME, Context.MODE_PRIVATE)
+            .getString(AppPrefs.BACKEND_URL, null)
+            ?: DEFAULT_BACKEND_URL
 
     /** Reads the API key fresh from SharedPreferences on every call. */
     private fun resolveApiKey(): String {
@@ -766,6 +765,8 @@ class NativeBackendUploader(
             "is_charging"   to (batteryMonitor?.isCharging() ?: false),
             "sensor_flags"  to sensorFlags,
             "network"       to buildNetworkTelemetry(batch, mark),
+            // Per-model sensor bias correction needs to know which phone measured this.
+            "device_model"  to "${Build.MANUFACTURER} ${Build.MODEL}".trim().take(80),
         ).filterValues { it != null }
     }
 
@@ -915,6 +916,7 @@ class NativeBackendUploader(
 
     companion object {
         private const val TAG = "NativeBackendUploader"
+        private const val DEFAULT_BACKEND_URL = "https://greengains-production.up.railway.app"
     }
 }
 
