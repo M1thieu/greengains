@@ -934,6 +934,8 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> with WidgetsBindin
 
   void _startHaloPulse() {
     _haloTimer?.cancel();
+    // Decorative loop: skip it entirely when the system asks for no animations.
+    if (mounted && MediaQuery.disableAnimationsOf(context)) return;
     // 60ms tick ≈ 16fps — sufficient for a slow breathing halo, avoids GL spam
     _haloTimer = Timer.periodic(const Duration(milliseconds: 60), (_) {
       if (!_styleLoaded || _ctrl == null || !mounted) return;

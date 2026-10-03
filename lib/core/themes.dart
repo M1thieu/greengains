@@ -217,6 +217,7 @@ class AppDurations {
   AppDurations._();
 
   static const Duration press         = Duration(milliseconds: 80);
+  static const Duration pressRelease  = Duration(milliseconds: 220); // springy overshoot on release
   static const Duration instant       = Duration(milliseconds: 100);
   static const Duration segmentToggle = Duration(milliseconds: 180);
   static const Duration fast          = Duration(milliseconds: 300);
@@ -697,7 +698,8 @@ class AppTheme {
     return base.copyWith(
       colorScheme: scheme,
       pageTransitionsTheme: const PageTransitionsTheme(builders: {
-        TargetPlatform.android: ZoomPageTransitionsBuilder(),
+        // Android 14+: the page follows the back gesture (predictive back).
+        TargetPlatform.android: PredictiveBackPageTransitionsBuilder(),
         TargetPlatform.iOS: ZoomPageTransitionsBuilder(),
         TargetPlatform.windows: ZoomPageTransitionsBuilder(),
         TargetPlatform.macOS: ZoomPageTransitionsBuilder(),
@@ -827,7 +829,8 @@ class AppTheme {
     return base.copyWith(
       colorScheme: scheme,
       pageTransitionsTheme: const PageTransitionsTheme(builders: {
-        TargetPlatform.android: ZoomPageTransitionsBuilder(),
+        // Android 14+: the page follows the back gesture (predictive back).
+        TargetPlatform.android: PredictiveBackPageTransitionsBuilder(),
         TargetPlatform.iOS: ZoomPageTransitionsBuilder(),
         TargetPlatform.windows: ZoomPageTransitionsBuilder(),
         TargetPlatform.macOS: ZoomPageTransitionsBuilder(),

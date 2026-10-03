@@ -159,6 +159,13 @@ class _StatisticsScreenState extends State<StatisticsScreen>
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // System "remove animations" setting: show the cards in place, no entrance.
+    if (MediaQuery.disableAnimationsOf(context)) _entranceCtrl.value = 1.0;
+  }
+
+  @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       _loadStats();
