@@ -247,24 +247,28 @@ class _StatusBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppTheme.spaceSm,
-        vertical: AppTheme.spaceXxs,
-      ),
-      decoration: BoxDecoration(
-        color: active
-            ? accentColor.withValues(alpha: 0.15)
-            : AppColors.border(isDark),
-        borderRadius: BorderRadius.circular(AppTheme.radiusSm),
-      ),
-      child: Text(
-        label,
-        style: theme.textTheme.labelSmall?.copyWith(
-          color: active ? accentColor : theme.colorScheme.outline,
-          fontWeight: AppFontWeights.semibold,
+    // Status dot + label, no container: the state reads at a glance without
+    // adding another filled shape to the card header.
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 6,
+          height: 6,
+          decoration: BoxDecoration(
+            color: active ? accentColor : AppColors.textTertiary(isDark),
+            shape: BoxShape.circle,
+          ),
         ),
-      ),
+        const SizedBox(width: AppTheme.spaceXxs),
+        Text(
+          label,
+          style: theme.textTheme.labelSmall?.copyWith(
+            color: active ? AppColors.textPrimary(isDark) : AppColors.textSecondary(isDark),
+            fontWeight: AppFontWeights.medium,
+          ),
+        ),
+      ],
     );
   }
 }

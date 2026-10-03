@@ -926,7 +926,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                         horizontal: AppTheme.spaceMd, vertical: AppTheme.spaceXs),
                     decoration: BoxDecoration(
                       color: AppColors.mapOverlayMid,
-                      borderRadius: BorderRadius.circular(AppTheme.radiusPill),
+                      borderRadius: BorderRadius.circular(AppTheme.radiusMd),
                     ),
                     child: Text(
                       context.l10n.serverWakingUp,
@@ -963,17 +963,14 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                 setState(() => _showCommunity = val),
                           ),
                           const Spacer(),
-                          // Stats pills stacked top-right — tap navigates to Stats
-                          _StatPillStack(
-                            claimedTileCount: _claimedTileCount,
-                            territoryLabel: _prefs.territoryLabel,
-                            areaConditionLine: _areaConditionLine,
-                            currentStreak: _currentStreak,
-                            lastSessionEndAt: _prefs.lastSessionEndAt,
-                            lastSessionZonesGained: _prefs.lastSessionZonesGained,
-                            isTracking: _locationService.isRunning.value,
-                            onTap: () => widget.onGoToStats?.call(),
-                          ),
+                          // Area summary top-right — tap navigates to Stats
+                          if (_claimedTileCount > 0)
+                            _MapSummary(
+                              claimedTileCount: _claimedTileCount,
+                              territoryLabel: _prefs.territoryLabel,
+                              areaConditionLine: _areaConditionLine,
+                              onTap: () => widget.onGoToStats?.call(),
+                            ),
                         ],
                       ),
                     ),
@@ -1058,28 +1055,20 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
 // ─── Map overlay pieces ───────────────────────────────────────────────────────
 
-/// Stats pills stacked top-right — area, territory, condition, streak, today.
-/// Every input is an explicit parameter so the stack can be reasoned about
-/// without tracing back into HomeScreen's state.
-class _StatPillStack extends StatelessWidget {
-  const _StatPillStack({
+/// One compact panel: area mapped, then neighbourhood and any notable
+/// condition as quiet secondary lines. Streak and today's gain live in Stats —
+/// the map stays the focus.
+class _MapSummary extends StatelessWidget {
+  const _MapSummary({
     required this.claimedTileCount,
     required this.territoryLabel,
     required this.areaConditionLine,
-    required this.currentStreak,
-    required this.lastSessionEndAt,
-    required this.lastSessionZonesGained,
-    required this.isTracking,
     required this.onTap,
   });
 
   final int claimedTileCount;
   final String? territoryLabel;
   final String? areaConditionLine;
-  final int currentStreak;
-  final DateTime? lastSessionEndAt;
-  final int lastSessionZonesGained;
-  final bool isTracking;
   final VoidCallback onTap;
 
   String _areaLabel(BuildContext context) {
@@ -1090,74 +1079,51 @@ class _StatPillStack extends StatelessWidget {
     return context.l10n.homeStatArea(area);
   }
 
-  /// Today's gain shows only after a session ended within 20h, while idle.
-  bool get _showTodayPill =>
-      lastSessionEndAt != null &&
-      DateTime.now().difference(lastSessionEndAt!).inHours < 20 &&
-      !isTracking &&
-      lastSessionZonesGained > 0;
-
   @override
   Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    final secondary = [territoryLabel, areaConditionLine]
+        .whereType<String>()
+        .where((s) => s.isNotEmpty);
     return PressScaleDetector(
       onTap: () {
         HapticFeedback.lightImpact();
         onTap();
       },
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          if (claimedTileCount > 0) ...[
-            _StatPill(icon: Icons.hexagon_outlined, label: _areaLabel(context)),
-            if (territoryLabel != null) ...[
-              const SizedBox(height: 3),
+      child: Container(
+        constraints: const BoxConstraints(maxWidth: 200),
+        padding: const EdgeInsets.symmetric(
+            horizontal: AppTheme.spaceSm, vertical: AppTheme.spaceXs),
+        decoration: BoxDecoration(
+          color: AppColors.shadowDark(0.55),
+          borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              _areaLabel(context),
+              style: textTheme.labelLarge?.copyWith(
+                fontWeight: AppFontWeights.semibold,
+                color: AppColors.darkTextPrimary,
+              ),
+            ),
+            for (final line in secondary)
               Padding(
-                padding: const EdgeInsets.only(right: AppTheme.spaceXs),
+                padding: const EdgeInsets.only(top: 2),
                 child: Text(
-                  territoryLabel!,
-                  style: TextStyle(
-                    fontSize: AppTheme.fontSizeXs,
-                    color: AppColors.textTertiary(true),
-                    fontWeight: AppFontWeights.medium,
-                    letterSpacing: 0.2,
-                  ),
+                  line,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   textAlign: TextAlign.end,
+                  style: textTheme.bodySmall?.copyWith(
+                    color: AppColors.darkTextSecondary,
+                  ),
                 ),
               ),
-            ],
-            if (areaConditionLine != null) ...[
-              const SizedBox(height: 2),
-              Padding(
-                padding: const EdgeInsets.only(right: AppTheme.spaceXs),
-                child: Text(
-                  areaConditionLine!,
-                  style: TextStyle(
-                    fontSize: 9.5,
-                    color: AppColors.textTertiary(true).withValues(alpha: 0.6),
-                    fontWeight: AppFontWeights.regular,
-                    letterSpacing: 0.1,
-                  ),
-                  textAlign: TextAlign.end,
-                ),
-              ),
-            ],
           ],
-          if (currentStreak > 0) ...[
-            const SizedBox(height: AppTheme.spaceXxs),
-            _StatPill(
-              icon: Icons.bolt_rounded,
-              label: context.l10n.homeStatStreak(currentStreak),
-            ),
-          ],
-          if (_showTodayPill) ...[
-            const SizedBox(height: AppTheme.spaceXxs),
-            _StatPill(
-              icon: Icons.add_rounded,
-              label: context.l10n.homeStatToday(lastSessionZonesGained),
-              color: AppColors.primary,
-            ),
-          ],
-        ],
+        ),
       ),
     );
   }
@@ -1206,19 +1172,6 @@ class _ZeroStateCard extends StatelessWidget {
                       color: AppColors.darkTextSecondary,
                       height: AppLineHeights.normal,
                     ),
-                  ),
-                  const SizedBox(height: AppTheme.spaceSm),
-                  // Ghost sensor preview — teases what will appear
-                  const Row(
-                    children: [
-                      _GhostSensorChip(icon: Icons.light_mode_rounded, color: AppColors.light),
-                      SizedBox(width: AppTheme.spaceXxs),
-                      _GhostSensorChip(icon: Icons.compress_rounded, color: AppColors.pressure),
-                      SizedBox(width: AppTheme.spaceXxs),
-                      _GhostSensorChip(icon: Icons.directions_walk_rounded, color: AppColors.movement),
-                      SizedBox(width: AppTheme.spaceXxs),
-                      _GhostSensorChip(icon: Icons.eco_rounded, color: AppColors.quality),
-                    ],
                   ),
                 ],
               ),
@@ -2660,81 +2613,6 @@ class _Seg extends StatelessWidget {
   }
 }
 
-/// Small frosted pill showing a stat (places or streak).
-/// Ghost sensor chip used in zero-state to preview what sensor data will look like.
-class _GhostSensorChip extends StatelessWidget {
-  const _GhostSensorChip({required this.icon, required this.color});
-  final IconData icon;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceXs, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(AppTheme.radiusSm),
-        border: Border.all(color: color.withValues(alpha: 0.18)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: AppIconSizes.xxs, color: color.withValues(alpha: 0.45)),
-          const SizedBox(width: 4),
-          Text(
-            '—',
-            style: TextStyle(
-              fontSize: AppTheme.fontSizeXs,
-              color: color.withValues(alpha: 0.35),
-              fontWeight: AppFontWeights.semibold,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _StatPill extends StatelessWidget {
-  const _StatPill({required this.icon, required this.label, this.color});
-  final IconData icon;
-  final String label;
-  final Color? color;
-
-  @override
-  Widget build(BuildContext context) {
-    final accent = color ?? AppColors.primary;
-    return Container(
-      padding: const EdgeInsets.symmetric(
-          horizontal: AppTheme.spaceSm, vertical: AppTheme.spaceTiny),
-      decoration: BoxDecoration(
-        color: color != null
-            ? color!.withValues(alpha: 0.18)
-            : AppColors.shadowDark(0.55),
-        borderRadius: BorderRadius.circular(AppTheme.radiusPill),
-        border: color != null
-            ? Border.all(color: color!.withValues(alpha: 0.35))
-            : null,
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: AppIconSizes.xs, color: accent),
-          const SizedBox(width: AppTheme.spaceXxs),
-          Text(
-            label,
-            style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              fontWeight: AppFontWeights.semibold,
-              color: color != null ? accent : Colors.white,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-
 /// Small circular info button — opens sensor sheet.
 class _InfoButton extends StatelessWidget {
   const _InfoButton({required this.onTap});
@@ -2811,7 +2689,7 @@ class _PermissionLostCard extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceXs + 2, vertical: AppTheme.spaceTiny + 2),
               decoration: BoxDecoration(
                 color: AppColors.warning.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(AppTheme.radiusPill),
+                borderRadius: BorderRadius.circular(AppTheme.radiusSm),
                 border: Border.all(color: AppColors.warning.withValues(alpha: 0.35)),
               ),
               child: Text(

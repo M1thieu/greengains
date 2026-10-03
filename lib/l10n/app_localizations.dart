@@ -254,18 +254,6 @@ abstract class AppLocalizations {
   /// **'{area} mapped'**
   String homeStatArea(String area);
 
-  /// No description provided for @homeStatStreak.
-  ///
-  /// In en, this message translates to:
-  /// **'{count}-day streak'**
-  String homeStatStreak(int count);
-
-  /// No description provided for @homeStatToday.
-  ///
-  /// In en, this message translates to:
-  /// **'+{count} today'**
-  String homeStatToday(int count);
-
   /// No description provided for @homeActionStart.
   ///
   /// In en, this message translates to:
@@ -3722,30 +3710,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Sign out'**
   String get settingsSignOut;
-
-  /// No description provided for @settingsSignOutConfirmTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Sign out?'**
-  String get settingsSignOutConfirmTitle;
-
-  /// No description provided for @settingsSignOutConfirmBody.
-  ///
-  /// In en, this message translates to:
-  /// **'You\'ll need to sign back in to see your map.'**
-  String get settingsSignOutConfirmBody;
-
-  /// No description provided for @settingsSignOutConfirm.
-  ///
-  /// In en, this message translates to:
-  /// **'Sign out'**
-  String get settingsSignOutConfirm;
-
-  /// No description provided for @settingsSignOutCancel.
-  ///
-  /// In en, this message translates to:
-  /// **'Cancel'**
-  String get settingsSignOutCancel;
 
   /// No description provided for @mappingActiveSheetTitle.
   ///

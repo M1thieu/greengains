@@ -37,10 +37,6 @@
   "@homeStatPlaces": { "placeholders": { "count": { "type": "int" } } },
   "homeStatArea": "{area} mapped",
   "@homeStatArea": { "placeholders": { "area": { "type": "String" } } },
-  "homeStatStreak": "{count}-day streak",
-  "@homeStatStreak": { "placeholders": { "count": { "type": "int" } } },
-  "homeStatToday": "+{count} today",
-  "@homeStatToday": { "placeholders": { "count": { "type": "int" } } },
   "homeActionStart": "Start",
   "homeActionStop": "Stop",
   "homeActionResume": "Resume",
@@ -932,10 +928,6 @@
 
   "settingsAccount": "Account",
   "settingsSignOut": "Sign out",
-  "settingsSignOutConfirmTitle": "Sign out?",
-  "settingsSignOutConfirmBody": "You'll need to sign back in to see your map.",
-  "settingsSignOutConfirm": "Sign out",
-  "settingsSignOutCancel": "Cancel",
 
   "mappingActiveSheetTitle": "Mapping now",
   "mappingActiveSheetBody": "Keep moving to discover new places. Your map grows automatically.",

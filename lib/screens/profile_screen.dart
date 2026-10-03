@@ -785,21 +785,12 @@ class _MapperRoleChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final role = SensorInsights.mapperRole(cells);
     final label = SensorInsights.mapperRoleLabel(l10n, role);
-    return Container(
-      padding: const EdgeInsets.symmetric(
-          horizontal: AppTheme.spaceXs + 2, vertical: AppTheme.spaceXxxs + 1),
-      decoration: BoxDecoration(
-        color: AppColors.primary.withValues(alpha: 0.10),
-        borderRadius: BorderRadius.circular(AppTheme.radiusPill),
-        border: Border.all(color: AppColors.primary.withValues(alpha: 0.22)),
-      ),
-      child: Text(
-        label,
-        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-          color: AppColors.primary,
-          fontWeight: AppFontWeights.semibold,
-          letterSpacing: 0.2,
-        ),
+    // Plain accent text — a role under the name needs no pill around it.
+    return Text(
+      label,
+      style: Theme.of(context).textTheme.labelMedium?.copyWith(
+        color: AppColors.primary,
+        fontWeight: AppFontWeights.semibold,
       ),
     );
   }

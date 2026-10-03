@@ -99,22 +99,6 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String homeStatStreak(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count jours d\'affilée',
-      one: '1 jour d\'affilée',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String homeStatToday(int count) {
-    return '+$count aujourd\'hui';
-  }
-
-  @override
   String get homeActionStart => 'Démarrer';
 
   @override
@@ -2212,19 +2196,6 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settingsSignOut => 'Se déconnecter';
-
-  @override
-  String get settingsSignOutConfirmTitle => 'Se déconnecter ?';
-
-  @override
-  String get settingsSignOutConfirmBody =>
-      'Tu devras te reconnecter pour voir ta carte.';
-
-  @override
-  String get settingsSignOutConfirm => 'Se déconnecter';
-
-  @override
-  String get settingsSignOutCancel => 'Annuler';
 
   @override
   String get mappingActiveSheetTitle => 'En cours de cartographie';

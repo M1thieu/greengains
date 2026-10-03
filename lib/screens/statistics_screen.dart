@@ -820,7 +820,6 @@ class _StatisticsScreenState extends State<StatisticsScreen>
 
     final progress = (total / next).clamp(0.0, 1.0);
     final remaining = next - total;
-    final achieved = _kMilestones.where((m) => m <= total).toList();
 
     return Container(
         padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceMd, vertical: AppTheme.spaceSm + 2),
@@ -876,14 +875,6 @@ class _StatisticsScreenState extends State<StatisticsScreen>
             ),
           ],
             ),
-            if (achieved.isNotEmpty) ...[
-              const SizedBox(height: AppTheme.spaceSm),
-              Wrap(
-                spacing: AppTheme.spaceXs,
-                runSpacing: AppTheme.spaceXxs,
-                children: achieved.map((m) => _MilestoneBadge(value: m, isDark: isDark)).toList(),
-              ),
-            ],
           ],
         ),
     );
@@ -2042,27 +2033,21 @@ class _SensorChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceSm, vertical: AppTheme.spaceXxs + 2),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.10),
-        borderRadius: BorderRadius.circular(AppTheme.radiusSm),
-        border: Border.all(color: color.withValues(alpha: 0.20)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: AppIconSizes.xxs, color: color),
-          const SizedBox(width: AppTheme.spaceXxxs + 2),
-          Text(
-            label,
-            style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              fontWeight: AppFontWeights.semibold,
-              color: color,
-            ),
+    // Icon in the sensor colour, label in body text — no box around it.
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: AppIconSizes.xs, color: color),
+        const SizedBox(width: AppTheme.spaceXxs),
+        Text(
+          label,
+          style: Theme.of(context).textTheme.labelMedium?.copyWith(
+            fontWeight: AppFontWeights.medium,
+            color: AppColors.textPrimary(isDark),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
@@ -2145,38 +2130,6 @@ class _MilestoneRing extends StatelessWidget {
                 ),
               ),
             ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _MilestoneBadge extends StatelessWidget {
-  const _MilestoneBadge({required this.value, required this.isDark});
-  final int value;
-  final bool isDark;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-      decoration: BoxDecoration(
-        color: AppColors.warning.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(AppTheme.radiusMin),
-        border: Border.all(color: AppColors.warning.withValues(alpha: 0.3), width: 0.5),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.check_circle, size: AppTheme.fontSizeXxs, color: AppColors.warning),
-          const SizedBox(width: AppTheme.spaceTiny),
-          Text(
-            '$value',
-            style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              color: AppColors.warning,
-              fontWeight: AppFontWeights.semibold,
-            ),
           ),
         ],
       ),

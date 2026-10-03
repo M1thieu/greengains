@@ -99,16 +99,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String homeStatStreak(int count) {
-    return '$count-day streak';
-  }
-
-  @override
-  String homeStatToday(int count) {
-    return '+$count today';
-  }
-
-  @override
   String get homeActionStart => 'Start';
 
   @override
@@ -2179,19 +2169,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsSignOut => 'Sign out';
-
-  @override
-  String get settingsSignOutConfirmTitle => 'Sign out?';
-
-  @override
-  String get settingsSignOutConfirmBody =>
-      'You\'ll need to sign back in to see your map.';
-
-  @override
-  String get settingsSignOutConfirm => 'Sign out';
-
-  @override
-  String get settingsSignOutCancel => 'Cancel';
 
   @override
   String get mappingActiveSheetTitle => 'Mapping now';

@@ -1638,20 +1638,12 @@ class _TileInfoSheetState extends State<TileInfoSheet> {
                           ],
                           if (isPersonal && tile.deviceCount == 1) ...[
                             const SizedBox(height: AppTheme.spaceXs),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: AppTheme.spaceXs, vertical: 2),
-                              decoration: BoxDecoration(
-                                color: AppColors.primary.withValues(alpha: 0.12),
-                                borderRadius: BorderRadius.circular(AppTheme.radiusPill),
-                              ),
-                              child: Text(
-                                l10n.tileOnlyYouMapped,
-                                style: TextStyle(
-                                  color: AppColors.primary,
-                                  fontSize: AppTheme.fontSizeXs,
-                                  fontWeight: AppFontWeights.semibold,
-                                ),
+                            Text(
+                              l10n.tileOnlyYouMapped,
+                              style: TextStyle(
+                                color: AppColors.primary,
+                                fontSize: AppTheme.fontSizeSm,
+                                fontWeight: AppFontWeights.semibold,
                               ),
                             ),
                           ],
@@ -1659,14 +1651,9 @@ class _TileInfoSheetState extends State<TileInfoSheet> {
                       ),
                     ),
                     const SizedBox(width: AppTheme.spaceSm),
-                    // Quality badge
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: AppTheme.spaceSm, vertical: AppTheme.spaceXxxs),
-                      decoration: BoxDecoration(
-                        color: qualityColor.withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(AppTheme.radiusPill),
-                      ),
+                    // Quality status — dot + label, no filled pill
+                    Padding(
+                      padding: const EdgeInsets.only(top: AppTheme.spaceXxxs),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
