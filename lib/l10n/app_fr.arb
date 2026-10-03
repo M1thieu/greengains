@@ -168,8 +168,13 @@
     "placeholders": { "count": { "type": "int" } }
   },
 
-  "uploadSuccessMessage": "Carte mise à jour !",
   "uploadSuccessNewZone": "Nouvel endroit ajouté · {count} sur ta carte",
+  "sessionEndedSnack": "Session terminée · {count, plural, =1{1 nouvel endroit} other{{count} nouveaux endroits}}",
+  "@sessionEndedSnack": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
   "@uploadSuccessNewZone": {
     "placeholders": { "count": { "type": "int" } }
   },
@@ -590,8 +595,6 @@
   "@milestoneReachedTitle": {
     "placeholders": { "count": { "type": "int" } }
   },
-  "milestoneReachedBody": "Continuez.",
-  "milestoneReachedCta": "Continuer",
 
   "firstUploadTitle": "Premier endroit cartographié.",
   "firstUploadBody": "Continuez à bouger. Votre carte grandit.",
@@ -617,10 +620,6 @@
   "sessionSummaryDone": "Top",
   "statsMapGrowing": "carte en cours. continuez à marcher",
   "statsWeeklyChartOffline": "Graphique hebdomadaire disponible une fois connecté",
-  "uploadMilestone": "{count} envois. Continuez !",
-  "@uploadMilestone": {
-    "placeholders": { "count": { "type": "int" } }
-  },
   "statsViewOnMap": "Voir sur la carte",
   "statsCommunityMappers": "{count, plural, =1{1 personne cartographie ce mois} other{{count} personnes cartographient ce mois}}",
   "@statsCommunityMappers": {
@@ -796,14 +795,6 @@
   "mapperRoleCityMapper": "Cartographe urbain",
   "mapperRoleUrbanScientist": "Scientifique urbain",
 
-  "milestoneBody5": "Vos relevés sont sur la carte. Chaque rue parcourue est une zone de moins à découvrir.",
-  "milestoneBody10": "Un bloc complet, lu. Des rues que personne d'autre n'a encore cartographiées.",
-  "milestoneBody25": "Vous connaissez des endroits que la plupart des cartographes n'atteignent jamais.",
-  "milestoneBody50": "La moitié d'un quartier, terminée. Assez de terrain pour compter.",
-  "milestoneBody100": "Vous êtes dans le peloton de tête. Votre secteur le sait.",
-  "milestoneBody250": "Cartographie à l'échelle d'un district. Une compagnie rare.",
-  "milestoneBody500": "Des données que la plupart des apps n'auront jamais. Vous les avez construites.",
-  "milestoneBody1000": "Vous êtes un jeu de données à l'échelle d'une ville. C'est de la vraie science.",
 
   "sessionMilestone5Flavor": "Votre quartier commence à prendre forme.",
   "sessionMilestone10Flavor": "Un bloc complet, cartographié.",

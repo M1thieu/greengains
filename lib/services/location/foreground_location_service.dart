@@ -168,6 +168,13 @@ class ForegroundLocationService {
         case 'onBufferUpdate':
           pendingReadings.value = (call.arguments as num?)?.toInt() ?? 0;
           break;
+        case 'onServiceState':
+          // Authoritative state pushed by the native service whenever it starts
+          // (including starts the app didn't initiate) and on engine attach.
+          final state = call.arguments as Map;
+          _isRunningNotifier.value = state['running'] == true;
+          _isPausedNotifier.value = state['paused'] == true;
+          break;
         case 'onTrackingPaused':
           final paused = (call.arguments as bool?) ?? false;
           _isPausedNotifier.value = paused;

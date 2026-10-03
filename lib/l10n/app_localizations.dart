@@ -740,17 +740,17 @@ abstract class AppLocalizations {
   /// **'{count, plural, =1{1 place on your map. Tap ▶ to explore more} other{{count} places on your map. Tap ▶ to explore more}}'**
   String homeReturnHint(int count);
 
-  /// No description provided for @uploadSuccessMessage.
-  ///
-  /// In en, this message translates to:
-  /// **'Map updated!'**
-  String get uploadSuccessMessage;
-
   /// No description provided for @uploadSuccessNewZone.
   ///
   /// In en, this message translates to:
   /// **'New place added · {count} on your map'**
   String uploadSuccessNewZone(int count);
+
+  /// No description provided for @sessionEndedSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'Session ended · {count, plural, =1{1 new place} other{{count} new places}}'**
+  String sessionEndedSnack(int count);
 
   /// No description provided for @semanticsRefreshMap.
   ///
@@ -2528,18 +2528,6 @@ abstract class AppLocalizations {
   /// **'{count} places mapped'**
   String milestoneReachedTitle(int count);
 
-  /// No description provided for @milestoneReachedBody.
-  ///
-  /// In en, this message translates to:
-  /// **'Keep going.'**
-  String get milestoneReachedBody;
-
-  /// No description provided for @milestoneReachedCta.
-  ///
-  /// In en, this message translates to:
-  /// **'Keep going'**
-  String get milestoneReachedCta;
-
   /// No description provided for @firstUploadTitle.
   ///
   /// In en, this message translates to:
@@ -2599,12 +2587,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Weekly chart loads once connected'**
   String get statsWeeklyChartOffline;
-
-  /// No description provided for @uploadMilestone.
-  ///
-  /// In en, this message translates to:
-  /// **'{count} uploads. Keep going!'**
-  String uploadMilestone(int count);
 
   /// No description provided for @statsViewOnMap.
   ///
@@ -3176,54 +3158,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Urban Scientist'**
   String get mapperRoleUrbanScientist;
-
-  /// No description provided for @milestoneBody5.
-  ///
-  /// In en, this message translates to:
-  /// **'Your readings are on the map. Every street you walk is now one fewer blank.'**
-  String get milestoneBody5;
-
-  /// No description provided for @milestoneBody10.
-  ///
-  /// In en, this message translates to:
-  /// **'A full block, read. Streets that nobody else bothered to map.'**
-  String get milestoneBody10;
-
-  /// No description provided for @milestoneBody25.
-  ///
-  /// In en, this message translates to:
-  /// **'You know places most mappers never reach.'**
-  String get milestoneBody25;
-
-  /// No description provided for @milestoneBody50.
-  ///
-  /// In en, this message translates to:
-  /// **'Half a neighbourhood, done. Enough ground to matter.'**
-  String get milestoneBody50;
-
-  /// No description provided for @milestoneBody100.
-  ///
-  /// In en, this message translates to:
-  /// **'You\'re in the top tier. Your area knows it.'**
-  String get milestoneBody100;
-
-  /// No description provided for @milestoneBody250.
-  ///
-  /// In en, this message translates to:
-  /// **'City-district level mapping. Rare company.'**
-  String get milestoneBody250;
-
-  /// No description provided for @milestoneBody500.
-  ///
-  /// In en, this message translates to:
-  /// **'Data most apps will never have. You built this.'**
-  String get milestoneBody500;
-
-  /// No description provided for @milestoneBody1000.
-  ///
-  /// In en, this message translates to:
-  /// **'You\'re a city-scale dataset. This is real science.'**
-  String get milestoneBody1000;
 
   /// No description provided for @sessionMilestone5Flavor.
   ///

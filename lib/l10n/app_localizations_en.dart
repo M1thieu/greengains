@@ -396,11 +396,19 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get uploadSuccessMessage => 'Map updated!';
-
-  @override
   String uploadSuccessNewZone(int count) {
     return 'New place added · $count on your map';
+  }
+
+  @override
+  String sessionEndedSnack(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count new places',
+      one: '1 new place',
+    );
+    return 'Session ended · $_temp0';
   }
 
   @override
@@ -1449,12 +1457,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get milestoneReachedBody => 'Keep going.';
-
-  @override
-  String get milestoneReachedCta => 'Keep going';
-
-  @override
   String get firstUploadTitle => 'First area mapped.';
 
   @override
@@ -1495,11 +1497,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get statsWeeklyChartOffline => 'Weekly chart loads once connected';
-
-  @override
-  String uploadMilestone(int count) {
-    return '$count uploads. Keep going!';
-  }
 
   @override
   String get statsViewOnMap => 'View on map';
@@ -1865,35 +1862,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get mapperRoleUrbanScientist => 'Urban Scientist';
-
-  @override
-  String get milestoneBody5 =>
-      'Your readings are on the map. Every street you walk is now one fewer blank.';
-
-  @override
-  String get milestoneBody10 =>
-      'A full block, read. Streets that nobody else bothered to map.';
-
-  @override
-  String get milestoneBody25 => 'You know places most mappers never reach.';
-
-  @override
-  String get milestoneBody50 =>
-      'Half a neighbourhood, done. Enough ground to matter.';
-
-  @override
-  String get milestoneBody100 => 'You\'re in the top tier. Your area knows it.';
-
-  @override
-  String get milestoneBody250 => 'City-district level mapping. Rare company.';
-
-  @override
-  String get milestoneBody500 =>
-      'Data most apps will never have. You built this.';
-
-  @override
-  String get milestoneBody1000 =>
-      'You\'re a city-scale dataset. This is real science.';
 
   @override
   String get sessionMilestone5Flavor =>

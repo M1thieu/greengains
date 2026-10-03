@@ -73,7 +73,10 @@ class MainActivity : FlutterActivity() {
         // Re-sync service state to Flutter after a START_STICKY restart or process death.
         // Without this, Flutter's isRunning/isPaused are stale until the next natural event.
         if (ForegroundService.running) {
-            sensorTriggerChannel.invokeMethod("onTrackingPaused", ForegroundService.trackingPaused)
+            sensorTriggerChannel.invokeMethod(
+                "onServiceState",
+                mapOf("running" to true, "paused" to ForegroundService.trackingPaused),
+            )
         } else {
             sensorTriggerChannel.invokeMethod("onServiceStopped", null)
         }
@@ -83,8 +86,7 @@ class MainActivity : FlutterActivity() {
             .setMethodCallHandler { call, result ->
                 when (call.method) {
                     "startForegroundService" -> {
-                        startForegroundService()
-                        result.success(true)
+                        result.success(startForegroundService())
                     }
                     "pauseForegroundService" -> {
                         result.success(sendServiceAction(ForegroundService.ACTION_PAUSE_TRACKING))
@@ -233,8 +235,10 @@ class MainActivity : FlutterActivity() {
 
     /**
      * Creates and starts the ForegroundService as a foreground service.
+     * Returns false when it could not be started (no location permission, start refused),
+     * so Flutter does not show tracking as on when it isn't.
      */
-    private fun startForegroundService() {
+    private fun startForegroundService(): Boolean {
         // CRITICAL: On Android 14+, location permissions MUST be granted before starting
         // a foreground service with type location. Otherwise it will crash with SecurityException.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
@@ -250,15 +254,21 @@ class MainActivity : FlutterActivity() {
 
             if (!hasFineLocation && !hasCoarseLocation) {
                 android.util.Log.e("GreenGains", "Cannot start foreground service: location permission not granted")
-                return
+                return false
             }
         }
 
         val serviceIntent = Intent(this, ForegroundService::class.java)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            startForegroundService(serviceIntent)
-        } else {
-            startService(serviceIntent)
+        return try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                startForegroundService(serviceIntent)
+            } else {
+                startService(serviceIntent)
+            }
+            true
+        } catch (e: Exception) {
+            android.util.Log.e("GreenGains", "Cannot start foreground service", e)
+            false
         }
     }
 

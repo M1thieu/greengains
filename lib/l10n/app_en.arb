@@ -168,8 +168,13 @@
     "placeholders": { "count": { "type": "int" } }
   },
 
-  "uploadSuccessMessage": "Map updated!",
   "uploadSuccessNewZone": "New place added · {count} on your map",
+  "sessionEndedSnack": "Session ended · {count, plural, =1{1 new place} other{{count} new places}}",
+  "@sessionEndedSnack": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
   "@uploadSuccessNewZone": {
     "placeholders": { "count": { "type": "int" } }
   },
@@ -590,8 +595,6 @@
   "@milestoneReachedTitle": {
     "placeholders": { "count": { "type": "int" } }
   },
-  "milestoneReachedBody": "Keep going.",
-  "milestoneReachedCta": "Keep going",
 
   "firstUploadTitle": "First area mapped.",
   "firstUploadBody": "Keep moving. Your map is growing.",
@@ -617,10 +620,6 @@
   "sessionSummaryDone": "Nice",
   "statsMapGrowing": "map growing. keep walking",
   "statsWeeklyChartOffline": "Weekly chart loads once connected",
-  "uploadMilestone": "{count} uploads. Keep going!",
-  "@uploadMilestone": {
-    "placeholders": { "count": { "type": "int" } }
-  },
   "statsViewOnMap": "View on map",
   "statsCommunityMappers": "{count, plural, =1{1 person mapping this month} other{{count} people mapping this month}}",
   "@statsCommunityMappers": {
@@ -796,14 +795,6 @@
   "mapperRoleCityMapper": "City Mapper",
   "mapperRoleUrbanScientist": "Urban Scientist",
 
-  "milestoneBody5": "Your readings are on the map. Every street you walk is now one fewer blank.",
-  "milestoneBody10": "A full block, read. Streets that nobody else bothered to map.",
-  "milestoneBody25": "You know places most mappers never reach.",
-  "milestoneBody50": "Half a neighbourhood, done. Enough ground to matter.",
-  "milestoneBody100": "You're in the top tier. Your area knows it.",
-  "milestoneBody250": "City-district level mapping. Rare company.",
-  "milestoneBody500": "Data most apps will never have. You built this.",
-  "milestoneBody1000": "You're a city-scale dataset. This is real science.",
 
   "sessionMilestone5Flavor": "Your neighbourhood, starting to take shape.",
   "sessionMilestone10Flavor": "A full block, mapped.",

@@ -404,6 +404,10 @@ class ForegroundService : Service() {
         if (running) return
         running = true
         setServiceEnabledPref(true)
+        // Push, don't wait to be polled: the app may have asked "running?" a moment
+        // before this ran (e.g. resumed from the permission dialog) and been told no.
+        // Also covers starts the app didn't initiate (boot, START_STICKY, notification).
+        sendServiceStateToFlutter()
 
         // Start Notification
         val lastUpload = NotificationsHelper.readLastUploadFromPrefs(this)
@@ -1003,6 +1007,12 @@ class ForegroundService : Service() {
             lux = _lightFlow.value,
             hPa = _pressureFlow.value,
         )
+    }
+
+    private fun sendServiceStateToFlutter() {
+        postToFlutter("service state") {
+            it.invokeMethod("onServiceState", mapOf("running" to running, "paused" to trackingPausedState))
+        }
     }
 
     private fun sendTrackingPausedToFlutter(paused: Boolean) {

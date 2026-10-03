@@ -199,9 +199,13 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       final clampedGained = gained.clamp(0, 9999);
       final isPersonalBest = clampedGained > 0 && clampedGained > _prefs.bestSessionZonesGained;
       unawaited(_prefs.saveLastSession(zonesGained: clampedGained));
-      // Show summary for any session ≥2 min, regardless of whether zones were gained.
+      // Stopping is one tap: a routine session ends with a snackbar, not a sheet
+      // to dismiss. The full summary (with sharing) is kept for a personal best.
       final worthSummary = sessionDuration >= const Duration(minutes: 2);
-      if (worthSummary && _sessionStartZoneCount >= 0 && mounted) {
+      if (worthSummary && !isPersonalBest && clampedGained > 0 && mounted) {
+        AppSnackbars.showSuccess(context, context.l10n.sessionEndedSnack(clampedGained));
+      }
+      if (worthSummary && isPersonalBest && _sessionStartZoneCount >= 0 && mounted) {
         final total = _claimedTileCount;
         final uploads = _sessionUploadCount;
         Future.delayed(AppDurations.fast, () {
@@ -356,7 +360,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         try {
           await showDialog<void>(
             context: context,
-            barrierDismissible: false,
+            barrierDismissible: true,
             builder: (_) => const BatteryOptimizationDialog(),
           );
         } finally {
@@ -420,20 +424,16 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           _showFirstUploadSheet();
           return;
         }
-        final msg = gained > 0
-            ? context.l10n.uploadSuccessNewZone(newCount)
-            : context.l10n.uploadSuccessMessage;
-        AppSnackbars.showSuccess(context, msg);
+        // No toast for a routine upload — only when the map actually grew.
         if (gained > 0) {
+          AppSnackbars.showSuccess(context, context.l10n.uploadSuccessNewZone(newCount));
           _maybeCelebrateMilestone(newCount);
         }
       });
     });
     _maybeRequestReview();
-    unawaited(_maybeCelebrateUploadMilestone());
   }
 
-  static const _kUploadMilestones = [10, 50, 100, 500, 1000];
 
   Future<void> _maybeCelebrateMilestone(int zoneCount) async {
     await _prefs.ensureInitialized();
@@ -445,23 +445,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     await _prefs.setLastMilestoneCelebrated(milestone);
     if (!mounted) return;
     HapticFeedback.heavyImpact();
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (_) => _MilestoneSheet(zoneCount: milestone),
-    );
-  }
-
-  Future<void> _maybeCelebrateUploadMilestone() async {
-    await _prefs.ensureInitialized();
-    final count = _prefs.totalUploadCount;
-    final lastCelebrated = _prefs.lastUploadMilestoneCelebrated;
-    final earned = _kUploadMilestones.where((m) => m <= count && m > lastCelebrated).toList();
-    if (earned.isEmpty || !mounted) return;
-    final milestone = earned.last;
-    await _prefs.setLastUploadMilestoneCelebrated(milestone);
-    if (!mounted) return;
-    AppSnackbars.showSuccess(context, context.l10n.uploadMilestone(milestone));
+    AppSnackbars.showSuccess(context, context.l10n.milestoneReachedTitle(milestone));
   }
 
   /// Show the Play Store in-app review dialog once, after the user's 5th upload.
@@ -1554,114 +1538,6 @@ class _FirstStartSheetState extends State<_FirstStartSheet> {
 
 /// Milestone celebration sheet — shown when user hits 5/10/25/50/100/250/500 zones.
 /// Validates their contribution with a trophy moment, then auto-dismisses on CTA.
-class _MilestoneSheet extends StatefulWidget {
-  const _MilestoneSheet({required this.zoneCount});
-  final int zoneCount;
-  @override
-  State<_MilestoneSheet> createState() => _MilestoneSheetState();
-}
-
-class _MilestoneSheetState extends State<_MilestoneSheet> {
-  int? get _next {
-    for (final m in _kMilestones) { if (m > widget.zoneCount) return m; }
-    return null;
-  }
-
-  String _milestoneBody(AppLocalizations l10n) {
-    switch (widget.zoneCount) {
-      case 5:    return l10n.milestoneBody5;
-      case 10:   return l10n.milestoneBody10;
-      case 25:   return l10n.milestoneBody25;
-      case 50:   return l10n.milestoneBody50;
-      case 100:  return l10n.milestoneBody100;
-      case 250:  return l10n.milestoneBody250;
-      case 500:  return l10n.milestoneBody500;
-      case 1000: return l10n.milestoneBody1000;
-      default:   return l10n.milestoneReachedBody;
-    }
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    Future.delayed(const Duration(seconds: 5), () {
-      if (mounted) Navigator.of(context).pop();
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = context.isDarkMode;
-    final l10n = context.l10n;
-    final theme = Theme.of(context);
-    final next = _next;
-
-    return GestureDetector(
-      onTap: () => Navigator.of(context).pop(),
-      child: Container(
-        margin: const EdgeInsets.symmetric(
-          horizontal: AppTheme.spaceMd,
-          vertical: AppTheme.spaceSm,
-        ),
-        decoration: BoxDecoration(
-          color: AppColors.surface(isDark),
-          borderRadius: BorderRadius.circular(AppTheme.radiusLg),
-          border: Border.all(color: AppColors.primary.withValues(alpha: 0.35)),
-        ),
-        child: SafeArea(
-          top: false,
-          child: Padding(
-            padding: const EdgeInsets.all(AppTheme.spaceLg),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                AppTheme.dragHandle(isDark),
-                const SizedBox(height: AppTheme.spaceLg),
-                Container(
-                  width: AppTheme.iconCircleMd,
-                  height: AppTheme.iconCircleMd,
-                  decoration: BoxDecoration(
-                    color: AppColors.primaryAlpha(0.15),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(Icons.map_outlined, color: AppColors.primary, size: AppIconSizes.lg),
-                ),
-                const SizedBox(height: AppTheme.spaceMd),
-                Text(
-                  l10n.milestoneReachedTitle(widget.zoneCount),
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    fontWeight: AppFontWeights.bold,
-                    color: AppColors.primary,
-                    letterSpacing: -0.3,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: AppTheme.spaceSm),
-                Text(
-                  _milestoneBody(l10n),
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: AppColors.textSecondary(isDark),
-                    height: 1.5,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                if (next != null) ...[
-                  const SizedBox(height: AppTheme.spaceMd),
-                  Divider(color: AppColors.divider(isDark), height: 1),
-                  const SizedBox(height: AppTheme.spaceMd),
-                  _NextMilestoneBar(current: widget.zoneCount, target: next, isDark: isDark),
-                ],
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// First-upload celebration sheet — shown exactly once when the user's first
-/// zone appears on the map.
 class _FirstUploadSheet extends StatefulWidget {
   const _FirstUploadSheet();
   @override

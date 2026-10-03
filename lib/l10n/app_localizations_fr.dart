@@ -398,11 +398,19 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get uploadSuccessMessage => 'Carte mise à jour !';
-
-  @override
   String uploadSuccessNewZone(int count) {
     return 'Nouvel endroit ajouté · $count sur ta carte';
+  }
+
+  @override
+  String sessionEndedSnack(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count nouveaux endroits',
+      one: '1 nouvel endroit',
+    );
+    return 'Session terminée · $_temp0';
   }
 
   @override
@@ -1462,12 +1470,6 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get milestoneReachedBody => 'Continuez.';
-
-  @override
-  String get milestoneReachedCta => 'Continuer';
-
-  @override
   String get firstUploadTitle => 'Premier endroit cartographié.';
 
   @override
@@ -1509,11 +1511,6 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get statsWeeklyChartOffline =>
       'Graphique hebdomadaire disponible une fois connecté';
-
-  @override
-  String uploadMilestone(int count) {
-    return '$count envois. Continuez !';
-  }
 
   @override
   String get statsViewOnMap => 'Voir sur la carte';
@@ -1881,38 +1878,6 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get mapperRoleUrbanScientist => 'Scientifique urbain';
-
-  @override
-  String get milestoneBody5 =>
-      'Vos relevés sont sur la carte. Chaque rue parcourue est une zone de moins à découvrir.';
-
-  @override
-  String get milestoneBody10 =>
-      'Un bloc complet, lu. Des rues que personne d\'autre n\'a encore cartographiées.';
-
-  @override
-  String get milestoneBody25 =>
-      'Vous connaissez des endroits que la plupart des cartographes n\'atteignent jamais.';
-
-  @override
-  String get milestoneBody50 =>
-      'La moitié d\'un quartier, terminée. Assez de terrain pour compter.';
-
-  @override
-  String get milestoneBody100 =>
-      'Vous êtes dans le peloton de tête. Votre secteur le sait.';
-
-  @override
-  String get milestoneBody250 =>
-      'Cartographie à l\'échelle d\'un district. Une compagnie rare.';
-
-  @override
-  String get milestoneBody500 =>
-      'Des données que la plupart des apps n\'auront jamais. Vous les avez construites.';
-
-  @override
-  String get milestoneBody1000 =>
-      'Vous êtes un jeu de données à l\'échelle d\'une ville. C\'est de la vraie science.';
 
   @override
   String get sessionMilestone5Flavor =>
