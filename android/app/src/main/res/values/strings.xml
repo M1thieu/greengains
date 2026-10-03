@@ -28,7 +28,7 @@
     <string name="notification_sync_none">Not updated yet</string>
     <string name="notification_motion_moving">moving</string>
     <string name="notification_motion_stationary">still</string>
-    <string name="notification_expanded_paused">Readings off — tap Resume to keep capturing your route.</string>
+    <string name="notification_expanded_paused">Readings off. Tap Resume to keep capturing your route.</string>
 
     <!-- Notification actions -->
     <string name="notification_action_pause">Pause</string>

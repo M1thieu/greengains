@@ -107,7 +107,7 @@ abstract class AppLocalizations {
   /// No description provided for @onboardingWelcomeSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Your phone quietly reads each street you pass through — how bright, how rough, how lively. Your routes, seen differently.'**
+  /// **'Your phone quietly reads each street you pass through: how bright, how rough, how lively. Your routes, seen differently.'**
   String get onboardingWelcomeSubtitle;
 
   /// No description provided for @onboardingFeature1Title.
@@ -143,7 +143,7 @@ abstract class AppLocalizations {
   /// No description provided for @onboardingFeature3Description.
   ///
   /// In en, this message translates to:
-  /// **'Light levels, air pressure, road conditions — the invisible environment you move through every day.'**
+  /// **'Light levels, air pressure, road conditions. The environment you move through every day.'**
   String get onboardingFeature3Description;
 
   /// No description provided for @onboardingSignInTitle.
@@ -239,7 +239,7 @@ abstract class AppLocalizations {
   /// No description provided for @homeIdleSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Leave it on. Light, heat, surface — all passive.'**
+  /// **'Leave it on. Light, heat and surface are recorded in the background.'**
   String get homeIdleSubtitle;
 
   /// No description provided for @homeStatPlaces.
@@ -1013,7 +1013,7 @@ abstract class AppLocalizations {
   /// No description provided for @statsZoneExplainer.
   ///
   /// In en, this message translates to:
-  /// **'A zone is roughly one city block — recorded as you passed through.'**
+  /// **'A zone is roughly one city block, recorded as you pass through.'**
   String get statsZoneExplainer;
 
   /// No description provided for @statsUploadExplainer.
@@ -2153,7 +2153,7 @@ abstract class AppLocalizations {
   /// No description provided for @statsMilestoneHint.
   ///
   /// In en, this message translates to:
-  /// **'Keep going — each route adds to your coverage.'**
+  /// **'Each new route adds to your coverage.'**
   String get statsMilestoneHint;
 
   /// No description provided for @statsMilestoneElite.
@@ -3426,25 +3426,25 @@ abstract class AppLocalizations {
   /// No description provided for @statsEmptyLockLight.
   ///
   /// In en, this message translates to:
-  /// **'Light — dark sky at night, sunlight by day'**
+  /// **'Light: dark sky at night, sunlight by day'**
   String get statsEmptyLockLight;
 
   /// No description provided for @statsEmptyLockMovement.
   ///
   /// In en, this message translates to:
-  /// **'Activity — how lively each place feels'**
+  /// **'Activity: how lively each place feels'**
   String get statsEmptyLockMovement;
 
   /// No description provided for @statsEmptyLockPressure.
   ///
   /// In en, this message translates to:
-  /// **'Weather — heat and pressure along your routes'**
+  /// **'Weather: heat and pressure along your routes'**
   String get statsEmptyLockPressure;
 
   /// No description provided for @statsEmptyLockSurface.
   ///
   /// In en, this message translates to:
-  /// **'Road feel — smooth or rough, street by street'**
+  /// **'Road feel: smooth or rough, street by street'**
   String get statsEmptyLockSurface;
 
   /// No description provided for @statsKm2Unit.
@@ -3462,7 +3462,7 @@ abstract class AppLocalizations {
   /// No description provided for @referralWaiting.
   ///
   /// In en, this message translates to:
-  /// **'Link shared. No one yet — you might be first in your area.'**
+  /// **'Link shared. No one yet. You might be first in your area.'**
   String get referralWaiting;
 
   /// No description provided for @referralFirstJoined.
@@ -3480,7 +3480,7 @@ abstract class AppLocalizations {
   /// No description provided for @referralShareText.
   ///
   /// In en, this message translates to:
-  /// **'Join me on GreenGains — we\'re mapping light pollution, air pressure and road conditions around us. Use my invite code {code} when you sign up.'**
+  /// **'Join me on GreenGains. We\'re mapping light pollution, air pressure and road conditions around us. Use my invite code {code} when you sign up.'**
   String referralShareText(String code);
 
   /// No description provided for @onboardingHaveCode.
@@ -3654,7 +3654,7 @@ abstract class AppLocalizations {
   /// No description provided for @insightLightHigh.
   ///
   /// In en, this message translates to:
-  /// **'Bright at night — like a lit room. Not ideal before sleep.'**
+  /// **'Bright at night, like a lit room. Not ideal before sleep.'**
   String get insightLightHigh;
 
   /// No description provided for @insightLightSevere.
@@ -3750,7 +3750,7 @@ abstract class AppLocalizations {
   /// No description provided for @statsInsightRoughest.
   ///
   /// In en, this message translates to:
-  /// **'Roughest stretch: {street} — bumpier than {pct}% of your mapped routes'**
+  /// **'Roughest stretch: {street}, bumpier than {pct}% of your mapped routes'**
   String statsInsightRoughest(String street, int pct);
 
   /// No description provided for @statsInsightNewZones.

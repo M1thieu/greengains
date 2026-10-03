@@ -13,39 +13,39 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get onboardingWelcomeSubtitle =>
-      'Votre téléphone lit chaque rue que vous traversez — son éclairage, ses vibrations, son animation. Vos trajets, vus autrement.';
+      'Ton téléphone lit chaque rue que tu traverses : son éclairage, ses vibrations, son animation. Tes trajets, vus autrement.';
 
   @override
   String get onboardingFeature1Title => 'Rien à faire.';
 
   @override
   String get onboardingFeature1Description =>
-      'Lancez une fois, gardez votre téléphone. La carte se construit seule.';
+      'Lance une fois, garde ton téléphone. La carte se construit seule.';
 
   @override
   String get onboardingFeature2Title => 'Privé par défaut';
 
   @override
   String get onboardingFeature2Description =>
-      'Votre trajet n\'est jamais conservé. Les données sont anonymisées avant de quitter votre téléphone.';
+      'Ton trajet n\'est jamais conservé. Les données sont anonymisées avant de quitter ton téléphone.';
 
   @override
-  String get onboardingFeature3Title => 'Voyez votre environnement.';
+  String get onboardingFeature3Title => 'Vois ton environnement.';
 
   @override
   String get onboardingFeature3Description =>
-      'Niveaux de lumière, pression atmosphérique, état des routes — l\'environnement invisible que vous traversez chaque jour.';
+      'Lumière, pression atmosphérique, état des routes. L\'environnement que tu traverses chaque jour.';
 
   @override
-  String get onboardingSignInTitle => 'Votre carte commence ici.';
+  String get onboardingSignInTitle => 'Ta carte commence ici.';
 
   @override
   String get onboardingSignInSubtitle =>
-      'Connectez-vous pour garder votre carte synchronisée sur tous vos appareils.';
+      'Connecte-toi pour garder ta carte synchronisée sur tous tes appareils.';
 
   @override
   String onboardingPrivacyNotice(String privacyPolicy, String termsOfService) {
-    return 'En continuant, vous acceptez notre $privacyPolicy et nos $termsOfService.';
+    return 'En continuant, tu acceptes notre $privacyPolicy et nos $termsOfService.';
   }
 
   @override
@@ -86,7 +86,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get homeIdleSubtitle =>
-      'Laisse-le actif. Lumière, chaleur, surfaces — tout en silence.';
+      'Laisse-le actif. Lumière, chaleur et surfaces sont enregistrées en arrière-plan.';
 
   @override
   String homeStatPlaces(int count) {
@@ -137,7 +137,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get noUploadYet => 'Aucun envoi pour le moment';
 
   @override
-  String get statsTitle => 'Votre carte';
+  String get statsTitle => 'Ta carte';
 
   @override
   String get totalUploads => 'Total d\'envois';
@@ -169,7 +169,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get mapZoomOut => 'Dézoomer';
 
   @override
-  String get mapYourLocation => 'Votre position';
+  String get mapYourLocation => 'Ta position';
 
   @override
   String get mapCoverageLegend => 'Couverture';
@@ -198,7 +198,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get profileDeleteConfirm =>
-      'Êtes-vous sûr ? Cette action est irréversible.';
+      'Tu es sûr ? Cette action est irréversible.';
 
   @override
   String get settingsTitle => 'Paramètres';
@@ -246,7 +246,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get permissionLocationMessage =>
-      'Autorisez la localisation pour que votre téléphone cartographie pendant vos déplacements.';
+      'Autorise la localisation pour que ton téléphone cartographie pendant tes déplacements.';
 
   @override
   String get permissionLocationButton => 'Autoriser';
@@ -275,7 +275,7 @@ class AppLocalizationsFr extends AppLocalizations {
       'Synchronisation impossible. Nouvelle tentative plus tard.';
 
   @override
-  String get errorSignInRequired => 'Veuillez vous connecter pour continuer';
+  String get errorSignInRequired => 'Connecte-toi pour continuer';
 
   @override
   String get buttonOk => 'OK';
@@ -364,7 +364,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get homeFirstUseHint =>
-      'Appuyez sur ▶ pour voir votre premier endroit apparaître';
+      'Appuie sur ▶ pour voir ton premier endroit apparaître';
 
   @override
   String get homeFirstTrackingHint =>
@@ -422,7 +422,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get tipViewLiveDataMessage =>
-      'Appuyez ci-dessous pour voir les données que vous contribuez actuellement';
+      'Appuie ci-dessous pour voir les données que tu contribues en ce moment';
 
   @override
   String get statsScreenTitle => 'Statistiques';
@@ -580,7 +580,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get statsZoneExplainer =>
-      'Une zone correspond environ à un pâté de maisons — enregistré en passant.';
+      'Une zone correspond environ à un pâté de maisons, enregistré en passant.';
 
   @override
   String get statsUploadExplainer =>
@@ -615,7 +615,7 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get statsInDepthHabits => 'Vos habitudes';
+  String get statsInDepthHabits => 'Tes habitudes';
 
   @override
   String get statsInDepthActiveDays => 'Jours actifs';
@@ -627,7 +627,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get statsInDepthBestWeekday => 'Meilleur jour';
 
   @override
-  String get statsInDepthWhenYouMap => 'Quand vous cartographiez';
+  String get statsInDepthWhenYouMap => 'Quand tu cartographies';
 
   @override
   String get statsDaysUnit => 'jours';
@@ -708,7 +708,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get infoBestDayBody =>
-      'Votre jour le plus actif cette semaine. Souvent plus de temps en extérieur.';
+      'Ton jour le plus actif cette semaine. Souvent plus de temps dehors.';
 
   @override
   String get infoMilestoneTitle => 'Prochain palier';
@@ -725,17 +725,17 @@ class AppLocalizationsFr extends AppLocalizations {
       'Vert = bien couvert, jaune = partiel, rouge = plus de passages nécessaires.';
 
   @override
-  String get infoTilePersonalTitle => 'Votre endroit';
+  String get infoTilePersonalTitle => 'Ton endroit';
 
   @override
-  String get infoTilePersonalBody => 'Votre téléphone a enregistré ici.';
+  String get infoTilePersonalBody => 'Ton téléphone a enregistré ici.';
 
   @override
   String get infoTileCommunityTitle => 'Endroit communautaire';
 
   @override
   String get infoTileCommunityBody =>
-      'Cartographié par d\'autres. Passez ici pour vous l\'approprier.';
+      'Cartographié par d\'autres. Passe ici pour te l\'approprier.';
 
   @override
   String get statsTotalContributions => 'Fois où tu as cartographié';
@@ -761,7 +761,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get statsEmptyDescription =>
-      'Active le suivi une fois. Lumière, chaleur, surfaces — enregistrés en silence.';
+      'Active le suivi une fois. Lumière, chaleur et surfaces sont enregistrées en arrière-plan.';
 
   @override
   String get statsEmptyGoMap => 'Activer le suivi';
@@ -831,7 +831,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get startContributingHint =>
-      'Votre téléphone cartographie silencieusement pendant vos déplacements';
+      'Ton téléphone cartographie en arrière-plan pendant tes déplacements';
 
   @override
   String get areaCovered => 'Zone couverte';
@@ -841,7 +841,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String contributionStatsSemanticsLabel(String uploads, String area) {
-    return 'Vos contributions : $uploads. Zone couverte : $area.';
+    return 'Tes contributions : $uploads. Zone couverte : $area.';
   }
 
   @override
@@ -931,7 +931,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get startTrackingToMap =>
-      'Commencez le suivi pour cartographier votre secteur';
+      'Lance le suivi pour cartographier ton secteur';
 
   @override
   String tilesCount(int count) {
@@ -960,7 +960,7 @@ class AppLocalizationsFr extends AppLocalizations {
       'Reprenez le suivi pour continuer à enregistrer';
 
   @override
-  String get sensorAroundYou => 'Autour de vous';
+  String get sensorAroundYou => 'Autour de toi';
 
   @override
   String get sensorPressure => 'Pression';
@@ -1134,7 +1134,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settingsLegal => 'Légal';
 
   @override
-  String get settingsPrivacyPolicyDesc => 'Comment nous gérons vos données';
+  String get settingsPrivacyPolicyDesc => 'Comment nous gérons tes données';
 
   @override
   String get settingsTermsOfServiceDesc =>
@@ -1148,7 +1148,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settingsDataDeletionDesc =>
-      'Effacer toutes vos données enregistrées';
+      'Effacer toutes tes données enregistrées';
 
   @override
   String get settingsExportData => 'Exporter mes données';
@@ -1236,8 +1236,7 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get statsMilestoneHint =>
-      'Continue à sortir — chaque trajet étend ta couverture.';
+  String get statsMilestoneHint => 'Chaque nouveau trajet étend ta couverture.';
 
   @override
   String get statsMilestoneElite => 'Tous les paliers atteints.';
@@ -1307,7 +1306,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get locationPermBannerFix => 'Corriger';
 
   @override
-  String get legendYou => 'Vous';
+  String get legendYou => 'Toi';
 
   @override
   String get legendCommunity => 'Communauté';
@@ -1326,7 +1325,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settingsDiagnosticsDesc =>
-      'Lectures en temps réel de vos capteurs';
+      'Lectures en temps réel de tes capteurs';
 
   @override
   String get sensorLiveSheetTitle => 'Ce que tu mesures';
@@ -1402,7 +1401,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get permissionPrimingCollectsDesc =>
-      'Luminosité, activité et météo uniquement. Jamais votre trajet ni votre identité.';
+      'Luminosité, activité et météo uniquement. Jamais ton trajet ni ton identité.';
 
   @override
   String get permissionPrimingCta => 'Activer la localisation';
@@ -1425,7 +1424,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get firstUploadTitle => 'Premier endroit cartographié.';
 
   @override
-  String get firstUploadBody => 'Continuez à bouger. Votre carte grandit.';
+  String get firstUploadBody => 'Continue à bouger. Ta carte grandit.';
 
   @override
   String get firstUploadCta => 'Voir ma carte';
@@ -1591,8 +1590,8 @@ class AppLocalizationsFr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count endroits cartographiés dans votre secteur',
-      one: '1 endroit cartographié dans votre secteur',
+      other: '$count endroits cartographiés dans ton secteur',
+      one: '1 endroit cartographié dans ton secteur',
     );
     return '$_temp0';
   }
@@ -1827,14 +1826,14 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get permissionLostBody =>
-      'Votre carte ne se met plus à jour. Appuyez pour corriger.';
+      'Ta carte ne se met plus à jour. Appuie pour corriger.';
 
   @override
   String get permissionLostCta => 'Corriger dans les réglages';
 
   @override
   String referralNeighborhoodHook(String neighborhood) {
-    return 'Aidez à cartographier $neighborhood. Chaque voisin couvre ce que vous n\'avez pas encore atteint.';
+    return 'Aide à cartographier $neighborhood. Chaque voisin couvre ce que tu n\'as pas encore atteint.';
   }
 
   @override
@@ -1842,14 +1841,14 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get onboardingActivateSubtitle =>
-      'Votre téléphone mesure l\'environnement autour de vous en déplacement. Votre trajet n\'est jamais enregistré.';
+      'Ton téléphone mesure l\'environnement autour de toi pendant tes déplacements. Ton trajet n\'est jamais enregistré.';
 
   @override
   String get onboardingActivateCta => 'Commencer à cartographier';
 
   @override
   String get onboardingPermissionDenied =>
-      'L\'accès à la localisation est nécessaire pour cartographier votre ville.';
+      'L\'accès à la localisation est nécessaire pour cartographier ta ville.';
 
   @override
   String get onboardingPermissionDeniedForeverTitle => 'Permission requise';
@@ -1983,7 +1982,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get mappingActiveSheetBody =>
-      'Continuez à bouger pour découvrir de nouveaux endroits. Votre carte grandit automatiquement.';
+      'Continue à bouger pour découvrir de nouveaux endroits. Ta carte grandit toute seule.';
 
   @override
   String mappingActiveSheetZones(int count) {
@@ -2029,19 +2028,19 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get statsEmptyLockLight =>
-      'Lumière — ciel noir la nuit, soleil le jour';
+      'Lumière : ciel noir la nuit, soleil le jour';
 
   @override
   String get statsEmptyLockMovement =>
-      'Activité — l\'animation de chaque endroit';
+      'Activité : l\'animation de chaque endroit';
 
   @override
   String get statsEmptyLockPressure =>
-      'Météo — chaleur et pression sur tes trajets';
+      'Météo : chaleur et pression sur tes trajets';
 
   @override
   String get statsEmptyLockSurface =>
-      'Revêtement — lisse ou dégradé, rue par rue';
+      'Revêtement : lisse ou dégradé, rue par rue';
 
   @override
   String get statsKm2Unit => 'km²';
@@ -2051,7 +2050,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get referralWaiting =>
-      'Lien partagé. Personne encore — tu es peut-être le premier dans ta zone.';
+      'Lien partagé. Personne pour l\'instant. Tu es peut-être le premier dans ta zone.';
 
   @override
   String get referralFirstJoined => 'Première personne rejointe.';
@@ -2061,7 +2060,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String referralShareText(String code) {
-    return 'Rejoins-moi sur GreenGains — on cartographie la pollution lumineuse, la pression atmosphérique et l\'état des routes. Utilise mon code $code à l\'inscription.';
+    return 'Rejoins-moi sur GreenGains. On cartographie la pollution lumineuse, la pression atmosphérique et l\'état des routes. Utilise mon code $code à l\'inscription.';
   }
 
   @override
@@ -2171,7 +2170,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get insightLightHigh =>
-      'Lumineux la nuit — comme une pièce allumée. Pas idéal avant de dormir.';
+      'Lumineux la nuit, comme une pièce allumée. Pas idéal avant de dormir.';
 
   @override
   String get insightLightSevere =>
@@ -2232,7 +2231,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String statsInsightRoughest(String street, int pct) {
-    return 'Tronçon le plus dégradé : $street — plus cahoteuse que $pct% de tes trajets';
+    return 'Tronçon le plus dégradé : $street, plus cahoteux que $pct% de tes trajets';
   }
 
   @override

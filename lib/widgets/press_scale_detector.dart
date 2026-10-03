@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import '../core/themes.dart';
 
-/// Press-down scale with a springy release (Material 3 Expressive motion):
-/// quick ease-in on press, slight overshoot on release. Static when the user
-/// asked the system to remove animations.
+/// Subtle press-down scale. No overshoot: bouncy easing reads as gimmicky.
+/// Static when the user asked the system to remove animations.
 class PressScaleDetector extends StatefulWidget {
   const PressScaleDetector({super.key, required this.onTap, required this.child});
   final VoidCallback? onTap;
@@ -28,8 +27,8 @@ class _PressScaleDetectorState extends State<PressScaleDetector> {
       behavior: HitTestBehavior.opaque,
       child: AnimatedScale(
         scale: _pressed && !reduceMotion ? AppTheme.pressScale : 1.0,
-        duration: _pressed ? AppDurations.press : AppDurations.pressRelease,
-        curve: _pressed ? Curves.easeOut : Curves.easeOutBack,
+        duration: AppDurations.press,
+        curve: Curves.easeOut,
         child: widget.child,
       ),
     );

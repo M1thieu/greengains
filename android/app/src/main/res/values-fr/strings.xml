@@ -3,24 +3,24 @@
     <string name="app_name">GreenGains</string>
 
     <!-- Foreground service notification -->
-    <string name="notification_status_collecting">Votre carte grandit</string>
-    <string name="notification_status_stationary">À l\'écoute de votre environnement</string>
+    <string name="notification_status_collecting">Ta carte grandit</string>
+    <string name="notification_status_stationary">À l\'écoute de ton environnement</string>
     <string name="notification_paused_title">En pause</string>
-    <string name="notification_paused_body">Votre trajet n\'est pas enregistré en ce moment</string>
+    <string name="notification_paused_body">Ton trajet n\'est pas enregistré en ce moment</string>
     <string name="notification_collecting_no_upload">Bougez pour commencer à cartographier</string>
-    <string name="notification_body_zones_uploading">%1$d endroits sur votre carte</string>
+    <string name="notification_body_zones_uploading">%1$d endroits sur ta carte</string>
     <string name="notification_body_zones_collecting">%1$d endroits cartographiés</string>
     <string name="notification_body_stationary">%1$d endroits · en veille</string>
-    <string name="notification_body_paused_zones">%1$d endroits sur votre carte</string>
+    <string name="notification_body_paused_zones">%1$d endroits sur ta carte</string>
     <string name="notification_readings_uploading">Premier endroit en cours…</string>
 
     <!-- Ligne de statut étendue -->
-    <string name="notification_sync_uploading">Mise à jour de votre carte</string>
+    <string name="notification_sync_uploading">Mise à jour de ta carte</string>
     <string name="notification_sync_uploaded">Mis à jour %s</string>
     <string name="notification_sync_none">Pas encore mis à jour</string>
     <string name="notification_motion_moving">en mouvement</string>
     <string name="notification_motion_stationary">à l\'arrêt</string>
-    <string name="notification_expanded_paused">Lecture en pause — appuyez sur Reprendre pour capturer votre trajet.</string>
+    <string name="notification_expanded_paused">Lecture en pause. Appuie sur Reprendre pour capturer ton trajet.</string>
 
     <!-- Notification actions -->
     <string name="notification_action_pause">Pause</string>
@@ -39,7 +39,7 @@
 
     <!-- Background worker notification -->
     <string name="notification_worker_title">GreenGains</string>
-    <string name="notification_worker_body">Mise à jour de votre carte</string>
+    <string name="notification_worker_body">Mise à jour de ta carte</string>
 
     <!-- Re-engagement notification -->
 
@@ -48,7 +48,7 @@
 
     <!-- Digest hebdomadaire -->
     <string name="notification_weekly_channel_name">Bilan hebdomadaire</string>
-    <string name="notif_body_measuring">À l\'écoute de votre environnement</string>
+    <string name="notif_body_measuring">À l\'écoute de ton environnement</string>
     <string name="notif_session_zones">+%1$d zones</string>
 
     <!-- Notification de fin de session — résumé passif -->

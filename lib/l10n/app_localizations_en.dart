@@ -13,7 +13,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get onboardingWelcomeSubtitle =>
-      'Your phone quietly reads each street you pass through — how bright, how rough, how lively. Your routes, seen differently.';
+      'Your phone quietly reads each street you pass through: how bright, how rough, how lively. Your routes, seen differently.';
 
   @override
   String get onboardingFeature1Title => 'Nothing to do.';
@@ -34,7 +34,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get onboardingFeature3Description =>
-      'Light levels, air pressure, road conditions — the invisible environment you move through every day.';
+      'Light levels, air pressure, road conditions. The environment you move through every day.';
 
   @override
   String get onboardingSignInTitle => 'Your map starts here.';
@@ -86,7 +86,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get homeIdleSubtitle =>
-      'Leave it on. Light, heat, surface — all passive.';
+      'Leave it on. Light, heat and surface are recorded in the background.';
 
   @override
   String homeStatPlaces(int count) {
@@ -577,7 +577,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get statsZoneExplainer =>
-      'A zone is roughly one city block — recorded as you passed through.';
+      'A zone is roughly one city block, recorded as you pass through.';
 
   @override
   String get statsUploadExplainer =>
@@ -1224,8 +1224,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get statsMilestoneHint =>
-      'Keep going — each route adds to your coverage.';
+  String get statsMilestoneHint => 'Each new route adds to your coverage.';
 
   @override
   String get statsMilestoneElite => 'All milestones reached.';
@@ -2010,19 +2009,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get weeklyGoalDismiss => 'Nice';
 
   @override
-  String get statsEmptyLockLight =>
-      'Light — dark sky at night, sunlight by day';
+  String get statsEmptyLockLight => 'Light: dark sky at night, sunlight by day';
 
   @override
-  String get statsEmptyLockMovement => 'Activity — how lively each place feels';
+  String get statsEmptyLockMovement => 'Activity: how lively each place feels';
 
   @override
   String get statsEmptyLockPressure =>
-      'Weather — heat and pressure along your routes';
+      'Weather: heat and pressure along your routes';
 
   @override
   String get statsEmptyLockSurface =>
-      'Road feel — smooth or rough, street by street';
+      'Road feel: smooth or rough, street by street';
 
   @override
   String get statsKm2Unit => 'km²';
@@ -2032,7 +2030,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get referralWaiting =>
-      'Link shared. No one yet — you might be first in your area.';
+      'Link shared. No one yet. You might be first in your area.';
 
   @override
   String get referralFirstJoined => 'First person joined.';
@@ -2042,7 +2040,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String referralShareText(String code) {
-    return 'Join me on GreenGains — we\'re mapping light pollution, air pressure and road conditions around us. Use my invite code $code when you sign up.';
+    return 'Join me on GreenGains. We\'re mapping light pollution, air pressure and road conditions around us. Use my invite code $code when you sign up.';
   }
 
   @override
@@ -2152,7 +2150,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get insightLightHigh =>
-      'Bright at night — like a lit room. Not ideal before sleep.';
+      'Bright at night, like a lit room. Not ideal before sleep.';
 
   @override
   String get insightLightSevere =>
@@ -2211,7 +2209,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String statsInsightRoughest(String street, int pct) {
-    return 'Roughest stretch: $street — bumpier than $pct% of your mapped routes';
+    return 'Roughest stretch: $street, bumpier than $pct% of your mapped routes';
   }
 
   @override

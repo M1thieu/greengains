@@ -217,7 +217,6 @@ class AppDurations {
   AppDurations._();
 
   static const Duration press         = Duration(milliseconds: 80);
-  static const Duration pressRelease  = Duration(milliseconds: 220); // springy overshoot on release
   static const Duration instant       = Duration(milliseconds: 100);
   static const Duration segmentToggle = Duration(milliseconds: 180);
   static const Duration fast          = Duration(milliseconds: 300);
@@ -300,42 +299,8 @@ class AppShadows {
 class AppGradients {
   AppGradients._();
 
-  /// Green glow for active sensor cards and primary CTAs
-  static LinearGradient greenGlow = LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-    colors: [
-      AppColors.primary.withValues(alpha: 0.15),
-      AppColors.primaryLight.withValues(alpha: 0.20),
-    ],
-  );
 
-  /// Button/FAB gradient: top-left light → bottom-right darkened.
-  /// Gives depth without needing a separate shadow pass.
-  static LinearGradient darkBottomGradient(Color base) => LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-    colors: [
-      base.withValues(alpha: 0.95),
-      Color.lerp(base, Colors.black, 0.20)!,
-    ],
-  );
 
-  /// Subtle neutral surface gradient — NO color tint.
-  /// Used sparingly for depth; prefer flat colors for most surfaces.
-  static LinearGradient surfaceGlow(bool isDark) => LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-    colors: isDark
-        ? [
-            const Color(0xFF171717),
-            const Color(0xFF1F1F1F),
-          ]
-        : [
-            const Color(0xFFF9FBF9),
-            const Color(0xFFF2F4F3),
-          ],
-  );
 }
 
 /// Font weight scale for typography personality
@@ -360,7 +325,7 @@ class AppMotion {
   static const standard = Curves.easeInOutCubic;
 
   /// Slight bounce for positive events (upload success, achievements)
-  static const emphasized = Curves.easeOutBack;
+  static const emphasized = Curves.easeOutCubic;
 
   /// Fast start, gentle end for appearing elements
   static const decelerated = Curves.easeOut;
@@ -598,7 +563,8 @@ class AppTheme {
         height: AppLineHeights.snug,
       );
 
-  /// KPI card decoration — flat surface with a colored left-border accent.
+  /// KPI card decoration: flat surface, hairline border. [accentColor] is kept
+  /// for call-site compatibility; a coloured left stripe reads as templated.
   static BoxDecoration kpiCard({
     required bool isDark,
     Color accentColor = AppColors.primary,
@@ -607,9 +573,7 @@ class AppTheme {
       BoxDecoration(
         color: AppColors.surface(isDark),
         borderRadius: BorderRadius.circular(radius),
-        border: Border(
-          left: BorderSide(color: accentColor, width: 3),
-        ),
+        border: Border.all(color: AppColors.border(isDark)),
       );
 
   /// Creates an icon container with primary-colored background

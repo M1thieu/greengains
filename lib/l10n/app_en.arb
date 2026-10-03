@@ -2,13 +2,13 @@
   "@@locale": "en",
 
   "onboardingWelcomeTitle": "Finally know your neighborhood.",
-  "onboardingWelcomeSubtitle": "Your phone quietly reads each street you pass through — how bright, how rough, how lively. Your routes, seen differently.",
+  "onboardingWelcomeSubtitle": "Your phone quietly reads each street you pass through: how bright, how rough, how lively. Your routes, seen differently.",
   "onboardingFeature1Title": "Nothing to do.",
   "onboardingFeature1Description": "Start once, carry your phone. Your map builds itself.",
   "onboardingFeature2Title": "Private by default",
   "onboardingFeature2Description": "Your route is never stored. Readings are anonymous before they leave your phone.",
   "onboardingFeature3Title": "See what's around you.",
-  "onboardingFeature3Description": "Light levels, air pressure, road conditions — the invisible environment you move through every day.",
+  "onboardingFeature3Description": "Light levels, air pressure, road conditions. The environment you move through every day.",
   "onboardingSignInTitle": "Your map starts here.",
   "onboardingSignInSubtitle": "Sign in to keep your map synced across devices.",
   "onboardingPrivacyNotice": "By continuing, you agree to our {privacyPolicy} and {termsOfService}.",
@@ -32,7 +32,7 @@
 
   "homeTitle": "GreenGains",
   "homeIdleTagline": "See what your routes expose you to",
-  "homeIdleSubtitle": "Leave it on. Light, heat, surface — all passive.",
+  "homeIdleSubtitle": "Leave it on. Light, heat and surface are recorded in the background.",
   "homeStatPlaces": "{count} places",
   "@homeStatPlaces": { "placeholders": { "count": { "type": "int" } } },
   "homeStatArea": "{area} mapped",
@@ -232,7 +232,7 @@
   "statsRecordTotalUploads": "Total scans",
   "statsRecordFirstDay": "First mapping day",
   "statsRecordBestSession": "Best session",
-  "statsZoneExplainer": "A zone is roughly one city block — recorded as you passed through.",
+  "statsZoneExplainer": "A zone is roughly one city block, recorded as you pass through.",
   "statsUploadExplainer": "Light, heat and surface quality captured at that moment.",
   "statsTabCore": "Overview",
   "statsTabInDepth": "In depth",
@@ -486,7 +486,7 @@
 
   "statsWeeklyTotal": "{count} this week",
 
-  "statsMilestoneHint": "Keep going — each route adds to your coverage.",
+  "statsMilestoneHint": "Each new route adds to your coverage.",
   "statsMilestoneElite": "All milestones reached.",
   "statsMilestoneRemaining": "{count, plural, =1{1 zone to go} other{{count} zones to go}}",
   "@statsMilestoneRemaining": {
@@ -852,17 +852,17 @@
   "weeklyGoalBody": "See you next week.",
   "weeklyGoalDismiss": "Nice",
 
-  "statsEmptyLockLight": "Light — dark sky at night, sunlight by day",
-  "statsEmptyLockMovement": "Activity — how lively each place feels",
-  "statsEmptyLockPressure": "Weather — heat and pressure along your routes",
-  "statsEmptyLockSurface": "Road feel — smooth or rough, street by street",
+  "statsEmptyLockLight": "Light: dark sky at night, sunlight by day",
+  "statsEmptyLockMovement": "Activity: how lively each place feels",
+  "statsEmptyLockPressure": "Weather: heat and pressure along your routes",
+  "statsEmptyLockSurface": "Road feel: smooth or rough, street by street",
   "statsKm2Unit": "km²",
   "statsLast30DaysUnit": "/ 30",
 
-  "referralWaiting": "Link shared. No one yet — you might be first in your area.",
+  "referralWaiting": "Link shared. No one yet. You might be first in your area.",
   "referralFirstJoined": "First person joined.",
   "referralShareAgain": "Share again",
-  "referralShareText": "Join me on GreenGains — we're mapping light pollution, air pressure and road conditions around us. Use my invite code {code} when you sign up.",
+  "referralShareText": "Join me on GreenGains. We're mapping light pollution, air pressure and road conditions around us. Use my invite code {code} when you sign up.",
   "@referralShareText": {
     "placeholders": {
       "code": { "type": "String" }
@@ -908,7 +908,7 @@
   "insightLightPristine": "Almost no artificial light here. Your melatonin stays intact on this route.",
   "insightLightLow": "Naturally dark here. Good for winding down if you come home this way.",
   "insightLightModerate": "Some sky glow. Enough artificial light to affect your body clock over time.",
-  "insightLightHigh": "Bright at night — like a lit room. Not ideal before sleep.",
+  "insightLightHigh": "Bright at night, like a lit room. Not ideal before sleep.",
   "insightLightSevere": "Very bright at night. Your body thinks it's still daytime here.",
 
   "insightSunShaded": "Shaded and cool. Lower UV than open streets.",
@@ -929,7 +929,7 @@
   "insightSessionHotRoute": "This route runs hot. Worth considering cooler alternatives in summer.",
 
   "statsInsightLabel": "THIS WEEK",
-  "statsInsightRoughest": "Roughest stretch: {street} — bumpier than {pct}% of your mapped routes",
+  "statsInsightRoughest": "Roughest stretch: {street}, bumpier than {pct}% of your mapped routes",
   "@statsInsightRoughest": {
     "placeholders": {
       "street": { "type": "String" },

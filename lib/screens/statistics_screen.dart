@@ -520,26 +520,11 @@ class _StatisticsScreenState extends State<StatisticsScreen>
     final km2 = zones * kKm2PerCell;
     final showKm2 = zones > 0;
 
-    // Quality-based left accent — green (≥70), amber (40-69), red (<40).
-    // Omit accent when quality unknown so the card doesn't look broken on first load.
-    final qualityAccent = _qualityPct == null
-        ? null
-        : _qualityPct! >= 70
-            ? AppColors.primary
-            : _qualityPct! >= 40
-                ? AppColors.warning
-                : AppColors.error;
-
     return PressScaleDetector(
       onTap: _showStatsDetailSheet,
       child: Container(
         padding: const EdgeInsets.all(AppTheme.spaceMd),
-        decoration: AppTheme.surfaceContainer(
-          isDark: isDark,
-          border: qualityAccent != null
-              ? Border(left: BorderSide(color: qualityAccent, width: 3))
-              : null,
-        ),
+        decoration: AppTheme.surfaceContainer(isDark: isDark),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1248,14 +1233,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                             height: barH,
                             margin: const EdgeInsets.symmetric(horizontal: AppTheme.spaceXxxs),
                             decoration: BoxDecoration(
-                              gradient: (isToday || isSelected)
-                                  ? LinearGradient(
-                                      begin: Alignment.bottomCenter,
-                                      end: Alignment.topCenter,
-                                      colors: [AppColors.primary, AppColors.primary.withValues(alpha: 0.65)],
-                                    )
-                                  : null,
-                              color: (isToday || isSelected) ? null : barColor,
+                              color: (isToday || isSelected) ? AppColors.primary : barColor,
                               borderRadius: const BorderRadius.vertical(
                                 top: Radius.circular(AppTheme.radiusSm),
                               ),
