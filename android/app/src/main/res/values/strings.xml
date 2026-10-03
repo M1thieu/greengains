@@ -59,7 +59,6 @@
     <!-- %1$d = zone count -->
 
     <!-- Permission result toasts -->
-    <string name="toast_location_granted">Location permission granted</string>
     <string name="toast_location_denied">Location permission denied</string>
 
     <!-- Weekly ambient digest — passive map summary, no call-to-action -->

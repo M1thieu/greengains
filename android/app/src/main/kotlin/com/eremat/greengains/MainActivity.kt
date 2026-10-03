@@ -201,13 +201,9 @@ class MainActivity : FlutterActivity() {
             LOCATION_PERMISSION_REQUEST_CODE -> {
                 val fineGranted = grantResults.getOrNull(0) == PackageManager.PERMISSION_GRANTED
                 val coarseGranted = grantResults.getOrNull(1) == PackageManager.PERMISSION_GRANTED
-                when {
-                    fineGranted || coarseGranted -> {
-                        Toast.makeText(this, getString(R.string.toast_location_granted), Toast.LENGTH_SHORT).show()
-                    }
-                    else -> {
-                        Toast.makeText(this, getString(R.string.toast_location_denied), Toast.LENGTH_SHORT).show()
-                    }
+                // Granted needs no message: the user just tapped Allow. Only explain a refusal.
+                if (!fineGranted && !coarseGranted) {
+                    Toast.makeText(this, getString(R.string.toast_location_denied), Toast.LENGTH_SHORT).show()
                 }
             }
             NOTIFICATION_PERMISSION_REQUEST_CODE -> {

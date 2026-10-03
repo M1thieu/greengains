@@ -44,7 +44,6 @@
     <!-- Re-engagement notification -->
 
     <!-- Permission result toasts -->
-    <string name="toast_location_granted">Permission de localisation accordée</string>
     <string name="toast_location_denied">Permission de localisation refusée</string>
 
     <!-- Digest hebdomadaire -->

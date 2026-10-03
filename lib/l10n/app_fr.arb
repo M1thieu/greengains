@@ -790,11 +790,11 @@
   "sessionStatUploadsExplain": "Nombre d'envois de données pendant cette session.",
   "sessionStatTotalExplain": "Total des zones uniques cartographiées sur toutes tes sessions.",
   "statsUploadsHint": "envois",
-  "statsKpiTodayExplain": "Syncs envoyés aujourd'hui.",
-  "statsKpiWeekExplain": "Syncs envoyés cette semaine.",
-  "statsKpiBestDayExplain": "Maximum de syncs en une journée.",
-  "statsKpiAvgExplain": "Moyenne de syncs les jours actifs.",
-  "profileTileUploadsExplain": "Total des syncs envoyés à nos serveurs.",
+  "statsKpiTodayExplain": "Scans aujourd'hui.",
+  "statsKpiWeekExplain": "Scans cette semaine.",
+  "statsKpiBestDayExplain": "Maximum de scans en une journée.",
+  "statsKpiAvgExplain": "Moyenne de scans les jours actifs.",
+  "profileTileUploadsExplain": "Total des scans que tu as contribués.",
   "profileTileDaysExplain": "Jours avec au moins une contribution.",
   "profileTileAreaExplain": "Surface cartographiée sur toutes tes sessions.",
   "@profileTileAreaExplain": {
@@ -802,7 +802,7 @@
   },
   "profileTileAreaCells": "zones explorées",
   "profileStatCityBlocks": "îlots de ville",
-  "profileStreakExplain": "Jours consécutifs avec au moins un sync.",
+  "profileStreakExplain": "Jours consécutifs avec au moins un scan.",
   "profileStreakToMilestone": "{days} {unit} avant le cap des {milestone} {unit}",
   "@profileStreakToMilestone": {
     "placeholders": {

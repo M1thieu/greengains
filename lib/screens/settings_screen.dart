@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -159,12 +160,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           const SizedBox(height: _kSectionSpacing),
 
-          // ── About ─────────────────────────────────────────────────────────
-          Padding(
+          // ── About (debug only: its one entry is the diagnostics screen) ─────
+          if (kDebugMode) Padding(
             padding: const EdgeInsets.only(left: AppTheme.spaceXxs, bottom: AppTheme.spaceXs),
             child: Text(l10n.settingsAbout.toUpperCase(), style: AppTheme.eyebrowLabel(isDark)),
           ),
-          PressScaleDetector(
+          // Sensor diagnostics is a developer screen: debug builds only.
+          if (kDebugMode) PressScaleDetector(
             onTap: () => Navigator.of(context).push(
               MaterialPageRoute(builder: (_) => const DiagnosticsScreen()),
             ),

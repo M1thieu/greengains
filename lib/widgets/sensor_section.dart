@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../core/extensions/context_extensions.dart';
 import '../core/themes.dart';
@@ -190,7 +191,9 @@ class _SensorSectionState extends State<SensorSection> {
             },
           ),
 
-          // Magnetic Field
+          // Magnetic field and rotation say nothing useful to a user about
+          // their surroundings — kept for debugging only.
+          if (kDebugMode)
           StreamBuilder<MagneticFieldData>(
             stream: widget.locationService.magneticFieldStream,
             initialData: widget.locationService.lastMagneticField,
@@ -241,7 +244,7 @@ class _SensorSectionState extends State<SensorSection> {
             },
           ),
 
-          // Gyroscope
+          if (kDebugMode)
           StreamBuilder<GyroscopeData>(
             stream: widget.locationService.gyroscopeStream,
             initialData: widget.locationService.lastGyroscope,

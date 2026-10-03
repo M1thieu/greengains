@@ -1895,20 +1895,20 @@ class AppLocalizationsFr extends AppLocalizations {
   String get statsUploadsHint => 'envois';
 
   @override
-  String get statsKpiTodayExplain => 'Syncs envoyés aujourd\'hui.';
+  String get statsKpiTodayExplain => 'Scans aujourd\'hui.';
 
   @override
-  String get statsKpiWeekExplain => 'Syncs envoyés cette semaine.';
+  String get statsKpiWeekExplain => 'Scans cette semaine.';
 
   @override
-  String get statsKpiBestDayExplain => 'Maximum de syncs en une journée.';
+  String get statsKpiBestDayExplain => 'Maximum de scans en une journée.';
 
   @override
-  String get statsKpiAvgExplain => 'Moyenne de syncs les jours actifs.';
+  String get statsKpiAvgExplain => 'Moyenne de scans les jours actifs.';
 
   @override
   String get profileTileUploadsExplain =>
-      'Total des syncs envoyés à nos serveurs.';
+      'Total des scans que tu as contribués.';
 
   @override
   String get profileTileDaysExplain => 'Jours avec au moins une contribution.';
@@ -1925,7 +1925,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get profileStatCityBlocks => 'îlots de ville';
 
   @override
-  String get profileStreakExplain => 'Jours consécutifs avec au moins un sync.';
+  String get profileStreakExplain => 'Jours consécutifs avec au moins un scan.';
 
   @override
   String profileStreakToMilestone(int days, String unit, int milestone) {

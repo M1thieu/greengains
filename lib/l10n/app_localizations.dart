@@ -3222,31 +3222,31 @@ abstract class AppLocalizations {
   /// No description provided for @statsKpiTodayExplain.
   ///
   /// In en, this message translates to:
-  /// **'Syncs sent today.'**
+  /// **'Scans today.'**
   String get statsKpiTodayExplain;
 
   /// No description provided for @statsKpiWeekExplain.
   ///
   /// In en, this message translates to:
-  /// **'Syncs sent this week.'**
+  /// **'Scans this week.'**
   String get statsKpiWeekExplain;
 
   /// No description provided for @statsKpiBestDayExplain.
   ///
   /// In en, this message translates to:
-  /// **'Most syncs in a single day.'**
+  /// **'Most scans in a single day.'**
   String get statsKpiBestDayExplain;
 
   /// No description provided for @statsKpiAvgExplain.
   ///
   /// In en, this message translates to:
-  /// **'Average syncs on active days.'**
+  /// **'Average scans on active days.'**
   String get statsKpiAvgExplain;
 
   /// No description provided for @profileTileUploadsExplain.
   ///
   /// In en, this message translates to:
-  /// **'Total syncs sent to our servers.'**
+  /// **'Total scans you contributed.'**
   String get profileTileUploadsExplain;
 
   /// No description provided for @profileTileDaysExplain.
@@ -3276,7 +3276,7 @@ abstract class AppLocalizations {
   /// No description provided for @profileStreakExplain.
   ///
   /// In en, this message translates to:
-  /// **'Consecutive days with at least one sync.'**
+  /// **'Consecutive days with at least one scan.'**
   String get profileStreakExplain;
 
   /// No description provided for @profileStreakToMilestone.

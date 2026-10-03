@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../core/themes.dart';
 import 'time_ago_text.dart';
@@ -191,7 +192,9 @@ class _SensorDataCardState extends State<SensorDataCard>
                             ),
                           )
                         : _ShimmerLoading(isDark: isDark),
-                    if (widget.rawValue != null) ...[
+                    // Raw values with units (lux, hPa, m/s²) are developer
+                    // information: debug builds only. Users get the plain label.
+                    if (kDebugMode && widget.rawValue != null) ...[
                       const SizedBox(height: AppTheme.spaceXxs),
                       Text(
                         widget.rawValue!,

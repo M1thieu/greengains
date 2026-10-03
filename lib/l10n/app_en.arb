@@ -790,11 +790,11 @@
   "sessionStatUploadsExplain": "Number of times your sensor data was uploaded during this session.",
   "sessionStatTotalExplain": "Total unique zones you've ever mapped across all sessions.",
   "statsUploadsHint": "uploads",
-  "statsKpiTodayExplain": "Syncs sent today.",
-  "statsKpiWeekExplain": "Syncs sent this week.",
-  "statsKpiBestDayExplain": "Most syncs in a single day.",
-  "statsKpiAvgExplain": "Average syncs on active days.",
-  "profileTileUploadsExplain": "Total syncs sent to our servers.",
+  "statsKpiTodayExplain": "Scans today.",
+  "statsKpiWeekExplain": "Scans this week.",
+  "statsKpiBestDayExplain": "Most scans in a single day.",
+  "statsKpiAvgExplain": "Average scans on active days.",
+  "profileTileUploadsExplain": "Total scans you contributed.",
   "profileTileDaysExplain": "Days you've contributed at least once.",
   "profileTileAreaExplain": "Area mapped across all your sessions.",
   "@profileTileAreaExplain": {
@@ -802,7 +802,7 @@
   },
   "profileTileAreaCells": "zones explored",
   "profileStatCityBlocks": "city blocks",
-  "profileStreakExplain": "Consecutive days with at least one sync.",
+  "profileStreakExplain": "Consecutive days with at least one scan.",
   "profileStreakToMilestone": "{days} {unit} to {milestone}-{unit} streak",
   "@profileStreakToMilestone": {
     "placeholders": {
