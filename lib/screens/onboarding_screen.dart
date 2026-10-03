@@ -6,7 +6,6 @@ import 'package:package_info_plus/package_info_plus.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:geolocator/geolocator.dart';
 import '../core/app_preferences.dart';
@@ -153,10 +152,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         return;
       }
 
-      // Permission granted - prompt battery optimization before completing.
-      await _requestBatteryExemption();
-      if (!mounted) return;
-
       await ForegroundLocationService.instance.start();
       if (mounted) widget.onComplete();
     } catch (e) {
@@ -165,21 +160,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         setState(() => _startingTracking = false);
         AppSnackbars.showError(context, context.l10n.errorGeneric);
       }
-    }
-  }
-
-  /// Request battery optimization exemption inline - fires once during onboarding
-  /// right after location permission is granted, while the user is still engaged.
-  Future<void> _requestBatteryExemption() async {
-    try {
-      const platform = MethodChannel('greengains/foreground');
-      final bool isIgnoring =
-          await platform.invokeMethod('isIgnoringBatteryOptimizations');
-      if (!isIgnoring) {
-        await platform.invokeMethod('requestIgnoreBatteryOptimizations');
-      }
-    } catch (_) {
-      // Non-critical - tracking works without it, just may be killed by Doze.
     }
   }
 

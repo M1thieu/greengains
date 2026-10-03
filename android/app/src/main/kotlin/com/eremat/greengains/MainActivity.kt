@@ -36,7 +36,6 @@ class MainActivity : FlutterActivity() {
         super.onCreate(savedInstanceState)
         AppLogger.init(this)
         AppLogger.i("MainActivity", "App started")
-        checkAndRequestNotificationPermission()
         // The only notification left is the running service's own. Cancel the
         // streak / weekly-digest workers that older versions scheduled.
         WorkManager.getInstance(this).cancelUniqueWork("streak_alert_daily")
@@ -69,6 +68,9 @@ class MainActivity : FlutterActivity() {
             .setMethodCallHandler { call, result ->
                 when (call.method) {
                     "startForegroundService" -> {
+                        // Asked here, when the user starts tracking (the service
+                        // notification needs it), not at app launch.
+                        checkAndRequestNotificationPermission()
                         result.success(startForegroundService())
                     }
                     "pauseForegroundService" -> {
