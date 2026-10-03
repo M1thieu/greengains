@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { latLngToCell, cellToBoundary, cellToLatLng, cellToParent } from 'h3-js';
 import { getPool } from '../database';
 import { requireFirebaseAuth } from '../middleware/auth';
+import { deleteFirebaseUser } from '../utils/firebase-auth';
 import { decodeGeohash } from '../utils/geo';
 import { rowsToCsv } from '../utils/csv';
 import {
@@ -21,6 +22,22 @@ import {
   GLOBAL_STATS_CACHE_TTL_MS,
   GLOBAL_STATS_CACHE_TTL_S,
 } from '../constants';
+
+/** Every table holding rows tied to a user, and the column that ties them. */
+const ACCOUNT_DATA_TABLES: ReadonlyArray<readonly [string, string]> = [
+  ['sensor_batches', 'user_id'],
+  ['user_stats', 'user_id'],
+  ['user_profile_cache', 'user_id'],
+  ['device_secrets', 'user_id'],
+  ['daily_pots', 'user_id'],
+  ['referral_codes', 'user_id'],
+  ['referrals', 'owner_uid'],
+  ['referrals', 'actor_uid'],
+  ['referral_events', 'actor_uid'],
+  ['user_consent_agreements', 'user_id'],
+  ['user_tiers', 'user_id'],
+  ['organization_members', 'user_id'],
+];
 
 const exportQuerySchema = z.object({
   format: z.enum(['csv', 'json']).default('csv'),
@@ -1017,6 +1034,56 @@ export async function userRoutes(fastify: FastifyInstance) {
         request.log.error({ err: error, userId }, '/api/user/export failed');
         return reply.code(500).send({ error: 'Internal Server Error', requestId: request.id });
       }
+    },
+  );
+
+  /**
+   * DELETE /api/user/account
+   * Right to erasure (GDPR art. 17): removes every row tied to the caller, then
+   * the Firebase Auth account. Map aggregates (sensor_aggregates_*) carry no
+   * user or device identifier and are kept as anonymous data. The org audit
+   * trail keeps its entries with the user reference cleared.
+   */
+  fastify.delete(
+    '/api/user/account',
+    { preHandler: requireFirebaseAuth },
+    async (request: FastifyRequest, reply: FastifyReply) => {
+      const userId = request.user!.uid;
+      const pool = getPool();
+      const client = await pool.connect();
+      try {
+        await client.query('BEGIN');
+        for (const [table, column] of ACCOUNT_DATA_TABLES) {
+          // Some tables only exist once their migration has run.
+          const exists = await client.query('SELECT to_regclass($1) AS t', [table]);
+          if (!exists.rows[0].t) continue;
+          // Identifiers come from the constant list above, never from input.
+          await client.query(`DELETE FROM ${table} WHERE ${column} = $1`, [userId]);
+        }
+        const audit = await client.query("SELECT to_regclass('audit_log') AS t");
+        if (audit.rows[0].t) {
+          await client.query('UPDATE audit_log SET user_id = NULL WHERE user_id = $1', [userId]);
+        }
+        await client.query('COMMIT');
+      } catch (error) {
+        await client.query('ROLLBACK').catch(() => undefined);
+        request.log.error({ err: error, userId }, 'Account data deletion failed');
+        return reply.code(500).send({ error: 'Internal Server Error', requestId: request.id });
+      } finally {
+        client.release();
+      }
+
+      invalidateProfileCache(userId);
+
+      try {
+        await deleteFirebaseUser(userId);
+      } catch (error) {
+        // Data is already gone; the sign-in account can be retried with the same call.
+        request.log.error({ err: error, userId }, 'Firebase account deletion failed');
+        return reply.code(502).send({ error: 'Auth account deletion failed', requestId: request.id });
+      }
+
+      return reply.code(204).send();
     },
   );
 }
