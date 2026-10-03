@@ -281,6 +281,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   void _setupUploadSuccessListener() {
     _subs.add(AppEventBus.instance.on<UploadSuccessEvent>().listen(_onUploadSuccess));
+    _subs.add(AppEventBus.instance.on<TabReselectedEvent>().listen((e) {
+      if (e.index == 0) _recenterTrigger.value++;
+    }));
   }
 
   void _onUploadSuccess(UploadSuccessEvent event) {

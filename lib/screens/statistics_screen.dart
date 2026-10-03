@@ -100,6 +100,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
   Map<String, int>? _dailyCounts;
 
   final _subs = <StreamSubscription>[];
+  final _scrollController = ScrollController();
   // Entrance animations
   /// Delay added per card so they cascade in instead of arriving together.
   static const _kEntranceStagger = 0.10;
@@ -149,6 +150,9 @@ class _StatisticsScreenState extends State<StatisticsScreen>
         _loadDailyCounts();
       }
     }));
+    _subs.add(AppEventBus.instance.on<TabReselectedEvent>().listen((e) {
+      if (e.index == 1) _scrollToTop(_scrollController);
+    }));
     _subs.add(AppEventBus.instance.on<StatsUpdatedEvent>().listen((event) {
       if (mounted) setState(() { _stats = event.stats; _isLoading = false; });
     }));
@@ -178,6 +182,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _subs.cancelAll();
+    _scrollController.dispose();
     for (final anim in _cardAnims.values) { anim.dispose(); }
     _entranceCtrl.dispose();
     super.dispose();
@@ -364,6 +369,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
             onRefresh: _refresh,
             color: AppColors.primary,
             child: ListView(
+              controller: _scrollController,
               padding: AppTheme.pagePadding.copyWith(top: AppTheme.spaceXxs, bottom: bottomPad),
               children: [
                 _withEntrance(_buildHeroCard(theme, isDark, l10n), 0),
@@ -2640,4 +2646,9 @@ class StatisticsDetailScreen extends StatelessWidget {
       ),
     );
   }
+}
+
+void _scrollToTop(ScrollController controller) {
+  if (!controller.hasClients) return;
+  controller.animateTo(0, duration: AppDurations.fast, curve: Curves.easeOut);
 }

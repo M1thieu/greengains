@@ -34,6 +34,7 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
+  final _scrollController = ScrollController();
   bool _signingIn = false;
 
   int? _totalUploads;
@@ -52,6 +53,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void initState() {
     super.initState();
     _loadProfileStats();
+    _subs.add(AppEventBus.instance.on<TabReselectedEvent>().listen((e) {
+      if (e.index == 2 && _scrollController.hasClients) {
+        _scrollController.animateTo(0, duration: AppDurations.fast, curve: Curves.easeOut);
+      }
+    }));
     _subs.add(AppEventBus.instance.on<ProfileUpdatedEvent>().listen((event) {
       if (mounted) {
         setState(() {
@@ -84,6 +90,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   void dispose() {
     _subs.cancelAll();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -232,6 +239,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           onRefresh: _loadProfileStats,
           color: AppColors.primary,
           child: ListView(
+            controller: _scrollController,
             padding: EdgeInsets.fromLTRB(
                 AppTheme.spaceLg, topPad + AppTheme.spaceXxl + AppTheme.spaceSm, AppTheme.spaceLg, navBottom),
             children: [

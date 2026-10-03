@@ -5,6 +5,7 @@ import 'screens/profile_screen.dart';
 import 'screens/statistics_screen.dart';
 import 'core/extensions/context_extensions.dart';
 import 'core/services/time_ago_service.dart';
+import 'core/events/app_events.dart';
 import 'core/themes.dart';
 import 'services/location/foreground_location_service.dart';
 import 'widgets/press_scale_detector.dart';
@@ -66,12 +67,14 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
   }
 
   void _onTabSelected(int index) {
+    if (index == _currentIndex) {
+      AppEventBus.instance.emit(TabReselectedEvent(index));
+      return;
+    }
     setState(() => _currentIndex = index);
-    _pageController.animateToPage(
-      index,
-      duration: AppDurations.fast,
-      curve: AppMotion.standard,
-    );
+    // Instant switch: sliding through the tabs in between (Map -> Stats ->
+    // Profile) is movement nobody asked for.
+    _pageController.jumpToPage(index);
   }
 
   @override
@@ -81,7 +84,14 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
         _locationService.isRunning.value && !_locationService.isPaused.value;
     final bottomPadding = MediaQuery.paddingOf(context).bottom;
 
-    return Scaffold(
+    // Android back on Stats or Profile returns to the Map first; back on the
+    // Map leaves the app, as in any tabbed app.
+    return PopScope(
+      canPop: _currentIndex == 0,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) _onTabSelected(0);
+      },
+      child: Scaffold(
       // Map extends to full screen height - nav floats on top.
       extendBody: true,
       body: PageView(
@@ -157,6 +167,7 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
         ),
         ),
       ),
+    ),
     );
   }
 }
