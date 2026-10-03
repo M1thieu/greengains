@@ -19,12 +19,12 @@ import '../core/utils/composite_subscription.dart';
 import '../utils/app_snackbars.dart';
 import '../core/app_preferences.dart';
 import '../services/widget/home_widget_service.dart';
-import '../widgets/battery_optimization_dialog.dart';
 import '../widgets/coverage_map_widget.dart';
 import '../widgets/press_scale_detector.dart';
 import '../widgets/sensor_section.dart';
 import '../widgets/time_ago_text.dart';
 import '../data/repositories/contribution_repository.dart';
+import '../widgets/detail_page.dart';
 
 // My Location button: 48×48 standard touch target.
 const _kLocationBtnSize = AppTheme.minTouchTarget; // 48
@@ -194,7 +194,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   Future<bool> _requestAndCheckPermission() async {
     final current = await Geolocator.checkPermission();
     if (current == LocationPermission.deniedForever) {
-      if (mounted) AppSnackbars.showInfo(context, context.l10n.permissionLocationMessage);
+      // Android won't ask again: open the app's settings page directly.
+      await Geolocator.openAppSettings();
       return false;
     }
     final granted = await Geolocator.requestPermission();
@@ -267,12 +268,15 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     }
   }
 
+  /// Straight to Android's own "allow in background" prompt: no in-app dialog
+  /// in between. The hint re-checks on resume and disappears once allowed.
   Future<void> _openBatteryDialog() async {
-    await showDialog<void>(
-      context: context,
-      builder: (_) => const BatteryOptimizationDialog(),
-    );
-    await _checkBatteryOptimization();
+    try {
+      await const MethodChannel('greengains/foreground')
+          .invokeMethod('requestIgnoreBatteryOptimizations');
+    } on PlatformException catch (e) {
+      debugPrint("Battery optimization request failed: '${e.message}'.");
+    }
   }
 
   void _setupUploadSuccessListener() {
@@ -338,6 +342,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         unawaited(_locationService.flushSensorBuffers());
       }
       _checkServiceStatus();
+      unawaited(_checkBatteryOptimization());
       _reloadUploadStatus();
       _loadH3Tiles();
       unawaited(_checkPermissionHealth());
@@ -684,21 +689,11 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     HapticFeedback.lightImpact();
     final isDark = context.isDarkMode;
     final l10n = context.l10n;
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (_) => TileInfoSheet(tile: tile, isDark: isDark, l10n: l10n),
-    );
+    pushDetailPage(context, builder: (_) => TileInfoSheet(tile: tile, isDark: isDark, l10n: l10n));
   }
 
   void _openSensorSheet() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (_) => _SensorLiveSheet(locationService: _locationService),
-    );
+    pushDetailPage(context, title: context.l10n.sensorLiveSheetTitle, builder: (_) => _SensorLiveSheet(locationService: _locationService));
   }
 
   @override
@@ -1211,56 +1206,13 @@ class _SensorLiveSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = context.isDarkMode;
-    return DraggableScrollableSheet(
-      initialChildSize: 0.55,
-      minChildSize: 0.35,
-      maxChildSize: 0.85,
-      expand: false,
-      builder: (context, scrollController) {
-        return Container(
-          decoration: BoxDecoration(
-            color: AppColors.surface(isDark),
-            borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(AppTheme.radiusLg)),
-            border: Border.all(color: AppColors.border(isDark)),
-          ),
-          child: Column(
-            children: [
-              AppTheme.dragHandle(isDark),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(AppTheme.spaceMd, 0,
-                    AppTheme.spaceMd, AppTheme.spaceSm),
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    context.l10n.sensorLiveSheetTitle,
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          fontWeight: AppFontWeights.semibold,
-                        ),
-                  ),
-                ),
-              ),
-              Expanded(
-                child: ListView(
-                  controller: scrollController,
-                  padding: EdgeInsets.only(
-                    left: AppTheme.spaceMd,
-                    right: AppTheme.spaceMd,
-                    bottom: MediaQuery.paddingOf(context).bottom +
-                        AppTheme.spaceMd,
-                  ),
-                  children: [
-                    SensorSection(locationService: locationService),
-                    const SizedBox(height: AppTheme.spaceSm),
-                    _TransparencyCard(locationService: locationService),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        );
-      },
+    return ListView(
+      padding: AppTheme.pagePadding,
+      children: [
+        SensorSection(locationService: locationService),
+        const SizedBox(height: AppTheme.spaceSm),
+        _TransparencyCard(locationService: locationService),
+      ],
     );
   }
 }

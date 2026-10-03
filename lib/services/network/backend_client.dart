@@ -137,6 +137,18 @@ class BackendClient {
     }
   }
 
+  /// DELETE request. Throws [ApiException] on non-2xx or network failure.
+  static Future<void> delete(String path, {Duration timeout = kApiTimeout}) async {
+    try {
+      await _dio.delete<void>(path, options: Options(receiveTimeout: timeout));
+    } on DioException catch (e) {
+      throw ApiException(
+        e.response?.statusCode ?? 0,
+        e.message ?? 'DELETE $path failed',
+      );
+    }
+  }
+
   /// POST request - returns decoded JSON body.
   /// Throws [ApiException] on non-2xx or network failure.
   static Future<Map<String, dynamic>> post(

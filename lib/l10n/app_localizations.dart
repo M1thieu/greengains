@@ -1628,18 +1628,6 @@ abstract class AppLocalizations {
   /// **'{count} tiles'**
   String tilesCount(int count);
 
-  /// No description provided for @sensorLiveReadings.
-  ///
-  /// In en, this message translates to:
-  /// **'What\'s around you'**
-  String get sensorLiveReadings;
-
-  /// No description provided for @sensorLiveSubtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Light, movement and air pressure, live from your phone.'**
-  String get sensorLiveSubtitle;
-
   /// No description provided for @sensorInactiveTitle.
   ///
   /// In en, this message translates to:
@@ -1663,12 +1651,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Resume to see live readings.'**
   String get sensorPausedSubtitle;
-
-  /// No description provided for @sensorAroundYou.
-  ///
-  /// In en, this message translates to:
-  /// **'Around You'**
-  String get sensorAroundYou;
 
   /// No description provided for @sensorPressure.
   ///
@@ -1814,36 +1796,6 @@ abstract class AppLocalizations {
   /// **'Very Bright'**
   String get lightVeryBright;
 
-  /// No description provided for @lightDarkHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Minimal artificial light'**
-  String get lightDarkHint;
-
-  /// No description provided for @lightDimHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Low ambient light'**
-  String get lightDimHint;
-
-  /// No description provided for @lightNormalHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Typical indoor daylight'**
-  String get lightNormalHint;
-
-  /// No description provided for @lightBrightHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Near a window or outdoors'**
-  String get lightBrightHint;
-
-  /// No description provided for @lightVeryBrightHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Direct sunlight, peak UV exposure'**
-  String get lightVeryBrightHint;
-
   /// No description provided for @magnetVeryLow.
   ///
   /// In en, this message translates to:
@@ -1867,30 +1819,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'High. Near metal.'**
   String get magnetHighNearMetal;
-
-  /// No description provided for @magnetVeryLowHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Minimal electromagnetic interference'**
-  String get magnetVeryLowHint;
-
-  /// No description provided for @magnetNormalHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Normal background EMF'**
-  String get magnetNormalHint;
-
-  /// No description provided for @magnetElevatedHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Possible metal structures or wiring nearby'**
-  String get magnetElevatedHint;
-
-  /// No description provided for @magnetHighHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Near electrical infrastructure or heavy equipment'**
-  String get magnetHighHint;
 
   /// No description provided for @daysActive.
   ///
@@ -1999,18 +1927,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Data Transparency'**
   String get settingsDataTransparency;
-
-  /// No description provided for @settingsDataDeletion.
-  ///
-  /// In en, this message translates to:
-  /// **'Request Data Deletion'**
-  String get settingsDataDeletion;
-
-  /// No description provided for @settingsDataDeletionDesc.
-  ///
-  /// In en, this message translates to:
-  /// **'Erase all your recorded data'**
-  String get settingsDataDeletionDesc;
 
   /// No description provided for @settingsExportData.
   ///
@@ -2185,60 +2101,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Keep mapping'**
   String get batteryDialogTitle;
-
-  /// No description provided for @batteryDialogBody.
-  ///
-  /// In en, this message translates to:
-  /// **'Disable battery optimization so the app keeps mapping in the background.'**
-  String get batteryDialogBody;
-
-  /// No description provided for @batteryDialogBodyBold.
-  ///
-  /// In en, this message translates to:
-  /// **'Disable \"Battery Optimization\" for GreenGains on the next screen.'**
-  String get batteryDialogBodyBold;
-
-  /// No description provided for @batteryDialogDismissForever.
-  ///
-  /// In en, this message translates to:
-  /// **'Don\'t show again'**
-  String get batteryDialogDismissForever;
-
-  /// No description provided for @batteryDialogLater.
-  ///
-  /// In en, this message translates to:
-  /// **'Later'**
-  String get batteryDialogLater;
-
-  /// No description provided for @batteryDialogAllow.
-  ///
-  /// In en, this message translates to:
-  /// **'Allow Background Run'**
-  String get batteryDialogAllow;
-
-  /// No description provided for @batteryDialogError.
-  ///
-  /// In en, this message translates to:
-  /// **'Unable to open battery settings'**
-  String get batteryDialogError;
-
-  /// No description provided for @batteryDialogOemXiaomiHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Also on Xiaomi/Redmi: enable AutoStart in Settings → Apps → Manage apps → GreenGains → AutoStart'**
-  String get batteryDialogOemXiaomiHint;
-
-  /// No description provided for @batteryDialogOemHuaweiHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Also on Huawei/Honor: open Settings → Battery → App launch, set GreenGains to manual with all toggles on'**
-  String get batteryDialogOemHuaweiHint;
-
-  /// No description provided for @batteryDialogOemSamsungHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Also on Samsung: set GreenGains to Unrestricted in Settings → Battery → Background usage limits'**
-  String get batteryDialogOemSamsungHint;
 
   /// No description provided for @locationPermBannerBody.
   ///
@@ -2768,30 +2630,6 @@ abstract class AppLocalizations {
   /// **'Heavy traffic'**
   String get sensorMovementIntense;
 
-  /// No description provided for @sensorMovementLowHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Minimal foot traffic'**
-  String get sensorMovementLowHint;
-
-  /// No description provided for @sensorMovementMidHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Light pedestrian activity'**
-  String get sensorMovementMidHint;
-
-  /// No description provided for @sensorMovementHighHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Transit or crowds'**
-  String get sensorMovementHighHint;
-
-  /// No description provided for @sensorMovementIntenseHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Heavy traffic or machinery'**
-  String get sensorMovementIntenseHint;
-
   /// No description provided for @sensorHpaLow.
   ///
   /// In en, this message translates to:
@@ -2809,24 +2647,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Heavy air'**
   String get sensorHpaHigh;
-
-  /// No description provided for @sensorHpaLowHint.
-  ///
-  /// In en, this message translates to:
-  /// **'High pressure, stable dry conditions'**
-  String get sensorHpaLowHint;
-
-  /// No description provided for @sensorHpaMidHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Normal atmospheric pressure at this altitude'**
-  String get sensorHpaMidHint;
-
-  /// No description provided for @sensorHpaHighHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Low pressure, unsettled weather possible'**
-  String get sensorHpaHighHint;
 
   /// No description provided for @sensorAccelStill.
   ///
@@ -3147,24 +2967,6 @@ abstract class AppLocalizations {
   /// **'Location permission is required to map your city.'**
   String get onboardingPermissionDenied;
 
-  /// No description provided for @onboardingPermissionDeniedForeverTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Permission required'**
-  String get onboardingPermissionDeniedForeverTitle;
-
-  /// No description provided for @onboardingPermissionDeniedForeverBody.
-  ///
-  /// In en, this message translates to:
-  /// **'Location access was permanently denied. Open Settings and enable it under Permissions → Location.'**
-  String get onboardingPermissionDeniedForeverBody;
-
-  /// No description provided for @onboardingOpenSettings.
-  ///
-  /// In en, this message translates to:
-  /// **'Open Settings'**
-  String get onboardingOpenSettings;
-
   /// No description provided for @homeMaxClusterHint.
   ///
   /// In en, this message translates to:
@@ -3356,6 +3158,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Sign out'**
   String get settingsSignOut;
+
+  /// No description provided for @settingsDeleteAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete my account'**
+  String get settingsDeleteAccount;
+
+  /// No description provided for @settingsDeleteAccountWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Your account and all your data will be erased. This can\'t be undone.'**
+  String get settingsDeleteAccountWarning;
+
+  /// No description provided for @settingsDeleteAccountConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get settingsDeleteAccountConfirm;
 
   /// No description provided for @mappingActiveSheetTitle.
   ///

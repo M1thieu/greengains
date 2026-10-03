@@ -18,6 +18,7 @@ import '../core/app_preferences.dart';
 import '../core/sensor_insights.dart';
 import '../l10n/app_localizations.dart';
 import 'time_ago_text.dart';
+import 'detail_page.dart';
 
 export '../data/models/h3_tile.dart';
 
@@ -1342,11 +1343,7 @@ class MapHeatmapLegend extends StatelessWidget {
     return GestureDetector(
       onTap: () {
         HapticFeedback.lightImpact();
-        showModalBottomSheet(
-          context: context,
-          backgroundColor: Colors.transparent,
-          builder: (_) => _LegendInfoSheet(hasCommunityTiles: hasCommunityTiles),
-        );
+        pushDetailPage(context, builder: (_) => _LegendInfoSheet(hasCommunityTiles: hasCommunityTiles));
       },
       child: ClipRRect(
         borderRadius: BorderRadius.circular(AppTheme.radiusPill),
@@ -1426,7 +1423,6 @@ class _LegendInfoSheet extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            AppTheme.dragHandle(isDark),
             Padding(
               padding: const EdgeInsets.fromLTRB(
                   AppTheme.spaceMd, 0, AppTheme.spaceMd, AppTheme.spaceSm),
@@ -1603,7 +1599,6 @@ class _TileInfoSheetState extends State<TileInfoSheet> {
             children: [
               // Quality color accent strip
               Container(height: AppTheme.spaceTiny, color: qualityColor),
-              AppTheme.dragHandle(isDark),
               // Header row: title + quality badge
               Padding(
                 padding: const EdgeInsets.fromLTRB(

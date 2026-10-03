@@ -20,6 +20,7 @@ import '../utils/app_snackbars.dart';
 import '../widgets/referral_invite_card.dart';
 import '../widgets/stat_cell.dart';
 import 'settings_screen.dart';
+import '../widgets/detail_page.dart';
 
 
 /// Profile screen showing user information and quick stats
@@ -367,18 +368,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: AppColors.surface(isDark),
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(AppTheme.radiusLg)),
-      ),
-      builder: (_) {
+    pushDetailPage(context, builder: (_) {
         final bottomPad = MediaQuery.paddingOf(context).bottom + AppTheme.spaceLg;
         return SingleChildScrollView(
           padding: EdgeInsets.fromLTRB(AppTheme.spaceLg, AppTheme.spaceMd, AppTheme.spaceLg, bottomPad),
           child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-            AppTheme.dragHandle(isDark),
             const SizedBox(height: AppTheme.spaceMd),
             Text(value, style: theme.textTheme.displaySmall?.copyWith(
               fontWeight: AppFontWeights.bold,
@@ -431,8 +425,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ]),
         );
 
-      },
-    );
+      });
   }
 
   Widget _buildStreakHero(ThemeData theme, bool isDark, AppLocalizations l10n) {

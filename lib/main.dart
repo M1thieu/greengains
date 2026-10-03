@@ -80,7 +80,7 @@ class _MyAppState extends State<MyApp> {
         return true;
       };
 
-      // Setup auth listener (non-blocking background work - also sets Crashlytics user ID)
+      // Setup auth listener (non-blocking background work)
       _setupAuthTokenSync();
 
       // No anonymous sign-in - all users must authenticate with Google
@@ -121,11 +121,8 @@ class _MyAppState extends State<MyApp> {
     FirebaseAuth.instance.idTokenChanges().listen((User? user) async {
       if (user == null) {
         debugPrint('User is currently signed out!');
-        FirebaseCrashlytics.instance.setUserIdentifier('');
       } else {
         debugPrint('User is signed in: ${user.uid}');
-        // Tag crash reports with the user's UID for faster triage
-        FirebaseCrashlytics.instance.setUserIdentifier(user.uid);
         try {
           final token = await user.getIdToken();
           if (token != null) {

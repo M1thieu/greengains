@@ -20,11 +20,11 @@ import 'diagnostics_screen.dart';
 import 'webview_screen.dart';
 import '../l10n/app_localizations.dart';
 import '../widgets/press_scale_detector.dart';
+import '../widgets/detail_page.dart';
 
 const _kPrivacyPolicyUrl    = 'https://greengains.eremat.org/legal/privacy-policy';
 const _kTermsUrl            = 'https://greengains.eremat.org/legal/terms-of-service';
 const _kDataTransparencyUrl = 'https://greengains.eremat.org/legal/data-transparency';
-const _kDataDeletionUrl     = 'https://greengains.eremat.org/legal/data-deletion';
 const _kSectionSpacing   = AppTheme.spaceSm;
 
 class SettingsScreen extends StatefulWidget {
@@ -57,7 +57,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final l10n = context.l10n;
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.settingsTitle)),
+      appBar: AppBar(
+        title: Text(l10n.settingsTitle),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout_rounded),
+            tooltip: l10n.settingsSignOut,
+            onPressed: () => _handleSignOut(context),
+          ),
+        ],
+      ),
       body: ListView(
         padding: AppTheme.pagePadding,
         children: [
@@ -147,11 +156,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           const SizedBox(height: _kSectionSpacing),
 
-          OutlinedButton(
-            onPressed: () => _handleSignOut(context),
-            child: Text(l10n.settingsSignOut),
-          ),
-          const SizedBox(height: _kSectionSpacing),
 
           // About (debug only: its one entry is the diagnostics screen)
           if (kDebugMode) Padding(
@@ -232,18 +236,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   void _showLegalSheet(BuildContext context, AppLocalizations l10n, bool isDark) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: AppColors.surface(isDark),
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(AppTheme.radiusLg)),
-      ),
-      builder: (_) {
+    pushDetailPage(context, title: l10n.settingsLegal, builder: (_) {
         final bottomPad = MediaQuery.paddingOf(context).bottom + AppTheme.spaceLg;
         return Padding(
           padding: EdgeInsets.fromLTRB(AppTheme.spaceLg, AppTheme.spaceMd, AppTheme.spaceLg, bottomPad),
           child: Column(mainAxisSize: MainAxisSize.min, children: [
-            AppTheme.dragHandle(isDark),
             const SizedBox(height: AppTheme.spaceMd),
             _legalItem(context, l10n.privacyPolicy, _kPrivacyPolicyUrl, isDark),
             Divider(height: AppTheme.spaceLg, thickness: 0.5, color: AppColors.divider(isDark)),
@@ -251,22 +248,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
             Divider(height: AppTheme.spaceLg, thickness: 0.5, color: AppColors.divider(isDark)),
             _legalItem(context, l10n.settingsDataTransparency, _kDataTransparencyUrl, isDark),
             Divider(height: AppTheme.spaceLg, thickness: 0.5, color: AppColors.divider(isDark)),
-            _legalItem(context, l10n.settingsDataDeletion, _kDataDeletionUrl, isDark),
-            Divider(height: AppTheme.spaceLg, thickness: 0.5, color: AppColors.divider(isDark)),
             _exportDataItem(context, l10n, isDark),
+            Divider(height: AppTheme.spaceLg, thickness: 0.5, color: AppColors.divider(isDark)),
+            // Erasure (GDPR art. 17) sits here, out of the way, like most apps.
+            const _DeleteAccountItem(),
           ]),
         );
-      },
-    );
+      });
   }
 
   Widget _exportDataItem(BuildContext sheetContext, AppLocalizations l10n, bool isDark) {
     final theme = Theme.of(sheetContext);
     return PressScaleDetector(
       onTap: () {
-        Navigator.of(sheetContext).pop();
-        // Use the screen's own context - the sheet's is unmounted right after pop.
-        if (!mounted) return;
         AppSnackbars.show(context, message: l10n.settingsExportDataPreparing, type: AppSnackbarType.info);
         unawaited(_exportMyData(context, l10n));
       },
@@ -283,7 +277,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final theme = Theme.of(context);
     return PressScaleDetector(
       onTap: () {
-        Navigator.of(context).pop();
         _openWebView(context, url, title);
       },
       child: Row(children: [
@@ -472,6 +465,90 @@ class _IconBox extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppTheme.radiusSm),
       ),
       child: Icon(icon, size: AppIconSizes.xs, color: color),
+    );
+  }
+}
+
+/// "Delete my account": the first tap reveals the warning and the confirm
+/// button in place, no dialog.
+class _DeleteAccountItem extends StatefulWidget {
+  const _DeleteAccountItem();
+
+  @override
+  State<_DeleteAccountItem> createState() => _DeleteAccountItemState();
+}
+
+class _DeleteAccountItemState extends State<_DeleteAccountItem> {
+  bool _confirm = false;
+  bool _deleting = false;
+
+  Future<void> _delete() async {
+    final navigator = Navigator.of(context);
+    final l10n = context.l10n;
+    setState(() => _deleting = true);
+    try {
+      // Stop collecting first so no batch lands after the data is erased.
+      await ForegroundLocationService.instance.stop();
+      await BackendClient.delete('/api/user/account');
+      await AuthService.signOut();
+      navigator.popUntil((route) => route.isFirst);
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _deleting = false);
+      AppSnackbars.show(context, message: l10n.errorGeneric, type: AppSnackbarType.error);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    if (!_confirm) {
+      return PressScaleDetector(
+        onTap: () => setState(() => _confirm = true),
+        child: Row(children: [
+          Expanded(
+            child: Text(
+              l10n.settingsDeleteAccount,
+              style: theme.textTheme.bodyMedium?.copyWith(color: AppColors.textPrimary(isDark)),
+            ),
+          ),
+        ]),
+      );
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          l10n.settingsDeleteAccountWarning,
+          style: theme.textTheme.bodySmall?.copyWith(color: AppColors.textSecondary(isDark)),
+        ),
+        const SizedBox(height: AppTheme.spaceXs),
+        Row(
+          children: [
+            Expanded(
+              child: TextButton(
+                onPressed: _deleting ? null : () => setState(() => _confirm = false),
+                child: Text(l10n.buttonCancel),
+              ),
+            ),
+            Expanded(
+              child: FilledButton(
+                onPressed: _deleting ? null : _delete,
+                style: FilledButton.styleFrom(backgroundColor: AppColors.error),
+                child: _deleting
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                      )
+                    : Text(l10n.settingsDeleteAccountConfirm),
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 }

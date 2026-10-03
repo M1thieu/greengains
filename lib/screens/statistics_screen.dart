@@ -19,6 +19,7 @@ import '../services/stats/stats_service.dart';
 import '../widgets/press_scale_detector.dart';
 import '../widgets/section_header.dart';
 import '../widgets/stat_cell.dart';
+import '../widgets/detail_page.dart';
 
 // Chart / skeleton layout constants
 // Named so that any future change touches ONE place, not scattered literals.
@@ -439,14 +440,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
     final longest = _longestStreak ?? streak;
     final firstDate = _stats?.firstContributionAt;
 
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: AppColors.surface(isDark),
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(AppTheme.radiusLg)),
-      ),
-      builder: (_) {
+    pushDetailPage(context, builder: (_) {
         final bottomPad = MediaQuery.paddingOf(context).bottom + AppTheme.spaceMd;
         return SingleChildScrollView(
           padding: EdgeInsets.fromLTRB(AppTheme.spaceMd, AppTheme.spaceSm, AppTheme.spaceMd, bottomPad),
@@ -454,7 +448,6 @@ class _StatisticsScreenState extends State<StatisticsScreen>
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              AppTheme.dragHandle(isDark),
               const SizedBox(height: AppTheme.spaceMd),
               Text(l10n.statsDetailTitle, style: theme.textTheme.titleMedium?.copyWith(fontWeight: AppFontWeights.semibold)),
               const SizedBox(height: AppTheme.spaceXxxs),
@@ -509,8 +502,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
             ],
           ),
         );
-      },
-    );
+      });
   }
 
   Widget _buildHeroCard(ThemeData theme, bool isDark, AppLocalizations l10n) {
@@ -1474,13 +1466,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
     final km2 = zones * kKm2PerCell;
     final km2Str = km2 < 1.0 ? km2.toStringAsFixed(2) : km2.toStringAsFixed(1);
 
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: AppColors.surface(isDark),
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(AppTheme.radiusLg)),
-      ),
-      builder: (ctx) {
+    pushDetailPage(context, builder: (ctx) {
         final bottomPad = MediaQuery.paddingOf(ctx).bottom + AppTheme.spaceLg;
         return SingleChildScrollView(
           padding: EdgeInsets.fromLTRB(AppTheme.spaceMd, AppTheme.spaceSm, AppTheme.spaceMd, bottomPad),
@@ -1488,7 +1474,6 @@ class _StatisticsScreenState extends State<StatisticsScreen>
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-            AppTheme.dragHandle(isDark),
             const SizedBox(height: AppTheme.spaceMd),
             Text(
               l10n.statsTerritorySheetTitle,
@@ -1529,8 +1514,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
           ],
         ),
         );
-      },
-    );
+      });
   }
 
   /// Zero state for when there is nothing to show yet but the user has nothing

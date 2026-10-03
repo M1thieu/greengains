@@ -934,13 +934,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get sensorLiveReadings => 'What\'s around you';
-
-  @override
-  String get sensorLiveSubtitle =>
-      'Light, movement and air pressure, live from your phone.';
-
-  @override
   String get sensorInactiveTitle => 'Not recording';
 
   @override
@@ -951,9 +944,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get sensorPausedSubtitle => 'Resume to see live readings.';
-
-  @override
-  String get sensorAroundYou => 'Around You';
 
   @override
   String get sensorPressure => 'Pressure';
@@ -1028,21 +1018,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get lightVeryBright => 'Very Bright';
 
   @override
-  String get lightDarkHint => 'Minimal artificial light';
-
-  @override
-  String get lightDimHint => 'Low ambient light';
-
-  @override
-  String get lightNormalHint => 'Typical indoor daylight';
-
-  @override
-  String get lightBrightHint => 'Near a window or outdoors';
-
-  @override
-  String get lightVeryBrightHint => 'Direct sunlight, peak UV exposure';
-
-  @override
   String get magnetVeryLow => 'Very low';
 
   @override
@@ -1053,19 +1028,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get magnetHighNearMetal => 'High. Near metal.';
-
-  @override
-  String get magnetVeryLowHint => 'Minimal electromagnetic interference';
-
-  @override
-  String get magnetNormalHint => 'Normal background EMF';
-
-  @override
-  String get magnetElevatedHint => 'Possible metal structures or wiring nearby';
-
-  @override
-  String get magnetHighHint =>
-      'Near electrical infrastructure or heavy equipment';
 
   @override
   String daysActive(int count) {
@@ -1131,12 +1093,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsDataTransparency => 'Data Transparency';
-
-  @override
-  String get settingsDataDeletion => 'Request Data Deletion';
-
-  @override
-  String get settingsDataDeletionDesc => 'Erase all your recorded data';
 
   @override
   String get settingsExportData => 'Export My Data';
@@ -1252,38 +1208,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get batteryDialogTitle => 'Keep mapping';
-
-  @override
-  String get batteryDialogBody =>
-      'Disable battery optimization so the app keeps mapping in the background.';
-
-  @override
-  String get batteryDialogBodyBold =>
-      'Disable \"Battery Optimization\" for GreenGains on the next screen.';
-
-  @override
-  String get batteryDialogDismissForever => 'Don\'t show again';
-
-  @override
-  String get batteryDialogLater => 'Later';
-
-  @override
-  String get batteryDialogAllow => 'Allow Background Run';
-
-  @override
-  String get batteryDialogError => 'Unable to open battery settings';
-
-  @override
-  String get batteryDialogOemXiaomiHint =>
-      'Also on Xiaomi/Redmi: enable AutoStart in Settings → Apps → Manage apps → GreenGains → AutoStart';
-
-  @override
-  String get batteryDialogOemHuaweiHint =>
-      'Also on Huawei/Honor: open Settings → Battery → App launch, set GreenGains to manual with all toggles on';
-
-  @override
-  String get batteryDialogOemSamsungHint =>
-      'Also on Samsung: set GreenGains to Unrestricted in Settings → Battery → Background usage limits';
 
   @override
   String get locationPermBannerBody =>
@@ -1632,18 +1556,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sensorMovementIntense => 'Heavy traffic';
 
   @override
-  String get sensorMovementLowHint => 'Minimal foot traffic';
-
-  @override
-  String get sensorMovementMidHint => 'Light pedestrian activity';
-
-  @override
-  String get sensorMovementHighHint => 'Transit or crowds';
-
-  @override
-  String get sensorMovementIntenseHint => 'Heavy traffic or machinery';
-
-  @override
   String get sensorHpaLow => 'Clear air';
 
   @override
@@ -1651,15 +1563,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get sensorHpaHigh => 'Heavy air';
-
-  @override
-  String get sensorHpaLowHint => 'High pressure, stable dry conditions';
-
-  @override
-  String get sensorHpaMidHint => 'Normal atmospheric pressure at this altitude';
-
-  @override
-  String get sensorHpaHighHint => 'Low pressure, unsettled weather possible';
 
   @override
   String get sensorAccelStill => 'Barely moving';
@@ -1834,16 +1737,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'Location permission is required to map your city.';
 
   @override
-  String get onboardingPermissionDeniedForeverTitle => 'Permission required';
-
-  @override
-  String get onboardingPermissionDeniedForeverBody =>
-      'Location access was permanently denied. Open Settings and enable it under Permissions → Location.';
-
-  @override
-  String get onboardingOpenSettings => 'Open Settings';
-
-  @override
   String homeMaxClusterHint(int count) {
     return 'biggest area: $count places';
   }
@@ -1956,6 +1849,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsSignOut => 'Sign out';
+
+  @override
+  String get settingsDeleteAccount => 'Delete my account';
+
+  @override
+  String get settingsDeleteAccountWarning =>
+      'Your account and all your data will be erased. This can\'t be undone.';
+
+  @override
+  String get settingsDeleteAccountConfirm => 'Delete';
 
   @override
   String get mappingActiveSheetTitle => 'Mapping now';

@@ -376,13 +376,10 @@
     }
   },
 
-  "sensorLiveReadings": "What's around you",
-  "sensorLiveSubtitle": "Light, movement and air pressure, live from your phone.",
   "sensorInactiveTitle": "Not recording",
   "sensorInactiveSubtitle": "Enable tracking to see live readings.",
   "sensorPausedTitle": "Recording paused",
   "sensorPausedSubtitle": "Resume to see live readings.",
-  "sensorAroundYou": "Around You",
   "sensorPressure": "Pressure",
   "sensorUnitLux": "lx",
   "sensorUnitHpa": "hPa",
@@ -407,19 +404,10 @@
   "lightNormal": "Normal",
   "lightBright": "Bright",
   "lightVeryBright": "Very Bright",
-  "lightDarkHint": "Minimal artificial light",
-  "lightDimHint": "Low ambient light",
-  "lightNormalHint": "Typical indoor daylight",
-  "lightBrightHint": "Near a window or outdoors",
-  "lightVeryBrightHint": "Direct sunlight, peak UV exposure",
   "magnetVeryLow": "Very low",
   "magnetNormal": "Normal",
   "magnetElevated": "Elevated",
   "magnetHighNearMetal": "High. Near metal.",
-  "magnetVeryLowHint": "Minimal electromagnetic interference",
-  "magnetNormalHint": "Normal background EMF",
-  "magnetElevatedHint": "Possible metal structures or wiring nearby",
-  "magnetHighHint": "Near electrical infrastructure or heavy equipment",
 
   "daysActive": "{count, plural, =1{1 day} other{{count} days}}",
   "@daysActive": {
@@ -446,8 +434,6 @@
   "settingsPrivacyPolicyDesc": "How we handle your data",
   "settingsTermsOfServiceDesc": "Usage terms and conditions",
   "settingsDataTransparency": "Data Transparency",
-  "settingsDataDeletion": "Request Data Deletion",
-  "settingsDataDeletionDesc": "Erase all your recorded data",
   "settingsExportData": "Export My Data",
   "settingsExportDataPreparing": "Preparing your export…",
   "settingsExportDataFailed": "Couldn't export your data. Try again later.",
@@ -512,15 +498,6 @@
   },
 
   "batteryDialogTitle": "Keep mapping",
-  "batteryDialogBody": "Disable battery optimization so the app keeps mapping in the background.",
-  "batteryDialogBodyBold": "Disable \"Battery Optimization\" for GreenGains on the next screen.",
-  "batteryDialogDismissForever": "Don't show again",
-  "batteryDialogLater": "Later",
-  "batteryDialogAllow": "Allow Background Run",
-  "batteryDialogError": "Unable to open battery settings",
-  "batteryDialogOemXiaomiHint": "Also on Xiaomi/Redmi: enable AutoStart in Settings → Apps → Manage apps → GreenGains → AutoStart",
-  "batteryDialogOemHuaweiHint": "Also on Huawei/Honor: open Settings → Battery → App launch, set GreenGains to manual with all toggles on",
-  "batteryDialogOemSamsungHint": "Also on Samsung: set GreenGains to Unrestricted in Settings → Battery → Background usage limits",
 
   "locationPermBannerBody": "Set to 'Allow all the time' to map in the background",
   "locationPermBannerFix": "Fix",
@@ -666,17 +643,10 @@
   "sensorMovementMid": "Active",
   "sensorMovementHigh": "Busy",
   "sensorMovementIntense": "Heavy traffic",
-  "sensorMovementLowHint": "Minimal foot traffic",
-  "sensorMovementMidHint": "Light pedestrian activity",
-  "sensorMovementHighHint": "Transit or crowds",
-  "sensorMovementIntenseHint": "Heavy traffic or machinery",
 
   "sensorHpaLow": "Clear air",
   "sensorHpaMid": "Stable",
   "sensorHpaHigh": "Heavy air",
-  "sensorHpaLowHint": "High pressure, stable dry conditions",
-  "sensorHpaMidHint": "Normal atmospheric pressure at this altitude",
-  "sensorHpaHighHint": "Low pressure, unsettled weather possible",
 
   "sensorAccelStill": "Barely moving",
   "sensorAccelWalk": "Walking",
@@ -771,9 +741,6 @@
   "onboardingActivateSubtitle": "Your phone reads the environment around you as you go. Your route is never stored.",
   "onboardingActivateCta": "Start mapping",
   "onboardingPermissionDenied": "Location permission is required to map your city.",
-  "onboardingPermissionDeniedForeverTitle": "Permission required",
-  "onboardingPermissionDeniedForeverBody": "Location access was permanently denied. Open Settings and enable it under Permissions → Location.",
-  "onboardingOpenSettings": "Open Settings",
 
   "homeMaxClusterHint": "biggest area: {count} places",
   "@homeMaxClusterHint": {
@@ -829,6 +796,9 @@
   "returnDeltaDismiss": "Got it",
 
   "settingsSignOut": "Sign out",
+  "settingsDeleteAccount": "Delete my account",
+  "settingsDeleteAccountWarning": "Your account and all your data will be erased. This can't be undone.",
+  "settingsDeleteAccountConfirm": "Delete",
 
   "mappingActiveSheetTitle": "Mapping now",
   "mappingActiveSheetBody": "Keep moving to discover new places. Your map grows automatically.",

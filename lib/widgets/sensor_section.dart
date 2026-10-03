@@ -45,13 +45,6 @@ class _SensorSectionState extends State<SensorSection> {
     return l10n.lightVeryBright;
   }
 
-  String _getLightHint(double lux, AppLocalizations l10n) {
-    if (lux < 10) return l10n.lightDarkHint;
-    if (lux < 50) return l10n.lightDimHint;
-    if (lux < 500) return l10n.lightNormalHint;
-    if (lux < 10000) return l10n.lightBrightHint;
-    return l10n.lightVeryBrightHint;
-  }
 
   String _getMagneticDescription(double microtesla, AppLocalizations l10n) {
     if (microtesla < 25) return l10n.magnetVeryLow;
@@ -60,12 +53,6 @@ class _SensorSectionState extends State<SensorSection> {
     return l10n.magnetHighNearMetal;
   }
 
-  String _getMagneticHint(double microtesla, AppLocalizations l10n) {
-    if (microtesla < 25) return l10n.magnetVeryLowHint;
-    if (microtesla < 65) return l10n.magnetNormalHint;
-    if (microtesla < 100) return l10n.magnetElevatedHint;
-    return l10n.magnetHighHint;
-  }
 
   String _getAccelDescription(double ms2, AppLocalizations l10n) {
     if (ms2 < 0.5)  return l10n.sensorAccelStill;
@@ -74,12 +61,6 @@ class _SensorSectionState extends State<SensorSection> {
     return l10n.sensorAccelHeavy;
   }
 
-  String _getMovementHint(double rms, AppLocalizations l10n) {
-    if (rms < 0.5) return l10n.sensorMovementLowHint;
-    if (rms < 2.0) return l10n.sensorMovementMidHint;
-    if (rms < 5.0) return l10n.sensorMovementHighHint;
-    return l10n.sensorMovementIntenseHint;
-  }
 
   String _getGyroDescription(double rads, AppLocalizations l10n) {
     if (rads < 0.2) return l10n.sensorGyroStill;
@@ -93,11 +74,6 @@ class _SensorSectionState extends State<SensorSection> {
     return l10n.sensorHpaHigh;
   }
 
-  String _getPressureHint(double hpa, AppLocalizations l10n) {
-    if (hpa > 1010) return l10n.sensorHpaLowHint;
-    if (hpa > 1000) return l10n.sensorHpaMidHint;
-    return l10n.sensorHpaHighHint;
-  }
 
   String _sensorStatus({
     required bool isLive,
@@ -119,36 +95,17 @@ class _SensorSectionState extends State<SensorSection> {
     final isDark = theme.brightness == Brightness.dark;
     final l10n = context.l10n;
 
-    return Card(
-      child: ExpansionTile(
-        onExpansionChanged: (expanded) {
-          if (expanded) widget.onExpansionChanged?.call();
-        },
-        title: Text(
-          l10n.sensorLiveReadings,
-          style: AppTheme.cardTitle(theme),
-        ),
-        subtitle: Text(
-          l10n.sensorLiveSubtitle,
-          style: theme.textTheme.bodySmall,
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-        ),
-        children: [
-          ListenableBuilder(
-            listenable: Listenable.merge([
-              widget.locationService.isRunning,
-              widget.locationService.isPaused,
-            ]),
-            builder: (context, _) => _buildSensorList(context, isDark, l10n),
-          ),
-        ],
-      ),
+    // Shown on its own page: no accordion to open, just the readings.
+    return ListenableBuilder(
+      listenable: Listenable.merge([
+        widget.locationService.isRunning,
+        widget.locationService.isPaused,
+      ]),
+      builder: (context, _) => _buildSensorList(context, isDark, l10n),
     );
   }
 
   Widget _buildSensorList(BuildContext context, bool isDark, AppLocalizations l10n) {
-    final theme = Theme.of(context);
     // Sensors keep streaming even when paused - only stop when service is fully stopped.
     final isLive = widget.locationService.isRunning.value;
     final isPaused = widget.locationService.isPaused.value;
@@ -163,12 +120,6 @@ class _SensorSectionState extends State<SensorSection> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Environment Section
-          Text(
-            l10n.sensorAroundYou,
-            style: AppTheme.sectionHeader(theme, isDark),
-          ),
-          const SizedBox(height: AppTheme.spaceXs),
 
           // Light Sensor
           StreamBuilder<LightData>(
@@ -181,7 +132,6 @@ class _SensorSectionState extends State<SensorSection> {
                 title: l10n.sensorLight,
                 value: light != null ? _getLightDescription(light.lux, l10n) : null,
                 rawValue: light != null ? '${light.lux.toStringAsFixed(0)} lux' : null,
-                hint: light != null ? _getLightHint(light.lux, l10n) : null,
                 unit: '',
                 enabled: isLive,
                 statusLabel: _sensorStatus(isLive: isLive, isPaused: isPaused, hasData: light != null, l10n: l10n),
@@ -204,7 +154,6 @@ class _SensorSectionState extends State<SensorSection> {
                 title: l10n.sensorMagneticField,
                 value: mag != null ? _getMagneticDescription(mag.magnitude, l10n) : null,
                 rawValue: mag != null ? '${mag.magnitude.toStringAsFixed(1)} µT' : null,
-                hint: mag != null ? _getMagneticHint(mag.magnitude, l10n) : null,
                 unit: '',
                 enabled: isLive,
                 statusLabel: _sensorStatus(isLive: isLive, isPaused: isPaused, hasData: mag != null, l10n: l10n),
@@ -215,13 +164,6 @@ class _SensorSectionState extends State<SensorSection> {
           ),
 
           const SizedBox(height: AppTheme.spaceMd),
-
-          // Movement Section
-          Text(
-            l10n.sensorMovement,
-            style: AppTheme.sectionHeader(theme, isDark),
-          ),
-          const SizedBox(height: AppTheme.spaceXs),
 
           // Accelerometer
           StreamBuilder<AccelerometerData>(
@@ -234,7 +176,6 @@ class _SensorSectionState extends State<SensorSection> {
                 title: l10n.sensorAcceleration,
                 value: accel != null ? _getAccelDescription(accel.magnitude, l10n) : null,
                 rawValue: accel != null ? '${accel.magnitude.toStringAsFixed(1)} m/s²' : null,
-                hint: accel != null ? _getMovementHint(accel.magnitude, l10n) : null,
                 unit: '',
                 enabled: isLive,
                 statusLabel: _sensorStatus(isLive: isLive, isPaused: isPaused, hasData: accel != null, l10n: l10n),
@@ -284,7 +225,6 @@ class _SensorSectionState extends State<SensorSection> {
                 title: l10n.sensorAirPressure,
                 value: data != null ? _getPressureDescription(data.hPa, l10n) : null,
                 rawValue: data != null ? '${data.hPa.toStringAsFixed(1)} hPa' : null,
-                hint: data != null ? _getPressureHint(data.hPa, l10n) : null,
                 unit: '',
                 enabled: isLive,
                 statusLabel: _sensorStatus(isLive: isLive, isPaused: isPaused, hasData: data != null, l10n: l10n),

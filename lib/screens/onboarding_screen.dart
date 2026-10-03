@@ -145,27 +145,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
       if (permission == LocationPermission.deniedForever) {
         setState(() => _startingTracking = false);
-        final l10n = context.l10n;
-        await showDialog<void>(
-          context: context,
-          builder: (ctx) => AlertDialog(
-            title: Text(l10n.onboardingPermissionDeniedForeverTitle),
-            content: Text(l10n.onboardingPermissionDeniedForeverBody),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(ctx).pop(),
-                child: Text(l10n.buttonPrevious),
-              ),
-              FilledButton(
-                onPressed: () {
-                  Navigator.of(ctx).pop();
-                  Geolocator.openAppSettings();
-                },
-                child: Text(l10n.onboardingOpenSettings),
-              ),
-            ],
-          ),
-        );
+        // Android won't ask again: open the app's settings page directly.
+        await Geolocator.openAppSettings();
         return;
       }
 
