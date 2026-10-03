@@ -149,7 +149,7 @@ class _SensorSectionState extends State<SensorSection> {
 
   Widget _buildSensorList(BuildContext context, bool isDark, AppLocalizations l10n) {
     final theme = Theme.of(context);
-    // Sensors keep streaming even when paused — only stop when service is fully stopped.
+    // Sensors keep streaming even when paused - only stop when service is fully stopped.
     final isLive = widget.locationService.isRunning.value;
     final isPaused = widget.locationService.isPaused.value;
 
@@ -192,7 +192,7 @@ class _SensorSectionState extends State<SensorSection> {
           ),
 
           // Magnetic field and rotation say nothing useful to a user about
-          // their surroundings — kept for debugging only.
+          // their surroundings - kept for debugging only.
           if (kDebugMode)
           StreamBuilder<MagneticFieldData>(
             stream: widget.locationService.magneticFieldStream,

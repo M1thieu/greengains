@@ -1,5 +1,5 @@
 /**
- * Shared geohash decoder — no extra dependency.
+ * Shared geohash decoder - no extra dependency.
  * Used by user.ts (global tile fallback) and h3-backfill.ts.
  * Once all rows have h3_index populated this becomes a thin fallback only.
  */

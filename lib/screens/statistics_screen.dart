@@ -20,7 +20,7 @@ import '../widgets/press_scale_detector.dart';
 import '../widgets/section_header.dart';
 import '../widgets/stat_cell.dart';
 
-// ── Chart / skeleton layout constants ────────────────────────────────────────
+// Chart / skeleton layout constants
 // Named so that any future change touches ONE place, not scattered literals.
 const _kChartH            = 148.0; // height reserved for the bar chart + labels
 const _kBarMaxH           = 72.0;  // tallest bar at 100 % of the data range
@@ -30,16 +30,16 @@ const _kBarAnimStagger    = 40;    // ms added per bar for cascade entrance
 const _kBarLabelSize      = AppTheme.fontSizeXs;  // day-of-week label below each bar
 const _kSkeletonTitleW    = 160.0;                // width of section-title skeleton rect
 const _kSkeletonHeroH     = 96.0;                 // height of hero card skeleton placeholder
-// ── Typography constants ──────────────────────────────────────────────────────
+// Typography constants
 const _kLetterSpacingCaps     = 2.0;   // wide tracking for uppercase LABEL badges
 const _kBarSelectScale        = 1.12;  // selected bar lift — kept subtle, one place to tune
 
-// Zone milestones — territory achievements visible on the map.
+// Zone milestones - territory achievements visible on the map.
 // Achievable cadence: 5 → 10 → 25 → 50 → 100 → 250 → 500 areas.
 const _kMilestones = [5, 10, 25, 50, 100, 250, 500, 1000];
 
 
-/// Statistics screen — local stats (fast/offline) + server 7-day chart.
+/// Statistics screen - local stats (fast/offline) + server 7-day chart.
 ///
 /// Two data sources run in parallel:
 ///   1. Local SQLite via ContributionRepository → total, today, streak (instant)
@@ -47,7 +47,7 @@ const _kMilestones = [5, 10, 25, 50, 100, 250, 500, 1000];
 class StatisticsScreen extends StatefulWidget {
   const StatisticsScreen({super.key, this.onGoToHome});
 
-  /// Switches to the Home tab — used by the empty-state CTA.
+  /// Switches to the Home tab - used by the empty-state CTA.
   final VoidCallback? onGoToHome;
 
   @override
@@ -64,18 +64,18 @@ class _StatisticsScreenState extends State<StatisticsScreen>
 
   // Backend weekly data (7 ints: index 0 = 6 days ago, index 6 = today)
   List<int>? _weeklyData;
-  // Backend lifetime stats — fallback when local SQLite is empty (fresh reinstall)
+  // Backend lifetime stats - fallback when local SQLite is empty (fresh reinstall)
   int? _backendTotalUploads;
   int? _backendUploadsToday; // backend-authoritative today count, survives reinstall
   int? _coverageCells; // distinct H3 res-9 cells ever contributed
   int? _daysActive;
   bool _isLoadingWeekly = true;
-  // True when the last profile fetch failed — lets the zero state say
+  // True when the last profile fetch failed - lets the zero state say
   // "server unreachable" instead of wrongly telling the user to start tracking.
   bool _backendFailed = false;
-  // Previous km² value — used as animation start on reload so it never resets to 0
+  // Previous km² value - used as animation start on reload so it never resets to 0
   double _prevKm2 = 0;
-  // Community stats — active mapper count from /api/stats/global (1h server cache)
+  // Community stats - active mapper count from /api/stats/global (1h server cache)
   // Streak data from backend profile
   int? _longestStreak;
   // All-time best single day upload count
@@ -84,11 +84,11 @@ class _StatisticsScreenState extends State<StatisticsScreen>
   double? _avgPerDay;
   // Weekly new-territory target
   WeeklyTargetResponse? _weeklyTarget;
-  // Local Legend status — rank among mappers active in the same area this week
+  // Local Legend status - rank among mappers active in the same area this week
   LocalRankResponse? _localRank;
-  // "Only you" impact — cells nobody else has ever mapped
+  // "Only you" impact - cells nobody else has ever mapped
   ImpactResponse? _impact;
-  // Weekly civic insight — roughest street, new zones, solo territory
+  // Weekly civic insight - roughest street, new zones, solo territory
   WeeklyInsightResponse? _insight;
   // Data quality 0–100 from user_stats valid_samples/samples_count
   int? _qualityPct;
@@ -99,14 +99,14 @@ class _StatisticsScreenState extends State<StatisticsScreen>
   Map<String, int>? _dailyCounts;
 
   final _subs = <StreamSubscription>[];
-  // ── Entrance animations ───────────────────────────────────────────────────────
+  // Entrance animations
   /// Delay added per card so they cascade in instead of arriving together.
   static const _kEntranceStagger = 0.10;
   /// Portion of the controller's run each card animates over.
   static const _kEntranceSpan = 0.55;
 
   late final AnimationController _entranceCtrl;
-  /// Built on demand and cached — no fixed length, so adding a card never
+  /// Built on demand and cached - no fixed length, so adding a card never
   /// requires bumping a count (and can never overrun it).
   final Map<int, CurvedAnimation> _cardAnims = {};
 
@@ -121,17 +121,17 @@ class _StatisticsScreenState extends State<StatisticsScreen>
           ),
         );
       });
-  // ── Bar chart selection + range ──────────────────────────────────────────────
+  // Bar chart selection + range
   int? _selectedBarIndex;
   bool _chartMonthView = false; // false = 7-day, true = 30-day (needs backend)
-  // ── Backend call throttle — avoid repeated fetches on quick tab switches ──────
+  // Backend call throttle - avoid repeated fetches on quick tab switches
   DateTime? _lastWeeklyFetch;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    // Seed weekly data from prefs immediately — chart shows stale data while network loads
+    // Seed weekly data from prefs immediately - chart shows stale data while network loads
     final cached = AppPreferences.instance.cachedWeeklyData;
     if (cached != null) {
       _weeklyData = cached;
@@ -185,7 +185,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
   /// Spacing + entrance for a card that only renders when its data is present.
   /// [builder] receives the non-null value, so call sites need no `!`. Returns
   /// an empty list when absent, so the caller spreads it straight into the
-  /// ListView — no extra wrapper widget, identical layout to an inline `if`.
+  /// ListView - no extra wrapper widget, identical layout to an inline `if`.
   List<Widget> _optionalCard<T>(
     T? value,
     int animIndex,
@@ -216,7 +216,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
   }
 
   Future<void> _loadStats() async {
-    // Only show skeleton on first load — subsequent reloads update in-place.
+    // Only show skeleton on first load - subsequent reloads update in-place.
     if (_stats == null) setState(() => _isLoading = true);
     try {
       final stats = await _contributionRepo.getStats();
@@ -282,7 +282,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
           coverageCells: profile.coverageCells,
           longestStreak: profile.longestStreak,
         ));
-        // Persist streak for the native home-screen widget — no network call needed.
+        // Persist streak for the native home-screen widget - no network call needed.
         unawaited(AppPreferences.instance.setCurrentStreak(profile.currentStreak));
       }
     } catch (e) {
@@ -400,7 +400,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
     );
   }
 
-  // ─── Details screen ──────────────────────────────────────────────────────────
+  // Details screen
 
   void _openDetailsScreen() {
     final localTotal = _stats?.totalUploads ?? 0;
@@ -422,7 +422,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
     );
   }
 
-  // ─── Hero card ───────────────────────────────────────────────────────────────
+  // Hero card
 
   void _showStatsDetailSheet() {
     final theme = Theme.of(context);
@@ -574,7 +574,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                 height: AppLineHeights.numeric,
               ),
             ),
-          // City blocks context — makes km² tangible for non-technical users
+          // City blocks context - makes km² tangible for non-technical users
           if (showKm2 && zones > 0) ...[
             const SizedBox(height: AppTheme.spaceXxxs),
             Text(
@@ -625,7 +625,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
     );
   }
 
-  // ─── Stat grid (2×2) ─────────────────────────────────────────────────────────
+  // Stat grid (2×2)
 
   Widget _buildSupportingTrio(ThemeData theme, bool isDark) {
     final l10n = context.l10n;
@@ -635,7 +635,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
     final uploadsThisWeek = localWeek > 0 ? localWeek : (_weeklyData?.fold(0, (a, b) => a + b) ?? 0);
     final int? bestDay = _bestDayCount ?? _weeklyData?.fold<int>(0, max);
     final avgPerDay = _avgPerDay;
-    // Show dash for zero (no history yet) — not a loading spinner.
+    // Show dash for zero (no history yet) - not a loading spinner.
     final avgLabel = avgPerDay == null ? null
         : avgPerDay == 0.0 ? '—'
         : avgPerDay.toStringAsFixed(1);
@@ -679,7 +679,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
     );
   }
 
-  // ─── Streak card ─────────────────────────────────────────────────────────────
+  // Streak card
 
   Widget _buildStreakCard(ThemeData theme, bool isDark, AppLocalizations l10n) {
     final streak = _stats?.currentStreak ?? 0;
@@ -776,10 +776,10 @@ class _StatisticsScreenState extends State<StatisticsScreen>
     );
   }
 
-  // ─── Milestone row ───────────────────────────────────────────────────────────
+  // Milestone row
 
   Widget _buildMilestoneRow(ThemeData theme, bool isDark, AppLocalizations l10n) {
-    // Milestones are zone-based — if zones not loaded yet, skip the row.
+    // Milestones are zone-based - if zones not loaded yet, skip the row.
     final total = _coverageCells;
     if (total == null) return const SizedBox.shrink();
     final next = _kMilestones.cast<int?>().firstWhere((m) => m! > total, orElse: () => null);
@@ -872,7 +872,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
     );
   }
 
-  // ─── Weekly target card ──────────────────────────────────────────────────────
+  // Weekly target card
 
   Widget _buildWeeklyTargetCard(ThemeData theme, bool isDark, AppLocalizations l10n, WeeklyTargetResponse target) {
     final done = target.newCellsThisWeek;
@@ -932,7 +932,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
     );
   }
 
-  // ─── Local Legend card ─────────────────────────────────────────────────────────
+  // Local Legend card
 
   Widget _buildLocalRankCard(ThemeData theme, bool isDark, AppLocalizations l10n, LocalRankResponse rank) {
     final accent = rank.isLeader ? AppColors.primary : AppColors.textSecondary(isDark);
@@ -978,7 +978,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
     );
   }
 
-  // ─── Impact card ("only you've ever mapped this") ──────────────────────────────
+  // Impact card ("only you've ever mapped this")
 
   Widget _buildImpactCard(ThemeData theme, bool isDark, AppLocalizations l10n, ImpactResponse impact) {
     return Container(
@@ -1009,7 +1009,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
     );
   }
 
-  // ─── Weekly civic insight card ───────────────────────────────────────────────
+  // Weekly civic insight card
 
   Widget _buildInsightCard(ThemeData theme, bool isDark, AppLocalizations l10n, WeeklyInsightResponse insight) {
     final rows = <String>[];
@@ -1050,13 +1050,13 @@ class _StatisticsScreenState extends State<StatisticsScreen>
     );
   }
 
-  // ─── Activity chart ──────────────────────────────────────────────────────────
+  // Activity chart
 
   /// Shows the real 7-day bar chart when backend data is available,
   /// a loading skeleton while fetching, or the today-only KPI as fallback.
   Widget _buildActivityChart(ThemeData theme, bool isDark, AppLocalizations l10n) {
     if (_isLoadingWeekly && _weeklyData == null) {
-      // Backend still loading — show skeleton placeholder
+      // Backend still loading - show skeleton placeholder
       return Container(
         height: _kChartH,
         decoration: AppTheme.surfaceContainer(isDark: isDark),
@@ -1074,12 +1074,12 @@ class _StatisticsScreenState extends State<StatisticsScreen>
       return _buildWeeklyBarChart(theme, isDark, l10n);
     }
 
-    // Backend unavailable (offline or error) — honest today-only fallback
+    // Backend unavailable (offline or error) - honest today-only fallback
     return _buildTodayOnlyKpi(theme, isDark, l10n);
   }
 
   Widget _buildWeeklyBarChart(ThemeData theme, bool isDark, AppLocalizations l10n) {
-    // Ensure exactly 7 elements — pad/trim defensively
+    // Ensure exactly 7 elements - pad/trim defensively
     final raw7 = _weeklyData!;
     final data = List<int>.generate(7, (i) => i < raw7.length ? raw7[i] : 0);
     final maxVal = data.fold(0, max).toDouble();
@@ -1167,7 +1167,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
               ),
             ),
           ] else ...[
-          // Selected bar callout — replaces the spacer when a bar is tapped
+          // Selected bar callout - replaces the spacer when a bar is tapped
           AnimatedSize(
             duration: AppDurations.fast,
             curve: AppMotion.standard,
@@ -1208,7 +1208,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
-                          // Value label above bar — only when non-zero
+                          // Value label above bar - only when non-zero
                           if (count > 0)
                             Text(
                               '$count',
@@ -1441,7 +1441,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
     );
   }
 
-  // ─── Territory details link ──────────────────────────────────────────────────
+  // Territory details link
 
   Widget _buildTerritoryDetailsLink(ThemeData theme, bool isDark, AppLocalizations l10n) {
     final zones = _coverageCells ?? 0;
@@ -1588,7 +1588,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
               style: theme.textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary(isDark)),
             ),
             const SizedBox(height: AppTheme.spaceLg),
-            // Locked sensor rows — Duolingo-style preview of what gets unlocked
+            // Preview of what tracking will record.
             _LockedSensorRow(icon: Icons.wb_sunny_outlined, color: AppColors.light, label: l10n.statsEmptyLockLight, isDark: isDark),
             const SizedBox(height: AppTheme.spaceXs),
             _LockedSensorRow(icon: Icons.directions_walk_rounded, color: AppColors.movement, label: l10n.statsEmptyLockMovement, isDark: isDark),
@@ -1614,7 +1614,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
 
 }
 
-// ── Chart range toggle (W / M segmented control) ─────────────────────────────
+// Chart range toggle (W / M segmented control)
 
 class _ChartRangeToggle extends StatelessWidget {
   const _ChartRangeToggle({
@@ -1729,7 +1729,7 @@ class _SensorTypesRow extends StatelessWidget {
 }
 
 
-// ── Day-of-week personality chart ────────────────────────────────────────────
+// Day-of-week personality chart
 
 /// 7-bar mini chart (Mon–Sun) showing relative activity distribution.
 /// Inspired by Dawarich's weekly_pattern_chart_data helper.
@@ -1816,7 +1816,7 @@ class _WeekdayChart extends StatelessWidget {
   }
 }
 
-// ── 30-day calendar heatmap ───────────────────────────────────────────────────
+// 30-day calendar heatmap
 
 class _CalendarHeatmap extends StatefulWidget {
   const _CalendarHeatmap({required this.dailyCounts, required this.isDark});
@@ -2008,7 +2008,7 @@ class _CalendarHeatmapState extends State<_CalendarHeatmap> {
   }
 }
 
-// ── Sensor chip (icon + label, no description) ───────────────────────────────
+// Sensor chip (icon + label, no description)
 
 class _SensorChip extends StatelessWidget {
   const _SensorChip({required this.icon, required this.label, required this.color});
@@ -2018,7 +2018,7 @@ class _SensorChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Icon in the sensor colour, label in body text — no box around it.
+    // Icon in the sensor colour, label in body text - no box around it.
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -2037,7 +2037,7 @@ class _SensorChip extends StatelessWidget {
   }
 }
 
-// ── Explainer row (icon + one-line text) ─────────────────────────────────────
+// Explainer row (icon + one-line text)
 
 class _ExplainerRow extends StatelessWidget {
   const _ExplainerRow({required this.icon, required this.color, required this.text, required this.isDark});
@@ -2072,7 +2072,7 @@ class _ExplainerRow extends StatelessWidget {
   }
 }
 
-// ── Milestone progress ring ───────────────────────────────────────────────────
+// Milestone progress ring
 
 class _MilestoneRing extends StatelessWidget {
   const _MilestoneRing({
@@ -2161,7 +2161,7 @@ class _RingPainter extends CustomPainter {
   bool shouldRepaint(_RingPainter old) => old.progress != progress;
 }
 
-// ── KPI hairline grid cell ────────────────────────────────────────────────────
+// KPI hairline grid cell
 
 class _KpiCell extends StatelessWidget {
   const _KpiCell({required this.label, required this.value, required this.isDark, required this.theme, this.trend, this.valueColor});
@@ -2235,7 +2235,7 @@ class _KpiCell extends StatelessWidget {
   }
 }
 
-// ── Record row (dot + label + right-aligned value) ────────────────────────────
+// Record row (dot + label + right-aligned value)
 
 class _RecordRow extends StatelessWidget {
   // ignore: unused_element_parameter
@@ -2279,7 +2279,7 @@ class _RecordRow extends StatelessWidget {
   }
 }
 
-// ── Thin divider for list containers ─────────────────────────────────────────
+// Thin divider for list containers
 
 class _Divider extends StatelessWidget {
   const _Divider({required this.isDark});
@@ -2297,7 +2297,7 @@ class _Divider extends StatelessWidget {
   }
 }
 
-// ── Locked sensor row for empty state ────────────────────────────────────────
+// Locked sensor row for empty state
 class _LockedSensorRow extends StatelessWidget {
   const _LockedSensorRow({
     required this.icon,
@@ -2336,7 +2336,7 @@ class _LockedSensorRow extends StatelessWidget {
   }
 }
 
-// ── In-depth statistics screen ────────────────────────────────────────────────
+// In-depth statistics screen
 
 class StatsDetailArgs {
   const StatsDetailArgs({

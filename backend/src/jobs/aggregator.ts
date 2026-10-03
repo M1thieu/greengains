@@ -31,14 +31,14 @@ const WINDOW_MS = AGGREGATION_WINDOW_MINUTES * 60 * 1000;
  * Defensive cap on simultaneous outbound requests to Open-Meteo while fetching the weather
  * lookups a run's window buckets need (deduped by {@link planWeatherLookups} first, so this is
  * "how many distinct regions/hours at once", not "how many buckets"). An operational safety
- * value, not a statistical one — chosen to be comfortably polite to a third-party API, not tuned.
+ * value, not a statistical one - chosen to be comfortably polite to a third-party API, not tuned.
  */
 const WEATHER_FETCH_CONCURRENCY = 8;
 
 let aggregationTimer: NodeJS.Timeout | null = null;
 let lastPurgeDate: string | null = null; // UTC date string — purge runs at most once per day
 
-// A job that fails every minute and one that never ran look identical from outside — and the
+// A job that fails every minute and one that never ran look identical from outside - and the
 // error only reaches Sentry. This makes the last outcome readable from /health.
 const aggregationStatus = {
   runs: 0,
@@ -117,7 +117,7 @@ export async function runAggregationJob(): Promise<void> {
     return; // nothing new
   }
 
-  // Select only the sub-fields the aggregator needs — avoids pulling the raw
+  // Select only the sub-fields the aggregator needs - avoids pulling the raw
   // batch readings array (often 80–95% of the payload) across the wire.
   const rows = await pool.query<BatchRow>(
     `SELECT
@@ -138,15 +138,15 @@ export async function runAggregationJob(): Promise<void> {
     return;
   }
 
-  // ── Functional core: pure bucketing + weather-lookup planning (no I/O) ──────────────────────
+  // Functional core: pure bucketing + weather-lookup planning (no I/O)
   const windowBuckets = accumulateWindows(rows.rows, WINDOW_MS, upToExclusive);
   if (windowBuckets.size === 0) {
     return;
   }
 
-  // ── Imperative shell: fetch exactly the weather this run needs, once per distinct region+hour,
+  // Imperative shell: fetch exactly the weather this run needs, once per distinct region+hour,
   // with bounded concurrency instead of one sequential `await` per window bucket (a run with many
-  // active cells — routine multi-user traffic, or catching up a backlog after downtime — used to
+  // active cells - routine multi-user traffic, or catching up a backlog after downtime - used to
   // serialize one network round-trip per bucket; see the request-coalescing note on
   // weatherRegionKey and the p-limit-style cap on WEATHER_FETCH_CONCURRENCY above). ────────────
   const weatherLookups = planWeatherLookups(windowBuckets);
@@ -159,7 +159,7 @@ export async function runAggregationJob(): Promise<void> {
     weatherLookups.map((lookup, i) => [lookup.key, weatherResults[i]]),
   );
 
-  // ── Back to the functional core: everything from here on is pure, given the fetched weather. ──
+  // Back to the functional core: everything from here on is pure, given the fetched weather.
   const windowResults: WindowResult[] = computeWindowResults(windowBuckets, weatherByKey);
   const dayBuckets: Map<DayKey, DayAccumulator> = buildDayBuckets(windowBuckets);
 
@@ -195,7 +195,7 @@ export async function runAggregationJob(): Promise<void> {
         console.log(`[aggregation] purged ${purgeResult.rowCount} raw batches older than ${SENSOR_BATCH_RETENTION_DAYS} days`);
       }
     } catch (purgeError) {
-      // Non-fatal — log and continue; will retry tomorrow
+      // Non-fatal - log and continue; will retry tomorrow
       console.error('[aggregation] daily purge failed', { err: purgeError });
     }
   }

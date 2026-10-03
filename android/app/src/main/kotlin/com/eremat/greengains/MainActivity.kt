@@ -274,7 +274,7 @@ class MainActivity : FlutterActivity() {
 
     private fun stopFgService(): Boolean {
         // Route through ACTION_STOP_SERVICE so onStartCommand handles the stop while
-        // the method channel is still alive — ensures onServiceStopped reaches Flutter.
+        // the method channel is still alive - ensures onServiceStopped reaches Flutter.
         // If the service is not running, fall back to stopService() to clean up.
         return if (ForegroundService.running) {
             sendServiceAction(ForegroundService.ACTION_STOP_SERVICE)

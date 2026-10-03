@@ -114,7 +114,7 @@ class BackendClient {
     );
   }
 
-  /// GET request — returns decoded JSON body.
+  /// GET request - returns decoded JSON body.
   /// Throws [ApiException] on non-2xx or network failure.
   static Future<Map<String, dynamic>> get(
     String path, {
@@ -137,7 +137,7 @@ class BackendClient {
     }
   }
 
-  /// POST request — returns decoded JSON body.
+  /// POST request - returns decoded JSON body.
   /// Throws [ApiException] on non-2xx or network failure.
   static Future<Map<String, dynamic>> post(
     String path,
@@ -165,7 +165,7 @@ class BackendClient {
 }
 
 /// Shared Nominatim reverse-geocoding client.
-/// Single instance — used by home screen (territory label) and tile info sheet.
+/// Single instance - used by home screen (territory label) and tile info sheet.
 final nominatimClient = Dio(BaseOptions(
   baseUrl: 'https://nominatim.openstreetmap.org',
   connectTimeout: const Duration(seconds: 8),
@@ -195,7 +195,7 @@ Future<String?> reverseGeocodeNeighborhood(double lat, double lon) async {
   }
 }
 
-/// Legacy exception type — kept for any external callers.
+/// Legacy exception type - kept for any external callers.
 /// Prefer [ApiException] for new code.
 class BackendException implements Exception {
   BackendException(this.message, {this.statusCode});

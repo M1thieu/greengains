@@ -29,7 +29,7 @@ export async function deviceRoutes(fastify: FastifyInstance) {
                     return reply.code(401).send({ error: 'Unauthorized', message: 'Invalid Firebase token' });
                 }
 
-                // 2. Enforce max devices per user — evict oldest if over limit
+                // 2. Enforce max devices per user - evict oldest if over limit
                 const pool = getPool();
                 const deviceCount = await pool.query<{ count: string }>(
                     `SELECT COUNT(*)::text AS count

@@ -26,18 +26,18 @@ const exportQuerySchema = z.object({
   format: z.enum(['csv', 'json']).default('csv'),
 });
 
-// ─── In-memory cache for global tiles (5-min TTL, avoids per-request DB hits) ─
+// In-memory cache for global tiles (5-min TTL, avoids per-request DB hits)
 interface TileCacheEntry { data: unknown; expiresAt: number; }
 const _globalTileCache = new Map<string, TileCacheEntry>();
 
-// ─── In-memory cache for global stats (1-hour TTL) ───────────────────────────
+// In-memory cache for global stats (1-hour TTL)
 interface StatsCacheEntry { data: { activeMappers: number; totalZones: number }; expiresAt: number; }
 let _globalStatsCache: StatsCacheEntry | null = null;
 
-// ─── Per-user profile cache (1h TTL) ─────────────────────────────────────────
+// Per-user profile cache (1h TTL)
 // Eliminates repeated DB hits on every stats screen open / app resume.
 // Invalidated on upload (via invalidateProfileCache) so fresh data appears
-// quickly after a user uploads — acceptable staleness for a stats view.
+// quickly after a user uploads - acceptable staleness for a stats view.
 interface ProfileCacheEntry { data: unknown; expiresAt: number; }
 const _profileCache = new Map<string, ProfileCacheEntry>();
 
@@ -49,7 +49,7 @@ export function invalidateProfileCache(userId: string): void {
 /**
  * Refreshes user_profile_cache for the given user after an upload.
  * Runs the same 3 aggregate queries as the profile endpoint, but only on the
- * write path (infrequent) — reads then hit the cache row instead.
+ * write path (infrequent) - reads then hit the cache row instead.
  * Fire-and-forget: called without await so the upload response isn't delayed.
  */
 export async function refreshUserProfileCache(userId: string): Promise<void> {
@@ -85,11 +85,11 @@ export async function refreshUserProfileCache(userId: string): Promise<void> {
       ],
     );
   } catch {
-    // Non-fatal — error is logged by the caller (upload route) via fastify.log.
+    // Non-fatal - error is logged by the caller (upload route) via fastify.log.
   }
 }
 
-// ─── Shared profile stats query ───────────────────────────────────────────────
+// Shared profile stats query
 
 interface UserProfileStats {
   total_batches: number;
@@ -137,11 +137,11 @@ async function fetchUserProfileData(pool: ReturnType<typeof getPool>, userId: st
   return result.rows[0] ?? null;
 }
 
-// ─── Shared global tile query ─────────────────────────────────────────────────
+// Shared global tile query
 
 /**
  * Fetches global community tiles from sensor_aggregates_daily.
- * Uses the daily table for the 30-day window — 288x fewer rows than 5m table,
+ * Uses the daily table for the 30-day window - 288x fewer rows than 5m table,
  * same data quality for a coverage map. Results are cached 5 min in-memory.
  * Falls back to geohash decode for rows without h3_index.
  */
@@ -250,7 +250,7 @@ export async function userRoutes(fastify: FastifyInstance) {
       try {
         const pool = getPool();
 
-        // Try user_profile_cache first — single PK lookup, ~0.1ms.
+        // Try user_profile_cache first - single PK lookup, ~0.1ms.
         // Falls through to live sensor_batches queries if row is missing
         // (first-ever load before any upload has occurred).
         const cacheRow = await pool.query<{
@@ -270,8 +270,8 @@ export async function userRoutes(fastify: FastifyInstance) {
           [userId],
         );
 
-        // uploads_today always comes from sensor_batches — not cached (changes intraday).
-        // device_count also live — rarely needed and fast with existing index.
+        // uploads_today always comes from sensor_batches - not cached (changes intraday).
+        // device_count also live - rarely needed and fast with existing index.
         const [liveResult, weeklyResult, qualityResult, bestDayResult, prevWeekResult] = await Promise.all([
           pool.query<{ uploads_today: number; device_count: number }>(
             `SELECT
@@ -338,7 +338,7 @@ export async function userRoutes(fastify: FastifyInstance) {
 
         const live = liveResult.rows[0];
 
-        // No cache row AND no live uploads — new user.
+        // No cache row AND no live uploads - new user.
         if (!cacheRow.rows[0] && (live?.uploads_today ?? 0) === 0 && weekly.every(v => v === 0)) {
           const emptyData = {
             uid: userId,
@@ -371,7 +371,7 @@ export async function userRoutes(fastify: FastifyInstance) {
           firstUploadDate = c.first_upload_at;
           lastUploadDate  = c.last_upload_at;
         } else {
-          // Cache miss — shared helper scans sensor_batches once for all scalar stats + streak.
+          // Cache miss - shared helper scans sensor_batches once for all scalar stats + streak.
           const m = await fetchUserProfileData(pool, userId);
           totalUploads    = m?.total_batches     ?? 0;
           coverageCells   = m?.coverage_cells    ?? 0;
@@ -425,7 +425,7 @@ export async function userRoutes(fastify: FastifyInstance) {
       try {
         const pool = getPool();
 
-        // Include rows with h3_res9 OR a geohash fallback — handles pre-migration data.
+        // Include rows with h3_res9 OR a geohash fallback - handles pre-migration data.
         const tilesResult = await pool.query<{
           h3_res9: string | null;
           geohash: string | null;
@@ -604,13 +604,13 @@ export async function userRoutes(fastify: FastifyInstance) {
 
   /**
    * GET /api/stats/global
-   * Public community stats — active mapper count + total zones.
-   * No auth required. Cached 1 hour — changes slowly.
+   * Public community stats - active mapper count + total zones.
+   * No auth required. Cached 1 hour - changes slowly.
    */
   fastify.get(
     '/api/stats/global',
     async (request: FastifyRequest, reply: FastifyReply) => {
-      // Simple in-memory cache — one slot, no key needed.
+      // Simple in-memory cache - one slot, no key needed.
       const now = Date.now();
       if (_globalStatsCache && _globalStatsCache.expiresAt > now) {
         reply.header('Cache-Control', `public, max-age=${GLOBAL_STATS_CACHE_TTL_S}`);
@@ -646,13 +646,13 @@ export async function userRoutes(fastify: FastifyInstance) {
 
   /**
    * GET /api/tiles/public
-   * Unauthenticated global coverage tiles — same data as /global, shares cache.
+   * Unauthenticated global coverage tiles - same data as /global, shares cache.
    */
   fastify.get(
     '/api/tiles/public',
     async (request: FastifyRequest, reply: FastifyReply) => {
       try {
-        // public: CDN/proxy can cache this — no user-specific data
+        // public: CDN/proxy can cache this - no user-specific data
         reply.header('Cache-Control', `public, max-age=${GLOBAL_TILE_CACHE_TTL_S}, stale-while-revalidate=60`);
         return reply.send(await fetchGlobalTiles(request.log));
       } catch (error) {
@@ -700,7 +700,7 @@ export async function userRoutes(fastify: FastifyInstance) {
              WHERE day > CURRENT_DATE - ($1 * INTERVAL '1 day')`,
             [windowDays],
           ),
-          // Region count: distinct geohash4 prefixes (≈ 39km × 20km cells — city-scale regions)
+          // Region count: distinct geohash4 prefixes (≈ 39km × 20km cells - city-scale regions)
           pool.query<{ region_count: string }>(
             `SELECT COUNT(DISTINCT LEFT(geohash, 4))::text AS region_count
              FROM sensor_aggregates_daily
@@ -790,9 +790,9 @@ export async function userRoutes(fastify: FastifyInstance) {
 
   /**
    * GET /api/user/local-rank
-   * "Local Legend" status — ranks the user against everyone else who mapped
+   * "Local Legend" status - ranks the user against everyone else who mapped
    * inside their most-active h3_res8 cell (~461m hex, same granularity as
-   * community tiles) this week. No tokens, no other user identities exposed —
+   * community tiles) this week. No tokens, no other user identities exposed -
    * pure local status, mirroring Strava's Local Legend retention mechanic
    * (consistency-based, achievable, no global leaderboard demotivation).
    */
@@ -867,7 +867,7 @@ export async function userRoutes(fastify: FastifyInstance) {
 
   /**
    * GET /api/user/impact
-   * "Only you" signal — counts how many of the user's own h3_res9 cells have
+   * "Only you" signal - counts how many of the user's own h3_res9 cells have
    * never been mapped by anyone else, ever. Closes the citizen-science
    * "fulfillment gap" (Frontiers 2023: contribution satisfaction drops after
    * joining because people never see what their data actually did) with a
@@ -958,7 +958,7 @@ export async function userRoutes(fastify: FastifyInstance) {
 
   /**
    * GET /api/user/export
-   * Exports the caller's own raw contributions — a personal-data right, not a
+   * Exports the caller's own raw contributions - a personal-data right, not a
    * paid feature. Unlike POST /api/v1/data/export (organization-tier, gated by
    * requireTier), this has no tier check: every authenticated user can export
    * everything that belongs to them.

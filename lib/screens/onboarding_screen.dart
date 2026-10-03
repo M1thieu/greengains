@@ -21,11 +21,11 @@ import '../core/constants.dart';
 import '../utils/app_snackbars.dart';
 import 'webview_screen.dart';
 
-// ── Onboarding layout constants ───────────────────────────────────────────────
+// Onboarding layout constants
 // Hero icon sizes that don't map directly to AppIconSizes entries.
 const _kWelcomeHeroSize = AppIconSizes.xl + AppTheme.spaceLg; // 48+24 = 72 — eco icon
 
-/// Onboarding — 2 pages: Welcome → Sign In
+/// Onboarding - 2 pages: Welcome → Sign In
 /// Typography-first premium redesign (Stripe/Linear/Vercel aesthetic).
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({
@@ -78,7 +78,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   Future<void> _handleGoogleSignIn() async {
-    // Capture l10n before async gap (Flutter best practice)
+    // Capture l10n before the async gap.
     final l10n = context.l10n;
     if (_signingIn) return;
     setState(() => _signingIn = true);
@@ -101,7 +101,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             await AppPreferences.instance.setConsentDate(dt ?? DateTime.now());
           }),
         ).catchError((_) {
-          // Non-critical — consent date will be set on next successful call.
+          // Non-critical - consent date will be set on next successful call.
         }),
       );
 
@@ -175,7 +175,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         return;
       }
 
-      // Permission granted — prompt battery optimization before completing.
+      // Permission granted - prompt battery optimization before completing.
       await _requestBatteryExemption();
       if (!mounted) return;
 
@@ -190,7 +190,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     }
   }
 
-  /// Request battery optimization exemption inline — fires once during onboarding
+  /// Request battery optimization exemption inline - fires once during onboarding
   /// right after location permission is granted, while the user is still engaged.
   Future<void> _requestBatteryExemption() async {
     try {
@@ -201,7 +201,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         await platform.invokeMethod('requestIgnoreBatteryOptimizations');
       }
     } catch (_) {
-      // Non-critical — tracking works without it, just may be killed by Doze.
+      // Non-critical - tracking works without it, just may be killed by Doze.
     }
   }
 
@@ -217,7 +217,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     return Scaffold(
       body: Stack(
         children: [
-          // Page switcher — Welcome → Sign In → Start Mapping (first-time only)
+          // Page switcher - Welcome → Sign In → Start Mapping (first-time only)
           AnimatedSwitcher(
             duration: AppDurations.medium,
             switchInCurve: Curves.easeOut,
@@ -242,7 +242,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             ),
           ),
 
-          // Bottom navigation — dots + conditional full-width CTA
+          // Bottom navigation - dots + conditional full-width CTA
           Positioned(
             bottom: 0,
             left: 0,
@@ -291,7 +291,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     );
   }
 
-  // ── Page 1: Welcome ─────────────────────────────────────────────────────────
+  // Page 1: Welcome
   Widget _buildWelcomePage(ThemeData theme, bool isDark, AppLocalizations l10n) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -363,7 +363,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     );
   }
 
-  // ── Page 2: Sign In ──────────────────────────────────────────────────────────
+  // Page 2: Sign In
   Widget _buildSignInPage(ThemeData theme, bool isDark, AppLocalizations l10n) {
     return SafeArea(
       child: Padding(
@@ -411,7 +411,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             ],
             const Spacer(),
 
-            // Privacy Policy / TOS — split-placeholder pattern:
+            // Privacy Policy / TOS - split-placeholder pattern:
             // pass sentinel tokens into the localized template, then split
             // on them to extract surrounding prose segments.
             // This preserves correct word order for every locale.
@@ -477,7 +477,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
             const SizedBox(height: AppTheme.spaceLg),
 
-            // Invite code — optional, collapsed by default
+            // Invite code - optional, collapsed by default
             AnimatedSize(
               duration: AppDurations.fast,
               curve: AppMotion.standard,
@@ -515,7 +515,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     ),
             ),
 
-            // Official Google Sign-In Button — full-width
+            // Official Google Sign-In Button - full-width
             SizedBox(
               width: double.infinity,
               child: InkWell(
@@ -560,7 +560,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     );
   }
 
-  // ── Page 3: Start Mapping ─────────────────────────────────────────────────────
+  // Page 3: Start Mapping
   Widget _buildStartPage(ThemeData theme, bool isDark, AppLocalizations l10n) {
     return SafeArea(
       child: Padding(
@@ -634,7 +634,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 }
 
-// ── Onboarding feature row ────────────────────────────────────────────────────
+// Onboarding feature row
 
 class _FeatureRow extends StatelessWidget {
   const _FeatureRow({
@@ -685,7 +685,7 @@ class _FeatureRow extends StatelessWidget {
   }
 }
 
-// ── Onboarding hex hero animation ────────────────────────────────────────────
+// Onboarding hex hero animation
 
 class _OnboardingHexHero extends StatefulWidget {
   const _OnboardingHexHero();

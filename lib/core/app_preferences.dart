@@ -25,12 +25,12 @@ class PreferenceKeys {
 
   // Identity credentials shared with the native Kotlin uploader.
   // The shared_preferences plugin prepends 'flutter.' on write, so keys that
-  // start with 'flutter.' land on disk as 'flutter.flutter.*' — matching
+  // start with 'flutter.' land on disk as 'flutter.flutter.*' - matching
   // AppPrefs.DEVICE_SECRET / FIREBASE_AUTH_TOKEN in Kotlin.
   static const deviceSecret = 'flutter.device_secret';
   static const firebaseAuthToken = 'flutter.firebase_auth_token';
 
-  // Legacy raw keys (single prefix) — kept only for one-time migration
+  // Legacy raw keys (single prefix) - kept only for one-time migration
   static const _legacyDeviceSecret = 'device_secret';
   static const _legacyFirebaseAuthToken = 'firebase_auth_token';
 
@@ -42,7 +42,7 @@ class PreferenceKeys {
   static const lastMagneticMagnitude = 'last_magnetic_magnitude';
   static const lastMagneticTimestamp = 'last_magnetic_timestamp';
 
-  // One-time UX flags — stored in AppPreferences for consistency
+  // One-time UX flags - stored in AppPreferences for consistency
   static const trackingEverStarted = 'tracking_ever_started';
   static const lastKnownZoneCount = 'last_known_zone_count';
   static const lastMilestoneCelebrated = 'last_milestone_celebrated';
@@ -223,7 +223,7 @@ class AppPreferences {
     await _sp.setBool(PreferenceKeys.trackingPaused, value);
   }
 
-  /// Location sharing preference — defaults to TRUE.
+  /// Location sharing preference - defaults to TRUE.
   /// The app's core value proposition is environmental mapping; location is essential.
   /// Users have already granted system location permission during onboarding.
   bool get shareLocation =>
@@ -264,14 +264,14 @@ class AppPreferences {
     await _sp.setBool(PreferenceKeys.postOnboardingAuthPrompted, value);
   }
 
-  /// Cached referral code — allocated once by the server, never changes.
+  /// Cached referral code - allocated once by the server, never changes.
   String? get referralCode => _sp.getString(PreferenceKeys.referralCode);
 
   Future<void> setReferralCode(String value) async {
     await _sp.setString(PreferenceKeys.referralCode, value);
   }
 
-  /// Clears the cached referral code — called on sign-out so the next
+  /// Clears the cached referral code - called on sign-out so the next
   /// signed-in account starts fresh (code is re-fetched after login).
   Future<void> clearReferralCode() async {
     await _sp.remove(PreferenceKeys.referralCode);
@@ -408,7 +408,7 @@ class AppPreferences {
   double? get lastLux => _sp.getDouble(PreferenceKeys.lastLightLux);
   double? get lastHpa => _sp.getDouble(PreferenceKeys.lastPressureHPa);
 
-  /// Save last known magnetometer reading (magnitude only — orientation-independent)
+  /// Save last known magnetometer reading (magnitude only - orientation-independent)
   Future<void> saveLastMagnetic(double magnitude, int timestampMs) async {
     await _sp.setDouble(PreferenceKeys.lastMagneticMagnitude, magnitude);
     await _sp.setInt(PreferenceKeys.lastMagneticTimestamp, timestampMs);
@@ -422,7 +422,7 @@ class AppPreferences {
     return {'magnitude': magnitude, 'timestamp': timestamp};
   }
 
-  // ── Identity credentials for native uploader ─────────────────────────────
+  // Identity credentials for native uploader
 
   /// Long-lived per-device secret, shared with the native Kotlin uploader.
   /// Read on Android as AppPrefs.DEVICE_SECRET = "flutter.flutter.device_secret".
@@ -453,11 +453,11 @@ class AppPreferences {
     await _sp.remove(PreferenceKeys._legacyFirebaseAuthToken);
   }
 
-  // ── Streak (shared with the native home-screen widget) ─────────────────────────────
+  // Streak (shared with the native home-screen widget)
 
   /// Written after each profile fetch so the native WorkManager worker can read it
   /// without a network call. Key must match AppPrefs.CURRENT_STREAK in Kotlin
-  /// (flutter.flutter.current_streak — double-prefixed because AppPreferences uses the plugin).
+  /// (flutter.flutter.current_streak - double-prefixed because AppPreferences uses the plugin).
   int get currentStreak => _sp.getInt(PreferenceKeys.currentStreak) ?? 0;
 
   Future<void> setCurrentStreak(int streak) async {
@@ -476,7 +476,7 @@ class AppPreferences {
     await _sp.setBool(PreferenceKeys.referralShared, true);
   }
 
-  // ── One-time UX flags ────────────────────────────────────────────────────────
+  // One-time UX flags
 
   bool get trackingEverStarted =>
       _sp.getBool(PreferenceKeys.trackingEverStarted) ?? false;
@@ -499,7 +499,7 @@ class AppPreferences {
     await _sp.setInt(PreferenceKeys.totalUploadCount, count);
   }
 
-  /// Zone count stored at last app open — used to compute delta for re-engagement banner.
+  /// Zone count stored at last app open - used to compute delta for re-engagement banner.
   int get lastKnownZoneCount =>
       _sp.getInt(PreferenceKeys.lastKnownZoneCount) ?? 0;
 
@@ -507,7 +507,7 @@ class AppPreferences {
     await _sp.setInt(PreferenceKeys.lastKnownZoneCount, count);
   }
 
-  // ── Last session data — for return hint on home screen ──────────────────────
+  // Last session data - for return hint on home screen
 
   /// Zones gained in the last completed tracking session (0 if none yet).
   int get lastSessionZonesGained =>
@@ -559,7 +559,7 @@ class AppPreferences {
     await _sp.setBool(PreferenceKeys.reviewRequested, true);
   }
 
-  /// Primary neighborhood name — computed once from the user's most-mapped tile centroid.
+  /// Primary neighborhood name - computed once from the user's most-mapped tile centroid.
   /// Null until first successful geocode. Shown in home hero + referral card.
   String? get territoryLabel => _sp.getString(PreferenceKeys.territoryLabel);
 
@@ -581,7 +581,7 @@ class AppPreferences {
     await _sp.setString(PreferenceKeys.cachedGlobalTiles, json);
   }
 
-  // ── Cached weekly stats (instant stats display on cold start) ────────────────
+  // Cached weekly stats (instant stats display on cold start)
 
   List<int>? get cachedWeeklyData {
     final raw = _sp.getString('cached_weekly_data');
@@ -595,7 +595,7 @@ class AppPreferences {
     await _sp.setString('cached_weekly_data', data.join(','));
   }
 
-  // ── Last known GPS position (for instant map centering on cold start) ───────
+  // Last known GPS position (for instant map centering on cold start)
 
   /// Save the last known user position so the map can center immediately on next open.
   Future<void> saveLastPosition(double lat, double lng) async {

@@ -9,7 +9,7 @@ extension BuildContextX on BuildContext {
   MediaQueryData get mediaQuery => MediaQuery.of(this);
   Size get screenSize => mediaQuery.size;
 
-  /// Shorthand for AppLocalizations.of(context)! — industry-standard pattern.
+  /// Shorthand for AppLocalizations.of(context)! - industry-standard pattern.
   /// Usage: `context.l10n.keyName` instead of `AppLocalizations.of(context)!.keyName`
   AppLocalizations get l10n => AppLocalizations.of(this)!;
 }

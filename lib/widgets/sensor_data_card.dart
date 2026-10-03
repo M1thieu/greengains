@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../core/themes.dart';
 import 'time_ago_text.dart';
 
-// ── SensorDataCard layout constants ──────────────────────────────────────────
+// SensorDataCard layout constants
 const _kSensorIconPad     = AppTheme.spaceXs;     //  8 — icon container padding
 const _kSensorValuePadH   = AppTheme.spaceXs;     //  8 — value pill h-padding
 const _kSensorValuePadV   = AppTheme.spaceXxxs;   //  2 — value pill v-padding
@@ -125,7 +125,7 @@ class _SensorDataCardState extends State<SensorDataCard>
                 padding: const EdgeInsets.all(_kSensorIconPad),
                 decoration: BoxDecoration(
                   // Flat icon bg: primary tint when active, surfaceActive when not.
-                  // No gradient, no glow — Linear/Vercel flat icon style.
+                  // No gradient, no glow - Linear/Vercel flat icon style.
                   color: isActive
                       ? _accent.withValues(alpha: 0.12)
                       : AppColors.surfaceActive(isDark),

@@ -30,10 +30,10 @@ import '../data/repositories/contribution_repository.dart';
 const _kLocationBtnSize = AppTheme.minTouchTarget; // 48
 
 
-// H3 resolution for live cell highlight (res 9 ≈ 174m edge length — city block scale)
+// H3 resolution for live cell highlight (res 9 ≈ 174m edge length - city block scale)
 const _kLiveCellResolution = 9;
 
-/// Home screen — full-screen map layout.
+/// Home screen - full-screen map layout.
 ///
 /// Layer order (bottom → top):
 ///   0. CoverageMapWidget (edge-to-edge background)
@@ -64,31 +64,31 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   final _subs = <StreamSubscription>[];
   StreamSubscription? _locationStreamSub; // kept separate — reassigned on reconnect
   /// Zone count at the moment tracking started (this foreground session).
-  /// 0 = tracking was already running when app opened — no delta shown.
+  /// 0 = tracking was already running when app opened - no delta shown.
   int _sessionStartZoneCount = 0;
   /// True when map is actively following the user's GPS position.
   final _followModeNotifier = ValueNotifier<bool>(false);
   List<H3Tile> _h3Tiles = [];
   List<H3Tile> _globalTiles = [];
   bool _h3TilesLoading = true;
-  /// Aggregated condition summary of all personal tiles — null if normal or no data.
+  /// Aggregated condition summary of all personal tiles - null if normal or no data.
   String? _areaConditionLine;
   DateTime? _lastTilesFetch;
   static const _kTilesCooldown = Duration(minutes: 2);
-  /// Retry counters — reset on success, capped at kMaxTileRetries.
+  /// Retry counters - reset on success, capped at kMaxTileRetries.
   int _h3RetryCount = 0;
   int _globalRetryCount = 0;
-  /// Flips true after 8s of loading with no response — shows "Starting up…" hint.
+  /// Flips true after 8s of loading with no response - shows "Starting up…" hint.
   bool _showSlowLoadHint = false;
   Timer? _slowLoadTimer;
-  /// Largest contiguous H3 hex cluster — computed off-thread after tiles load.
+  /// Largest contiguous H3 hex cluster - computed off-thread after tiles load.
 
-  /// Boundary of the H3 cell the user is currently inside — shown as live amber
+  /// Boundary of the H3 cell the user is currently inside - shown as live amber
   /// highlight on the map while tracking is active.
   List<LatLng>? _currentH3Boundary;
-  /// Last committed H3 cell index — the one currently rendered on the map.
+  /// Last committed H3 cell index - the one currently rendered on the map.
   BigInt? _currentH3Index;
-  /// Cells visited this session — shown as optimistic pending tiles before backend confirms.
+  /// Cells visited this session - shown as optimistic pending tiles before backend confirms.
   final Set<BigInt> _sessionVisitedCells = {};
   List<List<LatLng>> _pendingCellBoundaries = [];
   /// Candidate cell waiting for stability confirmation.
@@ -96,13 +96,13 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   /// How many consecutive GPS readings have landed in [_pendingH3Index].
   int _pendingH3Count = 0;
   /// Minimum consecutive hits before committing a new live cell.
-  /// At 10s GPS interval: 3 hits = ~30s — prevents H3 cell drift from low-accuracy
+  /// At 10s GPS interval: 3 hits = ~30s - prevents H3 cell drift from low-accuracy
   /// fixes leaking into the live map. Accuracy filter in ForegroundService now rejects
   /// >50m reads, so stable 3-hit confirmation eliminates the last ~5% drift cases.
   static const _kLiveCellStabilityThreshold = 3;
-  /// Cached tile count — avoids recomputing on every build frame.
+  /// Cached tile count - avoids recomputing on every build frame.
   int get _claimedTileCount => _h3Tiles.where((t) => t.boundary != null).length;
-  /// Current streak — pushed to the home-screen widget.
+  /// Current streak - pushed to the home-screen widget.
   int _currentStreak = 0;
   /// Whether community tiles are visible on the map.
   bool _showCommunity = true;
@@ -116,9 +116,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     _setupUploadSuccessListener();
     _checkBatteryOptimization();
     unawaited(_checkPermissionHealth());
-    // Load cached tiles off the main thread — map shows last known state before network.
+    // Load cached tiles off the main thread - map shows last known state before network.
     unawaited(_loadCachedTiles());
-    // Prefetch Firebase token before tile requests fire — avoids token latency
+    // Prefetch Firebase token before tile requests fire - avoids token latency
     // adding to the first network call. Fire-and-forget; Dio interceptor handles
     // the actual injection. This just warms the Firebase SDK's token cache.
     unawaited(FirebaseAuth.instance.currentUser?.getIdToken());
@@ -156,7 +156,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       _pendingCellBoundaries = [];
       _checkBatteryOptimization();
     } else {
-      // Tracking stopped — persist session data for return hint.
+      // Tracking stopped - persist session data for return hint.
       final gained = _claimedTileCount - _sessionStartZoneCount;
       final clampedGained = gained.clamp(0, 9999);
       unawaited(_prefs.saveLastSession(zonesGained: clampedGained));
@@ -176,7 +176,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     if (mounted && lost != _permissionLost) setState(() => _permissionLost = lost);
   }
 
-  // ── Bottom action bar controls ──────────────────────────────────────────────
+  // Bottom action bar controls
 
   bool _actionBusy = false;
   DateTime? _lastPosSave;
@@ -333,7 +333,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       _globalRetryCount = 0;
       _slowLoadTimer?.cancel();
       _showSlowLoadHint = false;
-      // Fire async work without awaiting — lifecycle callbacks must return synchronously.
+      // Fire async work without awaiting - lifecycle callbacks must return synchronously.
       if (_locationService.isRunning.value) {
         unawaited(_locationService.flushSensorBuffers());
       }
@@ -356,7 +356,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   Future<void> _checkServiceStatus() async {
     // The shared_preferences plugin caches the whole file in memory and only
-    // re-reads it on an explicit reload() — it has no way to know the native
+    // re-reads it on an explicit reload() - it has no way to know the native
     // side wrote to the same file directly (ForegroundService.stopForegroundService()
     // does, while the app was backgrounded). Without this, foregroundServiceEnabled
     // below could still read the stale "true" from before a Stop tapped from the
@@ -388,7 +388,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     final personalJson = _prefs.cachedPersonalTiles;
     final globalJson = _prefs.cachedGlobalTiles;
 
-    // Decode both on background isolates in parallel — don't block UI thread.
+    // Decode both on background isolates in parallel - don't block UI thread.
     final results = await Future.wait([
       if (personalJson != null)
         compute((String j) => jsonDecode(j) as Map<String, dynamic>, personalJson)
@@ -427,11 +427,11 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   }
 
   Future<void> _loadH3Tiles({bool force = false}) async {
-    // Skip if recently fetched — prevents hammering backend on every resume.
+    // Skip if recently fetched - prevents hammering backend on every resume.
     if (!force && _lastTilesFetch != null &&
         DateTime.now().difference(_lastTilesFetch!) < _kTilesCooldown) { return; }
     // Stale-while-revalidate: if we have cached tiles, keep showing them while
-    // fetching fresh data in background — no spinner, no blank map on resume.
+    // fetching fresh data in background - no spinner, no blank map on resume.
     // Only show spinner on true cold open (never had tiles yet).
     if (_h3Tiles.isEmpty) {
       setState(() => _h3TilesLoading = true);
@@ -462,7 +462,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         unawaited(_updateHomeWidget());
         // Persist for instant display on next open.
         unawaited(_prefs.setCachedPersonalTiles(jsonEncode(data)));
-        // Geocode neighborhood from the most-sampled tile centroid — fire-and-forget.
+        // Geocode neighborhood from the most-sampled tile centroid - fire-and-forget.
         // Only runs once (or when name is missing). Sends H3 cell centroid (~461m),
         // not the user's actual GPS position.
         if (_prefs.territoryLabel == null && response.tiles.isNotEmpty) {
@@ -536,13 +536,13 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       avgMovement: avgMovement,
       avgVibration: avgVibration,
     );
-    // Only show if not generic "normal" — surface surprises, not averages.
+    // Only show if not generic "normal" - surface surprises, not averages.
     final normal = l10n.insightNormal;
     setState(() => _areaConditionLine = line == normal ? null : line);
   }
 
   /// Load community coverage tiles (all users, cached 5 min on server).
-  /// Loads silently in background — never blocks the loading spinner.
+  /// Loads silently in background - never blocks the loading spinner.
   Future<void> _loadGlobalTiles() async {
     try {
       final data = await BackendClient.get(kApiTilesGlobal);
@@ -589,7 +589,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     }
   }
 
-  /// Return last saved position from prefs — used as initial map center
+  /// Return last saved position from prefs - used as initial map center
   /// so the map opens where the user was, not Colmar.
   LatLng? _cachedLocation() {
     final saved = _prefs.lastKnownPosition;
@@ -624,7 +624,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       _userLocationNotifier.value = smoothPos;
       _userAccuracyNotifier.value = locationData.accuracy;
       _updateCurrentH3Cell(smoothPos);
-      // Debounce persistence — raw GPS coords, not filtered
+      // Debounce persistence - raw GPS coords, not filtered
       final now = DateTime.now();
       if (_lastPosSave == null || now.difference(_lastPosSave!) >= const Duration(seconds: 60)) {
         _lastPosSave = now;
@@ -639,7 +639,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         h3f.GeoCoord(lat: pos.latitude, lon: pos.longitude),
         _kLiveCellResolution,
       );
-      // Already showing this cell — nothing to do.
+      // Already showing this cell - nothing to do.
       if (cellIndex == _currentH3Index) {
         _pendingH3Index = null;
         _pendingH3Count = 0;
@@ -647,7 +647,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       }
       // Stability gate: require N consecutive readings in the new cell before
       // committing. Prevents bus-speed bouncing where cells change every 5-15s
-      // due to GPS multipath — the hex stays locked until you've genuinely
+      // due to GPS multipath - the hex stays locked until you've genuinely
       // settled in the new cell.
       if (cellIndex == _pendingH3Index) {
         _pendingH3Count++;
@@ -657,7 +657,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       }
       if (_pendingH3Count < _kLiveCellStabilityThreshold) return;
 
-      // Stable — commit the new cell.
+      // Stable - commit the new cell.
       _currentH3Index = cellIndex;
       _pendingH3Index = null;
       _pendingH3Count = 0;
@@ -711,7 +711,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       child: Scaffold(
         body: Stack(
           children: [
-            // ── 0. Full-screen heatmap ────────────────────────────────────
+            // 0. Full-screen heatmap
             ListenableBuilder(
               listenable: Listenable.merge([
                 _userLocationNotifier,
@@ -744,7 +744,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               },
             ),
 
-            // ── 0b. Cold-start hint — shown after 8s if still loading ───
+            // 0b. Cold-start hint - shown after 8s if still loading
             if (_showSlowLoadHint)
               Positioned(
                 bottom: bottomPadding + AppTheme.floatingNavHeight + AppTheme.spaceXxl,
@@ -768,7 +768,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 ),
               ),
 
-            // ── Overlays ──────────────────────────────────────────────────
+            // Overlays
             SafeArea(
               child: Padding(
                 padding: const EdgeInsets.only(bottom: AppTheme.floatingNavHeight),
@@ -776,7 +776,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
 
-                    // Top bar: Mine/All left — stats right
+                    // Top bar: Mine/All left - stats right
                     Padding(
                       padding: const EdgeInsets.symmetric(
                           horizontal: AppTheme.spaceMd, vertical: AppTheme.spaceSm),
@@ -792,7 +792,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                 setState(() => _showCommunity = val),
                           ),
                           const Spacer(),
-                          // Area summary top-right — tap navigates to Stats
+                          // Area summary top-right - tap navigates to Stats
                           if (_claimedTileCount > 0)
                             _MapSummary(
                               claimedTileCount: _claimedTileCount,
@@ -806,7 +806,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
                     const Spacer(),
 
-                    // Zero-state — shown once to new users before first zone
+                    // Zero-state - shown once to new users before first zone
                     if (_h3Tiles.isEmpty && !_h3TilesLoading && !_locationService.isRunning.value)
                       const _ZeroStateCard(),
 
@@ -833,7 +833,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                         child: _BatteryHint(onTap: _openBatteryDialog),
                       ),
 
-                    // Bottom row — floating buttons, no container
+                    // Bottom row - floating buttons, no container
                     Padding(
                       padding: const EdgeInsets.only(
                           left: AppTheme.spaceMd,
@@ -891,10 +891,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   }
 }
 
-// ─── Map overlay pieces ───────────────────────────────────────────────────────
+// Map overlay pieces
 
 /// One compact panel: area mapped, then neighbourhood and any notable
-/// condition as quiet secondary lines. Streak and today's gain live in Stats —
+/// condition as quiet secondary lines. Streak and today's gain live in Stats -
 /// the map stays the focus.
 class _MapSummary extends StatelessWidget {
   const _MapSummary({
@@ -967,7 +967,7 @@ class _MapSummary extends StatelessWidget {
   }
 }
 
-/// Shown once to new users before their first zone — fully static, so `const`
+/// Shown once to new users before their first zone - fully static, so `const`
 /// keeps it out of every rebuild.
 class _ZeroStateCard extends StatelessWidget {
   const _ZeroStateCard();
@@ -1021,7 +1021,7 @@ class _ZeroStateCard extends StatelessWidget {
   }
 }
 
-// ─── Bottom action bar ────────────────────────────────────────────────────────
+// Bottom action bar
 
 class _HomeActionBar extends StatelessWidget {
   const _HomeActionBar({
@@ -1046,7 +1046,7 @@ class _HomeActionBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     if (!isRunning) {
-      // Icon-only, like a media player's play button — no label needed, the
+      // Icon-only, like a media player's play button - no label needed, the
       // icon language is already universal.
       return _ActionButton(
         semanticLabel: l10n.homeActionStart,
@@ -1085,7 +1085,7 @@ class _HomeActionBar extends StatelessWidget {
 }
 
 /// Icon-only circular action button. [semanticLabel] carries the meaning for
-/// screen readers since there is no visible text — the icon alone (play/stop,
+/// screen readers since there is no visible text - the icon alone (play/stop,
 /// same convention as any media player) is enough for sighted users.
 class _ActionButton extends StatelessWidget {
   const _ActionButton({
@@ -1160,7 +1160,7 @@ class _ActionButton extends StatelessWidget {
 
 enum _ActionBtnStyle { primary, danger }
 
-// ─── Private widgets ────────────────────────────────────────────────────────
+// Private widgets
 
 /// Shows gps_fixed (primary tint) when follow mode is active, gps_not_fixed otherwise.
 class _MyLocationButton extends StatelessWidget {
@@ -1174,7 +1174,7 @@ class _MyLocationButton extends StatelessWidget {
       valueListenable: followModeNotifier ?? ValueNotifier(false),
       builder: (context, isFollowing, _) {
         // Standard pattern (Google Maps / Apple Maps):
-        // Button background stays white always — icon color signals state.
+        // Button background stays white always - icon color signals state.
         return Material(
           color: AppColors.mapOverlayDark,
           shape: const CircleBorder(),
@@ -1204,7 +1204,7 @@ class _MyLocationButton extends StatelessWidget {
 }
 
 /// Bottom sheet showing live sensor readings.
-/// Opened when user taps the status chip — progressive disclosure pattern.
+/// Opened when user taps the status chip - progressive disclosure pattern.
 class _SensorLiveSheet extends StatelessWidget {
   const _SensorLiveSheet({required this.locationService});
   final ForegroundLocationService locationService;
@@ -1265,7 +1265,7 @@ class _SensorLiveSheet extends StatelessWidget {
   }
 }
 
-/// "What leaves your phone" — plain-language statement of exactly what is
+/// "What leaves your phone" - plain-language statement of exactly what is
 /// uploaded, and explicitly what is NOT collected. Trust through visibility.
 class _TransparencyCard extends StatelessWidget {
   const _TransparencyCard({required this.locationService});
@@ -1293,7 +1293,7 @@ class _TransparencyCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // The line that matters — what we do NOT take.
+                  // The line that matters - what we do NOT take.
                   Text(
                     l10n.transparencyNothingElse,
                     style: theme.textTheme.bodySmall?.copyWith(
@@ -1331,7 +1331,7 @@ class _TransparencyCard extends StatelessWidget {
   }
 }
 
-/// Map layer toggle — switches between personal and community coverage tiles.
+/// Map layer toggle - switches between personal and community coverage tiles.
 /// Mine / All segmented pill toggle.
 class _MineAllToggle extends StatelessWidget {
   const _MineAllToggle({
@@ -1404,7 +1404,7 @@ class _Seg extends StatelessWidget {
   }
 }
 
-/// Small circular info button — opens sensor sheet.
+/// Small circular info button - opens sensor sheet.
 class _InfoButton extends StatelessWidget {
   const _InfoButton({required this.onTap});
   final VoidCallback onTap;
@@ -1473,7 +1473,7 @@ class _BatteryHint extends StatelessWidget {
 }
 
 /// Persistent banner shown when background location permission was revoked
-/// while tracking is supposed to be running. Not dismissable — stays until fixed.
+/// while tracking is supposed to be running. Not dismissable - stays until fixed.
 class _PermissionLostCard extends StatelessWidget {
   const _PermissionLostCard({required this.onFix});
   final VoidCallback onFix;

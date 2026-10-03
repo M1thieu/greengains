@@ -58,7 +58,7 @@ class ForegroundLocationService {
   final ValueNotifier<UploadStatusSnapshot> uploadStatus =
       ValueNotifier(const UploadStatusSnapshot());
 
-  /// Live sensor snapshot — fires on every light or pressure update.
+  /// Live sensor snapshot - fires on every light or pressure update.
   /// Null fields = sensor hasn't reported yet this session.
   final liveConditions = ValueNotifier<({int? lux, double? hpa, double? rms})>(
     (lux: null, hpa: null, rms: null),
@@ -96,7 +96,7 @@ class ForegroundLocationService {
       );
     }
 
-    // Load last magnetic reading (magnitude only — x/y/z are orientation-dependent)
+    // Load last magnetic reading (magnitude only - x/y/z are orientation-dependent)
     final magnetic = prefs.getLastMagnetic();
     if (magnetic != null) {
       _lastMagneticField = MagneticFieldData(
@@ -270,7 +270,7 @@ class ForegroundLocationService {
   /// Check if the foreground service is currently running
   Future<bool> isServiceRunning() async {
     // A state change is in progress (start/stop/pause/resume): treat as running and
-    // skip the isTrackingPaused query — racing it would overwrite the in-flight change.
+    // skip the isTrackingPaused query - racing it would overwrite the in-flight change.
     if (_isChangingState) {
       return true;
     }
@@ -278,7 +278,7 @@ class ForegroundLocationService {
     try {
       final result = await _fgChannel.invokeMethod<bool>('isForegroundServiceRunning');
       _isRunningNotifier.value = result ?? false;
-      // Only query paused state if the service is actually running — avoids a stale
+      // Only query paused state if the service is actually running - avoids a stale
       // false overwriting an in-flight pauseTracking/resumeTracking result.
       if (result == true) {
         final paused = await _fgChannel.invokeMethod<bool>('isTrackingPaused');

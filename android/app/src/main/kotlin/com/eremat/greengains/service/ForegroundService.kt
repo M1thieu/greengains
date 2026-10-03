@@ -99,19 +99,19 @@ class ForegroundService : Service() {
     private var nativeSamplerJob: Job? = null
     private var trackingPausedState: Boolean = false
 
-    // Session wall-clock start — used to compute elapsed time shown in the notification.
+    // Session wall-clock start - used to compute elapsed time shown in the notification.
     // Set when sensors start, cleared on pause or stop.
     private var sessionStartMillis: Long? = null
 
-    // Upload count at session start — delta on stop = uploads from this session only.
+    // Upload count at session start - delta on stop = uploads from this session only.
     private var sessionStartUploads: Int = 0
 
-    // Zone count at session start — delta = zones discovered this session (shown live in notification).
+    // Zone count at session start - delta = zones discovered this session (shown live in notification).
     private var sessionStartZones: Int = 0
 
     // PARTIAL_WAKE_LOCK: keeps CPU alive during upload batches on aggressive OEMs (Xiaomi, Samsung,
     // Huawei) that suspend the CPU between sensor intervals. Without this, mid-batch upload drops
-    // are silent — data is lost with no error. Held only during the NativeBackendUploader flush
+    // are silent - data is lost with no error. Held only during the NativeBackendUploader flush
     // window (~2-5s), not permanently, so battery impact is negligible.
     // Pattern from Honeygain ProxyService (foregroundServiceType=specialUse + WAKE_LOCK).
     // TODO(lucky-pot): when daily reward logic lands, acquire this lock during the reward check too.
@@ -124,7 +124,7 @@ class ForegroundService : Service() {
     private val _gyroscopeFlow = MutableStateFlow<FloatArray?>(null)
     private val _locationFlow = MutableStateFlow<Location?>(null)
 
-    // Temporal averaging windows — accumulate samples between snapshots, then average.
+    // Temporal averaging windows - accumulate samples between snapshots, then average.
     // Reduces noise by ~√N (N = samples collected per window). Thread-safe via windowLock.
     private val windowLock = Any()
     private val lightWindow = mutableListOf<Float>()
@@ -133,7 +133,7 @@ class ForegroundService : Service() {
     private val gyroWindow = mutableListOf<FloatArray>()
     private val magneticWindow = mutableListOf<FloatArray>()
 
-    // Kalman filter for barometric pressure — persists across snapshots, tracks real weather
+    // Kalman filter for barometric pressure - persists across snapshots, tracks real weather
     // changes while optimally suppressing MEMS sensor noise (tuned for BME280-class sensors).
     private val pressureKalman = KalmanFilter1D.forPressure()
 
@@ -145,7 +145,7 @@ class ForegroundService : Service() {
     // transient decay spikes. Null until first reading so cold start doesn't bias the filter.
     private var lightEma: Float? = null
 
-    // GPS jump detection — track last physically-plausible location to reject multipath glitches.
+    // GPS jump detection - track last physically-plausible location to reject multipath glitches.
     private var lastAcceptedLocation: Location? = null
 
     // Accuracy-weighted smoothing of the position that is UPLOADED. _locationFlow stays the raw
@@ -174,9 +174,9 @@ class ForegroundService : Service() {
         uploadWakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "greengains:upload")
         // Not reference-counted: NativeBackendUploader.uploadBatch() may call acquire() again for
         // each extra batch in the same cycle without an intervening release(). Reference-counted
-        // (the WakeLock default — developer.android.com/reference/android/os/PowerManager.WakeLock)
+        // (the WakeLock default - developer.android.com/reference/android/os/PowerManager.WakeLock)
         // requires one release() per acquire(); its single release() in `finally` would then only
-        // undo the LAST acquire(), leaving the lock held — and the CPU unable to suspend — for up
+        // undo the LAST acquire(), leaving the lock held - and the CPU unable to suspend - for up
         // to the 60s timeout of every earlier acquire() in that cycle. With this off, one release()
         // always fully releases it, matching what every call site's comment already assumes.
         uploadWakeLock.setReferenceCounted(false)
@@ -324,14 +324,14 @@ class ForegroundService : Service() {
             }
         }
 
-        // Proximity: real-time pocket detection signal — feed directly to quality analyzer
+        // Proximity: real-time pocket detection signal - feed directly to quality analyzer
         coroutineScope.launch {
             proximitySensor.dataFlow.collect { near ->
                 near?.let { qualityAnalyzer.onProximity(it) }
             }
         }
 
-        // Magnetometer: raw magnetic field data — accumulated for averaging + streamed to Flutter
+        // Magnetometer: raw magnetic field data - accumulated for averaging + streamed to Flutter
         coroutineScope.launch {
             magnetometer.dataFlow.collect { values ->
                 values?.let {
@@ -369,7 +369,7 @@ class ForegroundService : Service() {
 
         // Handle pause/resume actions.
         // If the service was killed while paused and restarted via notification,
-        // `running` is still false here — ensure it's initialised before delegating.
+        // `running` is still false here - ensure it's initialised before delegating.
         if (intent?.action == ACTION_PAUSE_TRACKING) {
             if (!running) startForegroundService()
             pauseTracking()
@@ -469,7 +469,7 @@ class ForegroundService : Service() {
         trackingPausedState = true
         trackingPaused = true
         setTrackingPausedPref(true)
-        // Keep sensors running for live readings — only stop GPS upload pipeline
+        // Keep sensors running for live readings - only stop GPS upload pipeline
         stopLocationUpdates()
         stopNativeUploader()
         notifyTrackingState()
@@ -482,7 +482,7 @@ class ForegroundService : Service() {
         trackingPausedState = false
         trackingPaused = false
         setTrackingPausedPref(false)
-        // Sensors already running — just restart GPS + uploader
+        // Sensors already running - just restart GPS + uploader
         startLocationUpdates()
         sessionStartMillis = System.currentTimeMillis()
         startNativeUploader()
@@ -501,7 +501,7 @@ class ForegroundService : Service() {
         motionSensors.flush()
         magnetometer.flush()
         auxSensors.flush()
-        // ProximitySensor is a wakeup sensor — no FIFO to flush
+        // ProximitySensor is a wakeup sensor - no FIFO to flush
         Log.d(TAG, "FIFO buffers flushed")
     }
 
@@ -540,7 +540,7 @@ class ForegroundService : Service() {
         currentGpsPriority = priority
 
         // LocationRequest.Builder (API 21+) replaces the deprecated LocationRequest.create().
-        // setMaxUpdateDelayMillis: batch location callbacks — CPU wakes 3x less often.
+        // setMaxUpdateDelayMillis: batch location callbacks - CPU wakes 3x less often.
         // setMinUpdateDistanceMeters: skip callbacks if device hasn't moved (STATIONARY only).
         val isStationary = priority == Priority.PRIORITY_BALANCED_POWER_ACCURACY
         val request = LocationRequest.Builder(priority, intervalMs)
@@ -582,7 +582,7 @@ class ForegroundService : Service() {
         val wasStationary = currentMotionState == MotionState.STATIONARY
         val becomingStationary = motionState == MotionState.STATIONARY
 
-        // Proximity is a wakeup sensor — no FIFO, fires an immediate CPU interrupt on every
+        // Proximity is a wakeup sensor - no FIFO, fires an immediate CPU interrupt on every
         // change. When stationary the user isn't moving in/out of pockets, so the cost is
         // pure overhead. Stop it when still, restart when motion resumes.
         if (becomingStationary && !wasStationary) {
@@ -699,7 +699,7 @@ class ForegroundService : Service() {
             magneticWindow.clear()
         }
 
-        // IQR outlier rejection — removes sensor glitches before averaging.
+        // IQR outlier rejection - removes sensor glitches before averaging.
         // Tukey's method (Q1 - 1.5*IQR, Q3 + 1.5*IQR): textbook robust statistics.
         val cleanLight    = rejectOutliersFloat(rawLight)
         val cleanPressure = rejectOutliersFloat(rawPressure)
@@ -1008,7 +1008,7 @@ class ForegroundService : Service() {
      * On stock Android a foreground service survives this automatically, but many OEM ROMs
      * (Samsung, Xiaomi, OPPO) kill the service on task removal. Scheduling a restart intent
      * ensures the service comes back within ~1 second if it was running before.
-     * Only reschedules if tracking was actually enabled — avoids phantom restarts.
+     * Only reschedules if tracking was actually enabled - avoids phantom restarts.
      */
     override fun onTaskRemoved(rootIntent: Intent?) {
         super.onTaskRemoved(rootIntent)
@@ -1048,7 +1048,7 @@ class ForegroundService : Service() {
         private const val TAG = "GreenGainsFGService"
         private const val CALIBRATION_TAG = "GG_FIX"
         private val LOCATION_UPDATES_INTERVAL_MS = 10.seconds.inWholeMilliseconds
-        // Adaptive snapshot intervals — motion state drives how often we flush the averaging window.
+        // Adaptive snapshot intervals - motion state drives how often we flush the averaging window.
         // More samples per window = better SNR. Fewer snapshots = fewer DB rows.
         private const val NATIVE_SAMPLE_INTERVAL_STATIONARY_MS = 60_000L // ~300 samples → ~17x noise reduction
         private const val NATIVE_SAMPLE_INTERVAL_LIGHT_MS      = 30_000L // ~150 samples → ~12x noise reduction

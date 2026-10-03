@@ -12,7 +12,7 @@ import '../l10n/app_localizations.dart';
 class SensorInsights {
   SensorInsights._();
 
-  // ── ISA constants (International Standard Atmosphere) ────────────────────
+  // ISA constants (International Standard Atmosphere)
   // All pressure-derived calculations use these rather than inline magic numbers.
   static const double _kP0 = 1013.25; // sea-level pressure, hPa
   static const double _kT0 = 288.15;  // sea-level temperature, K
@@ -30,10 +30,10 @@ class SensorInsights {
   static double baroAltitudeM(double hPa) =>
       _kBaroScale * (1.0 - pow(hPa / _kP0, _kBaroExp));
 
-  // ── Light / luminosity ────────────────────────────────────────────────────
+  // Light / luminosity
   // Night thresholds approximate Bortle sky-brightness classes; day thresholds
   // are standard illuminance references (overcast ≈ 1–2k lux, full daylight
-  // ≈ 10–25k lux). Empirical perceptual scales, not derivable from an ODE —
+  // ≈ 10–25k lux). Empirical perceptual scales, not derivable from an ODE -
   // a luminance classification has no governing differential equation.
   static const double _kLuxPristine  = 0.5;    // true dark sky
   static const double _kLuxRural     = 5.0;    // rural edge
@@ -61,11 +61,11 @@ class SensorInsights {
     return                          SunlightLevel.intense;
   }
 
-  // ── Surface quality ───────────────────────────────────────────────────────
+  // Surface quality
   // UNVALIDATED: these cut a normalised 0–1 vibration score into four labels,
   // but the cut points were chosen by hand, not fitted to observed data. They
   // cannot come from an ODE (a classification boundary is not a dynamical
-  // quantity) — the principled replacement is percentiles of the real
+  // quantity) - the principled replacement is percentiles of the real
   // distribution of vibration_score in sensor_aggregates_5m.
   static const double _kSurfaceSmooth = 0.15;
   static const double _kSurfaceNormal = 0.35;
@@ -85,7 +85,7 @@ class SensorInsights {
     return SurfaceQuality.poor;
   }
 
-  // ── Urban heat proxy ──────────────────────────────────────────────────────
+  // Urban heat proxy
   // WEAKEST MODEL IN THIS FILE. Pressure does not drive temperature; this
   // linear lux+pressure blend is a stand-in for a measurement we did not have
   // when it was written. It is not a surface energy balance and should not be
@@ -112,9 +112,9 @@ class SensorInsights {
     return                            HeatLevel.hot;
   }
 
-  // ── Insight sentence builders ─────────────────────────────────────────────
+  // Insight sentence builders
 
-  /// One-sentence environmental summary for a tile — shown in tile info sheet
+  /// One-sentence environmental summary for a tile - shown in tile info sheet
   /// and session summary. Only surfaces readings that are anomalous or exceptional.
   /// Normal conditions return [insightNormal] rather than calling out every reading.
   static String tileInsight(
@@ -174,7 +174,7 @@ class SensorInsights {
     (5,    MapperRole.pioneer),
   ];
 
-  /// Mapper role based on lifetime coverage cells — used on profile + session summary.
+  /// Mapper role based on lifetime coverage cells - used on profile + session summary.
   static MapperRole mapperRole(int coverageCells) {
     for (final (threshold, role) in _kRoleTiers) {
       if (coverageCells >= threshold) return role;
@@ -193,7 +193,7 @@ class SensorInsights {
     }
   }
 
-  /// Returns the dominant character of a session — used for the dynamic route label.
+  /// Returns the dominant character of a session - used for the dynamic route label.
   static SessionCharacter sessionCharacter({
     required bool isNight,
     double? avgLux,
@@ -223,7 +223,7 @@ class SensorInsights {
     return SessionCharacter.quiet;
   }
 
-  /// All-caps label for the session character — shown as the insight card header.
+  /// All-caps label for the session character - shown as the insight card header.
   static String sessionCharacterLabel(AppLocalizations l10n, SessionCharacter c) {
     switch (c) {
       case SessionCharacter.darkSky:    return l10n.sessionCharacterDarkSky;
@@ -236,7 +236,7 @@ class SensorInsights {
   }
 
   /// Compact bullet-separated condition line for the tile popup.
-  /// Returns "dark · quiet · rough road" — each component lowercase.
+  /// Returns "dark · quiet · rough road" - each component lowercase.
   static String tileConditionLine(
     AppLocalizations l10n, {
     required bool isNight,
@@ -289,7 +289,7 @@ class SensorInsights {
     return parts.join(' · ');
   }
 
-  /// Session-level summary — what was the dominant environmental character
+  /// Session-level summary - what was the dominant environmental character
   /// of this session. Compares against a population baseline (0–100 percentile).
   static String sessionInsight(
     AppLocalizations l10n, {
@@ -329,7 +329,7 @@ class SensorInsights {
     return l10n.insightNormal;
   }
 
-  // ── Private helpers ───────────────────────────────────────────────────────
+  // Private helpers
 
   static String _lightPollutionSentence(AppLocalizations l10n, double lux) {
     switch (lightPollutionLevel(lux)) {
@@ -360,7 +360,7 @@ class SensorInsights {
   }
 }
 
-// ── Enums ─────────────────────────────────────────────────────────────────────
+// Enums
 
 enum LightPollutionLevel { pristine, low, moderate, high, severe }
 enum SunlightLevel       { shaded, partial, bright, intense }
@@ -369,7 +369,7 @@ enum HeatLevel           { cool, neutral, warm, hot }
 enum SessionCharacter    { darkSky, brightCity, hotRoute, roughRoad, sunExposed, quiet }
 enum MapperRole          { contributor, pioneer, explorer, cartographer, cityMapper, urbanScientist }
 
-// ── Color mapping (for map tiles and badges) ──────────────────────────────────
+// Color mapping (for map tiles and badges)
 
 extension LightPollutionLevelX on LightPollutionLevel {
   Color get color {

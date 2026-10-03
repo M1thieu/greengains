@@ -150,7 +150,7 @@ fastify.get('/health', async (request, reply) => {
     status: isFirebaseInitialized() ? 'enabled' : 'disabled',
   };
 
-  // Data freshness — INFORMATIONAL ONLY, never affects `status`. "Database is up" says nothing
+  // Data freshness - INFORMATIONAL ONLY, never affects `status`. "Database is up" says nothing
   // about whether data is still arriving; a quiet system is legitimately quiet, so staleness
   // must not mark the service unhealthy (it would page on every idle weekend). Index-only
   // MAX() on timestamp_utc; any failure here is swallowed so it can never fail the probe.
@@ -208,7 +208,7 @@ process.on('SIGINT', () => shutdown('SIGINT'));
 // Start server
 const start = async () => {
   try {
-    // Bind port first — Render health checks start immediately after deploy.
+    // Bind port first - Render health checks start immediately after deploy.
     // DB init runs after so a slow Supabase warmup doesn't fail the health check.
     await fastify.listen({
       port: config.port,
@@ -220,7 +220,7 @@ const start = async () => {
       env: config.nodeEnv,
     }, 'HTTP server listening — initializing DB...');
 
-    // Initialize database (retries with backoff — see database.ts)
+    // Initialize database (retries with backoff - see database.ts)
     await initDatabase();
 
     // Run pending migrations
@@ -233,7 +233,7 @@ const start = async () => {
       firebase: isFirebaseInitialized() ? 'enabled' : 'disabled',
     }, 'GreenGains backend ready');
 
-    // One-time H3 backfill — populates h3_res9/h3_res8/h3_index for existing rows.
+    // One-time H3 backfill - populates h3_res9/h3_res8/h3_index for existing rows.
     // No-op if all rows are already populated. Runs before the aggregation job.
     runH3Backfill().catch((error) =>
       fastify.log.error({ err: error }, 'H3 backfill failed (non-fatal)'),

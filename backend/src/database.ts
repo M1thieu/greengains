@@ -13,7 +13,7 @@ export async function initDatabase(): Promise<void> {
     max: DB_POOL_MAX,
     idleTimeoutMillis: 30000,
     connectionTimeoutMillis: 10000,
-    // keepAlive must be off for Transaction pooler (PgBouncer) — it resets
+    // keepAlive must be off for Transaction pooler (PgBouncer) - it resets
     // the server-side connection after each transaction, making keepalive packets
     // arrive on a different backend socket than the one that sent them.
     keepAlive: false,
@@ -27,7 +27,7 @@ export async function initDatabase(): Promise<void> {
     console.error('Unexpected pool error:', err);
   });
 
-  // Test connection — retry with backoff for Render cold-start / Supabase warmup.
+  // Test connection - retry with backoff for Render cold-start / Supabase warmup.
   // pg-pool will auto-reconnect at query time; this just validates the config early.
   for (let attempt = 1; attempt <= DB_RETRY_MAX_ATTEMPTS; attempt++) {
     try {

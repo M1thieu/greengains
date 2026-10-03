@@ -4,7 +4,7 @@
  *
  * Same shape as the well-known `p-limit`/`p-map` pattern; hand-rolled here (it's a dozen lines)
  * rather than adding a dependency for it. Two things it buys over a bare `Promise.all(items.map(fn))`:
- *  - a slow or hanging call does not force every other call to have started already — useful when
+ *  - a slow or hanging call does not force every other call to have started already - useful when
  *    `fn` hits a third-party API that would otherwise see hundreds of simultaneous requests.
  *  - one item's `fn` call still runs to completion (result or rejection) independently of the
  *    others; a single failure surfaces after all currently-running calls finish, not mid-flight.

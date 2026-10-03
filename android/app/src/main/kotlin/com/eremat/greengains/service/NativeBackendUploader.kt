@@ -44,28 +44,28 @@ import java.util.concurrent.atomic.AtomicInteger
 import java.util.zip.GZIPOutputStream
 
 /**
- * Native Backend Uploader — runs independently of Flutter.
+ * Native Backend Uploader - runs independently of Flutter.
  *
  * Reliability guarantees (aligned with Telegraf/Safecast patterns):
  *
- *  1. Idempotent batches — each batch carries a stable UUID ([PendingBatch.batchId])
+ *  1. Idempotent batches - each batch carries a stable UUID ([PendingBatch.batchId])
  *     frozen at creation. Retries reuse the same ID + timestamp so the server's
  *     ON CONFLICT deduplication works correctly (no duplicate rows on retry).
  *
- *  2. Exponential backoff — failures schedule retry at 30s → 1m → 2m → 4m → 8m,
+ *  2. Exponential backoff - failures schedule retry at 30s → 1m → 2m → 4m → 8m,
  *     capped at 30m. Prevents hammering a temporarily unavailable server.
  *
- *  3. Max retry limit — after [MAX_RETRIES] attempts the batch is dropped. Prevents
+ *  3. Max retry limit - after [MAX_RETRIES] attempts the batch is dropped. Prevents
  *     unbounded in-memory queue growth during prolonged outages.
  *
- *  4. Batch age limit — batches older than [MAX_BATCH_AGE_MS] (4h) are silently
+ *  4. Batch age limit - batches older than [MAX_BATCH_AGE_MS] (4h) are silently
  *     dropped. Stale environmental data has diminishing value and merging very old
  *     readings with current tiles would skew time-series accuracy.
  *
- *  5. Gzip compression — payloads are compressed before transmission, typically
+ *  5. Gzip compression - payloads are compressed before transmission, typically
  *     saving 60–70% of bandwidth. The server's decompressPayload() handles this.
  *
- *  6. Battery context — battery level + charging state are included in every upload
+ *  6. Battery context - battery level + charging state are included in every upload
  *     so the backend can weight data quality (low-battery devices often move less).
  */
 class NativeBackendUploader(
@@ -81,7 +81,7 @@ class NativeBackendUploader(
     private val uploadWakeLock: android.os.PowerManager.WakeLock? = null,
 ) {
 
-    // ── PendingBatch ──────────────────────────────────────────────────────────
+    // PendingBatch
 
     /**
      * An immutable snapshot of sensor readings ready to upload.
@@ -102,11 +102,11 @@ class NativeBackendUploader(
     private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private var uploadJob: Job? = null
 
-    // Live sensor data — readings collected between upload cycles
+    // Live sensor data - readings collected between upload cycles
     private val sensorBuffer = mutableListOf<SensorReading>()
     private val maxBufferSize = 1000
 
-    // Retry queue — failed PendingBatches waiting for their backoff window to expire.
+    // Retry queue - failed PendingBatches waiting for their backoff window to expire.
     // Kept separate from sensorBuffer so retries don't mix with fresh live data.
     private val retryQueue = ArrayDeque<PendingBatch>()
 
@@ -121,7 +121,7 @@ class NativeBackendUploader(
     // normal 5-min cycle, so ordinary batches are never split.
     private val MAX_BATCH_SPAN_MS = 10L * 60_000L
 
-    /** What happened to one attempted batch — decides whether the rest of the flush continues. */
+    /** What happened to one attempted batch - decides whether the rest of the flush continues. */
     private enum class UploadResult { SUCCESS, DROPPED, RETRY_LATER }
 
     // Weights for the batch centroid. A reported accuracy below the floor is not trusted
@@ -132,7 +132,7 @@ class NativeBackendUploader(
     private val METRES_PER_DEG_LAT = 111_320.0
     private fun sq(v: Double) = v * v
 
-    // ── Connectivity telemetry ────────────────────────────────────────────────
+    // Connectivity telemetry
     // Cumulative counters. Each upload reports the DELTA since the last SUCCESSFUL upload
     // (see TelemetryMark), so failures that happen while offline are reported by the first
     // batch that gets through instead of being lost with the failed attempt.
@@ -152,7 +152,7 @@ class NativeBackendUploader(
     )
     private var lastSentMark = TelemetryMark()
 
-    // ── Sync health (developer tooling, debug builds only) ─────────────────────
+    // Sync health (developer tooling, debug builds only)
     // A failing uploader used to be completely silent: the last successful upload was months
     // old and nothing on the phone said so. Persisted once per cycle for a debug-only panel.
     private var lastAttemptAtMs = 0L
@@ -277,8 +277,8 @@ class NativeBackendUploader(
 
         // Pooled keep-alive sockets stay bound to the network they were opened on. After a
         // Wi-Fi <-> cellular handoff they are dead, so drop them and let the next call open a
-        // fresh connection. (Sourced only from a public OkHttp issue, square/okhttp#4789 —
-        // there is no maintainer-endorsed fix — so this is a defensive measure, not a guarantee.)
+        // fresh connection. (Sourced only from a public OkHttp issue, square/okhttp#4789 -
+        // there is no maintainer-endorsed fix - so this is a defensive measure, not a guarantee.)
         networkMonitor?.transitionListener = { _, _ ->
             coroutineScope.launch { httpClient.connectionPool.evictAll() }
         }
@@ -443,7 +443,7 @@ class NativeBackendUploader(
                 .addHeader("Content-Encoding", "gzip")
                 .addHeader("X-API-Key", apiKey)
 
-            // Log presence only — never any part of a secret or token.
+            // Log presence only - never any part of a secret or token.
             prefs.getString(AppPrefs.DEVICE_SECRET, null)?.let {
                 reqBuilder.addHeader("x-device-secret", it)
                 Log.d(TAG, "Auth: device secret present")
@@ -559,7 +559,7 @@ class NativeBackendUploader(
     }
 
     /**
-     * 400 / 413 / 422 mean the server understood the request and rejected THIS payload —
+     * 400 / 413 / 422 mean the server understood the request and rejected THIS payload -
      * resending the identical bytes can never succeed, so drop instead of burning five
      * retries. Everything else (5xx, 401/403 while a token refreshes, 408, 429) can heal.
      */
@@ -883,7 +883,7 @@ class NativeBackendUploader(
     /**
      * Returns current WiFi signal strength in dBm, or null if not on WiFi / unavailable.
      * Typical range: -30 (excellent) to -90 (unusable). RSSI_UNKNOWN (-127) is filtered out.
-     * No SSID or MAC is read — only signal level.
+     * No SSID or MAC is read - only signal level.
      */
     @Suppress("DEPRECATION")
     private fun readWifiRssi(): Int? {
@@ -899,7 +899,7 @@ class NativeBackendUploader(
 
     /**
      * Count of visible WiFi access points from the last OS scan.
-     * Uses cached scan results — no active scan triggered, no SSIDs or MACs read.
+     * Uses cached scan results - no active scan triggered, no SSIDs or MACs read.
      * Requires ACCESS_WIFI_STATE + ACCESS_FINE_LOCATION (both already declared).
      * Urban density proxy: more APs = denser built environment.
      */

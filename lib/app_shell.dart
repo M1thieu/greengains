@@ -9,7 +9,7 @@ import 'core/themes.dart';
 import 'services/location/foreground_location_service.dart';
 import 'widgets/press_scale_detector.dart';
 
-// ── Floating nav bar constants ─────────────────────────────────────────────────
+// Floating nav bar constants
 const _kNavBackgroundAlpha = 0.60;
 const _kNavBorderAlpha     = 0.08;
 const _kNavShadowAlpha     = 0.40;
@@ -17,7 +17,7 @@ const _kNavShadowBlur      = 32.0;
 const _kNavShadowOffsetY   = 12.0;
 
 /// Main navigation shell with floating bottom nav bar (Silencio-style).
-/// extendBody: true — map/content bleeds to full screen height behind the nav.
+/// extendBody: true - map/content bleeds to full screen height behind the nav.
 class AppShell extends StatefulWidget {
   const AppShell({super.key});
 
@@ -82,7 +82,7 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
     final bottomPadding = MediaQuery.paddingOf(context).bottom;
 
     return Scaffold(
-      // Map extends to full screen height — nav floats on top.
+      // Map extends to full screen height - nav floats on top.
       extendBody: true,
       body: PageView(
         controller: _pageController,
@@ -94,7 +94,7 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
           _KeepAlive(child: ProfileScreen(onGoToMap: () => _onTabSelected(0), onGoToStats: () => _onTabSelected(1))),
         ],
       ),
-      // Floating pill nav bar — RepaintBoundary isolates it from page rebuilds.
+      // Floating pill nav bar - RepaintBoundary isolates it from page rebuilds.
       bottomNavigationBar: RepaintBoundary(
         child: Padding(
         padding: EdgeInsets.only(
@@ -111,7 +111,7 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
             ),
             child: Container(
           height: AppTheme.floatingNavHeight,
-          // No borderRadius here — ClipRRect already clips the shape.
+          // No borderRadius here - ClipRRect already clips the shape.
           decoration: AppColors.glassDecoration(
             isDark: isDark,
             backgroundAlpha: _kNavBackgroundAlpha,
@@ -203,7 +203,7 @@ class _NavItem extends StatelessWidget {
                 size: AppIconSizes.md,
               ),
             ),
-            // Label only visible on selected tab — cleaner than always-visible labels
+            // Label only visible on selected tab - cleaner than always-visible labels
             AnimatedSize(
               duration: AppDurations.fast,
               curve: AppMotion.standard,

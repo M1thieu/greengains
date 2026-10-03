@@ -161,7 +161,7 @@ class GyroscopeData {
   String toString() => 'GyroscopeData(${magnitude.toStringAsFixed(2)} rad/s)';
 }
 
-/// Magnetometer data (µT — microtesla)
+/// Magnetometer data (µT - microtesla)
 class MagneticFieldData {
   final double x;
   final double y;

@@ -5,12 +5,12 @@ import { requireFirebaseAuth } from '../middleware/auth';
 import { MAX_REFERRAL_CODE_RETRIES, PG_UNIQUE_VIOLATION, REFERRAL_CODE_ALPHABET, REFERRAL_CODE_PATTERN } from '../constants';
 
 /**
- * Referral endpoints — all backed by the single `referrals` table.
+ * Referral endpoints - all backed by the single `referrals` table.
  *
  * event_type discriminator:
- *   'code'    — one row per user, their stable GG-XXXXX code
- *   'invite'  — appended each time owner copies/shares their link
- *   'convert' — appended when a new user signs up via a referral link
+ *   'code'    - one row per user, their stable GG-XXXXX code
+ *   'invite'  - appended each time owner copies/shares their link
+ *   'convert' - appended when a new user signs up via a referral link
  */
 export async function referralRoutes(fastify: FastifyInstance) {
   function generateReferralCode(): string {
@@ -60,7 +60,7 @@ export async function referralRoutes(fastify: FastifyInstance) {
     throw new Error(`Unable to allocate referral code after ${MAX_REFERRAL_CODE_RETRIES} attempts`);
   }
 
-  // ─── Routes ──────────────────────────────────────────────────────────────
+  // Routes
 
   /**
    * GET /api/v1/referrals/code
@@ -96,7 +96,7 @@ export async function referralRoutes(fastify: FastifyInstance) {
 
       try {
         const pool = getPool();
-        // Verify the code belongs to the caller — prevent spoofing
+        // Verify the code belongs to the caller - prevent spoofing
         const owns = await pool.query(
           `SELECT 1 FROM referrals WHERE owner_uid = $1 AND referral_code = $2 AND event_type = 'code'`,
           [uid, code],
@@ -121,7 +121,7 @@ export async function referralRoutes(fastify: FastifyInstance) {
    * POST /api/v1/referrals/convert
    * Logged when a new user signs up via a referral link.
    * Body: { referralCode: string }
-   * Idempotent — one conversion per invitee (partial unique index).
+   * Idempotent - one conversion per invitee (partial unique index).
    */
   fastify.post(
     '/api/v1/referrals/convert',

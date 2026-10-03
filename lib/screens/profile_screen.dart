@@ -23,7 +23,6 @@ import 'settings_screen.dart';
 
 
 /// Profile screen showing user information and quick stats
-/// REDESIGNED: Compact layout that fits without scrolling
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key, this.onGoToMap, this.onGoToStats});
   final VoidCallback? onGoToMap;
@@ -41,7 +40,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   int? _coverageCells;
   int? _currentStreak;
   int? _longestStreak;
-  // Previous display values — so count-up never resets to 0 on reload
+  // Previous display values - so count-up never resets to 0 on reload
   double _prevTotalUploads = 0;
   double _prevDaysActive = 0;
   double _prevKm2 = 0;
@@ -104,7 +103,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       );
     }
 
-    // Signed-in: collapsing SliverAppBar — avatar expands, shrinks on scroll
+    // Signed-in: collapsing SliverAppBar - avatar expands, shrinks on scroll
     return Scaffold(
       body: RefreshIndicator(
         onRefresh: _loadProfileStats,
@@ -235,7 +234,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             padding: EdgeInsets.fromLTRB(
                 AppTheme.spaceLg, topPad + AppTheme.spaceXxl + AppTheme.spaceSm, AppTheme.spaceLg, navBottom),
             children: [
-              // ── Avatar + identity ─────────────────────────────────────
+              // Avatar + identity
               Center(
                 child: Column(
                   children: [
@@ -310,15 +309,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
               const SizedBox(height: AppTheme.spaceXl),
 
-              // ── Streak hero ────────────────────────────────────────────
+              // Streak hero
               _buildStreakHero(theme, isDark, l10n),
               const SizedBox(height: AppTheme.spaceSm),
 
-              // ── Impact stats row ───────────────────────────────────────
+              // Impact stats row
               _buildImpactRow(theme, isDark, l10n),
               const SizedBox(height: AppTheme.spaceMd),
 
-              // ── Referral ───────────────────────────────────────────────
+              // Referral
               ReferralInviteCard(
                 user: user,
                 neighborhoodName: AppPreferences.instance.territoryLabel,
@@ -326,7 +325,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ],
           ),
         ),
-        // Top-right button — settings gear (sign out lives in Settings > Account)
+        // Top-right button - settings gear (sign out lives in Settings > Account)
         Positioned(
           top: topPad + AppTheme.spaceXxs,
           right: AppTheme.spaceXs,
@@ -769,7 +768,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 }
 
-// ── Mapper role chip ─────────────────────────────────────────────────────────
+// Mapper role chip
 
 class _MapperRoleChip extends StatelessWidget {
   const _MapperRoleChip({
@@ -785,7 +784,7 @@ class _MapperRoleChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final role = SensorInsights.mapperRole(cells);
     final label = SensorInsights.mapperRoleLabel(l10n, role);
-    // Plain accent text — a role under the name needs no pill around it.
+    // Plain accent text - a role under the name needs no pill around it.
     return Text(
       label,
       style: Theme.of(context).textTheme.labelMedium?.copyWith(

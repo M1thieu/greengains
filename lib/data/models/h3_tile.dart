@@ -1,6 +1,6 @@
 import 'package:latlong2/latlong.dart';
 
-/// H3 hexagon tile model — represents a single coverage cell.
+/// H3 hexagon tile model - represents a single coverage cell.
 class H3Tile {
   final String h3Index;
   final double confidence; // 0.0–1.0
@@ -11,15 +11,15 @@ class H3Tile {
   final int sampleCount;
   final int deviceCount;
   final List<LatLng>? boundary;
-  /// When this tile was last contributed to — shown in TileInfoSheet.
+  /// When this tile was last contributed to - shown in TileInfoSheet.
   final DateTime? lastUpdate;
-  /// Centroid of the tile — used locally to compute geohash for first-mapped lookup.
+  /// Centroid of the tile - used locally to compute geohash for first-mapped lookup.
   final LatLng? centroid;
 
   /// True for community/global tiles (other users); false for personal tiles.
   final bool isGlobal;
 
-  /// Sensor aggregates — only populated for personal tiles (from batch_json).
+  /// Sensor aggregates - only populated for personal tiles (from batch_json).
   final int? avgLux;         // average illuminance (lux, all hours)
   final double? avgHpa;      // average barometric pressure (hPa)
   final double? avgMovement; // average accelerometer magnitude
@@ -48,7 +48,7 @@ class H3Tile {
   });
 
   /// Parses a tile from the backend API JSON.
-  /// API returns boundary as [[lng, lat], ...] (GeoJSON order) — flipped to LatLng(lat, lng).
+  /// API returns boundary as [[lng, lat], ...] (GeoJSON order) - flipped to LatLng(lat, lng).
   factory H3Tile.fromJson(Map<String, dynamic> json, {bool isGlobal = false}) {
     final hexIndex = json['h3Index'] as String? ?? '';
     List<LatLng>? boundary;

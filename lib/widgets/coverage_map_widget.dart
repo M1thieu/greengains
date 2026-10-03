@@ -21,7 +21,7 @@ import 'time_ago_text.dart';
 
 export '../data/models/h3_tile.dart';
 
-// ── Background isolate grid computation ──────────────────────────────────────
+// Background isolate grid computation
 
 typedef _GridInput = ({
   double minLat,
@@ -34,13 +34,13 @@ typedef _GridInput = ({
 /// Top-level function so compute() can spawn it in a background isolate.
 /// Uses gridDisk from the viewport center to guarantee full viewport coverage.
 ///
-/// polygonToCells only includes cells whose centroid falls inside the polygon —
+/// polygonToCells only includes cells whose centroid falls inside the polygon -
 /// edge cells get clipped leaving a ragged non-global mosaic. gridDisk(k) from
 /// the center cell covers every cell within k steps, which forms a solid hex
 /// disk that always fully covers the viewport when k is computed from the
 /// diagonal. This is the approach Helium/Nodle use.
 ///
-/// h3_flutter uses DynamicLibrary.process() — safe in compute() isolates.
+/// h3_flutter uses DynamicLibrary.process() - safe in compute() isolates.
 Map<String, dynamic> _buildGrid(_GridInput input) {
   final h3 = const h3f.H3Factory().load();
 
@@ -95,12 +95,12 @@ Map<String, dynamic> _buildGrid(_GridInput input) {
   return {'type': 'FeatureCollection', 'features': features};
 }
 
-// ── Timing constants ──────────────────────────────────────────────────────────
+// Timing constants
 /// Camera-idle debounce before recomputing the ghost grid.
-/// 500ms is intentional — slower than UI animations to avoid thrashing FFI.
+/// 500ms is intentional - slower than UI animations to avoid thrashing FFI.
 const _kGridDebounce = Duration(milliseconds: 500);
 
-// ── Layer / source ID constants ───────────────────────────────────────────────
+// Layer / source ID constants
 const _kSourceGrid      = 'gg-grid';
 const _kSourceTiles     = 'gg-tiles';
 const _kSourceLiveCell  = 'gg-live';
@@ -126,9 +126,9 @@ const _kLayerAccuracyRing = 'gg-accuracy-ring';
 /// align exactly with personal/community tiles. No coarser than res 8 (community
 /// tile resolution) so the mosaic always reads at "neighborhood" scale.
 ///
-///   zoom ≥ 14  → res 9  (~174 m cells  — street block, personal tile res)
-///   zoom ≥ 11  → res 8  (~461 m cells  — neighborhood, community tile res)
-///   zoom < 11  → null   — cells would be city-sized, mosaic makes no sense
+///   zoom ≥ 14  → res 9  (~174 m cells  - street block, personal tile res)
+///   zoom ≥ 11  → res 8  (~461 m cells  - neighborhood, community tile res)
+///   zoom < 11  → null   - cells would be city-sized, mosaic makes no sense
 ///
 /// The layer minzoom handles the hide-below-11 case, but returning null lets
 /// _refreshGrid skip the FFI call entirely.
@@ -139,7 +139,7 @@ int? _gridRes(double zoom) {
 }
 
 
-/// Protomaps API key — injected at build time via --dart-define-from-file.
+/// Protomaps API key - injected at build time via --dart-define-from-file.
 const _kProtomapsKey =
     String.fromEnvironment('PROTOMAPS_KEY', defaultValue: '');
 
@@ -154,12 +154,12 @@ final _kEmptyFC = <String, dynamic>{
 ///
 /// Layer stack (bottom → top):
 ///   vector/raster base map
-///   ghost H3 grid — faint white outlines covering the entire viewport
-///   data fill — personal + community H3 tiles with heatmap colors
-///   data borders — tile outlines
-///   live cell — amber highlight for the cell being scanned now
-///   user halo — translucent ring around user position
-///   user dot — solid green circle + white stroke
+///   ghost H3 grid - faint white outlines covering the entire viewport
+///   data fill - personal + community H3 tiles with heatmap colors
+///   data borders - tile outlines
+///   live cell - amber highlight for the cell being scanned now
+///   user halo - translucent ring around user position
+///   user dot - solid green circle + white stroke
 ///
 /// All hex layers are placed BELOW the label tiles so street names and place
 /// labels float above the hexagons (Helium/Nodle DePIN depth effect).
@@ -171,7 +171,7 @@ class CoverageMapWidget extends StatefulWidget {
   final List<ll.LatLng>? currentH3Boundary;
   final bool isTracking;
   final void Function(H3Tile tile)? onTileTap;
-  /// Long-press on a tile — same data, different UX affordance (hold to inspect).
+  /// Long-press on a tile - same data, different UX affordance (hold to inspect).
   final void Function(H3Tile tile)? onTileLongPress;
   final double heightFraction;
   final bool showControls;
@@ -179,16 +179,16 @@ class CoverageMapWidget extends StatefulWidget {
   final bool isLoading;
   final ValueNotifier<int>? recenterTrigger;
   final EdgeInsets controlsPadding;
-  /// Updated whenever follow mode toggles — lets parent show GPS fixed/not-fixed icon.
+  /// Updated whenever follow mode toggles - lets parent show GPS fixed/not-fixed icon.
   final ValueNotifier<bool>? followModeNotifier;
   /// When set, community tiles updated AFTER this timestamp are highlighted
-  /// as "new" — making the map feel alive between sessions.
+  /// as "new" - making the map feel alive between sessions.
   final DateTime? lastSessionAt;
 
   /// H3 cell boundaries visited this session but not yet confirmed by backend.
   /// Rendered as optimistic "pending" tiles so the map feels instant.
   final List<List<ll.LatLng>> pendingCellBoundaries;
-  /// GPS accuracy radius in metres — renders a faint accuracy ring around user dot.
+  /// GPS accuracy radius in metres - renders a faint accuracy ring around user dot.
   final double? userAccuracy;
 
   const CoverageMapWidget({
@@ -228,12 +228,12 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> with WidgetsBindin
   int _gridGeneration = 0;   // incremented on each refresh; stale results are discarded
   String? _lastGridCenterCell; // H3 cell hex string of last computed grid center
   int _lastGridZoom = -1;      // floor(zoom) at last grid compute
-  // MapLibre fires onMapClick when the finger lifts after a long press — suppress
+  // MapLibre fires onMapClick when the finger lifts after a long press - suppress
   // taps that arrive within 600 ms of a long press to avoid double-open sheets.
   int _lastLongPressMs = 0;
   bool _showMapHint = false;
 
-  // ── Follow mode ─────────────────────────────────────────────────────────────
+  // Follow mode
   // While tracking is active, the camera continuously follows the user's GPS.
   // Manual pan breaks follow mode. My Location button re-enables it.
   bool _followModeValue = false;
@@ -244,13 +244,13 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> with WidgetsBindin
     widget.followModeNotifier?.value = value;
   }
 
-  // Cached H3 instance — loading the native lib is expensive, reuse across calls.
+  // Cached H3 instance - loading the native lib is expensive, reuse across calls.
   late final h3f.H3 _h3 = const h3f.H3Factory().load();
 
 
-  // ── Style URL / JSON ────────────────────────────────────────────────────────
+  // Style URL / JSON
 
-  // DePIN apps (Helium, Nodle, Hivemapper) always force dark map — never follow
+  // DePIN apps (Helium, Nodle, Hivemapper) always force dark map - never follow
   // system theme. The dark base is what makes hex overlays readable and the
   // whole aesthetic work.
   String _styleUrl(bool isDark) {
@@ -301,7 +301,7 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> with WidgetsBindin
     });
   }
 
-  // ── GeoJSON builders ────────────────────────────────────────────────────────
+  // GeoJSON builders
 
   Map<String, dynamic> _tilesToGeoJson() {
     _tileById.clear();
@@ -333,7 +333,7 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> with WidgetsBindin
       final isNew = _isNewSince(tile);
       final color = isNew ? _newColorHex(tile) : _colorHex(tile);
       final fillOpacity = isNew ? 0.32 : _fillOpacity(tile);
-      // Centroid = average of boundary points — used for label placement
+      // Centroid = average of boundary points - used for label placement
       final lats = tile.boundary!.map((p) => p.latitude);
       final lngs = tile.boundary!.map((p) => p.longitude);
       final cLat = lats.reduce((a, b) => a + b) / tile.boundary!.length;
@@ -365,7 +365,7 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> with WidgetsBindin
     return {'type': 'FeatureCollection', 'features': features};
   }
 
-  /// Separate point GeoJSON for hex labels — MapLibre symbol layers need Point geometry.
+  /// Separate point GeoJSON for hex labels - MapLibre symbol layers need Point geometry.
   Map<String, dynamic> _labelsGeoJson() {
     final features = <Map<String, dynamic>>[];
     for (final tile in widget.tiles) {
@@ -408,7 +408,7 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> with WidgetsBindin
               [
                 ...widget.currentH3Boundary!
                     .map((ll.LatLng p) => [p.longitude, p.latitude]),
-                // h3_flutter does not auto-close rings — close it manually
+                // h3_flutter does not auto-close rings - close it manually
                 [widget.currentH3Boundary!.first.longitude,
                  widget.currentH3Boundary!.first.latitude],
               ],
@@ -491,11 +491,11 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> with WidgetsBindin
     };
   }
 
-  // ── Quality-based palette ─────────────────────────────────────────────────
-  // Colors communicate data quality — universally readable regardless of sensor
+  // Quality-based palette
+  // Colors communicate data quality - universally readable regardless of sensor
   // type. Green = high quality, yellow = medium, red = poor.
   // Global tiles are slightly dimmer so personal tiles always read as "yours".
-  // "New" community tiles (updated since last session) glow brighter — the map
+  // "New" community tiles (updated since last session) glow brighter - the map
   // is alive between sessions.
 
   /// True when this community tile was updated after the user's last session.
@@ -515,7 +515,7 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> with WidgetsBindin
   static String _colorHex(H3Tile tile) {
     final q = _qualityPct(tile);
     if (tile.isGlobal) {
-      // Muted versions — community context, not personal territory
+      // Muted versions - community context, not personal territory
       if (q >= 75) return '#059669'; // emerald-600
       if (q >= 50) return '#b45309'; // amber-700
       return '#b91c1c';              // red-700
@@ -533,11 +533,11 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> with WidgetsBindin
     return '#f87171';              // red-400
   }
 
-  /// Continuous exponential freshness decay — the time term of a
+  /// Continuous exponential freshness decay - the time term of a
   /// spatiotemporal covariance kernel (Gneiting/Cressie-Huang class), used
   /// here instead of a stepped multiplier so opacity never visibly "jumps"
   /// between app opens (a sudden jump reads as a glitch). Floors at
-  /// [_kFreshnessFloor] so a tile recedes but never fades to invisible —
+  /// [_kFreshnessFloor] so a tile recedes but never fades to invisible -
   /// full fade would read as lost data, not a design signal.
   static const _kFreshnessHalfLifeDays = 45.0;
   static const _kFreshnessFloor = 0.35;
@@ -563,12 +563,12 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> with WidgetsBindin
     return base * _freshnessFactor(tile);
   }
 
-  // ── MapLibre lifecycle ──────────────────────────────────────────────────────
+  // MapLibre lifecycle
 
   void _onMapCreated(MapLibreMapController controller) {
     _ctrl = controller;
     widget.recenterTrigger?.addListener(_onRecenter);
-    // Style may have loaded from cache before _ctrl was assigned — flush pending
+    // Style may have loaded from cache before _ctrl was assigned - flush pending
     if (_pendingStyleLoad) {
       _pendingStyleLoad = false;
       _onStyleLoaded();
@@ -599,7 +599,7 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> with WidgetsBindin
     // _refreshAllSources instead of hitting LAYER_NOT_FOUND errors.
     debugPrint('MapLibre: style loaded OK, adding GeoJSON sources + layers...');
 
-    // ── Add sources (empty, populated below) ──
+    // Add sources (empty, populated below)
     await Future.wait([
       ctrl.addGeoJsonSource(_kSourceGrid, _kEmptyFC),
       ctrl.addGeoJsonSource(_kSourceTiles, _kEmptyFC),
@@ -609,15 +609,15 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> with WidgetsBindin
       ctrl.addGeoJsonSource(_kSourceAccuracy, _kEmptyFC),
     ]);
 
-    // ── Ghost grid fill — choropleth base layer ──
+    // Ghost grid fill - choropleth base layer
     // Empty cells get a tint so the entire viewport reads as a hex mosaic.
-    // Added BEFORE the tiles fill layer in the call sequence — that's what
+    // Added BEFORE the tiles fill layer in the call sequence - that's what
     // controls Z-order. Do NOT pass belowLayerId here because _kLayerTilesFill
     // doesn't exist yet at this point; MapLibre would silently drop this layer.
-    // Grid fill and lines both start at zoom 11 — below that cells are
+    // Grid fill and lines both start at zoom 11 - below that cells are
     // city-sized and a mosaic makes no visual sense (matching _gridRes logic).
     // Ghost grid starts at zoom 9 (neighbourhood scale) so the hex mosaic is
-    // visible in a wider context — unclaimed cells read as "territory to fill",
+    // visible in a wider context - unclaimed cells read as "territory to fill",
     // not just empty map. Fog-of-war psychology kicks in earlier.
     await ctrl.addFillLayer(
       _kSourceGrid,
@@ -640,7 +640,7 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> with WidgetsBindin
       minzoom: 9.0,
     );
 
-    // ── Data tiles fill ──
+    // Data tiles fill
     await ctrl.addFillLayer(
       _kSourceTiles,
       _kLayerTilesFill,
@@ -652,7 +652,7 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> with WidgetsBindin
       minzoom: 9.0,
     );
 
-    // ── Data tiles border ──
+    // Data tiles border
     await ctrl.addLineLayer(
       _kSourceTiles,
       _kLayerTilesLine,
@@ -664,7 +664,7 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> with WidgetsBindin
       minzoom: 9.0,
     );
 
-    // ── Pending cells — session tiles not yet confirmed by backend ──
+    // Pending cells - session tiles not yet confirmed by backend
     // Slightly lower opacity than confirmed tiles; dashed border signals "in-flight".
     await ctrl.addFillLayer(
       _kSourcePending,
@@ -687,7 +687,7 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> with WidgetsBindin
       minzoom: 9.0,
     );
 
-    // ── Live cell — primary green fill + glow halo + sharp inner outline ──
+    // Live cell - primary green fill + glow halo + sharp inner outline
     // Color matches the user dot (primaryHex) so the current cell reads as "yours"
     // not as a quality signal. Two outline layers: wide+faint = halo, thin+solid = edge.
     await ctrl.addFillLayer(
@@ -698,7 +698,7 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> with WidgetsBindin
         fillOpacity: 0.22,
       ),
     );
-    // Outer glow — wide, translucent, blurs into the hex shape
+    // Outer glow - wide, translucent, blurs into the hex shape
     await ctrl.addLineLayer(
       _kSourceLiveCell,
       _kLayerLiveGlow,
@@ -709,7 +709,7 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> with WidgetsBindin
         lineBlur: 5.0,
       ),
     );
-    // Inner edge — crisp 2px border to anchor the glow
+    // Inner edge - crisp 2px border to anchor the glow
     await ctrl.addLineLayer(
       _kSourceLiveCell,
       _kLayerLiveLine,
@@ -720,7 +720,7 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> with WidgetsBindin
       ),
     );
 
-    // ── GPS accuracy ring — faint fill shows fix quality in real-world metres ──
+    // GPS accuracy ring - faint fill shows fix quality in real-world metres
     await ctrl.addFillLayer(
       _kSourceAccuracy,
       _kLayerAccuracyRing,
@@ -730,7 +730,7 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> with WidgetsBindin
       ),
     );
 
-    // ── User location — halo ring + solid dot ──
+    // User location - halo ring + solid dot
     await ctrl.addCircleLayer(
       _kSourceUserDot,
       _kLayerUserHalo,
@@ -754,7 +754,7 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> with WidgetsBindin
     );
     _startHaloPulse();
 
-    // ── Carto labels on top — street names / city names float above hexagons ──
+    // Carto labels on top - street names / city names float above hexagons
     // Only needed for the CartoDB raster fallback (no Protomaps key).
     // The source is already in the style JSON; we add the layer here so it
     // sits above all hex layers (fill, line, live cell, user dot).
@@ -770,9 +770,9 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> with WidgetsBindin
       }
     }
 
-    // ── Hex quality % labels — native MapLibre symbol layer ──────────────
+    // Hex quality % labels - native MapLibre symbol layer
     // Uses Protomaps-hosted Noto Sans Regular (confirmed available).
-    // Symbol layers are rendered natively — they track map coordinates perfectly.
+    // Symbol layers are rendered natively - they track map coordinates perfectly.
     await ctrl.addGeoJsonSource('gg-labels', _kEmptyFC);
     await ctrl.addSymbolLayer(
       'gg-labels',
@@ -782,9 +782,9 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> with WidgetsBindin
         textFont: ['Noto Sans Regular'],
         // Zoom-responsive size: small at z11, comfortable at z14+
         textSize: ['interpolate', ['linear'], ['zoom'], 11.0, 9.0, 13.0, 12.0, 15.0, 14.0],
-        // Color matches tile fill — reads as part of the hex, not overlaid text
+        // Color matches tile fill - reads as part of the hex, not overlaid text
         textColor: ['get', 'color'],
-        // Dark map bg as halo — soft separation without harsh black ring
+        // Dark map bg as halo - soft separation without harsh black ring
         textHaloColor: '#111927',
         textHaloWidth: 1.2,
         textOpacity: ['get', 'labelOpacity'],
@@ -875,9 +875,9 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> with WidgetsBindin
     if (center == null) return;
     final zoomInt = zoom.floor();
 
-    // Cheap center-cell dedup — gridDisk is centered on the center cell, so if
+    // Cheap center-cell dedup - gridDisk is centered on the center cell, so if
     // the center hasn't moved to a new H3 cell and zoom hasn't changed, the
-    // computed disk is identical — skip the FFI call and GeoJSON rebuild.
+    // computed disk is identical - skip the FFI call and GeoJSON rebuild.
     final centerCell = _h3.geoToCell(
       h3f.GeoCoord(lat: center.latitude, lon: center.longitude),
       res,
@@ -888,7 +888,7 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> with WidgetsBindin
     _lastGridZoom = zoomInt;
 
     // Get the viewport bounds to compute the disk radius (k).
-    // 30% padding ensures edge cells are always included — gridDisk slightly
+    // 30% padding ensures edge cells are always included - gridDisk slightly
     // overshoots the screen edges which is fine (clipped by the device).
     LatLngBounds region;
     try {
@@ -936,7 +936,7 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> with WidgetsBindin
     _haloTimer?.cancel();
     // Decorative loop: skip it entirely when the system asks for no animations.
     if (mounted && MediaQuery.disableAnimationsOf(context)) return;
-    // 60ms tick ≈ 16fps — sufficient for a slow breathing halo, avoids GL spam
+    // 60ms tick ≈ 16fps - sufficient for a slow breathing halo, avoids GL spam
     _haloTimer = Timer.periodic(const Duration(milliseconds: 60), (_) {
       if (!_styleLoaded || _ctrl == null || !mounted) return;
       _haloPhase = (_haloPhase + 0.07) % (2 * pi);
@@ -948,7 +948,7 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> with WidgetsBindin
         _kLayerUserHalo,
         CircleLayerProperties(circleRadius: radius, circleOpacity: opacity),
       );
-      // Live cell glow — breathes in sync with user dot
+      // Live cell glow - breathes in sync with user dot
       if (widget.isTracking) {
         _ctrl!.setLayerProperties(
           _kLayerLiveGlow,
@@ -962,7 +962,7 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> with WidgetsBindin
   }
 
   void _onMapTap(Point<double> point, LatLng coords) async {
-    // Suppress tap if it follows a long press — MapLibre fires onMapClick when
+    // Suppress tap if it follows a long press - MapLibre fires onMapClick when
     // the finger lifts after a long press, which would open a duplicate sheet.
     if (DateTime.now().millisecondsSinceEpoch - _lastLongPressMs < 600) return;
     final tile = await _hitTestTile(point);
@@ -1001,7 +1001,7 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> with WidgetsBindin
     return h3Index != null ? _tileById[h3Index] : null;
   }
 
-  // ── Widget lifecycle ────────────────────────────────────────────────────────
+  // Widget lifecycle
 
   @override
   void initState() {
@@ -1011,7 +1011,7 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> with WidgetsBindin
   }
 
   /// The halo pulse is a purely decorative 16fps loop (`_startHaloPulse`). Nothing
-  /// stopped it while the app was backgrounded or the screen was off — a foreground
+  /// stopped it while the app was backgrounded or the screen was off - a foreground
   /// service keeps the process (and the Dart isolate's timers) alive well past
   /// screen-off, so it kept firing forever: measured ~19% sustained CPU with the
   /// screen off and locked, most of it this timer repeatedly failing to apply its
@@ -1052,7 +1052,7 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> with WidgetsBindin
       _refreshAllSources();
     }
     // Tracking just started → enable follow mode so the map feels alive.
-    // Must be deferred — didUpdateWidget runs during build, and setting the
+    // Must be deferred - didUpdateWidget runs during build, and setting the
     // ValueNotifier here would trigger markNeedsBuild on another widget mid-frame.
     if (!oldWidget.isTracking && widget.isTracking) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -1060,7 +1060,7 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> with WidgetsBindin
       });
     }
 
-    // First GPS fix after map init — auto-center once, silently.
+    // First GPS fix after map init - auto-center once, silently.
     // initialCameraPosition is frozen at build time so if location wasn't
     // available yet (common on cold start) we move the camera here instead.
     if (!_hasCenteredOnUser &&
@@ -1080,7 +1080,7 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> with WidgetsBindin
       return;
     }
 
-    // Follow mode — smooth camera pan on each GPS update while tracking.
+    // Follow mode - smooth camera pan on each GPS update while tracking.
     if (_followMode &&
         locationChanged &&
         widget.userLocation != null &&
@@ -1112,7 +1112,7 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> with WidgetsBindin
     return const LatLng(48.86, 2.35); // Paris — shown only before GPS fix or tiles load
   }
 
-  // ── Build ───────────────────────────────────────────────────────────────────
+  // Build
 
   @override
   Widget build(BuildContext context) {
@@ -1143,12 +1143,12 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> with WidgetsBindin
       zoomGesturesEnabled: widget.showControls,
       tiltGesturesEnabled: false,
       myLocationEnabled: false,
-      // No annotation manager symbols — we use custom GeoJSON symbol layers.
+      // No annotation manager symbols - we use custom GeoJSON symbol layers.
       // Without this, MapLibre creates a default symbol layer that can interfere.
       annotationOrder: const [],
     );
 
-    // Touch on the map surface exits follow mode immediately — no timing hacks.
+    // Touch on the map surface exits follow mode immediately - no timing hacks.
     final mapWithGesture = Listener(
       onPointerDown: (_) {
         if (_followMode) _followMode = false;
@@ -1160,7 +1160,7 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> with WidgetsBindin
       children: [
         mapWithGesture,
 
-        // ── Loading overlay (all modes) ───────────────────────────────────
+        // Loading overlay (all modes)
         if (widget.isLoading)
           const Center(
             child: CircularProgressIndicator(
@@ -1169,7 +1169,7 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> with WidgetsBindin
             ),
           ),
 
-        // ── No-data placeholder (card mode) ───────────────────────────────
+        // No-data placeholder (card mode)
         if (!widget.fillScreen && !widget.isLoading && widget.tiles.isEmpty)
           Center(
             child: Container(
@@ -1206,11 +1206,11 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> with WidgetsBindin
             ),
           ),
 
-        // ── First-time tap hint (fill-screen + has tiles) ────────────────
+        // First-time tap hint (fill-screen + has tiles)
         if (widget.fillScreen && _showMapHint && widget.tiles.isNotEmpty)
           _MapTapHint(onDismiss: _dismissMapHint),
 
-        // ── Tile count badge (card mode) ──────────────────────────────────
+        // Tile count badge (card mode)
         if (!widget.fillScreen && widget.tiles.isNotEmpty)
           Positioned(
             top: AppTheme.spaceSm,
@@ -1260,7 +1260,7 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> with WidgetsBindin
   }
 }
 
-// ── First-time map hint ───────────────────────────────────────────────────────
+// First-time map hint
 
 class _MapTapHint extends StatefulWidget {
   const _MapTapHint({required this.onDismiss});
@@ -1329,9 +1329,9 @@ class _MapTapHintState extends State<_MapTapHint> {
   }
 }
 
-// ── Map legend ────────────────────────────────────────────────────────────────
+// Map legend
 
-/// Compact inline legend — three quality dots + optional community dot.
+/// Compact inline legend - three quality dots + optional community dot.
 /// Tap to open an explanation sheet.
 class MapHeatmapLegend extends StatelessWidget {
   const MapHeatmapLegend({super.key, required this.hasCommunityTiles});
@@ -1515,7 +1515,7 @@ class _LegendRow extends StatelessWidget {
   }
 }
 
-// ── Tile info bottom sheet ────────────────────────────────────────────────────
+// Tile info bottom sheet
 
 /// Bottom sheet shown when user taps a coverage tile.
 /// [isDark] and [l10n] are passed explicitly from the calling context because
@@ -1653,7 +1653,7 @@ class _TileInfoSheetState extends State<TileInfoSheet> {
                       ),
                     ),
                     const SizedBox(width: AppTheme.spaceSm),
-                    // Quality status — dot + label, no filled pill
+                    // Quality status - dot + label, no filled pill
                     Padding(
                       padding: const EdgeInsets.only(top: AppTheme.spaceXxxs),
                       child: Row(
@@ -1746,7 +1746,7 @@ class _TileInfoSheetState extends State<TileInfoSheet> {
                   ],
                 ),
               ),
-              // Sensor cards — data-driven, handles 1–N sensors gracefully
+              // Sensor cards - data-driven, handles 1–N sensors gracefully
               Builder(builder: (context) {
                 final cards = <({IconData icon, Color color, String title, String label, String raw})>[
                   if (tile.avgLux != null)
@@ -1812,7 +1812,7 @@ class _TileInfoSheetState extends State<TileInfoSheet> {
                   ],
                 );
               }),
-              // Compact condition line — what is this place normally like
+              // Compact condition line - what is this place normally like
               Builder(builder: (context) {
                 final isNight = DateTime.now().hour < 6 || DateTime.now().hour >= 20;
                 final conditionLine = SensorInsights.tileConditionLine(
@@ -1921,7 +1921,7 @@ class _TileInfoSheetState extends State<TileInfoSheet> {
     return '$n';
   }
 
-  /// H3 res 9 cell area — fixed ≈ 0.1 km² per cell.
+  /// H3 res 9 cell area - fixed ≈ 0.1 km² per cell.
   static String _areaMDisplay(H3Tile tile) => '0.1 km²';
 
   static String _luxContext(int lux, AppLocalizations l10n) {
@@ -2010,7 +2010,7 @@ class _VerticalDivider extends StatelessWidget {
   }
 }
 
-/// "Last seen X ago" line — uses TimeAgoText for locale-aware, live-updating relative time.
+/// "Last seen X ago" line - uses TimeAgoText for locale-aware, live-updating relative time.
 class _TimeAgoLine extends StatelessWidget {
   const _TimeAgoLine({required this.timestamp, required this.isDark});
   final DateTime timestamp;

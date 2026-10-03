@@ -66,7 +66,7 @@ test('rough field (large gamma) -> neighbours ignored', () => {
   assert.ok(Math.abs(out - 10) < 1e-3, `${out}`);
 });
 
-// ─── Simulation with known truth on a hexagonal lattice ─────────────────────────────────────
+// Simulation with known truth on a hexagonal lattice
 
 /** Axial hex coordinates within radius R, and their six neighbour offsets. */
 const DIRS: ReadonlyArray<readonly [number, number]> = [[1, 0], [1, -1], [0, -1], [-1, 0], [-1, 1], [0, 1]];

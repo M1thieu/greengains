@@ -6,7 +6,7 @@ package com.eremat.greengains.models
  * Extracted from NativeBackendUploader.kt to keep models separate from upload logic.
  */
 
-// ── Sensor reading (one 10-second snapshot) ──────────────────────────────────
+// Sensor reading (one 10-second snapshot)
 
 data class SensorReading(
     val timestamp: Long,
@@ -26,7 +26,7 @@ data class GyroData(val x: Float, val y: Float, val z: Float)
 
 /**
  * Raw magnetometer reading in µT (microtesla).
- * magnitude = √(x² + y² + z²) — pre-computed for upload efficiency.
+ * magnitude = √(x² + y² + z²) - pre-computed for upload efficiency.
  * Elevated magnitude (>80 µT) suggests indoor environment or nearby metal/electronics.
  */
 data class MagneticData(
@@ -42,7 +42,7 @@ data class LocationData(
     val accuracy: Double?
 )
 
-// ── Quality metadata ─────────────────────────────────────────────────────────
+// Quality metadata
 
 data class QualityMetadata(
     val orientation: OrientationState = OrientationState.UNKNOWN,
@@ -60,7 +60,7 @@ data class QualityMetadata(
      */
     val proximityNear: Boolean? = null,
     /**
-     * Composite data quality score [0.0, 1.0] — higher = more trustworthy reading.
+     * Composite data quality score [0.0, 1.0] - higher = more trustworthy reading.
      * Factored from: GPS accuracy, location quality tier, pocket state, motion confidence.
      * Null = not yet computed (older readings before this field was added).
      */
@@ -98,7 +98,7 @@ enum class LocationQuality {
     POOR
 }
 
-// ── Upload status events ──────────────────────────────────────────────────────
+// Upload status events
 
 enum class NativeUploadEventType {
     STARTED,

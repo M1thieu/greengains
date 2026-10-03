@@ -62,7 +62,7 @@ internal object NotificationsHelper {
             if (elapsed >= 60_000L) formatDuration(context, elapsed) else null
         }
 
-        // ── Title: state + optional neighbourhood ────────────────────────────
+        // Title: state + optional neighbourhood
         val territory = context
             .getSharedPreferences(AppPrefs.NAME, Context.MODE_PRIVATE)
             .getString(AppPrefs.TERRITORY_LABEL, null)
@@ -74,7 +74,7 @@ internal object NotificationsHelper {
         }
         val title = if (territory != null) "$baseTitle · $territory" else baseTitle
 
-        // ── Body: two numbers, no prose ──────────────────────────────────────
+        // Body: two numbers, no prose
         val sessionZonesStr = if (!isPaused && sessionZones > 0)
             context.getString(R.string.notif_session_zones, sessionZones)
         else null
@@ -84,7 +84,7 @@ internal object NotificationsHelper {
                 .ifEmpty { context.getString(R.string.notif_body_measuring) }
         }
 
-        // ── Actions with icons ─────────────────────────────────────────────────
+        // Actions with icons
         val pauseResumeIntent = Intent(context, ForegroundService::class.java).apply {
             action = if (isPaused) ForegroundService.ACTION_RESUME_TRACKING
                      else          ForegroundService.ACTION_PAUSE_TRACKING
@@ -126,7 +126,7 @@ internal object NotificationsHelper {
                 )
             )
 
-        // Indeterminate progress bar only when actively moving — signals "alive, collecting"
+        // Indeterminate progress bar only when actively moving - signals "alive, collecting"
         if (!isPaused && isMoving) builder.setProgress(0, 0, true)
 
         return builder.build()
@@ -180,7 +180,7 @@ internal object NotificationsHelper {
             .build()
     }
 
-    // ── Helpers ──────────────────────────────────────────────────────────────────
+    // Helpers
 
 private fun formatDuration(context: Context, elapsedMs: Long): String {
         val totalMin = elapsedMs / 60_000

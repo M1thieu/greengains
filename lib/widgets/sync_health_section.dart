@@ -11,7 +11,7 @@ import 'time_ago_text.dart';
 ///
 /// End users never see this: it renders nothing outside debug builds, and DiagnosticsScreen
 /// does not even build it there (so release tree-shaking drops it). It exists because a failing
-/// uploader used to be completely silent — the production server was down for months and
+/// uploader used to be completely silent - the production server was down for months and
 /// nothing on the phone said so. Plain English on purpose: dev tooling, not user-facing copy.
 class SyncHealthSection extends StatefulWidget {
   const SyncHealthSection({super.key});

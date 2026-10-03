@@ -15,7 +15,7 @@ interface NominatimResponse {
   display_name?: string;
 }
 
-// In-memory cache — H3 cells are static geography, cache indefinitely per process
+// In-memory cache - H3 cells are static geography, cache indefinitely per process
 const _cache = new Map<string, string>();
 
 // Nominatim requires ≤1 req/s. Simple queue with 1100ms spacing.
@@ -45,7 +45,7 @@ function _bestName(addr: GeoName): string | null {
 
 /**
  * Resolve an H3 cell index to a human-readable street/area name.
- * Returns null on failure — callers must handle gracefully.
+ * Returns null on failure - callers must handle gracefully.
  */
 export async function cellToStreetName(h3Index: string): Promise<string | null> {
   if (_cache.has(h3Index)) return _cache.get(h3Index)!;
