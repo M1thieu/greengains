@@ -1131,7 +1131,6 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                       return Text(
                         l10n.statsVsPrevWeek('$sign$pct'),
                         style: theme.textTheme.bodySmall?.copyWith(
-                          fontSize: 10,
                           color: color,
                           fontWeight: AppFontWeights.medium,
                         ),
@@ -1662,7 +1661,8 @@ class _Tab extends StatelessWidget {
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 150),
-        padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceXs + 2, vertical: AppTheme.spaceXxxs + 1),
+        // Vertical padding keeps the tap target above the 24px WCAG 2.2 minimum.
+        padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceSm, vertical: AppTheme.spaceXs - 2),
         decoration: BoxDecoration(
           color: selected ? AppColors.primary : Colors.transparent,
           borderRadius: BorderRadius.circular(AppTheme.radiusSm - 2),

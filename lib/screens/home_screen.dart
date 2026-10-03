@@ -1386,8 +1386,9 @@ class _Seg extends StatelessWidget {
       child: AnimatedContainer(
         duration: AppDurations.segmentToggle,
         curve: Curves.easeOut,
+        // Vertical padding keeps the tap target above the 24px WCAG 2.2 minimum.
         padding: const EdgeInsets.symmetric(
-            horizontal: AppTheme.spaceSm, vertical: AppTheme.spaceTiny),
+            horizontal: AppTheme.spaceSm, vertical: AppTheme.spaceXs - 2),
         decoration: BoxDecoration(
           color: active ? AppColors.primary : Colors.transparent,
           borderRadius: BorderRadius.circular(AppTheme.radiusPill),

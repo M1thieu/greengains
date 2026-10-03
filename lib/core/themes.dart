@@ -390,7 +390,7 @@ class AppTheme {
 
   // Floating nav bar
   static const double floatingNavHeight = 64;
-  static const double fontSizeNavLabel  = 10.0; // sub-caption, below bodySmall(12)
+  static const double fontSizeNavLabel  = 12.0; // nav labels (Material label size)
 
   // Typography behaviour
   static const double letterSpacingSubtle  = -0.5; // large titles, section headings
@@ -411,7 +411,7 @@ class AppTheme {
   static const double onboardingHeroHeight = 260.0; // welcome page hex bleed
 
   // Sub-body font sizes
-  static const double fontSizeXxs  = 10.0; // micro — nav labels only
+  static const double fontSizeXxs  = 11.0; // smallest text in the app (map legend)
   static const double fontSizeXs   = 12.0; // captions, badges, secondary labels
   static const double fontSizeBody  = 13.0; // card body copy, secondary text
   static const double fontSizeSm      = 14.0; // primary body, comfortable reading

@@ -203,24 +203,20 @@ class _NavItem extends StatelessWidget {
                 size: AppIconSizes.md,
               ),
             ),
-            // Label only visible on selected tab - cleaner than always-visible labels
-            AnimatedSize(
-              duration: AppDurations.fast,
-              curve: AppMotion.standard,
-              child: selected
-                  ? Padding(
-                      padding: const EdgeInsets.only(top: AppTheme.spaceXxxs),
-                      child: Text(
-                        label,
-                        style: TextStyle(
-                          color: AppColors.primary,
-                          fontSize: AppTheme.fontSizeNavLabel,
-                          fontWeight: AppFontWeights.semibold,
-                          letterSpacing: 0.2,
-                        ),
-                      ),
-                    )
-                  : const SizedBox.shrink(),
+            // Labels always visible: with 3 destinations, icon-only tabs
+            // make people guess (Material / NN/g navigation guidance).
+            Padding(
+              padding: const EdgeInsets.only(top: AppTheme.spaceXxxs),
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: color,
+                  fontSize: AppTheme.fontSizeNavLabel,
+                  fontWeight: selected ? AppFontWeights.semibold : AppFontWeights.medium,
+                ),
+              ),
             ),
           ],
           ),
