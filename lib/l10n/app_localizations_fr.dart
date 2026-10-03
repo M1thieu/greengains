@@ -12,29 +12,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get onboardingWelcomeTitle => 'Enfin connaître son quartier.';
 
   @override
-  String get onboardingWelcomeSubtitle =>
-      'Ton téléphone lit chaque rue que tu traverses : son éclairage, ses vibrations, son animation. Tes trajets, vus autrement.';
-
-  @override
   String get onboardingFeature1Title => 'Rien à faire.';
-
-  @override
-  String get onboardingFeature1Description =>
-      'Lance une fois, garde ton téléphone. La carte se construit seule.';
 
   @override
   String get onboardingFeature2Title => 'Privé par défaut';
 
   @override
-  String get onboardingFeature2Description =>
-      'Ton trajet n\'est jamais conservé. Les données sont anonymisées avant de quitter ton téléphone.';
-
-  @override
   String get onboardingFeature3Title => 'Vois ton environnement.';
-
-  @override
-  String get onboardingFeature3Description =>
-      'Lumière, pression atmosphérique, état des routes. L\'environnement que tu traverses chaque jour.';
 
   @override
   String get onboardingSignInTitle => 'Ta carte commence ici.';
@@ -1308,15 +1292,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get permissionPrimingBattery => 'Batterie intelligente';
 
   @override
-  String get permissionPrimingBatteryDesc =>
-      'Moins d\'1 % par heure. S\'adapte automatiquement en arrière-plan.';
-
-  @override
   String get permissionPrimingCollects => 'Conçu pour la vie privée';
-
-  @override
-  String get permissionPrimingCollectsDesc =>
-      'Luminosité, activité et météo uniquement. Jamais ton trajet ni ton identité.';
 
   @override
   String get permissionPrimingCta => 'Activer la localisation';

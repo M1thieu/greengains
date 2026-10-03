@@ -12,29 +12,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get onboardingWelcomeTitle => 'Finally know your neighborhood.';
 
   @override
-  String get onboardingWelcomeSubtitle =>
-      'Your phone quietly reads each street you pass through: how bright, how rough, how lively. Your routes, seen differently.';
-
-  @override
   String get onboardingFeature1Title => 'Nothing to do.';
-
-  @override
-  String get onboardingFeature1Description =>
-      'Start once, carry your phone. Your map builds itself.';
 
   @override
   String get onboardingFeature2Title => 'Private by default';
 
   @override
-  String get onboardingFeature2Description =>
-      'Your route is never stored. Readings are anonymous before they leave your phone.';
-
-  @override
   String get onboardingFeature3Title => 'See what\'s around you.';
-
-  @override
-  String get onboardingFeature3Description =>
-      'Light levels, air pressure, road conditions. The environment you move through every day.';
 
   @override
   String get onboardingSignInTitle => 'Your map starts here.';
@@ -1298,15 +1282,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get permissionPrimingBattery => 'Smart battery';
 
   @override
-  String get permissionPrimingBatteryDesc =>
-      'Less than 1% per hour. Adapts automatically in background.';
-
-  @override
   String get permissionPrimingCollects => 'Private by design';
-
-  @override
-  String get permissionPrimingCollectsDesc =>
-      'Brightness, activity and weather only. Never your route or identity.';
 
   @override
   String get permissionPrimingCta => 'Enable location';

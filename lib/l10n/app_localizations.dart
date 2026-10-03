@@ -104,23 +104,11 @@ abstract class AppLocalizations {
   /// **'Finally know your neighborhood.'**
   String get onboardingWelcomeTitle;
 
-  /// No description provided for @onboardingWelcomeSubtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Your phone quietly reads each street you pass through: how bright, how rough, how lively. Your routes, seen differently.'**
-  String get onboardingWelcomeSubtitle;
-
   /// No description provided for @onboardingFeature1Title.
   ///
   /// In en, this message translates to:
   /// **'Nothing to do.'**
   String get onboardingFeature1Title;
-
-  /// No description provided for @onboardingFeature1Description.
-  ///
-  /// In en, this message translates to:
-  /// **'Start once, carry your phone. Your map builds itself.'**
-  String get onboardingFeature1Description;
 
   /// No description provided for @onboardingFeature2Title.
   ///
@@ -128,23 +116,11 @@ abstract class AppLocalizations {
   /// **'Private by default'**
   String get onboardingFeature2Title;
 
-  /// No description provided for @onboardingFeature2Description.
-  ///
-  /// In en, this message translates to:
-  /// **'Your route is never stored. Readings are anonymous before they leave your phone.'**
-  String get onboardingFeature2Description;
-
   /// No description provided for @onboardingFeature3Title.
   ///
   /// In en, this message translates to:
   /// **'See what\'s around you.'**
   String get onboardingFeature3Title;
-
-  /// No description provided for @onboardingFeature3Description.
-  ///
-  /// In en, this message translates to:
-  /// **'Light levels, air pressure, road conditions. The environment you move through every day.'**
-  String get onboardingFeature3Description;
 
   /// No description provided for @onboardingSignInTitle.
   ///
@@ -2264,23 +2240,11 @@ abstract class AppLocalizations {
   /// **'Smart battery'**
   String get permissionPrimingBattery;
 
-  /// No description provided for @permissionPrimingBatteryDesc.
-  ///
-  /// In en, this message translates to:
-  /// **'Less than 1% per hour. Adapts automatically in background.'**
-  String get permissionPrimingBatteryDesc;
-
   /// No description provided for @permissionPrimingCollects.
   ///
   /// In en, this message translates to:
   /// **'Private by design'**
   String get permissionPrimingCollects;
-
-  /// No description provided for @permissionPrimingCollectsDesc.
-  ///
-  /// In en, this message translates to:
-  /// **'Brightness, activity and weather only. Never your route or identity.'**
-  String get permissionPrimingCollectsDesc;
 
   /// No description provided for @permissionPrimingCta.
   ///

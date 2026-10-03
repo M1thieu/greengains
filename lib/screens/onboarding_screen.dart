@@ -299,20 +299,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       color: AppColors.darkTextPrimary,
                     ),
                   ),
-                  const SizedBox(height: AppTheme.spaceSm),
-                  Text(
-                    l10n.onboardingWelcomeSubtitle,
-                    style: TextStyle(
-                      fontSize: AppTheme.fontSizeMd,
-                      height: AppLineHeights.relaxed,
-                      color: AppColors.darkTextSecondary,
-                    ),
-                  ),
                   const Spacer(),
                   _FeatureRow(
                     icon: Icons.battery_saver_outlined,
                     title: l10n.onboardingFeature1Title,
-                    description: l10n.onboardingFeature1Description,
                     isDark: isDark,
                     theme: theme,
                   ),
@@ -320,7 +310,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   _FeatureRow(
                     icon: Icons.shield_outlined,
                     title: l10n.onboardingFeature2Title,
-                    description: l10n.onboardingFeature2Description,
                     isDark: isDark,
                     theme: theme,
                   ),
@@ -328,7 +317,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   _FeatureRow(
                     icon: Icons.map_outlined,
                     title: l10n.onboardingFeature3Title,
-                    description: l10n.onboardingFeature3Description,
                     isDark: isDark,
                     theme: theme,
                   ),
@@ -575,7 +563,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             _FeatureRow(
               icon: Icons.battery_saver_outlined,
               title: l10n.permissionPrimingBattery,
-              description: l10n.permissionPrimingBatteryDesc,
               isDark: isDark,
               theme: theme,
             ),
@@ -583,7 +570,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             _FeatureRow(
               icon: Icons.security_outlined,
               title: l10n.permissionPrimingCollects,
-              description: l10n.permissionPrimingCollectsDesc,
               isDark: isDark,
               theme: theme,
             ),
@@ -618,14 +604,12 @@ class _FeatureRow extends StatelessWidget {
   const _FeatureRow({
     required this.icon,
     required this.title,
-    required this.description,
     required this.isDark,
     required this.theme,
   });
 
   final IconData icon;
   final String title;
-  final String description;
   final bool isDark;
   final ThemeData theme;
 

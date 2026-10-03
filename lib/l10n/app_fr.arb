@@ -2,13 +2,9 @@
   "@@locale": "fr",
 
   "onboardingWelcomeTitle": "Enfin connaître son quartier.",
-  "onboardingWelcomeSubtitle": "Ton téléphone lit chaque rue que tu traverses : son éclairage, ses vibrations, son animation. Tes trajets, vus autrement.",
   "onboardingFeature1Title": "Rien à faire.",
-  "onboardingFeature1Description": "Lance une fois, garde ton téléphone. La carte se construit seule.",
   "onboardingFeature2Title": "Privé par défaut",
-  "onboardingFeature2Description": "Ton trajet n'est jamais conservé. Les données sont anonymisées avant de quitter ton téléphone.",
   "onboardingFeature3Title": "Vois ton environnement.",
-  "onboardingFeature3Description": "Lumière, pression atmosphérique, état des routes. L'environnement que tu traverses chaque jour.",
   "onboardingSignInTitle": "Ta carte commence ici.",
   "onboardingSignInSubtitle": "Connecte-toi pour garder ta carte synchronisée sur tous tes appareils.",
   "onboardingPrivacyNotice": "En continuant, tu acceptes notre {privacyPolicy} et nos {termsOfService}.",
@@ -537,9 +533,7 @@
 
   "permissionPrimingTitle": "Une chose avant de commencer",
   "permissionPrimingBattery": "Batterie intelligente",
-  "permissionPrimingBatteryDesc": "Moins d'1 % par heure. S'adapte automatiquement en arrière-plan.",
   "permissionPrimingCollects": "Conçu pour la vie privée",
-  "permissionPrimingCollectsDesc": "Luminosité, activité et météo uniquement. Jamais ton trajet ni ton identité.",
   "permissionPrimingCta": "Activer la localisation",
   "settingsBatteryMode": "Batterie intelligente",
   "settingsBatteryModeDesc": "Discret à l'arrêt, précis en mouvement. S'adapte automatiquement.",

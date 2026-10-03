@@ -2,13 +2,9 @@
   "@@locale": "en",
 
   "onboardingWelcomeTitle": "Finally know your neighborhood.",
-  "onboardingWelcomeSubtitle": "Your phone quietly reads each street you pass through: how bright, how rough, how lively. Your routes, seen differently.",
   "onboardingFeature1Title": "Nothing to do.",
-  "onboardingFeature1Description": "Start once, carry your phone. Your map builds itself.",
   "onboardingFeature2Title": "Private by default",
-  "onboardingFeature2Description": "Your route is never stored. Readings are anonymous before they leave your phone.",
   "onboardingFeature3Title": "See what's around you.",
-  "onboardingFeature3Description": "Light levels, air pressure, road conditions. The environment you move through every day.",
   "onboardingSignInTitle": "Your map starts here.",
   "onboardingSignInSubtitle": "Sign in to keep your map synced across devices.",
   "onboardingPrivacyNotice": "By continuing, you agree to our {privacyPolicy} and {termsOfService}.",
@@ -537,9 +533,7 @@
 
   "permissionPrimingTitle": "One thing before we start",
   "permissionPrimingBattery": "Smart battery",
-  "permissionPrimingBatteryDesc": "Less than 1% per hour. Adapts automatically in background.",
   "permissionPrimingCollects": "Private by design",
-  "permissionPrimingCollectsDesc": "Brightness, activity and weather only. Never your route or identity.",
   "permissionPrimingCta": "Enable location",
   "settingsBatteryMode": "Smart battery",
   "settingsBatteryModeDesc": "Quiet when still, precise when moving. Adapts automatically.",
