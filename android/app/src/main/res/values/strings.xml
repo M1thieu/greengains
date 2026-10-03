@@ -36,10 +36,6 @@
     <string name="notification_action_stop">Stop</string>
 
     <!-- Upload elapsed time — shown in expanded status line -->
-    <string name="notification_upload_just_now">just now</string>
-    <string name="notification_upload_minutes_ago">%dmin ago</string>
-    <string name="notification_upload_hours_ago">%dh ago</string>
-    <string name="notification_upload_yesterday">yesterday</string>
 
     <!-- Notification titles — one word, state-aware -->
     <string name="notif_title_contributing">Mapping</string>
@@ -60,11 +56,7 @@
 
     <!-- Re-engagement notification — fires if no activity today -->
     <!-- %1$d = current streak in days -->
-    <string name="notification_streak_channel_name">Map Reminders</string>
-    <string name="notification_streak_title">%1$d day streak at risk</string>
-    <string name="notification_streak_body">Walk anywhere to keep it.</string>
     <!-- %1$d = zone count -->
-    <string name="notification_streak_body_zones">%1$d places on your map — walk to keep your streak.</string>
 
     <!-- Permission result toasts -->
     <string name="toast_location_granted">Location permission granted</string>
@@ -72,37 +64,18 @@
 
     <!-- Weekly ambient digest — passive map summary, no call-to-action -->
     <string name="notification_weekly_channel_name">Weekly Map Update</string>
-    <string name="notification_weekly_title">Your map this week</string>
     <!-- %1$d = new zones, %2$d = total -->
-    <string name="notification_weekly_body_growth">+%1$d new places — %2$d total</string>
     <!-- %1$d = total (no change week-over-week) -->
-    <string name="notification_weekly_body_stable">%1$d places on your map</string>
-    <string name="sensor_lux_dark">Dark</string>
-    <string name="sensor_lux_indoor">Dim</string>
-    <string name="sensor_lux_bright">Bright</string>
-    <string name="sensor_lux_direct">In sunlight</string>
     <!-- Night-specific light pollution labels (same lux ranges, different meaning at night) -->
-    <string name="sensor_lux_night_pristine">Dark sky</string>
-    <string name="sensor_lux_night_low">Natural darkness</string>
-    <string name="sensor_lux_night_moderate">Sky glow</string>
-    <string name="sensor_lux_night_high">Light pollution</string>
-    <string name="notif_motion_still">Still</string>
-    <string name="notif_motion_light">Light activity</string>
-    <string name="notif_motion_active">On the move</string>
     <string name="notif_body_measuring">Reading your surroundings</string>
     <!-- Uploaded N min ago suffix appended to notification body -->
-    <string name="notif_uploaded_ago">· uploaded %1$s</string>
     <!-- Session zone counter — live count of new zones discovered this session -->
     <!-- %1$d = zones discovered since session start -->
     <string name="notif_session_zones">+%1$d zones</string>
 
     <!-- Post-session discovery notification — fires when user stops tracking -->
-    <string name="notification_discovery_channel_name">Route Summary</string>
     <!-- %1$d = uploads in this session -->
-    <string name="notification_discovery_title">Route saved · %1$d uploads</string>
     <!-- %1$d = total zones -->
-    <string name="notification_discovery_body">%1$d places on your map — tap to explore.</string>
-    <string name="notification_discovery_body_first">Your first route is on the map — tap to see it.</string>
 
     <!-- Home screen widget -->
     <string name="widget_zones_label">places mapped</string>

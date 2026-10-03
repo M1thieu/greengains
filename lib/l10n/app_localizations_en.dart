@@ -396,22 +396,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String uploadSuccessNewZone(int count) {
-    return 'New place added · $count on your map';
-  }
-
-  @override
-  String sessionEndedSnack(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count new places',
-      one: '1 new place',
-    );
-    return 'Session ended · $_temp0';
-  }
-
-  @override
   String get semanticsRefreshMap => 'Refresh map data';
 
   @override
@@ -1240,9 +1224,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get statsMilestoneLabel => 'Next milestone';
-
-  @override
   String get statsMilestoneHint =>
       'Keep going — each route adds to your coverage.';
 
@@ -1335,23 +1316,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'Live readings from your device sensors';
 
   @override
-  String get settingsNotifications => 'Notifications';
-
-  @override
-  String get settingsWeeklyDigest => 'Weekly map update';
-
-  @override
-  String get settingsWeeklyDigestDesc =>
-      'Sunday summary of your new mapped places';
-
-  @override
-  String get settingsStreakAlerts => 'Streak reminders';
-
-  @override
-  String get settingsStreakAlertsDesc =>
-      'Alert when your active days streak is at risk';
-
-  @override
   String get sensorLiveSheetTitle => 'What you\'re measuring';
 
   @override
@@ -1438,23 +1402,11 @@ class AppLocalizationsEn extends AppLocalizations {
       'Quiet when still, precise when moving. Adapts automatically.';
 
   @override
-  String get firstStartTitle => 'Mapping in the background.';
-
-  @override
-  String get firstStartBody =>
-      'Light, heat, surface quality — recorded silently. Just go.';
-
-  @override
   String get alwaysOnBannerBody =>
       'Set location to \'Always\' to keep mapping in the background';
 
   @override
   String get alwaysOnBannerFix => 'Fix';
-
-  @override
-  String milestoneReachedTitle(int count) {
-    return '$count places mapped';
-  }
 
   @override
   String get firstUploadTitle => 'First area mapped.';
@@ -1527,17 +1479,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get statsStreakAtRisk => 'Go out today to keep your streak.';
-
-  @override
-  String statsStreakDays(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count days in a row',
-      one: '1 day in a row',
-    );
-    return '$_temp0';
-  }
 
   @override
   String get statsStreakNewRecord => 'New record';
@@ -1650,21 +1591,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String tileShareText(String condition) {
     return 'I measured this spot: $condition. Check it out on the map.';
-  }
-
-  @override
-  String sessionSummaryShareText(int gained, int total, String km2) {
-    return 'I mapped +$gained new places today. $total total · $km2 km²';
-  }
-
-  @override
-  String sessionSummaryShareTextEmpty(String duration, int total, String km2) {
-    return 'Mapped for $duration. $total places on my map · $km2 km²';
-  }
-
-  @override
-  String sessionSummaryShareTextDarkSky(int total, String km2) {
-    return 'Mapped a dark sky zone tonight — $total places on my light pollution map · $km2 km²\nhttps://greengains.app/dashboard/#map';
   }
 
   @override
@@ -1864,31 +1790,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mapperRoleUrbanScientist => 'Urban Scientist';
 
   @override
-  String get sessionMilestone5Flavor =>
-      'Your neighbourhood, starting to take shape.';
-
-  @override
-  String get sessionMilestone10Flavor => 'A full block, mapped.';
-
-  @override
-  String get sessionMilestone25Flavor => 'The area of a small park, covered.';
-
-  @override
-  String get sessionMilestone50Flavor => 'Half a city block, yours.';
-
-  @override
-  String get sessionMilestone100Flavor => 'A full neighbourhood, on the map.';
-
-  @override
-  String get sessionMilestone250Flavor => 'You\'ve covered a city district.';
-
-  @override
-  String get sessionMilestone500Flavor => 'Coverage most apps will never have.';
-
-  @override
-  String get sessionMilestone1000Flavor => 'City-scale mapping. Rare.';
-
-  @override
   String territoryHeroLabel(String neighborhood, int count) {
     return '$neighborhood · $count places';
   }
@@ -1949,31 +1850,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get firstUploadBadge => 'FIRST PLACE MAPPED';
-
-  @override
-  String get firstUploadHeadline => 'Your first spot is on the map.';
-
-  @override
-  String get firstUploadSubtext =>
-      'Every place you pass through fills in automatically.';
-
-  @override
-  String get firstUploadSensorsLabel => 'RECORDED PASSIVELY';
-
-  @override
-  String get firstUploadSensorsValue => 'light · heat · surface quality';
-
-  @override
-  String get firstUploadPrivacyLabel => 'PRIVACY';
-
-  @override
-  String get firstUploadPrivacyValue => 'anonymous · no route stored';
-
-  @override
-  String get firstUploadKeepMappingCta => 'Keep mapping';
-
-  @override
   String get liveSensorsHeader => 'LIVE SENSORS';
 
   @override
@@ -1981,51 +1857,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get liveSensorPressureLabel => 'Pressure';
-
-  @override
-  String get sessionSummaryBadge => 'DONE';
-
-  @override
-  String get sessionSummaryZonesGainedLabel => 'NEW PLACES';
-
-  @override
-  String get sessionSummarySubline => 'added';
-
-  @override
-  String get sessionSummaryNoZonesLabel => 'YOUR MAP';
-
-  @override
-  String get sessionSummaryNoZonesSubline => 'Try a different route next time.';
-
-  @override
-  String get sessionSummaryWatermark => 'Mapped with GreenGains';
-
-  @override
-  String get sessionSummaryShareCta => 'Share';
-
-  @override
-  String sessionMilestoneHit(int milestone) {
-    return '$milestone places.';
-  }
-
-  @override
-  String get sessionSummaryNextHook => 'Runs silently wherever you carry it.';
-
-  @override
-  String get sessionSummaryNextHookEmpty =>
-      'Recorded silently every time you go out.';
-
-  @override
-  String get sessionStatArea => 'AREA';
-
-  @override
-  String get sessionStatDuration => 'TIME';
-
-  @override
-  String get sessionStatTotal => 'TOTAL';
-
-  @override
-  String get sessionStatUploads => 'SYNCS';
 
   @override
   String get sessionStatAreaExplain =>
@@ -2103,11 +1934,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileViewOnMap => 'View on Map';
 
   @override
-  String statsMilestoneTarget(int target) {
-    return '$target places';
-  }
-
-  @override
   String get statsActivitySection => 'YOUR WEEK';
 
   @override
@@ -2120,9 +1946,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get mapTapHint => 'Tap a place to explore';
-
-  @override
-  String get sessionPersonalBest => 'Personal best';
 
   @override
   String returnDeltaTitle(int zones) {
@@ -2176,13 +1999,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get streakResetBanner => 'Streak reset. Start fresh today.';
-
-  @override
-  String get sessionSummaryNextHookStreak => 'Streak alive.';
-
-  @override
-  String get sessionSummaryNextHookFirst =>
-      'Your contribution builds automatically — just keep going.';
 
   @override
   String get weeklyGoalTitle => 'Week complete.';

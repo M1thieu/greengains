@@ -168,16 +168,6 @@
     "placeholders": { "count": { "type": "int" } }
   },
 
-  "uploadSuccessNewZone": "New place added · {count} on your map",
-  "sessionEndedSnack": "Session ended · {count, plural, =1{1 new place} other{{count} new places}}",
-  "@sessionEndedSnack": {
-    "placeholders": {
-      "count": { "type": "int" }
-    }
-  },
-  "@uploadSuccessNewZone": {
-    "placeholders": { "count": { "type": "int" } }
-  },
   "semanticsRefreshMap": "Refresh map data",
   "semanticsToggleTracking": "Toggle tracking",
   "semanticsCenterOnMe": "Center map on my location",
@@ -496,7 +486,6 @@
 
   "statsWeeklyTotal": "{count} this week",
 
-  "statsMilestoneLabel": "Next milestone",
   "statsMilestoneHint": "Keep going — each route adds to your coverage.",
   "statsMilestoneElite": "All milestones reached.",
   "statsMilestoneRemaining": "{count, plural, =1{1 zone to go} other{{count} zones to go}}",
@@ -545,11 +534,6 @@
   "settingsDiagnostics": "Sensor Diagnostics",
   "settingsDiagnosticsDesc": "Live readings from your device sensors",
 
-  "settingsNotifications": "Notifications",
-  "settingsWeeklyDigest": "Weekly map update",
-  "settingsWeeklyDigestDesc": "Sunday summary of your new mapped places",
-  "settingsStreakAlerts": "Streak reminders",
-  "settingsStreakAlertsDesc": "Alert when your active days streak is at risk",
 
   "sensorLiveSheetTitle": "What you're measuring",
 
@@ -585,16 +569,10 @@
   "settingsBatteryMode": "Smart battery",
   "settingsBatteryModeDesc": "Quiet when still, precise when moving. Adapts automatically.",
 
-  "firstStartTitle": "Mapping in the background.",
-  "firstStartBody": "Light, heat, surface quality — recorded silently. Just go.",
 
   "alwaysOnBannerBody": "Set location to 'Always' to keep mapping in the background",
   "alwaysOnBannerFix": "Fix",
 
-  "milestoneReachedTitle": "{count} places mapped",
-  "@milestoneReachedTitle": {
-    "placeholders": { "count": { "type": "int" } }
-  },
 
   "firstUploadTitle": "First area mapped.",
   "firstUploadBody": "Keep moving. Your map is growing.",
@@ -636,10 +614,6 @@
   },
   "statsStreakLabel": "Streak",
   "statsStreakAtRisk": "Go out today to keep your streak.",
-  "statsStreakDays": "{count, plural, =1{1 day in a row} other{{count} days in a row}}",
-  "@statsStreakDays": {
-    "placeholders": { "count": { "type": "int" } }
-  },
   "statsStreakNewRecord": "New record",
   "statsStreakPersonalBest": "Best: {count} days",
   "@statsStreakPersonalBest": { "placeholders": { "count": { "type": "int" } } },
@@ -675,29 +649,6 @@
   "tileShareButton": "Share this spot",
   "tileShareText": "I measured this spot: {condition}. Check it out on the map.",
   "@tileShareText": { "placeholders": { "condition": { "type": "String" } } },
-  "sessionSummaryShareText": "I mapped +{gained} new places today. {total} total · {km2} km²",
-  "@sessionSummaryShareText": {
-    "placeholders": {
-      "gained": { "type": "int" },
-      "total": { "type": "int" },
-      "km2": { "type": "String" }
-    }
-  },
-  "sessionSummaryShareTextEmpty": "Mapped for {duration}. {total} places on my map · {km2} km²",
-  "@sessionSummaryShareTextEmpty": {
-    "placeholders": {
-      "duration": { "type": "String" },
-      "total": { "type": "int" },
-      "km2": { "type": "String" }
-    }
-  },
-  "sessionSummaryShareTextDarkSky": "Mapped a dark sky zone tonight — {total} places on my light pollution map · {km2} km²\nhttps://greengains.app/dashboard/#map",
-  "@sessionSummaryShareTextDarkSky": {
-    "placeholders": {
-      "total": { "type": "int" },
-      "km2": { "type": "String" }
-    }
-  },
 
   "sensorLuxLabel": "{lux} lux",
   "@sensorLuxLabel": { "placeholders": { "lux": { "type": "int" } } },
@@ -796,14 +747,6 @@
   "mapperRoleUrbanScientist": "Urban Scientist",
 
 
-  "sessionMilestone5Flavor": "Your neighbourhood, starting to take shape.",
-  "sessionMilestone10Flavor": "A full block, mapped.",
-  "sessionMilestone25Flavor": "The area of a small park, covered.",
-  "sessionMilestone50Flavor": "Half a city block, yours.",
-  "sessionMilestone100Flavor": "A full neighbourhood, on the map.",
-  "sessionMilestone250Flavor": "You've covered a city district.",
-  "sessionMilestone500Flavor": "Coverage most apps will never have.",
-  "sessionMilestone1000Flavor": "City-scale mapping. Rare.",
 
   "territoryHeroLabel": "{neighborhood} · {count} places",
   "@territoryHeroLabel": {
@@ -837,38 +780,11 @@
     "placeholders": { "count": { "type": "int" } }
   },
 
-  "firstUploadBadge": "FIRST PLACE MAPPED",
-  "firstUploadHeadline": "Your first spot is on the map.",
-  "firstUploadSubtext": "Every place you pass through fills in automatically.",
-  "firstUploadSensorsLabel": "RECORDED PASSIVELY",
-  "firstUploadSensorsValue": "light · heat · surface quality",
-  "firstUploadPrivacyLabel": "PRIVACY",
-  "firstUploadPrivacyValue": "anonymous · no route stored",
-  "firstUploadKeepMappingCta": "Keep mapping",
 
   "liveSensorsHeader": "LIVE SENSORS",
   "liveSensorMotionLabel": "Motion",
   "liveSensorPressureLabel": "Pressure",
 
-  "sessionSummaryBadge": "DONE",
-  "sessionSummaryZonesGainedLabel": "NEW PLACES",
-  "sessionSummarySubline": "added",
-  "sessionSummaryNoZonesLabel": "YOUR MAP",
-  "sessionSummaryNoZonesSubline": "Try a different route next time.",
-  "sessionSummaryWatermark": "Mapped with GreenGains",
-  "sessionSummaryShareCta": "Share",
-  "sessionMilestoneHit": "{milestone} places.",
-  "@sessionMilestoneHit": {
-    "placeholders": {
-      "milestone": { "type": "int" }
-    }
-  },
-  "sessionSummaryNextHook": "Runs silently wherever you carry it.",
-  "sessionSummaryNextHookEmpty": "Recorded silently every time you go out.",
-  "sessionStatArea": "AREA",
-  "sessionStatDuration": "TIME",
-  "sessionStatTotal": "TOTAL",
-  "sessionStatUploads": "SYNCS",
   "sessionStatAreaExplain": "Total area you've mapped this session, based on the zones covered.",
   "sessionStatDurationExplain": "How long tracking was active during this session.",
   "sessionStatUploadsExplain": "Number of times your sensor data was uploaded during this session.",
@@ -901,16 +817,11 @@
   "profileSeeInStats": "See in Stats",
   "profileViewOnMap": "View on Map",
 
-  "statsMilestoneTarget": "{target} places",
-  "@statsMilestoneTarget": {
-    "placeholders": { "target": { "type": "int" } }
-  },
   "statsActivitySection": "YOUR WEEK",
   "statsVsPrevWeek": "{delta}% vs prev week",
   "@statsVsPrevWeek": { "placeholders": { "delta": { "type": "String" } } },
   "statsTerritorySection": "YOUR AREA",
   "mapTapHint": "Tap a place to explore",
-  "sessionPersonalBest": "Personal best",
   "returnDeltaTitle": "{zones} new places while you were away.",
   "@returnDeltaTitle": {
     "placeholders": { "zones": { "type": "int" } }
@@ -936,8 +847,6 @@
 
   "streakResetBanner": "Streak reset. Start fresh today.",
 
-  "sessionSummaryNextHookStreak": "Streak alive.",
-  "sessionSummaryNextHookFirst": "Your contribution builds automatically — just keep going.",
 
   "weeklyGoalTitle": "Week complete.",
   "weeklyGoalBody": "See you next week.",

@@ -168,16 +168,6 @@
     "placeholders": { "count": { "type": "int" } }
   },
 
-  "uploadSuccessNewZone": "Nouvel endroit ajouté · {count} sur ta carte",
-  "sessionEndedSnack": "Session terminée · {count, plural, =1{1 nouvel endroit} other{{count} nouveaux endroits}}",
-  "@sessionEndedSnack": {
-    "placeholders": {
-      "count": { "type": "int" }
-    }
-  },
-  "@uploadSuccessNewZone": {
-    "placeholders": { "count": { "type": "int" } }
-  },
   "semanticsRefreshMap": "Actualiser les données de la carte",
   "semanticsToggleTracking": "Activer/désactiver le suivi",
   "semanticsCenterOnMe": "Centrer la carte sur ma position",
@@ -496,7 +486,6 @@
 
   "statsWeeklyTotal": "{count} cette semaine",
 
-  "statsMilestoneLabel": "Prochain palier",
   "statsMilestoneHint": "Continue à sortir — chaque trajet étend ta couverture.",
   "statsMilestoneElite": "Tous les paliers atteints.",
   "statsMilestoneRemaining": "{count, plural, =1{1 zone restante} other{{count} zones restantes}}",
@@ -545,11 +534,6 @@
   "settingsDiagnostics": "Diagnostics capteurs",
   "settingsDiagnosticsDesc": "Lectures en temps réel de vos capteurs",
 
-  "settingsNotifications": "Notifications",
-  "settingsWeeklyDigest": "Bilan hebdomadaire",
-  "settingsWeeklyDigestDesc": "Résumé dominical de vos nouveaux endroits cartographiés",
-  "settingsStreakAlerts": "Rappels de série",
-  "settingsStreakAlertsDesc": "Alerte quand votre série de jours actifs est en danger",
 
   "sensorLiveSheetTitle": "Ce que tu mesures",
 
@@ -585,16 +569,10 @@
   "settingsBatteryMode": "Batterie intelligente",
   "settingsBatteryModeDesc": "Discret à l'arrêt, précis en mouvement. S'adapte automatiquement.",
 
-  "firstStartTitle": "Cartographie en arrière-plan.",
-  "firstStartBody": "Lumière, chaleur, surfaces — enregistrés en silence. Continue.",
 
   "alwaysOnBannerBody": "Définissez la localisation sur 'Toujours' pour continuer à cartographier en arrière-plan",
   "alwaysOnBannerFix": "Corriger",
 
-  "milestoneReachedTitle": "{count} endroits cartographiés",
-  "@milestoneReachedTitle": {
-    "placeholders": { "count": { "type": "int" } }
-  },
 
   "firstUploadTitle": "Premier endroit cartographié.",
   "firstUploadBody": "Continuez à bouger. Votre carte grandit.",
@@ -636,10 +614,6 @@
   },
   "statsStreakLabel": "Série",
   "statsStreakAtRisk": "Sors aujourd'hui pour garder ta série.",
-  "statsStreakDays": "{count, plural, =1{1 jour de suite} other{{count} jours de suite}}",
-  "@statsStreakDays": {
-    "placeholders": { "count": { "type": "int" } }
-  },
   "statsStreakNewRecord": "Nouveau record",
   "statsStreakPersonalBest": "Record : {count} jours",
   "@statsStreakPersonalBest": { "placeholders": { "count": { "type": "int" } } },
@@ -675,29 +649,6 @@
   "tileShareButton": "Partager ce lieu",
   "tileShareText": "J'ai mesuré cet endroit : {condition}. Viens voir sur la carte.",
   "@tileShareText": { "placeholders": { "condition": { "type": "String" } } },
-  "sessionSummaryShareText": "J'ai cartographié +{gained} nouveaux endroits aujourd'hui. {total} au total · {km2} km²",
-  "@sessionSummaryShareText": {
-    "placeholders": {
-      "gained": { "type": "int" },
-      "total": { "type": "int" },
-      "km2": { "type": "String" }
-    }
-  },
-  "sessionSummaryShareTextEmpty": "Cartographié pendant {duration}. {total} endroits sur ma carte · {km2} km²",
-  "@sessionSummaryShareTextEmpty": {
-    "placeholders": {
-      "duration": { "type": "String" },
-      "total": { "type": "int" },
-      "km2": { "type": "String" }
-    }
-  },
-  "sessionSummaryShareTextDarkSky": "Zone de ciel noir cartographiée ce soir — {total} zones sur ma carte de pollution lumineuse · {km2} km²\nhttps://greengains.app/dashboard/#map",
-  "@sessionSummaryShareTextDarkSky": {
-    "placeholders": {
-      "total": { "type": "int" },
-      "km2": { "type": "String" }
-    }
-  },
 
   "sensorLuxLabel": "{lux} lux",
   "@sensorLuxLabel": { "placeholders": { "lux": { "type": "int" } } },
@@ -796,14 +747,6 @@
   "mapperRoleUrbanScientist": "Scientifique urbain",
 
 
-  "sessionMilestone5Flavor": "Votre quartier commence à prendre forme.",
-  "sessionMilestone10Flavor": "Un bloc complet, cartographié.",
-  "sessionMilestone25Flavor": "La surface d'un petit parc, couverte.",
-  "sessionMilestone50Flavor": "La moitié d'un îlot urbain, le vôtre.",
-  "sessionMilestone100Flavor": "Un quartier entier, sur la carte.",
-  "sessionMilestone250Flavor": "Vous avez couvert un district urbain.",
-  "sessionMilestone500Flavor": "Une couverture que peu d'apps atteignent.",
-  "sessionMilestone1000Flavor": "Cartographie à l'échelle d'une ville. Rare.",
 
   "territoryHeroLabel": "{neighborhood} · {count} endroits",
   "@territoryHeroLabel": {
@@ -837,38 +780,11 @@
     "placeholders": { "count": { "type": "int" } }
   },
 
-  "firstUploadBadge": "PREMIER ENDROIT CARTOGRAPHIÉ",
-  "firstUploadHeadline": "Ton premier endroit est sur la carte.",
-  "firstUploadSubtext": "Chaque endroit par où tu passes s'ajoute automatiquement.",
-  "firstUploadSensorsLabel": "ENREGISTRÉ EN SILENCE",
-  "firstUploadSensorsValue": "lumière · chaleur · qualité des surfaces",
-  "firstUploadPrivacyLabel": "CONFIDENTIALITÉ",
-  "firstUploadPrivacyValue": "anonyme · trajet non enregistré",
-  "firstUploadKeepMappingCta": "Continuer à cartographier",
 
   "liveSensorsHeader": "CAPTEURS EN DIRECT",
   "liveSensorMotionLabel": "Mouvement",
   "liveSensorPressureLabel": "Pression",
 
-  "sessionSummaryBadge": "TERMINÉ",
-"sessionSummaryZonesGainedLabel": "NOUVEAUX ENDROITS",
-  "sessionSummarySubline": "ajoutés",
-  "sessionSummaryNoZonesLabel": "TA CARTE",
-  "sessionSummaryNoZonesSubline": "Essaie un autre itinéraire la prochaine fois.",
-  "sessionSummaryWatermark": "Cartographié avec GreenGains",
-  "sessionSummaryShareCta": "Partager",
-  "sessionMilestoneHit": "{milestone} endroits.",
-  "@sessionMilestoneHit": {
-    "placeholders": {
-      "milestone": { "type": "int" }
-    }
-  },
-  "sessionSummaryNextHook": "Tourne en silence partout où tu vas.",
-  "sessionSummaryNextHookEmpty": "Enregistré en silence à chaque sortie.",
-  "sessionStatArea": "SURFACE",
-  "sessionStatDuration": "TEMPS",
-  "sessionStatTotal": "TOTAL",
-  "sessionStatUploads": "SYNCS",
   "sessionStatAreaExplain": "Surface totale cartographiée cette session, selon les zones couvertes.",
   "sessionStatDurationExplain": "Durée pendant laquelle le suivi était actif lors de cette session.",
   "sessionStatUploadsExplain": "Nombre d'envois de données pendant cette session.",
@@ -901,16 +817,11 @@
   "profileSeeInStats": "Voir dans les stats",
   "profileViewOnMap": "Voir sur la carte",
 
-  "statsMilestoneTarget": "{target} endroits",
-  "@statsMilestoneTarget": {
-    "placeholders": { "target": { "type": "int" } }
-  },
   "statsActivitySection": "TA SEMAINE",
   "statsVsPrevWeek": "{delta}% vs sem. préc.",
   "@statsVsPrevWeek": { "placeholders": { "delta": { "type": "String" } } },
   "statsTerritorySection": "TA ZONE",
   "mapTapHint": "Touchez un endroit pour explorer",
-  "sessionPersonalBest": "Record personnel",
   "returnDeltaTitle": "{zones} nouveaux endroits pendant ton absence.",
   "@returnDeltaTitle": {
     "placeholders": { "zones": { "type": "int" } }
@@ -936,8 +847,6 @@
 
   "streakResetBanner": "Série réinitialisée. Recommence aujourd’hui.",
 
-  "sessionSummaryNextHookStreak": "Série en vie.",
-  "sessionSummaryNextHookFirst": "Ta contribution se construit automatiquement — continue comme ça.",
 
   "weeklyGoalTitle": "Semaine complète.",
   "weeklyGoalBody": "À la semaine prochaine.",

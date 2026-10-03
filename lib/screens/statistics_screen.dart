@@ -275,7 +275,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
           coverageCells: profile.coverageCells,
           longestStreak: profile.longestStreak,
         ));
-        // Persist streak for native StreakAlertWorker — no network call needed at 8pm.
+        // Persist streak for the native home-screen widget — no network call needed.
         unawaited(AppPreferences.instance.setCurrentStreak(profile.currentStreak));
       }
     } catch (e) {

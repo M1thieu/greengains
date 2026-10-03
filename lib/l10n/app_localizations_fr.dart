@@ -398,22 +398,6 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String uploadSuccessNewZone(int count) {
-    return 'Nouvel endroit ajouté · $count sur ta carte';
-  }
-
-  @override
-  String sessionEndedSnack(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count nouveaux endroits',
-      one: '1 nouvel endroit',
-    );
-    return 'Session terminée · $_temp0';
-  }
-
-  @override
   String get semanticsRefreshMap => 'Actualiser les données de la carte';
 
   @override
@@ -1252,9 +1236,6 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get statsMilestoneLabel => 'Prochain palier';
-
-  @override
   String get statsMilestoneHint =>
       'Continue à sortir — chaque trajet étend ta couverture.';
 
@@ -1348,23 +1329,6 @@ class AppLocalizationsFr extends AppLocalizations {
       'Lectures en temps réel de vos capteurs';
 
   @override
-  String get settingsNotifications => 'Notifications';
-
-  @override
-  String get settingsWeeklyDigest => 'Bilan hebdomadaire';
-
-  @override
-  String get settingsWeeklyDigestDesc =>
-      'Résumé dominical de vos nouveaux endroits cartographiés';
-
-  @override
-  String get settingsStreakAlerts => 'Rappels de série';
-
-  @override
-  String get settingsStreakAlertsDesc =>
-      'Alerte quand votre série de jours actifs est en danger';
-
-  @override
   String get sensorLiveSheetTitle => 'Ce que tu mesures';
 
   @override
@@ -1451,23 +1415,11 @@ class AppLocalizationsFr extends AppLocalizations {
       'Discret à l\'arrêt, précis en mouvement. S\'adapte automatiquement.';
 
   @override
-  String get firstStartTitle => 'Cartographie en arrière-plan.';
-
-  @override
-  String get firstStartBody =>
-      'Lumière, chaleur, surfaces — enregistrés en silence. Continue.';
-
-  @override
   String get alwaysOnBannerBody =>
       'Définissez la localisation sur \'Toujours\' pour continuer à cartographier en arrière-plan';
 
   @override
   String get alwaysOnBannerFix => 'Corriger';
-
-  @override
-  String milestoneReachedTitle(int count) {
-    return '$count endroits cartographiés';
-  }
 
   @override
   String get firstUploadTitle => 'Premier endroit cartographié.';
@@ -1541,17 +1493,6 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get statsStreakAtRisk => 'Sors aujourd\'hui pour garder ta série.';
-
-  @override
-  String statsStreakDays(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count jours de suite',
-      one: '1 jour de suite',
-    );
-    return '$_temp0';
-  }
 
   @override
   String get statsStreakNewRecord => 'Nouveau record';
@@ -1665,21 +1606,6 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String tileShareText(String condition) {
     return 'J\'ai mesuré cet endroit : $condition. Viens voir sur la carte.';
-  }
-
-  @override
-  String sessionSummaryShareText(int gained, int total, String km2) {
-    return 'J\'ai cartographié +$gained nouveaux endroits aujourd\'hui. $total au total · $km2 km²';
-  }
-
-  @override
-  String sessionSummaryShareTextEmpty(String duration, int total, String km2) {
-    return 'Cartographié pendant $duration. $total endroits sur ma carte · $km2 km²';
-  }
-
-  @override
-  String sessionSummaryShareTextDarkSky(int total, String km2) {
-    return 'Zone de ciel noir cartographiée ce soir — $total zones sur ma carte de pollution lumineuse · $km2 km²\nhttps://greengains.app/dashboard/#map';
   }
 
   @override
@@ -1880,36 +1806,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get mapperRoleUrbanScientist => 'Scientifique urbain';
 
   @override
-  String get sessionMilestone5Flavor =>
-      'Votre quartier commence à prendre forme.';
-
-  @override
-  String get sessionMilestone10Flavor => 'Un bloc complet, cartographié.';
-
-  @override
-  String get sessionMilestone25Flavor =>
-      'La surface d\'un petit parc, couverte.';
-
-  @override
-  String get sessionMilestone50Flavor =>
-      'La moitié d\'un îlot urbain, le vôtre.';
-
-  @override
-  String get sessionMilestone100Flavor => 'Un quartier entier, sur la carte.';
-
-  @override
-  String get sessionMilestone250Flavor =>
-      'Vous avez couvert un district urbain.';
-
-  @override
-  String get sessionMilestone500Flavor =>
-      'Une couverture que peu d\'apps atteignent.';
-
-  @override
-  String get sessionMilestone1000Flavor =>
-      'Cartographie à l\'échelle d\'une ville. Rare.';
-
-  @override
   String territoryHeroLabel(String neighborhood, int count) {
     return '$neighborhood · $count endroits';
   }
@@ -1971,32 +1867,6 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get firstUploadBadge => 'PREMIER ENDROIT CARTOGRAPHIÉ';
-
-  @override
-  String get firstUploadHeadline => 'Ton premier endroit est sur la carte.';
-
-  @override
-  String get firstUploadSubtext =>
-      'Chaque endroit par où tu passes s\'ajoute automatiquement.';
-
-  @override
-  String get firstUploadSensorsLabel => 'ENREGISTRÉ EN SILENCE';
-
-  @override
-  String get firstUploadSensorsValue =>
-      'lumière · chaleur · qualité des surfaces';
-
-  @override
-  String get firstUploadPrivacyLabel => 'CONFIDENTIALITÉ';
-
-  @override
-  String get firstUploadPrivacyValue => 'anonyme · trajet non enregistré';
-
-  @override
-  String get firstUploadKeepMappingCta => 'Continuer à cartographier';
-
-  @override
   String get liveSensorsHeader => 'CAPTEURS EN DIRECT';
 
   @override
@@ -2004,52 +1874,6 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get liveSensorPressureLabel => 'Pression';
-
-  @override
-  String get sessionSummaryBadge => 'TERMINÉ';
-
-  @override
-  String get sessionSummaryZonesGainedLabel => 'NOUVEAUX ENDROITS';
-
-  @override
-  String get sessionSummarySubline => 'ajoutés';
-
-  @override
-  String get sessionSummaryNoZonesLabel => 'TA CARTE';
-
-  @override
-  String get sessionSummaryNoZonesSubline =>
-      'Essaie un autre itinéraire la prochaine fois.';
-
-  @override
-  String get sessionSummaryWatermark => 'Cartographié avec GreenGains';
-
-  @override
-  String get sessionSummaryShareCta => 'Partager';
-
-  @override
-  String sessionMilestoneHit(int milestone) {
-    return '$milestone endroits.';
-  }
-
-  @override
-  String get sessionSummaryNextHook => 'Tourne en silence partout où tu vas.';
-
-  @override
-  String get sessionSummaryNextHookEmpty =>
-      'Enregistré en silence à chaque sortie.';
-
-  @override
-  String get sessionStatArea => 'SURFACE';
-
-  @override
-  String get sessionStatDuration => 'TEMPS';
-
-  @override
-  String get sessionStatTotal => 'TOTAL';
-
-  @override
-  String get sessionStatUploads => 'SYNCS';
 
   @override
   String get sessionStatAreaExplain =>
@@ -2127,11 +1951,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get profileViewOnMap => 'Voir sur la carte';
 
   @override
-  String statsMilestoneTarget(int target) {
-    return '$target endroits';
-  }
-
-  @override
   String get statsActivitySection => 'TA SEMAINE';
 
   @override
@@ -2144,9 +1963,6 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get mapTapHint => 'Touchez un endroit pour explorer';
-
-  @override
-  String get sessionPersonalBest => 'Record personnel';
 
   @override
   String returnDeltaTitle(int zones) {
@@ -2201,13 +2017,6 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get streakResetBanner =>
       'Série réinitialisée. Recommence aujourd’hui.';
-
-  @override
-  String get sessionSummaryNextHookStreak => 'Série en vie.';
-
-  @override
-  String get sessionSummaryNextHookFirst =>
-      'Ta contribution se construit automatiquement — continue comme ça.';
 
   @override
   String get weeklyGoalTitle => 'Semaine complète.';

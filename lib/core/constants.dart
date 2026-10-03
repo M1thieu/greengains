@@ -47,10 +47,6 @@ const kPreciseGpsTimeout = Duration(seconds: 15);
 const kCoarseGpsTimeout = Duration(seconds: 5);
 
 // ─── UX Thresholds ────────────────────────────────────────────────────────────
-/// Number of successful uploads before requesting an in-app review.
-const kReviewRequestThreshold = 5;
-/// Minimum gap between battery-optimisation prompt appearances.
-const kBatteryPromptInterval = Duration(days: 2);
 
 
 // ─── H3 / Coverage Geometry ──────────────────────────────────────────────────

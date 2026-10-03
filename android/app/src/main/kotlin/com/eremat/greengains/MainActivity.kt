@@ -15,14 +15,9 @@ import android.provider.Settings
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.work.ExistingPeriodicWorkPolicy
-import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
-import java.util.concurrent.TimeUnit
 import com.eremat.greengains.service.ForegroundService
 import com.eremat.greengains.util.AppLogger
-import com.eremat.greengains.worker.StreakAlertWorker
-import com.eremat.greengains.worker.WeeklyDigestWorker
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
@@ -42,22 +37,10 @@ class MainActivity : FlutterActivity() {
         AppLogger.init(this)
         AppLogger.i("MainActivity", "App started")
         checkAndRequestNotificationPermission()
-        // Schedule daily streak-at-risk alert near 20:00 local time.
-        // Worker self-gates: only fires if streak >= 2 and no upload today.
-        val streakWork = PeriodicWorkRequestBuilder<StreakAlertWorker>(1L, TimeUnit.DAYS).build()
-        WorkManager.getInstance(this).enqueueUniquePeriodicWork(
-            StreakAlertWorker.WORK_NAME,
-            ExistingPeriodicWorkPolicy.KEEP,
-            streakWork,
-        )
-        // Weekly passive digest — every 7 days, Sunday morning feel.
-        // Self-gates: skips if no zones collected yet.
-        val weeklyWork = PeriodicWorkRequestBuilder<WeeklyDigestWorker>(7L, TimeUnit.DAYS).build()
-        WorkManager.getInstance(this).enqueueUniquePeriodicWork(
-            WeeklyDigestWorker.WORK_NAME,
-            ExistingPeriodicWorkPolicy.KEEP,
-            weeklyWork,
-        )
+        // The only notification left is the running service's own. Cancel the
+        // streak / weekly-digest workers that older versions scheduled.
+        WorkManager.getInstance(this).cancelUniqueWork("streak_alert_daily")
+        WorkManager.getInstance(this).cancelUniqueWork("weekly_digest")
     }
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {

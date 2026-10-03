@@ -79,18 +79,7 @@ object AppPrefs {
     /** Human-readable territory label (neighbourhood/city) — written by Flutter after reverse-geocode. */
     const val TERRITORY_LABEL = "flutter.flutter.territory_label"
 
-    // ── Streak (written by Flutter after profile fetch, read by StreakAlertWorker) ──
+    // ── Streak (written by Flutter after profile fetch, read by the home widget) ──
     /** Current consecutive-days streak — written by Flutter via AppPreferences.setCurrentStreak(). */
     const val CURRENT_STREAK = "flutter.flutter.current_streak"
-
-    // ── Streak alert dedup (native-only) ──────────────────────────────────────
-    /** ISO date of the last streak-at-risk alert — prevents firing more than once per day. */
-    const val STREAK_ALERT_DATE = "gg.streak_alert_date"
-
-    // ── Notification preferences (written by Flutter, read by workers) ────────
-    /** Whether the weekly map digest notification is enabled. Default true. */
-    const val WEEKLY_DIGEST_ENABLED = "flutter.flutter.weekly_digest_enabled"
-
-    /** Whether streak-at-risk reminder notifications are enabled. Default true. */
-    const val STREAK_ALERTS_ENABLED = "flutter.flutter.streak_alerts_enabled"
 }
