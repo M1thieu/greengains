@@ -61,9 +61,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get buttonNext => 'Suivant';
 
   @override
-  String get signInSuccess => 'Connexion réussie';
-
-  @override
   String get signInError => 'Connexion annulée ou échouée';
 
   @override
@@ -1106,9 +1103,6 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settingsExportData => 'Exporter mes données';
-
-  @override
-  String get settingsExportDataPreparing => 'Préparation de l\'export…';
 
   @override
   String get settingsExportDataFailed =>

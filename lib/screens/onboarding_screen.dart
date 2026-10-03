@@ -113,9 +113,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         );
       }
 
-      AppSnackbars.showSuccess(context, l10n.signInSuccess);
-      await Future.delayed(AppDurations.medium);
-      if (!mounted) return;
       // First-time onboarding → advance to "start mapping" page.
       // Re-sign-in (initialPage > 0) → complete immediately.
       if (widget.initialPage > 0) {

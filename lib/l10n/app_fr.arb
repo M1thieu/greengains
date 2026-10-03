@@ -22,7 +22,6 @@
   "termsOfService": "Conditions d'utilisation",
   "buttonPrevious": "Précédent",
   "buttonNext": "Suivant",
-  "signInSuccess": "Connexion réussie",
   "signInError": "Connexion annulée ou échouée",
 
   "navHome": "Accueil",
@@ -435,7 +434,6 @@
   "settingsTermsOfServiceDesc": "Conditions générales d'utilisation",
   "settingsDataTransparency": "Transparence des données",
   "settingsExportData": "Exporter mes données",
-  "settingsExportDataPreparing": "Préparation de l'export…",
   "settingsExportDataFailed": "Impossible d'exporter tes données. Réessaie plus tard.",
   "settingsDataSection": "Données",
   "settingsConsentDate": "Consentement : {date}",

@@ -61,9 +61,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get buttonNext => 'Next';
 
   @override
-  String get signInSuccess => 'Signed in successfully';
-
-  @override
   String get signInError => 'Sign-in cancelled or failed';
 
   @override
@@ -1096,9 +1093,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsExportData => 'Export My Data';
-
-  @override
-  String get settingsExportDataPreparing => 'Preparing your export…';
 
   @override
   String get settingsExportDataFailed =>

@@ -217,7 +217,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     try {
       await AuthService.signInWithGoogleUniversal();
       if (!mounted) return;
-      AppSnackbars.showSuccess(context, l10n.signInSuccess);
       setState(() {}); // Trigger rebuild to show signed-in state
     } catch (e) {
       debugPrint('Sign-in error: $e');

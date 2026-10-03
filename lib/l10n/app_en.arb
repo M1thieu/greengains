@@ -22,7 +22,6 @@
   "termsOfService": "Terms of Service",
   "buttonPrevious": "Previous",
   "buttonNext": "Next",
-  "signInSuccess": "Signed in successfully",
   "signInError": "Sign-in cancelled or failed",
 
   "navHome": "Home",
@@ -435,7 +434,6 @@
   "settingsTermsOfServiceDesc": "Usage terms and conditions",
   "settingsDataTransparency": "Data Transparency",
   "settingsExportData": "Export My Data",
-  "settingsExportDataPreparing": "Preparing your export…",
   "settingsExportDataFailed": "Couldn't export your data. Try again later.",
   "settingsDataSection": "Data",
   "settingsConsentDate": "Consented: {date}",

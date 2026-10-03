@@ -188,12 +188,6 @@ abstract class AppLocalizations {
   /// **'Next'**
   String get buttonNext;
 
-  /// No description provided for @signInSuccess.
-  ///
-  /// In en, this message translates to:
-  /// **'Signed in successfully'**
-  String get signInSuccess;
-
   /// No description provided for @signInError.
   ///
   /// In en, this message translates to:
@@ -1933,12 +1927,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Export My Data'**
   String get settingsExportData;
-
-  /// No description provided for @settingsExportDataPreparing.
-  ///
-  /// In en, this message translates to:
-  /// **'Preparing your export…'**
-  String get settingsExportDataPreparing;
 
   /// No description provided for @settingsExportDataFailed.
   ///

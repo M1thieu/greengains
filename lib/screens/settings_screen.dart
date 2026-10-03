@@ -261,7 +261,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final theme = Theme.of(sheetContext);
     return PressScaleDetector(
       onTap: () {
-        AppSnackbars.show(context, message: l10n.settingsExportDataPreparing, type: AppSnackbarType.info);
         unawaited(_exportMyData(context, l10n));
       },
       child: Row(children: [
