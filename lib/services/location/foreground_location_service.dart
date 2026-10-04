@@ -293,6 +293,27 @@ class ForegroundLocationService {
     }
   }
 
+  /// True when Android's battery optimisation may stop background tracking.
+  /// Platforms without that concept (or without the native side) report false.
+  Future<bool> isBatteryRestricted() async {
+    try {
+      final ignoring = await _fgChannel.invokeMethod<bool>('isIgnoringBatteryOptimizations');
+      return ignoring == false;
+    } catch (e) {
+      debugPrint('Battery optimisation check unavailable: $e');
+      return false;
+    }
+  }
+
+  /// Opens the platform's own "allow in background" prompt, if it has one.
+  Future<void> requestBatteryExemption() async {
+    try {
+      await _fgChannel.invokeMethod<void>('requestIgnoreBatteryOptimizations');
+    } catch (e) {
+      debugPrint('Battery exemption request unavailable: $e');
+    }
+  }
+
   /// Android 13+: true when previous app process exit was user-requested
   /// (e.g. Task Manager stop). Returns false on unsupported versions/errors.
   Future<bool> wasAppUserStopped() async {

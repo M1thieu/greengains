@@ -1,8 +1,34 @@
-# GreenGains world data: what is stored and what it means
+# GreenGains world data: what comes in, what is stored, what it means
 
 Reference for anything that consumes GreenGains measurements outside the app
 (dashboard, B2B export, a simulation or game engine). No API is promised here;
 this describes the data as it sits in the database.
+
+## Sending data (any client)
+
+The Android app is one client; nothing in the backend is Android-specific. An
+iOS app, a desktop app or a fixed sensor can contribute with the same call.
+
+`POST /upload`, JSON body (optionally gzip with `Content-Encoding: gzip`), answers `202`.
+
+Headers:
+- `X-API-Key`: the app key.
+- `x-device-secret` (from `POST /register-device`) or
+  `Authorization: Bearer <Firebase ID token>`: who is contributing.
+
+Body (`backend/src/models/upload.ts`, `UploadBatchSchema` is the source of truth):
+
+| Field | Required | Meaning |
+|---|---|---|
+| `device_id` | yes | Stable per install; hashed server-side |
+| `timestamp` | yes | Batch time, ISO 8601 UTC; reuse it on retry (deduplication) |
+| `batch` | yes | 1-500 readings: `t` (time), and any of `light` (lux), `pressure` (hPa, as measured), `accel` / `gyro` ([x,y,z]), `magnetic` ([x,y,z,magnitude] µT), `aux` (extra numeric channels by name) |
+| `location` | no | `lat`, `lon`, `accuracy_m` (required inside), `altitude`, `speed_mps` |
+| `device_model` | no | "<maker> <model>", enables per-model calibration |
+| `sensor_flags` | no | Bitmask of sensors present: light 1, motion 2, pressure 4, gyro 8, magnetic 16 |
+
+A reading only needs the sensors the device has. Unknown or malformed optional
+blocks are dropped, never the batch.
 
 ## Unit of observation: one H3 cell, one 5-minute window
 

@@ -257,27 +257,18 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         if (_batteryRestricted && mounted) setState(() => _batteryRestricted = false);
         return;
       }
-      const platform = MethodChannel('greengains/foreground');
-      final bool isIgnoring =
-          await platform.invokeMethod('isIgnoringBatteryOptimizations');
-      if (mounted && _batteryRestricted == isIgnoring) {
-        setState(() => _batteryRestricted = !isIgnoring);
+      final restricted = await _locationService.isBatteryRestricted();
+      if (mounted && _batteryRestricted != restricted) {
+        setState(() => _batteryRestricted = restricted);
       }
-    } on PlatformException catch (e) {
-      debugPrint("Failed to check battery optimization: '${e.message}'.");
+    } catch (e) {
+      debugPrint('Failed to check battery optimization: $e');
     }
   }
 
   /// Straight to Android's own "allow in background" prompt: no in-app dialog
   /// in between. The hint re-checks on resume and disappears once allowed.
-  Future<void> _openBatteryDialog() async {
-    try {
-      await const MethodChannel('greengains/foreground')
-          .invokeMethod('requestIgnoreBatteryOptimizations');
-    } on PlatformException catch (e) {
-      debugPrint("Battery optimization request failed: '${e.message}'.");
-    }
-  }
+  Future<void> _openBatteryDialog() => _locationService.requestBatteryExemption();
 
   void _setupUploadSuccessListener() {
     _subs.add(AppEventBus.instance.on<UploadSuccessEvent>().listen(_onUploadSuccess));

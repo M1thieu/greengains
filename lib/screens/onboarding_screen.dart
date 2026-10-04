@@ -92,7 +92,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       unawaited(
         PackageInfo.fromPlatform().then((packageInfo) =>
           BackendClient.post(kApiUserConsent, {
-            'platform': Platform.isIOS ? 'ios' : 'android',
+            // Only platforms the consent record knows; others omit the field.
+            if (Platform.isIOS) 'platform': 'ios',
+            if (Platform.isAndroid) 'platform': 'android',
             'appVersion': packageInfo.version,
           }).then((body) async {
             final rawDate = body['agreedAt'];
