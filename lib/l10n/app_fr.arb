@@ -16,7 +16,6 @@
   "signInWithGoogleLabel": "Continuer avec Google",
   "privacyPolicy": "Politique de confidentialité",
   "termsOfService": "Conditions d'utilisation",
-  "buttonPrevious": "Précédent",
   "buttonNext": "Suivant",
   "signInError": "Connexion annulée ou échouée",
 
@@ -25,11 +24,6 @@
   "navProfile": "Profil",
   "navSettings": "Paramètres",
 
-  "homeTitle": "GreenGains",
-  "homeIdleTagline": "Vois ce que tes trajets t'exposent",
-  "homeIdleSubtitle": "Laisse-le actif. Lumière, chaleur et surfaces sont enregistrées en arrière-plan.",
-  "homeStatPlaces": "{count} endroits",
-  "@homeStatPlaces": { "placeholders": { "count": { "type": "int" } } },
   "homeStatArea": "{area} cartographié",
   "@homeStatArea": { "placeholders": { "area": { "type": "String" } } },
   "homeActionStart": "Démarrer",
@@ -37,67 +31,29 @@
   "homeActionResume": "Reprendre",
   "startTracking": "Démarrer le suivi",
   "stopTracking": "Arrêter le suivi",
-  "trackingActive": "Suivi actif",
   "trackingPaused": "Suivi en pause",
-  "trackingStopped": "Suivi arrêté",
-  "uploadSuccess": "Envoi réussi",
-  "uploadFailed": "Échec de l'envoi",
   "lastUpload": "Dernier envoi : {time}",
   "@lastUpload": {
     "placeholders": {
       "time": {"type": "String"}
     }
   },
-  "noUploadYet": "Aucun envoi pour le moment",
 
-  "statsTitle": "Ta carte",
   "totalUploads": "Total d'envois",
-  "todayUploads": "Envois du jour",
-  "coverageTiles": "Tuiles couvertes",
-  "dataCollected": "Données collectées",
-  "timesContributed": "{count} contributions",
-  "@timesContributed": {
-    "placeholders": {
-      "count": {"type": "int"}
-    }
-  },
 
-  "mapTitle": "Carte de couverture",
-  "mapRecenter": "Recentrer",
-  "mapZoomIn": "Zoomer",
-  "mapZoomOut": "Dézoomer",
-  "mapYourLocation": "Ta position",
-  "mapCoverageLegend": "Couverture",
-
-  "profileTitle": "Profil",
-  "profileSignOut": "Se déconnecter",
-  "profileSignedInAs": "Connecté en tant que",
   "profileMemberSince": "Membre depuis le {date}",
   "@profileMemberSince": {
     "placeholders": {
       "date": {"type": "String"}
     }
   },
-  "profileLastMapped": "Dernière cartographie {ago}",
-  "@profileLastMapped": {
-    "placeholders": {
-      "ago": {"type": "String"}
-    }
-  },
-  "profileDeleteAccount": "Supprimer le compte",
-  "profileDeleteConfirm": "Tu es sûr ? Cette action est irréversible.",
 
   "settingsTitle": "Paramètres",
-  "settingsGeneral": "Général",
-  "settingsPrivacy": "Confidentialité et données",
   "settingsAbout": "À propos",
-  "settingsLanguage": "Langue",
   "settingsLanguageSystem": "Système",
   "settingsLanguageEnglish": "English",
   "settingsLanguageFrench": "Français",
   "settingsDisplay": "Affichage",
-  "settingsTheme": "Thème",
-  "settingsLocationSharing": "Partage de position",
   "settingsMobileData": "Envoi sur données mobiles",
   "settingsVersion": "Version {version}",
   "@settingsVersion": {
@@ -106,25 +62,11 @@
     }
   },
 
-  "permissionLocationTitle": "Autorisation de localisation",
   "permissionLocationMessage": "Autorise la localisation pour que ton téléphone cartographie pendant tes déplacements.",
-  "permissionLocationButton": "Autoriser",
-  "permissionBatteryTitle": "Optimisation de la batterie",
-  "permissionBatteryMessage": "Veuillez désactiver l'optimisation de la batterie pour un suivi en arrière-plan fiable.",
-  "permissionBatteryButton": "Ouvrir les paramètres",
 
   "errorGeneric": "Une erreur s'est produite. Veuillez réessayer.",
-  "errorNetwork": "Pas de connexion internet",
-  "errorLocationUnavailable": "Position indisponible",
-  "errorUploadFailed": "Synchronisation impossible. Nouvelle tentative plus tard.",
-  "errorSignInRequired": "Connecte-toi pour continuer",
 
-  "buttonOk": "OK",
   "buttonCancel": "Annuler",
-  "buttonYes": "Oui",
-  "buttonNo": "Non",
-  "buttonSave": "Enregistrer",
-  "buttonDelete": "Supprimer",
   "buttonClose": "Fermer",
   "buttonRetry": "Réessayer",
   "loading": "Chargement...",
@@ -134,53 +76,13 @@
 
   "profileUserFallback": "Utilisateur",
 
-  "chipContributing": "Cartographie",
   "chipPaused": "En pause",
-  "chipTapStart": "Appuie sur ▶ pour commencer",
-  "chipTapStartFirst": "Commence à cartographier ton quartier",
-  "chipDataPts": "{count, plural, =1{1 scan} other{{count} scans}}",
-  "@chipDataPts": {
-    "placeholders": { "count": { "type": "int" } }
-  },
-  "homeSessionZones": "{count, plural, =0{Cartographie} =1{+1 nouvel endroit} other{+{count} nouveaux endroits}}",
-  "@homeSessionZones": {
-    "placeholders": { "count": { "type": "int" } }
-  },
-  "homeYourMap": "VOTRE CARTE",
-  "homeCityPct": "{pct}% de la ville explorée",
-  "@homeCityPct": {
-    "placeholders": { "pct": { "type": "String" } }
-  },
-  "profileImpactSection": "VOTRE CARTE",
-  "homeFirstUseHint": "Appuie sur ▶ pour voir ton premier endroit apparaître",
-  "homeFirstTrackingHint": "Lecture de la lumière, chaleur et surfaces. Première zone après l'envoi.",
-  "homeTrackingReadings": "{count, plural, =1{1 mesure capturée} other{{count} mesures capturées}}",
-  "@homeTrackingReadings": {
-    "placeholders": { "count": { "type": "num", "format": "compact" } }
-  },
-  "homeReturnHint": "{count, plural, =1{1 endroit sur ta carte. Appuie sur ▶ pour explorer plus} other{{count} endroits sur ta carte. Appuie sur ▶ pour explorer plus}}",
-  "@homeReturnHint": {
-    "placeholders": { "count": { "type": "int" } }
-  },
 
-  "semanticsRefreshMap": "Actualiser les données de la carte",
-  "semanticsToggleTracking": "Activer/désactiver le suivi",
   "semanticsCenterOnMe": "Centrer la carte sur ma position",
-  "semanticsZoneCount": "{count, plural, =1{1 endroit : voir les stats} other{{count} endroits : voir les stats}}",
-  "@semanticsZoneCount": {
-    "placeholders": {
-      "count": { "type": "int" }
-    }
-  },
-  "tipViewLiveDataTitle": "Voir les données en direct",
-  "tipViewLiveDataMessage": "Appuie ci-dessous pour voir les données que tu contribues en ce moment",
 
-  "statsScreenTitle": "Statistiques",
   "statsToday": "Aujourd'hui",
   "statsThisWeek": "Cette semaine",
   "statsDaysActive": "Jours actifs",
-  "statsTotal": "Total",
-  "statsCoverage": "Endroits",
   "statsAreasLabel": "endroits couverts",
   "statsDataPtsLabel": "données collectées",
   "statsKmMapped": "km² couverts",
@@ -192,17 +94,6 @@
   "statsBarCalloutBest": "Meilleur jour",
   "statsBestDayLabel": "Meilleur jour",
   "statsAvgPerDay": "Moy. / jour",
-  "statsVerdictStrong": "Excellente semaine",
-  "statsVerdictGood": "Bonne semaine",
-  "statsVerdictSlow": "Semaine calme",
-  "statsVerdictNone": "Pas encore",
-  "statsVerdictSubStrong": "Actif {days} jours sur 7 cette semaine.",
-  "@statsVerdictSubStrong": { "placeholders": { "days": { "type": "int" } } },
-  "statsVerdictSubGood": "Actif {days} jours sur 7 cette semaine.",
-  "@statsVerdictSubGood": { "placeholders": { "days": { "type": "int" } } },
-  "statsVerdictSubSlow": "Actif {days} jour cette semaine.",
-  "@statsVerdictSubSlow": { "placeholders": { "days": { "type": "int" } } },
-  "statsVerdictSubNone": "Active le suivi et vis ta journée.",
   "statsWeeklyTargetLabel": "CETTE SEMAINE",
   "statsWeeklyTargetComplete": "Objectif atteint",
 
@@ -216,8 +107,6 @@
   "statsImpactLabel": "TON IMPACT",
   "statsImpactSolo": "{count, plural, =1{Tu es la seule personne à avoir cartographié 1 de tes zones} other{Tu es la seule personne à avoir cartographié {count} de tes zones}}",
   "@statsImpactSolo": { "placeholders": { "count": { "type": "int" } } },
-  "statsWeeklyTargetRemaining": "{count} de plus",
-  "@statsWeeklyTargetRemaining": { "placeholders": { "count": { "type": "int" } } },
   "statsDetailTitle": "Tes données",
   "statsCityBlocks": "~{count} pâtés de maisons couverts",
   "@statsCityBlocks": { "placeholders": { "count": { "type": "int" } } },
@@ -229,7 +118,6 @@
   "statsRecordBestSession": "Meilleure session",
   "statsZoneExplainer": "Une zone correspond environ à un pâté de maisons, enregistré en passant.",
   "statsUploadExplainer": "Lumière, chaleur et qualité des surfaces capturées à cet instant.",
-  "statsTabCore": "Aperçu",
   "statsTabInDepth": "Détails",
   "statsOpenDetails": "En détail",
   "statsInDepth30Days": "30 derniers jours",
@@ -267,71 +155,15 @@
   "statsQualitySubtitle": "La clarté de tes mesures : signal fort, moins d'erreurs",
   "statsAvgPrefix": "moy.",
 
-  "infoKmTitle": "Territoire cartographié",
-  "infoKmBody": "Chaque zone fait environ un pâté de maisons. C'est la part de ta zone enregistrée.",
-  "infoDataPtsTitle": "Endroits cartographiés",
-  "infoDataPtsBody": "Chaque passage enregistre ce que cet endroit est vraiment. Plus de passages, plus de précision.",
-  "infoTodayTitle": "Aujourd'hui",
-  "infoTodayBody": "Lumière, météo et activité captées aujourd'hui à chaque arrêt.",
-  "infoThisWeekTitle": "Cette semaine",
-  "infoThisWeekBody": "Enregistrements des 7 derniers jours.",
-  "infoDaysActiveTitle": "Jours actifs",
-  "infoDaysActiveBody": "Jours où ton téléphone était actif. Pas besoin de sortir tous les jours.",
-  "infoBestDayTitle": "Meilleur jour",
-  "infoBestDayBody": "Ton jour le plus actif cette semaine. Souvent plus de temps dehors.",
-  "infoMilestoneTitle": "Prochain palier",
-  "infoMilestoneBody": "Chaque nouvel endroit cartographié compte pour le prochain palier.",
   "infoTileQualityTitle": "Qualité de couverture",
-  "infoTileQualityBody": "Vert = bien couvert, jaune = partiel, rouge = plus de passages nécessaires.",
 "infoTilePersonalTitle": "Ton endroit",
-  "infoTilePersonalBody": "Ton téléphone a enregistré ici.",
-  "infoTileCommunityTitle": "Endroit communautaire",
-  "infoTileCommunityBody": "Cartographié par d'autres. Passe ici pour te l'approprier.",
-  "statsTotalContributions": "Fois où tu as cartographié",
   "statsActivityTrend": "Cette semaine",
-  "statsLast7Days": "7 derniers jours",
   "statsTodayLabel": "AUJOURD'HUI",
-  "statsHistoryNote": "L'historique hebdomadaire apparaîtra après plusieurs jours de données",
-  "statsContributionTimeline": "Historique des contributions",
   "statsStartContributing": "Pas encore de données.",
   "statsEmptyGoMap": "Activer le suivi",
   "statsLoadErrorTitle": "Impossible de charger tes stats",
   "statsCollectingTitle": "Collecte en cours",
-  "statsEmptyUnlockHint": "Marche pour débloquer",
-  "statsUpdatedPrefix": "Mis à jour ",
-  "statsDayMon": "Lun",
-  "statsDayTue": "Mar",
-  "statsDayWed": "Mer",
-  "statsDayThu": "Jeu",
-  "statsDayFri": "Ven",
-  "statsDaySat": "Sam",
-  "statsDayToday": "Aujourd'hui",
 
-  "mapLoadingText": "Chargement de la carte...",
-  "mapCenterTooltip": "Centrer sur la position",
-
-  "yourContributions": "VOTRE TERRITOIRE",
-  "impactCardContext": "endroits cartographiés",
-  "loadingStatsLabel": "Chargement des statistiques",
-  "noContributionsYet": "Rien d'enregistré. Appuyez sur ▶ pour démarrer.",
-  "startContributingTitle": "Commencer à cartographier",
-  "startContributingHint": "Ton téléphone cartographie en arrière-plan pendant tes déplacements",
-  "areaCovered": "Zone couverte",
-  "activeStreak": "Territoire",
-  "contributionStatsSemanticsLabel": "Tes contributions : {uploads}. Zone couverte : {area}.",
-  "@contributionStatsSemanticsLabel": {
-    "placeholders": {
-      "uploads": {"type": "String"},
-      "area": {"type": "String"}
-    }
-  },
-
-  "chipZones": "endroits",
-  "chipSensors": "signaux",
-  "homeZonesMapped": "{count, plural, =1{1 endroit sur ta carte} other{{count} endroits sur ta carte}}",
-  "@homeZonesMapped": {
-    "placeholders": { "count": { "type": "int" } }
-  },
   "tileInfoSamplesLabel": "relevés",
   "tileInfoDevicesLabel": "personnes",
   "tileInfoQualityLabel": "Couverture",
@@ -339,25 +171,7 @@
   "tileInfoPersonal": "Le tien",
   "tileInfoCommunity": "Pas encore le tien",
   "tileOnlyYouMapped": "Seul(e) toi es passé(e) ici",
-  "tickerMotionStill": "immobile",
-  "tickerMotionMoving": "en mouvement",
-  "tickerMotionActive": "actif",
-  "tileInfoSamples": "{count, plural, =1{1 relevé} other{{count} relevés}}",
-  "@tileInfoSamples": {
-    "placeholders": {
-      "count": {"type": "int"}
-    }
-  },
   "tileInfoNoSensorData": "Localisation uniquement. Pas de mesures pour cet endroit.",
-  "tileInfoConfidence": "Confiance",
-  "tileInfoQuality": "Qualité de couverture",
-  "tileInfoDevices": "{count, plural, =1{1 personne} other{{count} personnes}}",
-  "@tileInfoDevices": {
-    "placeholders": {
-      "count": {"type": "int"}
-    }
-  },
-  "tileScanningNow": "En cours de scan",
 
   "noCoverageYet": "Aucune couverture",
   "startTrackingToMap": "Lance le suivi pour cartographier ton secteur",
@@ -368,11 +182,6 @@
     }
   },
 
-  "sensorInactiveTitle": "Rien n'est enregistré",
-  "sensorInactiveSubtitle": "Active le suivi pour voir les données en direct.",
-  "sensorPausedTitle": "Enregistrement en pause",
-  "sensorPausedSubtitle": "Reprenez le suivi pour continuer à enregistrer",
-  "sensorPressure": "Pression",
   "sensorUnitLux": "lx",
   "sensorUnitHpa": "hPa",
   "sensorUnitMovement": "m/s²",
@@ -383,10 +192,6 @@
   "sensorMagneticField": "Interférences",
   "sensorOrientation": "Orientation",
   "sensorAirPressure": "Pression de l'air",
-  "sensorAccelerationIntensity": "Intensité d'accélération",
-  "sensorRotationSpeed": "Vitesse de rotation",
-  "sensorAtmosphericPressure": "Pression atmosphérique",
-  "sensorStatusPaused": "En pause",
   "sensorStatusConnecting": "Connexion…",
   "sensorStatusLive": "En direct",
   "sensorStatusLastReading": "Dernière lecture",
@@ -408,38 +213,19 @@
     }
   },
 
-  "trackingFabStarting": "Démarrage...",
-  "trackingFabRecording": "Cartographie en arrière-plan",
-  "trackingFabResume": "Appuyer pour reprendre",
-  "trackingFabStart": "Appuyer pour démarrer",
-  "trackingFabStopInSettings": "Cartographie active. Désactivez-la dans les réglages.",
   "trackingErrorUpdateFailed": "Impossible de mettre à jour le suivi. Veuillez réessayer.",
 
   "settingsThemeLight": "Clair",
   "settingsThemeDark": "Sombre",
   "settingsThemeAuto": "Auto",
   "settingsTracking": "Cartographie",
-  "settingsLocationDescription": "Nécessaire pour la carte de couverture en direct",
   "settingsLegal": "Légal",
-  "settingsPrivacyPolicyDesc": "Comment nous gérons tes données",
-  "settingsTermsOfServiceDesc": "Conditions générales d'utilisation",
   "settingsDataTransparency": "Transparence des données",
   "settingsExportData": "Exporter mes données",
   "settingsExportDataFailed": "Impossible d'exporter tes données. Réessaie plus tard.",
-  "settingsDataSection": "Données",
-  "settingsConsentDate": "Consentement : {date}",
-  "@settingsConsentDate": {
-    "placeholders": {
-      "date": { "type": "String" }
-    }
-  },
-  "settingsDataRetention": "Mesures stockées 30 jours",
-  "referralInviteTitle": "Inviter des amis",
   "referralInviteDescription": "Chaque personne qui rejoint cartographie des endroits que tu n'as pas encore couverts.",
   "layerMine": "Miennes",
   "layerAll": "Tout",
-  "referralLinkCopied": "Lien copié",
-  "referralCopyLink": "Copier le lien",
   "referralShareLink": "Partager",
   "referralConversions": "{count, plural, =0{Aucun ami rejoint pour l'instant} =1{1 ami a rejoint} other{{count} amis ont rejoint}}",
   "@referralConversions": {
@@ -448,37 +234,12 @@
     }
   },
 
-  "tooltipRefresh": "Actualiser",
-  "tooltipDismiss": "Fermer",
-
-  "statsHighlightsLabel": "FAITS MARQUANTS",
-  "statsMappingSince": "Cartographie depuis",
-  "statsFailedToLoad": "Impossible de charger les statistiques",
-  "statsReadyToContribute": "Active le suivi et vis ta journée.",
-  "statsFirstContributionHint": "Active le suivi pour enregistrer ta première zone",
-
-  "statsWeeklyLabel": "7 JOURS",
-
   "statsWeeklyTotal": "{count} cette semaine",
 
-  "statsMilestoneHint": "Chaque nouveau trajet étend ta couverture.",
   "statsMilestoneElite": "Tous les paliers atteints.",
   "statsMilestoneRemaining": "{count, plural, =1{1 zone restante} other{{count} zones restantes}}",
   "@statsMilestoneRemaining": {
     "placeholders": { "count": { "type": "int" } }
-  },
-  "milestoneNudge": "{remaining} pour {target}",
-  "@milestoneNudge": {
-    "placeholders": {
-      "remaining": { "type": "int" },
-      "target": { "type": "int" }
-    }
-  },
-  "statsCommunityAreas": "{count} endroits cartographiés par des gens près de toi",
-  "@statsCommunityAreas": {
-    "placeholders": {
-      "count": {"type": "int"}
-    }
   },
   "@statsWeeklyTotal": {
     "placeholders": {
@@ -488,18 +249,8 @@
 
   "batteryDialogTitle": "Continuez à cartographier",
 
-  "locationPermBannerBody": "Choisissez 'Toujours autoriser' pour cartographier en arrière-plan",
-  "locationPermBannerFix": "Corriger",
-
-  "legendYou": "Toi",
-  "legendCommunity": "Communauté",
-  "referralStepShare": "Partager",
-  "referralStepJoin": "Ils rejoignent",
-  "referralStepEarn": "Carte grandit",
-
   "settingsDiagnostics": "Diagnostics capteurs",
   "settingsDiagnosticsDesc": "Lectures en temps réel de tes capteurs",
-
 
   "sensorLiveSheetTitle": "Ce que tu mesures",
 
@@ -516,8 +267,6 @@
   "tileDecayHint": "Cartographié il y a {days} jours. Le score va bientôt baisser.",
   "@tileDecayHint": { "placeholders": { "days": { "type": "int" } } },
 
-  "tileMeasuredWith": "Enregistré avec",
-
   "legendHighLabel": "Qualité élevée",
   "legendHighSub": "Beaucoup de bonnes données ici",
   "legendMidLabel": "Qualité moyenne",
@@ -526,47 +275,16 @@
   "legendLowSub": "Presque rien. Il faut y repasser.",
   "legendCommunitySub": "Enregistré par d'autres personnes",
 
-  "permissionPrimingTitle": "Une chose avant de commencer",
   "permissionPrimingBattery": "Batterie intelligente",
   "permissionPrimingCollects": "Conçu pour la vie privée",
-  "permissionPrimingCta": "Activer la localisation",
-  "settingsBatteryMode": "Batterie intelligente",
-  "settingsBatteryModeDesc": "Discret à l'arrêt, précis en mouvement. S'adapte automatiquement.",
-
-
-  "alwaysOnBannerBody": "Définissez la localisation sur 'Toujours' pour continuer à cartographier en arrière-plan",
-  "alwaysOnBannerFix": "Corriger",
-
-
-  "firstUploadTitle": "Premier endroit cartographié.",
-  "firstUploadBody": "Continue à bouger. Ta carte grandit.",
-  "firstUploadCta": "Voir ma carte",
 
   "onboardingSocialProof": "{count} personnes cartographient déjà leur quartier",
   "@onboardingSocialProof": {
     "placeholders": { "count": { "type": "int" } }
   },
 
-  "sessionSummaryZonesClaimed": "{count, plural, =1{endroit cartographié} other{endroits cartographiés}}",
-  "@sessionSummaryZonesClaimed": {
-    "placeholders": { "count": { "type": "int" } }
-  },
-  "sessionSummaryTotal": "Total : {zones} endroits · {km2} km²",
-  "@sessionSummaryTotal": {
-    "placeholders": {
-      "zones": { "type": "int" },
-      "km2": { "type": "String" }
-    }
-  },
-  "sessionSummaryCta": "Voir ma carte",
-  "sessionSummaryDone": "Top",
-  "statsMapGrowing": "carte en cours. continuez à marcher",
   "statsWeeklyChartOffline": "Graphique hebdomadaire disponible une fois connecté",
   "statsViewOnMap": "Voir sur la carte",
-  "statsCommunityMappers": "{count, plural, =1{1 personne cartographie ce mois} other{{count} personnes cartographient ce mois}}",
-  "@statsCommunityMappers": {
-    "placeholders": { "count": { "type": "int" } }
-  },
   "tileFirstMapped": "Cartographié le {date}",
   "@tileFirstMapped": {
     "placeholders": { "date": { "type": "String" } }
@@ -576,11 +294,7 @@
   "@statsSinceDate": {
     "placeholders": { "date": { "type": "String" } }
   },
-  "statsStreakLabel": "Série",
-  "statsStreakAtRisk": "Sors aujourd'hui pour garder ta série.",
   "statsStreakNewRecord": "Nouveau record",
-  "statsStreakPersonalBest": "Record : {count} jours",
-  "@statsStreakPersonalBest": { "placeholders": { "count": { "type": "int" } } },
   "statsChartWeekTab": "Semaine",
   "statsChartMonthTab": "Mois",
   "statsChartMonthEmpty": "Marche plus de jours pour débloquer la vue mensuelle",
@@ -600,26 +314,6 @@
   "statsTerritoryMapCta": "Touche un endroit sur la carte pour voir ses mesures",
 
   "tileCommunityClaimCta": "Passe par ici pour te l'approprier",
-  "tileLowQualityHint": "Repasse par ici. Plus tu y vas, plus les données s'améliorent.",
-  "homeZonesOnYourMap": "{count, plural, =1{1 endroit sur ta carte} other{{count} endroits sur ta carte}}",
-  "@homeZonesOnYourMap": {
-    "placeholders": { "count": { "type": "int" } }
-  },
-  "homeCommunityScopeHint": "{count, plural, =1{1 endroit cartographié dans ton secteur} other{{count} endroits cartographiés dans ton secteur}}",
-  "@homeCommunityScopeHint": {
-    "placeholders": { "count": { "type": "int" } }
-  },
-  "tileCivicNote": "Mesuré par toi.",
-  "tileShareButton": "Partager ce lieu",
-  "tileShareText": "J'ai mesuré cet endroit : {condition}. Viens voir sur la carte.",
-  "@tileShareText": { "placeholders": { "condition": { "type": "String" } } },
-
-  "sensorLuxLabel": "{lux} lux",
-  "@sensorLuxLabel": { "placeholders": { "lux": { "type": "int" } } },
-  "sensorHpaLabel": "{hpa} hPa",
-  "@sensorHpaLabel": { "placeholders": { "hpa": { "type": "String" } } },
-  "sensorMovementLabel": "{val}",
-  "@sensorMovementLabel": { "placeholders": { "val": { "type": "String" } } },
 
   "sensorLuxDark": "Sombre",
   "sensorLuxIndoor": "Tamisé",
@@ -644,38 +338,12 @@
   "sensorGyroSlow": "Légère rotation",
   "sensorGyroFast": "Rotation rapide",
 
-  "tileSensorInsightsLabel": "Ce qu'on y trouve",
-
   "tileVibrationCalm": "Très calme",
   "tileVibrationLight": "Activité légère",
   "tileVibrationActive": "Surface animée",
   "tileVibrationHeavy": "Trafic intense",
 
-  "tileConditionSummary": "Généralement {light}, {movement}, sous {pressure}.",
-  "@tileConditionSummary": {
-    "placeholders": {
-      "light": { "type": "String" },
-      "movement": { "type": "String" },
-      "pressure": { "type": "String" }
-    }
-  },
-  "tileConditionSummaryNoHpa": "Généralement {light} et {movement}.",
-  "@tileConditionSummaryNoHpa": {
-    "placeholders": {
-      "light": { "type": "String" },
-      "movement": { "type": "String" }
-    }
-  },
-  "tileConditionSummaryWithSurface": "Généralement {light}, {movement}, {surface}.",
-  "@tileConditionSummaryWithSurface": {
-    "placeholders": {
-      "light": { "type": "String" },
-      "movement": { "type": "String" },
-      "surface": { "type": "String" }
-    }
-  },
   "tileSurfaceSmooth": "route lisse",
-  "tileSurfaceNormal": "route normale",
   "tileSurfaceRough": "route dégradée",
   "tileSurfaceHeavy": "très dégradée",
 
@@ -703,19 +371,7 @@
   "mapperRoleCityMapper": "Cartographe urbain",
   "mapperRoleUrbanScientist": "Scientifique urbain",
 
-
-
-  "territoryHeroLabel": "{neighborhood} · {count} endroits",
-  "@territoryHeroLabel": {
-    "placeholders": {
-      "neighborhood": { "type": "String" },
-      "count": { "type": "int" }
-    }
-  },
   "serverWakingUp": "Chargement…",
-  "ambientHereLabel": "Ici",
-  "ambientNearbyLabel": "À proximité",
-  "ambientUnmappedLabel": "Passe par ici pour révéler les données",
   "permissionLostTitle": "Accès à la localisation désactivé",
   "permissionLostCta": "Corriger dans les réglages",
   "referralNeighborhoodHook": "Aide à cartographier {neighborhood}. Chaque voisin couvre ce que tu n'as pas encore atteint.",
@@ -728,34 +384,8 @@
   "onboardingActivateCta": "Commencer à cartographier",
   "onboardingPermissionDenied": "L'accès à la localisation est nécessaire pour cartographier ta ville.",
 
-  "homeMaxClusterHint": "plus grande zone : {count} endroits",
-  "@homeMaxClusterHint": {
-    "placeholders": { "count": { "type": "int" } }
-  },
-
-
-  "liveSensorsHeader": "CAPTEURS EN DIRECT",
-  "liveSensorMotionLabel": "Mouvement",
-  "liveSensorPressureLabel": "Pression",
-
-  "sessionStatAreaExplain": "Surface totale cartographiée cette session, selon les zones couvertes.",
-  "sessionStatDurationExplain": "Durée pendant laquelle le suivi était actif lors de cette session.",
-  "sessionStatUploadsExplain": "Nombre d'envois de données pendant cette session.",
-  "sessionStatTotalExplain": "Total des zones uniques cartographiées sur toutes tes sessions.",
-  "statsUploadsHint": "envois",
-  "statsKpiTodayExplain": "Scans aujourd'hui.",
-  "statsKpiWeekExplain": "Scans cette semaine.",
-  "statsKpiBestDayExplain": "Maximum de scans en une journée.",
-  "statsKpiAvgExplain": "Moyenne de scans les jours actifs.",
-  "profileTileUploadsExplain": "Total des scans que tu as contribués.",
-  "profileTileDaysExplain": "Jours avec au moins une contribution.",
-  "profileTileAreaExplain": "Surface cartographiée sur toutes tes sessions.",
-  "@profileTileAreaExplain": {
-    "placeholders": { "area": { "type": "String" } }
-  },
   "profileTileAreaCells": "zones explorées",
   "profileStatCityBlocks": "îlots de ville",
-  "profileStreakExplain": "Jours consécutifs avec au moins un scan.",
   "profileStreakToMilestone": "{days} {unit} avant le cap des {milestone} {unit}",
   "@profileStreakToMilestone": {
     "placeholders": {
@@ -775,42 +405,17 @@
   "@statsVsPrevWeek": { "placeholders": { "delta": { "type": "String" } } },
   "statsTerritorySection": "TA ZONE",
   "mapTapHint": "Touchez un endroit pour explorer",
-  "returnDeltaTitle": "{zones} nouveaux endroits pendant ton absence.",
-  "@returnDeltaTitle": {
-    "placeholders": { "zones": { "type": "int" } }
-  },
-  "returnDeltaDismiss": "OK",
 
   "settingsSignOut": "Se déconnecter",
   "settingsDeleteAccount": "Supprimer mon compte",
   "settingsDeleteAccountWarning": "Ton compte et toutes tes données seront effacés. C'est définitif.",
   "settingsDeleteAccountConfirm": "Supprimer",
 
-  "mappingActiveSheetTitle": "En cours de cartographie",
-  "mappingActiveSheetBody": "Continue à bouger pour découvrir de nouveaux endroits. Ta carte grandit toute seule.",
-  "mappingActiveSheetZones": "{count, plural, =0{Aucun nouvel endroit} =1{1 nouvel endroit cette session} other{{count} nouveaux endroits cette session}}",
-  "@mappingActiveSheetZones": {
-    "placeholders": { "count": { "type": "int" } }
-  },
-  "mappingActiveSheetCta": "Ouvrir la carte",
-  "mappingActiveSheetStop": "Arrêter la cartographie",
-
-  "homeStreakBadge": "{count, plural, =1{1 jour de suite} other{{count} jours de suite}}",
-  "@homeStreakBadge": {
-    "placeholders": { "count": { "type": "int" } }
-  },
-
   "streakResetBanner": "Série réinitialisée. Recommence aujourd’hui.",
-
-
-  "weeklyGoalTitle": "Semaine complète.",
-  "weeklyGoalBody": "À la semaine prochaine.",
-  "weeklyGoalDismiss": "Super",
 
   "statsEmptyLockLight": "Lumière : ciel noir la nuit, soleil le jour",
   "statsEmptyLockMovement": "Activité : l'animation de chaque endroit",
   "statsEmptyLockPressure": "Météo : chaleur et pression sur tes trajets",
-  "statsEmptyLockSurface": "Revêtement : lisse ou dégradé, rue par rue",
   "statsKm2Unit": "km²",
   "statsLast30DaysUnit": "/ 30",
 
@@ -826,33 +431,10 @@
 
   "onboardingHaveCode": "Tu as un code d'invitation ?",
   "onboardingCodeHint": "Entrer le code (ex. GG-XXXXX)",
-  "onboardingCodeApplied": "Code d'invitation appliqué.",
 
   "profileUnlockTitle": "Ta carte est en train d'être sauvegardée.",
-  "profileUnlockCta": "Me connecter pour garder ma carte",
 
   "mapZeroStateTitle": "Ton premier endroit est à une marche",
-
-  "snapshotCardTitle": "TON QUARTIER",
-  "snapshotReadings": "{count, plural, =1{1 mesure} other{{count} mesures}}",
-  "@snapshotReadings": {
-    "placeholders": { "count": { "type": "int" } }
-  },
-  "snapshotAcrossZones": "sur {count, plural, =1{1 zone} other{{count} zones}}",
-  "@snapshotAcrossZones": {
-    "placeholders": { "count": { "type": "int" } }
-  },
-  "snapshotLightDark": "Sombre",
-  "snapshotLightDim": "Peu éclairé",
-  "snapshotLightNormal": "Bien éclairé",
-  "snapshotLightBright": "Lumineux",
-  "snapshotLightVeryBright": "Très lumineux",
-  "snapshotMovementCalm": "Calme",
-  "snapshotMovementActive": "Actif",
-  "snapshotMovementBusy": "Animé",
-  "snapshotPressureLow": "Basse pression",
-  "snapshotPressureStable": "Stable",
-  "snapshotPressureHigh": "Haute pression",
 
   "insightNoData": "Pas encore assez de données pour cette zone.",
   "insightNormal": "Rien d'inhabituel détecté ici.",

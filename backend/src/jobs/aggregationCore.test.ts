@@ -6,7 +6,7 @@ import {
   movementScore, vibrationScore, truncateToWindow, nextWindowStart,
   BatchRow, WindowAccumulator,
 } from './aggregationCore';
-import { weatherRegionKey, WeatherObservation } from '../utils/weatherService';
+import { WeatherObservation } from '../utils/weatherService';
 
 const WINDOW_MS = 5 * 60 * 1000;
 const T0 = new Date('2026-06-01T12:00:00Z').getTime();

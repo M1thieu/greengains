@@ -91,10 +91,3 @@ export function requireTier(minTier: SubscriptionTier) {
   };
 }
 
-export function getMaxHistoryDays(tier: SubscriptionTier): number {
-  return TIER_HISTORY_DAYS[tier]
-}
-
-export function getExportRowLimit(tier: SubscriptionTier): number {
-  return TIER_EXPORT_ROWS[tier]
-}

@@ -2,7 +2,7 @@ import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import * as crypto from 'crypto';
 import * as admin from 'firebase-admin';
 import { getPool } from '../database';
-import { DeviceRegistrationSchema, DeviceRegistration } from '../models/device';
+import { DeviceRegistrationSchema } from '../models/device';
 import { MAX_DEVICES_PER_USER } from '../constants';
 
 export async function deviceRoutes(fastify: FastifyInstance) {

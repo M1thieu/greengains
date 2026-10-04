@@ -108,10 +108,6 @@ export const DB_RETRY_MAX_ATTEMPTS = 5;
 /** Base delay (ms) for DB retry backoff - multiplied by attempt number. */
 export const DB_RETRY_BASE_DELAY_MS = 2_000;
 
-// H3 Backfill
-/** Rows processed per batch in the H3 backfill job. */
-export const H3_BACKFILL_BATCH_SIZE = 500;
-
 // Referral Codes
 /** Unambiguous character set - excludes 0/O and 1/I to avoid confusion. */
 export const REFERRAL_CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';

@@ -1,4 +1,4 @@
-import { Pool, PoolClient } from 'pg';
+import { Pool } from 'pg';
 import { config } from './config';
 import { DB_POOL_MAX, DB_RETRY_MAX_ATTEMPTS, DB_RETRY_BASE_DELAY_MS } from './constants';
 
@@ -60,11 +60,6 @@ export function getPool(): Pool {
     throw new Error('Database pool not initialized. Call initDatabase() first.');
   }
   return pool;
-}
-
-export async function getClient(): Promise<PoolClient> {
-  const pool = getPool();
-  return await pool.connect();
 }
 
 // Helper for running queries

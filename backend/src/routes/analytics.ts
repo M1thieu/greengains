@@ -1,4 +1,4 @@
-import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
+import { FastifyInstance } from 'fastify';
 import { MS_PER_HOUR } from '../constants';
 import { z } from 'zod';
 import { getPool } from '../database';

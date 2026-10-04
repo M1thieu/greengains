@@ -66,15 +66,3 @@ export async function cellToStreetName(h3Index: string): Promise<string | null> 
   }
 }
 
-/**
- * Resolve multiple cells in sequence (respects Nominatim rate limit).
- * Returns a map of h3Index → name. Missing entries = resolution failed.
- */
-export async function resolveCellNames(cells: string[]): Promise<Map<string, string>> {
-  const result = new Map<string, string>();
-  for (const cell of cells) {
-    const name = await cellToStreetName(cell);
-    if (name) result.set(cell, name);
-  }
-  return result;
-}
