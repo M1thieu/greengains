@@ -14,12 +14,14 @@ import '../core/constants.dart';
 import '../core/events/app_events.dart';
 import '../core/app_preferences.dart';
 import '../core/utils/composite_subscription.dart';
+import '../services/location/foreground_location_service.dart';
 import '../services/stats/stats_service.dart';
 import '../widgets/press_scale_detector.dart';
 import '../widgets/section_header.dart';
 import '../widgets/stat_cell.dart';
+import '../widgets/detail_page.dart';
 
-// ── Chart / skeleton layout constants ────────────────────────────────────────
+// Chart / skeleton layout constants
 // Named so that any future change touches ONE place, not scattered literals.
 const _kChartH            = 148.0; // height reserved for the bar chart + labels
 const _kBarMaxH           = 72.0;  // tallest bar at 100 % of the data range
@@ -29,16 +31,16 @@ const _kBarAnimStagger    = 40;    // ms added per bar for cascade entrance
 const _kBarLabelSize      = AppTheme.fontSizeXs;  // day-of-week label below each bar
 const _kSkeletonTitleW    = 160.0;                // width of section-title skeleton rect
 const _kSkeletonHeroH     = 96.0;                 // height of hero card skeleton placeholder
-// ── Typography constants ──────────────────────────────────────────────────────
+// Typography constants
 const _kLetterSpacingCaps     = 2.0;   // wide tracking for uppercase LABEL badges
 const _kBarSelectScale        = 1.12;  // selected bar lift — kept subtle, one place to tune
 
-// Zone milestones — territory achievements visible on the map.
+// Zone milestones - territory achievements visible on the map.
 // Achievable cadence: 5 → 10 → 25 → 50 → 100 → 250 → 500 areas.
 const _kMilestones = [5, 10, 25, 50, 100, 250, 500, 1000];
 
 
-/// Statistics screen — local stats (fast/offline) + server 7-day chart.
+/// Statistics screen - local stats (fast/offline) + server 7-day chart.
 ///
 /// Two data sources run in parallel:
 ///   1. Local SQLite via ContributionRepository → total, today, streak (instant)
@@ -46,7 +48,7 @@ const _kMilestones = [5, 10, 25, 50, 100, 250, 500, 1000];
 class StatisticsScreen extends StatefulWidget {
   const StatisticsScreen({super.key, this.onGoToHome});
 
-  /// Switches to the Home tab — used by the empty-state CTA.
+  /// Switches to the Home tab - used by the empty-state CTA.
   final VoidCallback? onGoToHome;
 
   @override
@@ -63,15 +65,18 @@ class _StatisticsScreenState extends State<StatisticsScreen>
 
   // Backend weekly data (7 ints: index 0 = 6 days ago, index 6 = today)
   List<int>? _weeklyData;
-  // Backend lifetime stats — fallback when local SQLite is empty (fresh reinstall)
+  // Backend lifetime stats - fallback when local SQLite is empty (fresh reinstall)
   int? _backendTotalUploads;
   int? _backendUploadsToday; // backend-authoritative today count, survives reinstall
   int? _coverageCells; // distinct H3 res-9 cells ever contributed
   int? _daysActive;
   bool _isLoadingWeekly = true;
-  // Previous km² value — used as animation start on reload so it never resets to 0
+  // True when the last profile fetch failed - lets the zero state say
+  // "server unreachable" instead of wrongly telling the user to start tracking.
+  bool _backendFailed = false;
+  // Previous km² value - used as animation start on reload so it never resets to 0
   double _prevKm2 = 0;
-  // Community stats — active mapper count from /api/stats/global (1h server cache)
+  // Community stats - active mapper count from /api/stats/global (1h server cache)
   // Streak data from backend profile
   int? _longestStreak;
   // All-time best single day upload count
@@ -80,11 +85,11 @@ class _StatisticsScreenState extends State<StatisticsScreen>
   double? _avgPerDay;
   // Weekly new-territory target
   WeeklyTargetResponse? _weeklyTarget;
-  // Local Legend status — rank among mappers active in the same area this week
+  // Local Legend status - rank among mappers active in the same area this week
   LocalRankResponse? _localRank;
-  // "Only you" impact — cells nobody else has ever mapped
+  // "Only you" impact - cells nobody else has ever mapped
   ImpactResponse? _impact;
-  // Weekly civic insight — roughest street, new zones, solo territory
+  // Weekly civic insight - roughest street, new zones, solo territory
   WeeklyInsightResponse? _insight;
   // Data quality 0–100 from user_stats valid_samples/samples_count
   int? _qualityPct;
@@ -95,14 +100,15 @@ class _StatisticsScreenState extends State<StatisticsScreen>
   Map<String, int>? _dailyCounts;
 
   final _subs = <StreamSubscription>[];
-  // ── Entrance animations ───────────────────────────────────────────────────────
+  final _scrollController = ScrollController();
+  // Entrance animations
   /// Delay added per card so they cascade in instead of arriving together.
   static const _kEntranceStagger = 0.10;
   /// Portion of the controller's run each card animates over.
   static const _kEntranceSpan = 0.55;
 
   late final AnimationController _entranceCtrl;
-  /// Built on demand and cached — no fixed length, so adding a card never
+  /// Built on demand and cached - no fixed length, so adding a card never
   /// requires bumping a count (and can never overrun it).
   final Map<int, CurvedAnimation> _cardAnims = {};
 
@@ -117,17 +123,17 @@ class _StatisticsScreenState extends State<StatisticsScreen>
           ),
         );
       });
-  // ── Bar chart selection + range ──────────────────────────────────────────────
+  // Bar chart selection + range
   int? _selectedBarIndex;
   bool _chartMonthView = false; // false = 7-day, true = 30-day (needs backend)
-  // ── Backend call throttle — avoid repeated fetches on quick tab switches ──────
+  // Backend call throttle - avoid repeated fetches on quick tab switches
   DateTime? _lastWeeklyFetch;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    // Seed weekly data from prefs immediately — chart shows stale data while network loads
+    // Seed weekly data from prefs immediately - chart shows stale data while network loads
     final cached = AppPreferences.instance.cachedWeeklyData;
     if (cached != null) {
       _weeklyData = cached;
@@ -144,6 +150,9 @@ class _StatisticsScreenState extends State<StatisticsScreen>
         _loadDailyCounts();
       }
     }));
+    _subs.add(AppEventBus.instance.on<TabReselectedEvent>().listen((e) {
+      if (e.index == 1) _scrollToTop(_scrollController);
+    }));
     _subs.add(AppEventBus.instance.on<StatsUpdatedEvent>().listen((event) {
       if (mounted) setState(() { _stats = event.stats; _isLoading = false; });
     }));
@@ -152,6 +161,13 @@ class _StatisticsScreenState extends State<StatisticsScreen>
       vsync: this,
       duration: const Duration(milliseconds: 800),
     )..forward();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // System "remove animations" setting: show the cards in place, no entrance.
+    if (MediaQuery.disableAnimationsOf(context)) _entranceCtrl.value = 1.0;
   }
 
   @override
@@ -166,6 +182,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _subs.cancelAll();
+    _scrollController.dispose();
     for (final anim in _cardAnims.values) { anim.dispose(); }
     _entranceCtrl.dispose();
     super.dispose();
@@ -174,7 +191,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
   /// Spacing + entrance for a card that only renders when its data is present.
   /// [builder] receives the non-null value, so call sites need no `!`. Returns
   /// an empty list when absent, so the caller spreads it straight into the
-  /// ListView — no extra wrapper widget, identical layout to an inline `if`.
+  /// ListView - no extra wrapper widget, identical layout to an inline `if`.
   List<Widget> _optionalCard<T>(
     T? value,
     int animIndex,
@@ -205,7 +222,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
   }
 
   Future<void> _loadStats() async {
-    // Only show skeleton on first load — subsequent reloads update in-place.
+    // Only show skeleton on first load - subsequent reloads update in-place.
     if (_stats == null) setState(() => _isLoading = true);
     try {
       final stats = await _contributionRepo.getStats();
@@ -238,6 +255,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
       final insight = await insightFuture;
       if (mounted) {
         setState(() {
+          _backendFailed = false;
           _weeklyData = profile.weekly;
           unawaited(AppPreferences.instance.setCachedWeeklyData(profile.weekly));
           _backendTotalUploads = profile.totalUploads;
@@ -270,11 +288,12 @@ class _StatisticsScreenState extends State<StatisticsScreen>
           coverageCells: profile.coverageCells,
           longestStreak: profile.longestStreak,
         ));
-        // Persist streak for native StreakAlertWorker — no network call needed at 8pm.
+        // Persist streak for the native home-screen widget - no network call needed.
         unawaited(AppPreferences.instance.setCurrentStreak(profile.currentStreak));
       }
-    } catch (_) {
-      // Silently fail — local stats still visible
+    } catch (e) {
+      debugPrint('Profile stats load failed: $e');
+      if (mounted) setState(() => _backendFailed = true);
     } finally {
       if (mounted) setState(() => _isLoadingWeekly = false);
     }
@@ -305,7 +324,24 @@ class _StatisticsScreenState extends State<StatisticsScreen>
     final bottomPad = MediaQuery.paddingOf(context).bottom + AppTheme.floatingNavHeight + AppTheme.spaceMd;
 
     if (stillLoading) return Scaffold(body: SafeArea(child: _buildLoadingSkeleton(isDark)));
-    if (effectiveTotal == 0) return Scaffold(body: SafeArea(child: _buildEmptyState(context, theme, isDark, l10n)));
+    if (effectiveTotal == 0) {
+      return Scaffold(
+        body: SafeArea(
+          child: ValueListenableBuilder<bool>(
+            valueListenable: ForegroundLocationService.instance.isRunning,
+            builder: (context, tracking, _) {
+              if (_backendFailed) {
+                return _buildZeroStateMessage(theme, isDark, l10n.statsLoadErrorTitle);
+              }
+              if (tracking) {
+                return _buildZeroStateMessage(theme, isDark, l10n.statsCollectingTitle);
+              }
+              return _buildEmptyState(context, theme, isDark, l10n);
+            },
+          ),
+        ),
+      );
+    }
 
     return Stack(
       children: [
@@ -333,6 +369,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
             onRefresh: _refresh,
             color: AppColors.primary,
             child: ListView(
+              controller: _scrollController,
               padding: AppTheme.pagePadding.copyWith(top: AppTheme.spaceXxs, bottom: bottomPad),
               children: [
                 _withEntrance(_buildHeroCard(theme, isDark, l10n), 0),
@@ -370,7 +407,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
     );
   }
 
-  // ─── Details screen ──────────────────────────────────────────────────────────
+  // Details screen
 
   void _openDetailsScreen() {
     final localTotal = _stats?.totalUploads ?? 0;
@@ -392,7 +429,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
     );
   }
 
-  // ─── Hero card ───────────────────────────────────────────────────────────────
+  // Hero card
 
   void _showStatsDetailSheet() {
     final theme = Theme.of(context);
@@ -409,14 +446,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
     final longest = _longestStreak ?? streak;
     final firstDate = _stats?.firstContributionAt;
 
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: AppColors.surface(isDark),
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(AppTheme.radiusLg)),
-      ),
-      builder: (_) {
+    pushDetailPage(context, builder: (_) {
         final bottomPad = MediaQuery.paddingOf(context).bottom + AppTheme.spaceMd;
         return SingleChildScrollView(
           padding: EdgeInsets.fromLTRB(AppTheme.spaceMd, AppTheme.spaceSm, AppTheme.spaceMd, bottomPad),
@@ -424,7 +454,6 @@ class _StatisticsScreenState extends State<StatisticsScreen>
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              AppTheme.dragHandle(isDark),
               const SizedBox(height: AppTheme.spaceMd),
               Text(l10n.statsDetailTitle, style: theme.textTheme.titleMedium?.copyWith(fontWeight: AppFontWeights.semibold)),
               const SizedBox(height: AppTheme.spaceXxxs),
@@ -479,8 +508,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
             ],
           ),
         );
-      },
-    );
+      });
   }
 
   Widget _buildHeroCard(ThemeData theme, bool isDark, AppLocalizations l10n) {
@@ -490,26 +518,11 @@ class _StatisticsScreenState extends State<StatisticsScreen>
     final km2 = zones * kKm2PerCell;
     final showKm2 = zones > 0;
 
-    // Quality-based left accent — green (≥70), amber (40-69), red (<40).
-    // Omit accent when quality unknown so the card doesn't look broken on first load.
-    final qualityAccent = _qualityPct == null
-        ? null
-        : _qualityPct! >= 70
-            ? AppColors.primary
-            : _qualityPct! >= 40
-                ? AppColors.warning
-                : AppColors.error;
-
     return PressScaleDetector(
       onTap: _showStatsDetailSheet,
       child: Container(
         padding: const EdgeInsets.all(AppTheme.spaceMd),
-        decoration: AppTheme.surfaceContainer(
-          isDark: isDark,
-          border: qualityAccent != null
-              ? Border(left: BorderSide(color: qualityAccent, width: 3))
-              : null,
-        ),
+        decoration: AppTheme.surfaceContainer(isDark: isDark),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -559,7 +572,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                 height: AppLineHeights.numeric,
               ),
             ),
-          // City blocks context — makes km² tangible for non-technical users
+          // City blocks context - makes km² tangible for non-technical users
           if (showKm2 && zones > 0) ...[
             const SizedBox(height: AppTheme.spaceXxxs),
             Text(
@@ -610,7 +623,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
     );
   }
 
-  // ─── Stat grid (2×2) ─────────────────────────────────────────────────────────
+  // Stat grid (2×2)
 
   Widget _buildSupportingTrio(ThemeData theme, bool isDark) {
     final l10n = context.l10n;
@@ -620,7 +633,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
     final uploadsThisWeek = localWeek > 0 ? localWeek : (_weeklyData?.fold(0, (a, b) => a + b) ?? 0);
     final int? bestDay = _bestDayCount ?? _weeklyData?.fold<int>(0, max);
     final avgPerDay = _avgPerDay;
-    // Show dash for zero (no history yet) — not a loading spinner.
+    // Show dash for zero (no history yet) - not a loading spinner.
     final avgLabel = avgPerDay == null ? null
         : avgPerDay == 0.0 ? '—'
         : avgPerDay.toStringAsFixed(1);
@@ -664,7 +677,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
     );
   }
 
-  // ─── Streak card ─────────────────────────────────────────────────────────────
+  // Streak card
 
   Widget _buildStreakCard(ThemeData theme, bool isDark, AppLocalizations l10n) {
     final streak = _stats?.currentStreak ?? 0;
@@ -761,10 +774,10 @@ class _StatisticsScreenState extends State<StatisticsScreen>
     );
   }
 
-  // ─── Milestone row ───────────────────────────────────────────────────────────
+  // Milestone row
 
   Widget _buildMilestoneRow(ThemeData theme, bool isDark, AppLocalizations l10n) {
-    // Milestones are zone-based — if zones not loaded yet, skip the row.
+    // Milestones are zone-based - if zones not loaded yet, skip the row.
     final total = _coverageCells;
     if (total == null) return const SizedBox.shrink();
     final next = _kMilestones.cast<int?>().firstWhere((m) => m! > total, orElse: () => null);
@@ -797,7 +810,6 @@ class _StatisticsScreenState extends State<StatisticsScreen>
 
     final progress = (total / next).clamp(0.0, 1.0);
     final remaining = next - total;
-    final achieved = _kMilestones.where((m) => m <= total).toList();
 
     return Container(
         padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceMd, vertical: AppTheme.spaceSm + 2),
@@ -853,20 +865,12 @@ class _StatisticsScreenState extends State<StatisticsScreen>
             ),
           ],
             ),
-            if (achieved.isNotEmpty) ...[
-              const SizedBox(height: AppTheme.spaceSm),
-              Wrap(
-                spacing: AppTheme.spaceXs,
-                runSpacing: AppTheme.spaceXxs,
-                children: achieved.map((m) => _MilestoneBadge(value: m, isDark: isDark)).toList(),
-              ),
-            ],
           ],
         ),
     );
   }
 
-  // ─── Weekly target card ──────────────────────────────────────────────────────
+  // Weekly target card
 
   Widget _buildWeeklyTargetCard(ThemeData theme, bool isDark, AppLocalizations l10n, WeeklyTargetResponse target) {
     final done = target.newCellsThisWeek;
@@ -926,7 +930,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
     );
   }
 
-  // ─── Local Legend card ─────────────────────────────────────────────────────────
+  // Local Legend card
 
   Widget _buildLocalRankCard(ThemeData theme, bool isDark, AppLocalizations l10n, LocalRankResponse rank) {
     final accent = rank.isLeader ? AppColors.primary : AppColors.textSecondary(isDark);
@@ -972,7 +976,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
     );
   }
 
-  // ─── Impact card ("only you've ever mapped this") ──────────────────────────────
+  // Impact card ("only you've ever mapped this")
 
   Widget _buildImpactCard(ThemeData theme, bool isDark, AppLocalizations l10n, ImpactResponse impact) {
     return Container(
@@ -1003,7 +1007,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
     );
   }
 
-  // ─── Weekly civic insight card ───────────────────────────────────────────────
+  // Weekly civic insight card
 
   Widget _buildInsightCard(ThemeData theme, bool isDark, AppLocalizations l10n, WeeklyInsightResponse insight) {
     final rows = <String>[];
@@ -1044,13 +1048,13 @@ class _StatisticsScreenState extends State<StatisticsScreen>
     );
   }
 
-  // ─── Activity chart ──────────────────────────────────────────────────────────
+  // Activity chart
 
   /// Shows the real 7-day bar chart when backend data is available,
   /// a loading skeleton while fetching, or the today-only KPI as fallback.
   Widget _buildActivityChart(ThemeData theme, bool isDark, AppLocalizations l10n) {
     if (_isLoadingWeekly && _weeklyData == null) {
-      // Backend still loading — show skeleton placeholder
+      // Backend still loading - show skeleton placeholder
       return Container(
         height: _kChartH,
         decoration: AppTheme.surfaceContainer(isDark: isDark),
@@ -1068,12 +1072,12 @@ class _StatisticsScreenState extends State<StatisticsScreen>
       return _buildWeeklyBarChart(theme, isDark, l10n);
     }
 
-    // Backend unavailable (offline or error) — honest today-only fallback
+    // Backend unavailable (offline or error) - honest today-only fallback
     return _buildTodayOnlyKpi(theme, isDark, l10n);
   }
 
   Widget _buildWeeklyBarChart(ThemeData theme, bool isDark, AppLocalizations l10n) {
-    // Ensure exactly 7 elements — pad/trim defensively
+    // Ensure exactly 7 elements - pad/trim defensively
     final raw7 = _weeklyData!;
     final data = List<int>.generate(7, (i) => i < raw7.length ? raw7[i] : 0);
     final maxVal = data.fold(0, max).toDouble();
@@ -1125,7 +1129,6 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                       return Text(
                         l10n.statsVsPrevWeek('$sign$pct'),
                         style: theme.textTheme.bodySmall?.copyWith(
-                          fontSize: 10,
                           color: color,
                           fontWeight: AppFontWeights.medium,
                         ),
@@ -1161,7 +1164,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
               ),
             ),
           ] else ...[
-          // Selected bar callout — replaces the spacer when a bar is tapped
+          // Selected bar callout - replaces the spacer when a bar is tapped
           AnimatedSize(
             duration: AppDurations.fast,
             curve: AppMotion.standard,
@@ -1202,7 +1205,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
-                          // Value label above bar — only when non-zero
+                          // Value label above bar - only when non-zero
                           if (count > 0)
                             Text(
                               '$count',
@@ -1227,14 +1230,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                             height: barH,
                             margin: const EdgeInsets.symmetric(horizontal: AppTheme.spaceXxxs),
                             decoration: BoxDecoration(
-                              gradient: (isToday || isSelected)
-                                  ? LinearGradient(
-                                      begin: Alignment.bottomCenter,
-                                      end: Alignment.topCenter,
-                                      colors: [AppColors.primary, AppColors.primary.withValues(alpha: 0.65)],
-                                    )
-                                  : null,
-                              color: (isToday || isSelected) ? null : barColor,
+                              color: (isToday || isSelected) ? AppColors.primary : barColor,
                               borderRadius: const BorderRadius.vertical(
                                 top: Radius.circular(AppTheme.radiusSm),
                               ),
@@ -1442,7 +1438,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
     );
   }
 
-  // ─── Territory details link ──────────────────────────────────────────────────
+  // Territory details link
 
   Widget _buildTerritoryDetailsLink(ThemeData theme, bool isDark, AppLocalizations l10n) {
     final zones = _coverageCells ?? 0;
@@ -1476,13 +1472,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
     final km2 = zones * kKm2PerCell;
     final km2Str = km2 < 1.0 ? km2.toStringAsFixed(2) : km2.toStringAsFixed(1);
 
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: AppColors.surface(isDark),
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(AppTheme.radiusLg)),
-      ),
-      builder: (ctx) {
+    pushDetailPage(context, builder: (ctx) {
         final bottomPad = MediaQuery.paddingOf(ctx).bottom + AppTheme.spaceLg;
         return SingleChildScrollView(
           padding: EdgeInsets.fromLTRB(AppTheme.spaceMd, AppTheme.spaceSm, AppTheme.spaceMd, bottomPad),
@@ -1490,7 +1480,6 @@ class _StatisticsScreenState extends State<StatisticsScreen>
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-            AppTheme.dragHandle(isDark),
             const SizedBox(height: AppTheme.spaceMd),
             Text(
               l10n.statsTerritorySheetTitle,
@@ -1531,7 +1520,36 @@ class _StatisticsScreenState extends State<StatisticsScreen>
           ],
         ),
         );
-      },
+      });
+  }
+
+  /// Zero state for when there is nothing to show yet but the user has nothing
+  /// to do either (collection running, or the server could not be reached).
+  Widget _buildZeroStateMessage(ThemeData theme, bool isDark, String title) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(AppTheme.spaceLg),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              title,
+              textAlign: TextAlign.center,
+              style: theme.textTheme.titleLarge?.copyWith(fontWeight: AppFontWeights.semibold),
+            ),
+            const SizedBox(height: AppTheme.spaceLg),
+            OutlinedButton.icon(
+              onPressed: () {
+                HapticFeedback.lightImpact();
+                _loadStats();
+                _loadWeeklyStats(force: true);
+              },
+              icon: const Icon(Icons.refresh_rounded, size: AppIconSizes.sm),
+              label: Text(context.l10n.buttonRetry),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -1546,14 +1564,8 @@ class _StatisticsScreenState extends State<StatisticsScreen>
               l10n.statsStartContributing,
               style: theme.textTheme.titleLarge?.copyWith(fontWeight: AppFontWeights.semibold),
             ),
-            const SizedBox(height: AppTheme.spaceXs),
-            Text(
-              l10n.statsEmptyDescription,
-              textAlign: TextAlign.center,
-              style: theme.textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary(isDark)),
-            ),
             const SizedBox(height: AppTheme.spaceLg),
-            // Locked sensor rows — Duolingo-style preview of what gets unlocked
+            // Preview of what tracking will record.
             _LockedSensorRow(icon: Icons.wb_sunny_outlined, color: AppColors.light, label: l10n.statsEmptyLockLight, isDark: isDark),
             const SizedBox(height: AppTheme.spaceXs),
             _LockedSensorRow(icon: Icons.directions_walk_rounded, color: AppColors.movement, label: l10n.statsEmptyLockMovement, isDark: isDark),
@@ -1579,7 +1591,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
 
 }
 
-// ── Chart range toggle (W / M segmented control) ─────────────────────────────
+// Chart range toggle (W / M segmented control)
 
 class _ChartRangeToggle extends StatelessWidget {
   const _ChartRangeToggle({
@@ -1627,7 +1639,8 @@ class _Tab extends StatelessWidget {
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 150),
-        padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceXs + 2, vertical: AppTheme.spaceXxxs + 1),
+        // Vertical padding keeps the tap target above the 24px WCAG 2.2 minimum.
+        padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceSm, vertical: AppTheme.spaceXs - 2),
         decoration: BoxDecoration(
           color: selected ? AppColors.primary : Colors.transparent,
           borderRadius: BorderRadius.circular(AppTheme.radiusSm - 2),
@@ -1694,7 +1707,7 @@ class _SensorTypesRow extends StatelessWidget {
 }
 
 
-// ── Day-of-week personality chart ────────────────────────────────────────────
+// Day-of-week personality chart
 
 /// 7-bar mini chart (Mon–Sun) showing relative activity distribution.
 /// Inspired by Dawarich's weekly_pattern_chart_data helper.
@@ -1781,7 +1794,7 @@ class _WeekdayChart extends StatelessWidget {
   }
 }
 
-// ── 30-day calendar heatmap ───────────────────────────────────────────────────
+// 30-day calendar heatmap
 
 class _CalendarHeatmap extends StatefulWidget {
   const _CalendarHeatmap({required this.dailyCounts, required this.isDark});
@@ -1973,7 +1986,7 @@ class _CalendarHeatmapState extends State<_CalendarHeatmap> {
   }
 }
 
-// ── Sensor chip (icon + label, no description) ───────────────────────────────
+// Sensor chip (icon + label, no description)
 
 class _SensorChip extends StatelessWidget {
   const _SensorChip({required this.icon, required this.label, required this.color});
@@ -1983,32 +1996,26 @@ class _SensorChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceSm, vertical: AppTheme.spaceXxs + 2),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.10),
-        borderRadius: BorderRadius.circular(AppTheme.radiusSm),
-        border: Border.all(color: color.withValues(alpha: 0.20)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: AppIconSizes.xxs, color: color),
-          const SizedBox(width: AppTheme.spaceXxxs + 2),
-          Text(
-            label,
-            style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              fontWeight: AppFontWeights.semibold,
-              color: color,
-            ),
+    // Icon in the sensor colour, label in body text - no box around it.
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: AppIconSizes.xs, color: color),
+        const SizedBox(width: AppTheme.spaceXxs),
+        Text(
+          label,
+          style: Theme.of(context).textTheme.labelMedium?.copyWith(
+            fontWeight: AppFontWeights.medium,
+            color: AppColors.textPrimary(isDark),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
 
-// ── Explainer row (icon + one-line text) ─────────────────────────────────────
+// Explainer row (icon + one-line text)
 
 class _ExplainerRow extends StatelessWidget {
   const _ExplainerRow({required this.icon, required this.color, required this.text, required this.isDark});
@@ -2043,7 +2050,7 @@ class _ExplainerRow extends StatelessWidget {
   }
 }
 
-// ── Milestone progress ring ───────────────────────────────────────────────────
+// Milestone progress ring
 
 class _MilestoneRing extends StatelessWidget {
   const _MilestoneRing({
@@ -2093,38 +2100,6 @@ class _MilestoneRing extends StatelessWidget {
   }
 }
 
-class _MilestoneBadge extends StatelessWidget {
-  const _MilestoneBadge({required this.value, required this.isDark});
-  final int value;
-  final bool isDark;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-      decoration: BoxDecoration(
-        color: AppColors.warning.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(AppTheme.radiusMin),
-        border: Border.all(color: AppColors.warning.withValues(alpha: 0.3), width: 0.5),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.check_circle, size: AppTheme.fontSizeXxs, color: AppColors.warning),
-          const SizedBox(width: AppTheme.spaceTiny),
-          Text(
-            '$value',
-            style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              color: AppColors.warning,
-              fontWeight: AppFontWeights.semibold,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class _RingPainter extends CustomPainter {
   const _RingPainter({required this.progress});
   final double progress;
@@ -2164,7 +2139,7 @@ class _RingPainter extends CustomPainter {
   bool shouldRepaint(_RingPainter old) => old.progress != progress;
 }
 
-// ── KPI hairline grid cell ────────────────────────────────────────────────────
+// KPI hairline grid cell
 
 class _KpiCell extends StatelessWidget {
   const _KpiCell({required this.label, required this.value, required this.isDark, required this.theme, this.trend, this.valueColor});
@@ -2238,7 +2213,7 @@ class _KpiCell extends StatelessWidget {
   }
 }
 
-// ── Record row (dot + label + right-aligned value) ────────────────────────────
+// Record row (dot + label + right-aligned value)
 
 class _RecordRow extends StatelessWidget {
   // ignore: unused_element_parameter
@@ -2282,7 +2257,7 @@ class _RecordRow extends StatelessWidget {
   }
 }
 
-// ── Thin divider for list containers ─────────────────────────────────────────
+// Thin divider for list containers
 
 class _Divider extends StatelessWidget {
   const _Divider({required this.isDark});
@@ -2300,7 +2275,7 @@ class _Divider extends StatelessWidget {
   }
 }
 
-// ── Locked sensor row for empty state ────────────────────────────────────────
+// Locked sensor row for empty state
 class _LockedSensorRow extends StatelessWidget {
   const _LockedSensorRow({
     required this.icon,
@@ -2339,7 +2314,7 @@ class _LockedSensorRow extends StatelessWidget {
   }
 }
 
-// ── In-depth statistics screen ────────────────────────────────────────────────
+// In-depth statistics screen
 
 class StatsDetailArgs {
   const StatsDetailArgs({
@@ -2659,4 +2634,9 @@ class StatisticsDetailScreen extends StatelessWidget {
       ),
     );
   }
+}
+
+void _scrollToTop(ScrollController controller) {
+  if (!controller.hasClients) return;
+  controller.animateTo(0, duration: AppDurations.fast, curve: Curves.easeOut);
 }

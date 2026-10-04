@@ -1,10 +1,10 @@
 /**
- * One-time H3 backfill — runs at server startup after migrations.
+ * One-time H3 backfill - runs at server startup after migrations.
  *
  * Populates:
- *   sensor_batches.h3_res9 / h3_res8  — for rows that have location in batch_json
- *   sensor_aggregates_5m.h3_index      — derived from geohash centroid at res 9
- *   sensor_aggregates_daily.h3_index   — same
+ *   sensor_batches.h3_res9 / h3_res8  - for rows that have location in batch_json
+ *   sensor_aggregates_5m.h3_index      - derived from geohash centroid at res 9
+ *   sensor_aggregates_daily.h3_index   - same
  *
  * No-op if all rows are already populated.
  * Processes sensor_batches in chunks of 500 to avoid long-running transactions.
@@ -20,7 +20,7 @@ const BATCH_SIZE = 500;
 export async function runH3Backfill(): Promise<void> {
   const pool = getPool();
 
-  // ── 1. sensor_batches ────────────────────────────────────────────────────
+  // 1. sensor_batches
   const batchCheck = await pool.query<{ count: string }>(
     `SELECT COUNT(*)::text AS count
      FROM sensor_batches
@@ -33,7 +33,7 @@ export async function runH3Backfill(): Promise<void> {
     let processed = 0;
 
     while (true) {
-      // Only select rows with valid numeric lat/lon — prevents infinite loop if
+      // Only select rows with valid numeric lat/lon - prevents infinite loop if
       // a row has location={"lat": null} or a non-numeric value (cast → NULL
       // which IS NOT NULL returns false, skipping those rows permanently).
       const rows = await pool.query<{
@@ -69,9 +69,9 @@ export async function runH3Backfill(): Promise<void> {
           h3r9s.push(latLngToCell(r.lat, r.lon, 9));
           h3r8s.push(latLngToCell(r.lat, r.lon, 8));
         } catch {
-          // Out-of-range coordinates — skip this row; it will remain h3_res9=NULL
+          // Out-of-range coordinates - skip this row; it will remain h3_res9=NULL
           // and be excluded by the WHERE clause on next startup (::float IS NOT NULL
-          // would still select it, so stamp a sentinel or just leave it — acceptable
+          // would still select it, so stamp a sentinel or just leave it - acceptable
           // since it's a data quality issue in the source batch).
         }
       }
@@ -92,7 +92,7 @@ export async function runH3Backfill(): Promise<void> {
     console.log(`[h3-backfill] sensor_batches done: ${processed} rows updated`);
   }
 
-  // ── 2. Aggregate tables — by distinct geohash (small set, one decode per cell) ──
+  // 2. Aggregate tables - by distinct geohash (small set, one decode per cell)
   const aggCheck = await pool.query<{ count: string }>(
     `SELECT COUNT(DISTINCT geohash)::text AS count
      FROM sensor_aggregates_5m
@@ -107,7 +107,7 @@ export async function runH3Backfill(): Promise<void> {
       `SELECT DISTINCT geohash FROM sensor_aggregates_5m WHERE h3_index IS NULL`,
     );
 
-    // Compute H3 indices in JS, then bulk UPDATE both tables with UNNEST —
+    // Compute H3 indices in JS, then bulk UPDATE both tables with UNNEST -
     // 2 queries total instead of 2×N (N+1 → constant).
     const resolvedGeohashes: string[] = [];
     const resolvedH3Indexes: string[] = [];

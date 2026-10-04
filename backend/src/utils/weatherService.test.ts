@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { _interpolationWeights, _interpolate, getWeatherAt, getWeatherStats } from './weatherService';
 
-// ─── Pure interpolation math ────────────────────────────────────────────────────────────────
+// Pure interpolation math
 
 const hours = (n: number, startIso = '2026-06-01T00:00') =>
   Array.from({ length: n }, (_, i) => new Date(new Date(`${startIso}Z`).getTime() + i * 3_600_000).toISOString().slice(0, 16));
@@ -50,7 +50,7 @@ test('a missing bracketing sample propagates as null, not a wrong number', () =>
   assert.equal(_interpolate([10, undefined, 30], w), null);
 });
 
-// ─── getWeatherAt: URL construction and end-to-end behaviour, fetch mocked (no network) ───────
+// getWeatherAt: URL construction and end-to-end behaviour, fetch mocked (no network)
 
 function mockFetch(hourly: { time: string[]; surface_pressure?: number[]; temperature_2m?: number[] }) {
   const calls: string[] = [];
@@ -62,7 +62,7 @@ function mockFetch(hourly: { time: string[]; surface_pressure?: number[]; temper
 }
 
 // hours() truncates to minute precision (drops seconds/ms), so [at] must be pre-truncated the
-// same way — otherwise it can land a fraction of a minute after the mocked t[0] and interpolate
+// same way - otherwise it can land a fraction of a minute after the mocked t[0] and interpolate
 // to a value a hair off 1000, which a strict equality check would then flake on.
 const toMinute = (ms: number) => Math.floor(ms / 60_000) * 60_000;
 

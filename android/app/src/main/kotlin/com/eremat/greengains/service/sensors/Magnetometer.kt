@@ -6,14 +6,14 @@ import android.hardware.SensorManager
 import android.util.Log
 
 /**
- * Magnetometer — measures ambient magnetic field in µT (microtesla) on X/Y/Z axes.
+ * Magnetometer - measures ambient magnetic field in µT (microtesla) on X/Y/Z axes.
  *
  * Use cases for GreenGains:
  *   - Full 3D orientation: combined with accelerometer gives yaw (compass heading),
  *     enabling complete roll/pitch/yaw for richer quality metadata.
  *   - Indoor/outdoor detection: indoor magnetic field is highly distorted by steel
  *     structures (>60–80 µT total vs ~25–65 µT outdoors). Elevated magnitude strongly
- *     suggests an indoor environment — valuable for environmental context tagging.
+ *     suggests an indoor environment - valuable for environmental context tagging.
  *   - Environmental data point: magnetic anomalies near power lines, transformers, or
  *     industrial equipment are scientifically measurable and commercially interesting.
  *

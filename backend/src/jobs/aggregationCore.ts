@@ -1,11 +1,11 @@
 /**
  * The aggregation job's functional core (Gary Bernhardt, "Boundaries" / "functional core,
- * imperative shell"): every function here is pure — given the same input it returns the same
+ * imperative shell"): every function here is pure - given the same input it returns the same
  * output, touches no database, no network, no clock. `aggregator.ts` is the imperative shell: it
  * reads rows, fetches weather, calls these functions, and writes the result.
  *
  * The split exists so the actual math (bucketing, spatial blending, movement scoring, weather
- * anomaly) can be unit-tested directly — no mocked Pool, no mocked fetch — and so that
+ * anomaly) can be unit-tested directly - no mocked Pool, no mocked fetch - and so that
  * `aggregator.ts` only has to get the plumbing right.
  */
 import { latLngToCell, gridDisk, cellToLatLng } from 'h3-js';
@@ -86,6 +86,25 @@ export interface DayAccumulator {
   pocketLikelySamples: number;
 }
 
+/**
+ * Typical absolute error of an uncalibrated phone barometer, as a 1-sigma
+ * (hPa). Studies report ~±1 hPa per device, stable over time (NOAA, J. Atmos.
+ * Oceanic Technol. 2018; Hintz et al., Meteorol. Appl. 2019). Averaging N
+ * devices shrinks it by sqrt(N); per-model calibration (device_model) would
+ * shrink it further.
+ */
+export const PHONE_BAROMETER_BIAS_HPA = 1.0;
+
+/**
+ * Uncertainty of a cell's mean pressure: within-batch noise over the readings
+ * plus the per-device bias over the devices. What a model needs to weight
+ * this observation against its own background.
+ */
+export function pressureSigmaHpa(noiseVar: number, readings: number, devices: number): number | null {
+  if (readings <= 0 || devices <= 0) return null;
+  return Math.sqrt(noiseVar / readings + (PHONE_BAROMETER_BIAS_HPA ** 2) / devices);
+}
+
 export interface WindowResult {
   windowStart: Date;
   windowEnd: Date;
@@ -101,6 +120,8 @@ export interface WindowResult {
   avgGyroRms: number;
   avgPressure: number | null;
   pressureAnomalyHpa: number | null;
+  /** 1-sigma uncertainty of avgPressure (hPa); see pressureSigmaHpa(). */
+  pressureSigmaHpa: number | null;
   weatherTempC: number | null;
   movementScore: number;
   vibrationScore: number;
@@ -111,14 +132,14 @@ export interface WindowResult {
   pocketRatio: number | null;
 }
 
-// ─── Per-reading scores ─────────────────────────────────────────────────────────────────────
+// Per-reading scores
 
 // Movement score: how much real motion a reading implies, 0–1.
 //
 // accel_rms arrives under two conventions depending on what the device exposed.
 // ForegroundService prefers TYPE_LINEAR_ACCELERATION (gravity already removed,
 // magnitude ~0 at rest) and falls back to TYPE_ACCELEROMETER (gravity included,
-// magnitude ~9.81 at rest) — both land in the same field, so the convention has
+// magnitude ~9.81 at rest) - both land in the same field, so the convention has
 // to be resolved here rather than assumed.
 //
 // Rule: evaluate both interpretations, keep whichever implies LESS motion. A
@@ -138,10 +159,10 @@ export const movementScore = (accelRms: number): number => {
 
 // Vibration/road roughness score: normalized accel std dev.
 // 0 = smooth (stationary/glassy road), 1 = severe vibration (potholes/rough terrain).
-// Threshold 5 m/s² std dev = full score — calibrated against walk vs rough driving data.
+// Threshold 5 m/s² std dev = full score - calibrated against walk vs rough driving data.
 export const vibrationScore = (accelStdDev: number): number => Math.min(1, Math.max(0, accelStdDev / 5.0));
 
-// ─── Time helpers ───────────────────────────────────────────────────────────────────────────
+// Time helpers
 
 export function truncateToWindow(date: Date, windowMs: number): Date {
   return new Date(Math.floor(date.getTime() / windowMs) * windowMs);
@@ -171,11 +192,11 @@ function resolveH3Index(geohash: string, precomputed: string | null): string | n
   return c ? latLngToCell(c.lat, c.lon, 9) : null;
 }
 
-// ─── Step 1: raw rows -> 5-minute window accumulators ──────────────────────────────────────────
+// Step 1: raw rows -> 5-minute window accumulators
 
 /**
  * Folds raw batch rows into per-(window, geohash) accumulators. `upToExclusive` excludes the
- * current, still-partial window — a row landing in it is dropped so a window is only ever
+ * current, still-partial window - a row landing in it is dropped so a window is only ever
  * aggregated once, when it has fully elapsed.
  */
 export function accumulateWindows(
@@ -246,7 +267,7 @@ export function accumulateWindows(
     }
     if (row.has_location) acc.locationSamples += readingsCount;
 
-    // Quality counters baked into summary at ingest time — no need to re-read batch.
+    // Quality counters baked into summary at ingest time - no need to re-read batch.
     const qualityValid = summary?.quality_valid ?? 0;
     const qualityPocketLikely = summary?.quality_pocket_likely ?? 0;
     if (qualityValid > 0 || qualityPocketLikely > 0) {
@@ -259,7 +280,7 @@ export function accumulateWindows(
   return windowBuckets;
 }
 
-// ─── Step 2: which weather lookups the window buckets need ─────────────────────────────────────
+// Step 2: which weather lookups the window buckets need
 
 export interface WeatherLookup {
   key: string;
@@ -276,7 +297,7 @@ function centroidOf(bucket: Pick<WindowAccumulator, 'h3Index' | 'geohash'>): { l
 }
 
 /**
- * One {@link WeatherLookup} per DISTINCT {@link weatherRegionKey} the buckets need — never one
+ * One {@link WeatherLookup} per DISTINCT {@link weatherRegionKey} the buckets need - never one
  * per bucket. Two buckets whose centroids round to the same region+hour already collapse to one
  * `getWeatherAt` call inside its own cache; computing this up front lets the imperative shell fire
  * that one call itself (concurrently with the others, see `aggregator.ts`) instead of discovering
@@ -293,11 +314,11 @@ export function planWeatherLookups(windowBuckets: ReadonlyMap<WindowKey, WindowA
   return [...byKey.values()];
 }
 
-// ─── Step 3: window accumulators (+ fetched weather) -> window results ─────────────────────────
+// Step 3: window accumulators (+ fetched weather) -> window results
 
 /**
  * `weatherByKey` must have one entry (possibly `null`, meaning the lookup failed) for every key
- * {@link planWeatherLookups} returned for these same buckets — a missing key is treated the same
+ * {@link planWeatherLookups} returned for these same buckets - a missing key is treated the same
  * as a failed lookup.
  */
 export function computeWindowResults(
@@ -388,6 +409,11 @@ export function computeWindowResults(
       avgLight, lightMin, lightMax,
       avgAccelRms, avgAccelStdDev, avgGyroRms,
       avgPressure, pressureAnomalyHpa, weatherTempC,
+      pressureSigmaHpa: avgPressureRaw === null ? null : pressureSigmaHpa(
+        bucket.pressureNoiseN > 0 ? bucket.pressureNoiseNum / bucket.pressureNoiseN : 0,
+        bucket.pressureSamples,
+        bucket.deviceIds.size,
+      ),
       movementScore: movementScore(avgAccelRms),
       vibrationScore: vibrationScore(avgAccelStdDev),
       batteryAvg: bucket.batterySamples > 0 ? bucket.batterySum / bucket.batterySamples : null,
@@ -400,7 +426,7 @@ export function computeWindowResults(
   return results;
 }
 
-// ─── Step 4: window accumulators -> daily accumulators ──────────────────────────────────────────
+// Step 4: window accumulators -> daily accumulators
 
 /**
  * Daily rollups use the windows' RAW sums (not the spatially-blended pressure from

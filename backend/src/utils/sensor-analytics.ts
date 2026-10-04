@@ -19,7 +19,7 @@ export interface Summary {
   period_start: Date;
   period_end: Date;
   light?: { avg: number; min: number; max: number };
-  /** Mean accel magnitude after MAD filter (NOT true RMS — mislabeled; rename would break existing JSONB). */
+  /** Mean accel magnitude after MAD filter (NOT true RMS - mislabeled; rename would break existing JSONB). */
   accel_rms: number;
   /** Mean gyro magnitude after MAD filter (same naming caveat as accel_rms). */
   gyro_rms: number;
@@ -31,7 +31,7 @@ export interface Summary {
    * never have to unnest the raw readings array.
    */
   aux?: Record<string, { avg: number; min: number; max: number; n: number }>;
-  /** Std dev of raw accel magnitudes — high = rough surface / vibration. */
+  /** Std dev of raw accel magnitudes - high = rough surface / vibration. */
   accel_std_dev: number;
   /** Quality counters baked in at ingest so the aggregator never needs the raw batch array. */
   quality_valid: number;
@@ -107,13 +107,13 @@ export function stdDev(values: number[]): number {
 /**
  * Weighted quality score for a single reading (0.0–1.0).
  *
- * Replaces the old OR logic (too permissive — pocket-free + any signal = valid).
+ * Replaces the old OR logic (too permissive - pocket-free + any signal = valid).
  * Now requires a composite score ≥ QUALITY_COMPOSITE_THRESHOLD across three axes:
  *   • Location accuracy  (45% weight)
  *   • Motion confidence  (35% weight)
  *   • Exposure / pocket  (20% weight)
  *
- * A reading with poor GPS AND unknown motion no longer passes — it needs at least
+ * A reading with poor GPS AND unknown motion no longer passes - it needs at least
  * two decent signals, not just one.
  */
 const QUALITY_COMPOSITE_THRESHOLD = 0.42;
@@ -151,7 +151,7 @@ function readingQualityScore(
   if (pocket === 'likely') return 0; // automatic disqualifier
 
   // proximity_near (phone pressed against surface) and face_down orientation are
-  // direct "sensors blocked" signals — treat same as pocket: likely.
+  // direct "sensors blocked" signals - treat same as pocket: likely.
   // Source: same physical occlusion logic as pocket detection; these fields were
   // already collected but never scored.
   const orientation = String(quality.orientation ?? '').toLowerCase();

@@ -1,9 +1,9 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
@@ -12,6 +12,7 @@ import '../core/themes.dart';
 import '../core/theme_controller.dart';
 import '../core/language_controller.dart';
 import '../core/app_preferences.dart';
+import '../services/auth/auth_service.dart';
 import '../services/location/foreground_location_service.dart';
 import '../services/network/backend_client.dart';
 import '../utils/app_snackbars.dart';
@@ -19,11 +20,11 @@ import 'diagnostics_screen.dart';
 import 'webview_screen.dart';
 import '../l10n/app_localizations.dart';
 import '../widgets/press_scale_detector.dart';
+import '../widgets/detail_page.dart';
 
 const _kPrivacyPolicyUrl    = 'https://greengains.eremat.org/legal/privacy-policy';
 const _kTermsUrl            = 'https://greengains.eremat.org/legal/terms-of-service';
 const _kDataTransparencyUrl = 'https://greengains.eremat.org/legal/data-transparency';
-const _kDataDeletionUrl     = 'https://greengains.eremat.org/legal/data-deletion';
 const _kSectionSpacing   = AppTheme.spaceSm;
 
 class SettingsScreen extends StatefulWidget {
@@ -56,11 +57,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final l10n = context.l10n;
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.settingsTitle)),
+      appBar: AppBar(
+        title: Text(l10n.settingsTitle),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout_rounded),
+            tooltip: l10n.settingsSignOut,
+            onPressed: () => _handleSignOut(context),
+          ),
+        ],
+      ),
       body: ListView(
         padding: AppTheme.pagePadding,
         children: [
-          // ── Display ──────────────────────────────────────────────────────
+          // Display
           _SectionCard(
             label: l10n.settingsDisplay,
             children: [
@@ -108,7 +118,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           const SizedBox(height: _kSectionSpacing),
 
-          // ── Tracking ──────────────────────────────────────────────────────
+          // Tracking
           _SectionCard(
             label: l10n.settingsTracking,
             children: [
@@ -118,7 +128,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   icon: Icons.map_outlined,
                   iconColor: AppColors.primary,
                   title: l10n.settingsTracking,
-                  subtitle: l10n.settingsTrackingDesc,
                   value: _locationService.isRunning.value || _locationService.isPaused.value,
                   onChanged: (v) async {
                     if (v) {
@@ -135,7 +144,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 icon: Icons.signal_cellular_alt_outlined,
                 iconColor: AppColors.movement,
                 title: l10n.settingsMobileData,
-                subtitle: l10n.settingsMobileDataDescription,
                 value: _prefs.useMobileUploads,
                 onChanged: (v) async {
                   await _prefs.setUseMobileUploads(v);
@@ -146,56 +154,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           const SizedBox(height: _kSectionSpacing),
 
-          // ── Notifications ─────────────────────────────────────────────────
-          _SectionCard(
-            label: l10n.settingsNotifications,
-            children: [
-              _ToggleRow(
-                icon: Icons.calendar_today_outlined,
-                iconColor: AppColors.quality,
-                title: l10n.settingsWeeklyDigest,
-                subtitle: l10n.settingsWeeklyDigestDesc,
-                value: _prefs.weeklyDigestEnabled,
-                onChanged: (v) async {
-                  await _prefs.setWeeklyDigestEnabled(v);
-                  if (mounted) setState(() {});
-                },
-              ),
-              _divider(isDark),
-              _ToggleRow(
-                icon: Icons.bolt_rounded,
-                iconColor: AppColors.warning,
-                title: l10n.settingsStreakAlerts,
-                subtitle: l10n.settingsStreakAlertsDesc,
-                value: _prefs.streakAlertsEnabled,
-                onChanged: (v) async {
-                  await _prefs.setStreakAlertsEnabled(v);
-                  if (mounted) setState(() {});
-                },
-              ),
-            ],
-          ),
-          const SizedBox(height: _kSectionSpacing),
 
-          // ── Account ───────────────────────────────────────────────────────
-          _SectionCard(
-            label: l10n.settingsAccount,
-            children: [
-              _ActionRow(
-                icon: Icons.logout_rounded,
-                title: l10n.settingsSignOut,
-                onTap: () => _handleSignOut(context, l10n),
-              ),
-            ],
-          ),
-          const SizedBox(height: _kSectionSpacing),
-
-          // ── About ─────────────────────────────────────────────────────────
-          Padding(
+          // About (debug only: its one entry is the diagnostics screen)
+          if (kDebugMode) Padding(
             padding: const EdgeInsets.only(left: AppTheme.spaceXxs, bottom: AppTheme.spaceXs),
             child: Text(l10n.settingsAbout.toUpperCase(), style: AppTheme.eyebrowLabel(isDark)),
           ),
-          PressScaleDetector(
+          // Sensor diagnostics is a developer screen: debug builds only.
+          if (kDebugMode) PressScaleDetector(
             onTap: () => Navigator.of(context).push(
               MaterialPageRoute(builder: (_) => const DiagnosticsScreen()),
             ),
@@ -224,7 +190,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           const SizedBox(height: AppTheme.spaceXl),
 
-          // ── Footer: version + legal ───────────────────────────────────────
+          // Footer: version + legal
           Center(
             child: Padding(
               padding: const EdgeInsets.only(bottom: AppTheme.spaceXl),
@@ -268,18 +234,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   void _showLegalSheet(BuildContext context, AppLocalizations l10n, bool isDark) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: AppColors.surface(isDark),
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(AppTheme.radiusLg)),
-      ),
-      builder: (_) {
+    pushDetailPage(context, title: l10n.settingsLegal, builder: (_) {
         final bottomPad = MediaQuery.paddingOf(context).bottom + AppTheme.spaceLg;
         return Padding(
           padding: EdgeInsets.fromLTRB(AppTheme.spaceLg, AppTheme.spaceMd, AppTheme.spaceLg, bottomPad),
           child: Column(mainAxisSize: MainAxisSize.min, children: [
-            AppTheme.dragHandle(isDark),
             const SizedBox(height: AppTheme.spaceMd),
             _legalItem(context, l10n.privacyPolicy, _kPrivacyPolicyUrl, isDark),
             Divider(height: AppTheme.spaceLg, thickness: 0.5, color: AppColors.divider(isDark)),
@@ -287,23 +246,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
             Divider(height: AppTheme.spaceLg, thickness: 0.5, color: AppColors.divider(isDark)),
             _legalItem(context, l10n.settingsDataTransparency, _kDataTransparencyUrl, isDark),
             Divider(height: AppTheme.spaceLg, thickness: 0.5, color: AppColors.divider(isDark)),
-            _legalItem(context, l10n.settingsDataDeletion, _kDataDeletionUrl, isDark),
-            Divider(height: AppTheme.spaceLg, thickness: 0.5, color: AppColors.divider(isDark)),
             _exportDataItem(context, l10n, isDark),
+            Divider(height: AppTheme.spaceLg, thickness: 0.5, color: AppColors.divider(isDark)),
+            // Erasure (GDPR art. 17) sits here, out of the way, like most apps.
+            const _DeleteAccountItem(),
           ]),
         );
-      },
-    );
+      });
   }
 
   Widget _exportDataItem(BuildContext sheetContext, AppLocalizations l10n, bool isDark) {
     final theme = Theme.of(sheetContext);
     return PressScaleDetector(
       onTap: () {
-        Navigator.of(sheetContext).pop();
-        // Use the screen's own context — the sheet's is unmounted right after pop.
-        if (!mounted) return;
-        AppSnackbars.show(context, message: l10n.settingsExportDataPreparing, type: AppSnackbarType.info);
         unawaited(_exportMyData(context, l10n));
       },
       child: Row(children: [
@@ -319,7 +274,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final theme = Theme.of(context);
     return PressScaleDetector(
       onTap: () {
-        Navigator.of(context).pop();
         _openWebView(context, url, title);
       },
       child: Row(children: [
@@ -331,31 +285,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Future<void> _handleSignOut(BuildContext context, AppLocalizations l10n) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(l10n.settingsSignOutConfirmTitle),
-        content: Text(l10n.settingsSignOutConfirmBody),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: Text(l10n.settingsSignOutCancel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            child: Text(l10n.settingsSignOutConfirm),
-          ),
-        ],
-      ),
-    );
-    if (confirmed != true) return;
-    // No explicit navigation needed: OnboardingWrapper's authStateChanges
-    // stream swaps the whole app shell for onboarding automatically.
-    await FirebaseAuth.instance.signOut();
+  /// No confirmation dialog: tapping "Sign out" is already the intent.
+  /// Settings is a pushed route, so it is popped explicitly - otherwise it
+  /// stays on top of the sign-in page that OnboardingWrapper swaps in below.
+  Future<void> _handleSignOut(BuildContext context) async {
+    final navigator = Navigator.of(context);
+    await AuthService.signOut();
+    navigator.popUntil((route) => route.isFirst);
   }
 
-  /// Personal data export — a right, not a paid feature, so it hits
+  /// Personal data export - a right, not a paid feature, so it hits
   /// GET /api/user/export directly rather than the org-tier-gated dashboard
   /// endpoint. Fetches JSON, writes it to a temp file, then hands off to the
   /// OS share sheet so the user picks where it goes (email, Drive, Files…).
@@ -414,13 +353,12 @@ class _SectionCard extends StatelessWidget {
 }
 
 
-// ── Row variants ──────────────────────────────────────────────────────────────
+// Row variants
 
 class _ToggleRow extends StatelessWidget {
   const _ToggleRow({
     required this.icon,
     required this.title,
-    this.subtitle,
     required this.value,
     required this.onChanged,
     this.iconColor,
@@ -428,7 +366,6 @@ class _ToggleRow extends StatelessWidget {
 
   final IconData icon;
   final String title;
-  final String? subtitle;
   final bool value;
   final ValueChanged<bool>? onChanged;
   final Color? iconColor;
@@ -458,15 +395,6 @@ class _ToggleRow extends StatelessWidget {
                   color: disabled ? AppColors.textSecondary(isDark) : AppColors.textPrimary(isDark),
                 ),
               ),
-              if (subtitle != null) ...[
-                const SizedBox(height: AppTheme.spaceXxs),
-                Text(
-                  subtitle!,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: AppColors.textSecondary(isDark),
-                  ),
-                ),
-              ],
             ],
           ),
         ),
@@ -483,47 +411,8 @@ class _ToggleRow extends StatelessWidget {
   }
 }
 
-/// Tappable row — icon, title, chevron. Same visual language as _ToggleRow
+/// Tappable row - icon, title, chevron. Same visual language as _ToggleRow
 /// but for actions rather than settings toggles.
-class _ActionRow extends StatelessWidget {
-  const _ActionRow({
-    required this.icon,
-    required this.title,
-    required this.onTap,
-  });
-
-  final IconData icon;
-  final String title;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
-    return PressScaleDetector(
-      onTap: onTap,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          _IconBox(icon: icon, color: AppColors.primary),
-          const SizedBox(width: AppTheme.spaceMd),
-          Expanded(
-            child: Text(
-              title,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                fontWeight: AppFontWeights.semibold,
-                color: AppColors.textPrimary(isDark),
-              ),
-            ),
-          ),
-          Icon(Icons.chevron_right, size: AppIconSizes.sm, color: AppColors.textTertiary(isDark)),
-        ],
-      ),
-    );
-  }
-}
-
 class _LegalLink extends StatelessWidget {
   const _LegalLink({required this.label, required this.onTap, required this.isDark});
   final String label;
@@ -562,6 +451,90 @@ class _IconBox extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppTheme.radiusSm),
       ),
       child: Icon(icon, size: AppIconSizes.xs, color: color),
+    );
+  }
+}
+
+/// "Delete my account": the first tap reveals the warning and the confirm
+/// button in place, no dialog.
+class _DeleteAccountItem extends StatefulWidget {
+  const _DeleteAccountItem();
+
+  @override
+  State<_DeleteAccountItem> createState() => _DeleteAccountItemState();
+}
+
+class _DeleteAccountItemState extends State<_DeleteAccountItem> {
+  bool _confirm = false;
+  bool _deleting = false;
+
+  Future<void> _delete() async {
+    final navigator = Navigator.of(context);
+    final l10n = context.l10n;
+    setState(() => _deleting = true);
+    try {
+      // Stop collecting first so no batch lands after the data is erased.
+      await ForegroundLocationService.instance.stop();
+      await BackendClient.delete('/api/user/account');
+      await AuthService.signOut();
+      navigator.popUntil((route) => route.isFirst);
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _deleting = false);
+      AppSnackbars.show(context, message: l10n.errorGeneric, type: AppSnackbarType.error);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    if (!_confirm) {
+      return PressScaleDetector(
+        onTap: () => setState(() => _confirm = true),
+        child: Row(children: [
+          Expanded(
+            child: Text(
+              l10n.settingsDeleteAccount,
+              style: theme.textTheme.bodyMedium?.copyWith(color: AppColors.textPrimary(isDark)),
+            ),
+          ),
+        ]),
+      );
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          l10n.settingsDeleteAccountWarning,
+          style: theme.textTheme.bodySmall?.copyWith(color: AppColors.textSecondary(isDark)),
+        ),
+        const SizedBox(height: AppTheme.spaceXs),
+        Row(
+          children: [
+            Expanded(
+              child: TextButton(
+                onPressed: _deleting ? null : () => setState(() => _confirm = false),
+                child: Text(l10n.buttonCancel),
+              ),
+            ),
+            Expanded(
+              child: FilledButton(
+                onPressed: _deleting ? null : _delete,
+                style: FilledButton.styleFrom(backgroundColor: AppColors.error),
+                child: _deleting
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                      )
+                    : Text(l10n.settingsDeleteAccountConfirm),
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 }

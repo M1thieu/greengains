@@ -6,7 +6,7 @@ import '../services/location/foreground_location_service.dart';
 import '../widgets/sensor_section.dart';
 import '../widgets/sync_health_section.dart';
 
-/// Sensor Diagnostics — "Stats for Nerds" style screen.
+/// Sensor Diagnostics - "Stats for Nerds" style screen.
 ///
 /// Accessible from Settings > Data > Sensor Diagnostics.
 /// Shows live sensor readings without cluttering the home screen.

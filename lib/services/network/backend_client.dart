@@ -9,7 +9,7 @@ export 'api_models.dart';
 
 const String kBackendBaseUrl = String.fromEnvironment(
   'BACKEND_URL',
-  defaultValue: 'https://greengains.onrender.com',
+  defaultValue: 'https://greengains-production.up.railway.app',
 );
 
 const String kBackendApiKey = String.fromEnvironment(
@@ -114,7 +114,7 @@ class BackendClient {
     );
   }
 
-  /// GET request — returns decoded JSON body.
+  /// GET request - returns decoded JSON body.
   /// Throws [ApiException] on non-2xx or network failure.
   static Future<Map<String, dynamic>> get(
     String path, {
@@ -137,7 +137,19 @@ class BackendClient {
     }
   }
 
-  /// POST request — returns decoded JSON body.
+  /// DELETE request. Throws [ApiException] on non-2xx or network failure.
+  static Future<void> delete(String path, {Duration timeout = kApiTimeout}) async {
+    try {
+      await _dio.delete<void>(path, options: Options(receiveTimeout: timeout));
+    } on DioException catch (e) {
+      throw ApiException(
+        e.response?.statusCode ?? 0,
+        e.message ?? 'DELETE $path failed',
+      );
+    }
+  }
+
+  /// POST request - returns decoded JSON body.
   /// Throws [ApiException] on non-2xx or network failure.
   static Future<Map<String, dynamic>> post(
     String path,
@@ -165,7 +177,7 @@ class BackendClient {
 }
 
 /// Shared Nominatim reverse-geocoding client.
-/// Single instance — used by home screen (territory label) and tile info sheet.
+/// Single instance - used by home screen (territory label) and tile info sheet.
 final nominatimClient = Dio(BaseOptions(
   baseUrl: 'https://nominatim.openstreetmap.org',
   connectTimeout: const Duration(seconds: 8),
@@ -195,7 +207,7 @@ Future<String?> reverseGeocodeNeighborhood(double lat, double lon) async {
   }
 }
 
-/// Legacy exception type — kept for any external callers.
+/// Legacy exception type - kept for any external callers.
 /// Prefer [ApiException] for new code.
 class BackendException implements Exception {
   BackendException(this.message, {this.statusCode});

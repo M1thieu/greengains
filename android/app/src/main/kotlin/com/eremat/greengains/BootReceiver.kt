@@ -29,7 +29,7 @@ class BootReceiver : BroadcastReceiver() {
 
         if (wasServiceRunning) {
             // BOOT_COMPLETED is explicitly exempt from Android 14+ background FGS restrictions.
-            // Direct startForegroundService() is safe here — no WorkManager needed.
+            // Direct startForegroundService() is safe here - no WorkManager needed.
             Log.i(TAG, "Service was running before reboot — restarting directly")
             val intent = Intent(context, ForegroundService::class.java)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {

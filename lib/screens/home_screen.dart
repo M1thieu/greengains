@@ -1,15 +1,12 @@
 ﻿import 'dart:async';
 import 'dart:convert';
-import 'dart:ui' as ui;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:h3_flutter/h3_flutter.dart' as h3f;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:in_app_review/in_app_review.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:share_plus/share_plus.dart';
 import '../core/constants.dart';
 import '../core/extensions/context_extensions.dart';
 import '../core/sensor_insights.dart';
@@ -22,22 +19,21 @@ import '../core/utils/composite_subscription.dart';
 import '../utils/app_snackbars.dart';
 import '../core/app_preferences.dart';
 import '../services/widget/home_widget_service.dart';
-import '../widgets/battery_optimization_dialog.dart';
 import '../widgets/coverage_map_widget.dart';
 import '../widgets/press_scale_detector.dart';
 import '../widgets/sensor_section.dart';
 import '../widgets/time_ago_text.dart';
 import '../data/repositories/contribution_repository.dart';
+import '../widgets/detail_page.dart';
 
 // My Location button: 48×48 standard touch target.
 const _kLocationBtnSize = AppTheme.minTouchTarget; // 48
 
-const _kMilestones = [5, 10, 25, 50, 100, 250, 500, 1000];
 
-// H3 resolution for live cell highlight (res 9 ≈ 174m edge length — city block scale)
+// H3 resolution for live cell highlight (res 9 ≈ 174m edge length - city block scale)
 const _kLiveCellResolution = 9;
 
-/// Home screen — full-screen map layout.
+/// Home screen - full-screen map layout.
 ///
 /// Layer order (bottom → top):
 ///   0. CoverageMapWidget (edge-to-edge background)
@@ -63,38 +59,36 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   /// Incrementing recenter triggers CoverageMapWidget to move camera to user.
   final _recenterTrigger = ValueNotifier<int>(0);
 
-  bool _batteryPromptOpen = false;
+  bool _batteryRestricted = false;
   bool _permissionLost = false;
   final _subs = <StreamSubscription>[];
   StreamSubscription? _locationStreamSub; // kept separate — reassigned on reconnect
   /// Zone count at the moment tracking started (this foreground session).
-  /// 0 = tracking was already running when app opened — no delta shown.
+  /// 0 = tracking was already running when app opened - no delta shown.
   int _sessionStartZoneCount = 0;
-  /// Wall-clock time when tracking started — drives elapsed timer in hint pill.
-  DateTime? _sessionStartTime;
   /// True when map is actively following the user's GPS position.
   final _followModeNotifier = ValueNotifier<bool>(false);
   List<H3Tile> _h3Tiles = [];
   List<H3Tile> _globalTiles = [];
   bool _h3TilesLoading = true;
-  /// Aggregated condition summary of all personal tiles — null if normal or no data.
+  /// Aggregated condition summary of all personal tiles - null if normal or no data.
   String? _areaConditionLine;
   DateTime? _lastTilesFetch;
   static const _kTilesCooldown = Duration(minutes: 2);
-  /// Retry counters — reset on success, capped at kMaxTileRetries.
+  /// Retry counters - reset on success, capped at kMaxTileRetries.
   int _h3RetryCount = 0;
   int _globalRetryCount = 0;
-  /// Flips true after 8s of loading with no response — shows "Starting up…" hint.
+  /// Flips true after 8s of loading with no response - shows "Starting up…" hint.
   bool _showSlowLoadHint = false;
   Timer? _slowLoadTimer;
-  /// Largest contiguous H3 hex cluster — computed off-thread after tiles load.
+  /// Largest contiguous H3 hex cluster - computed off-thread after tiles load.
 
-  /// Boundary of the H3 cell the user is currently inside — shown as live amber
+  /// Boundary of the H3 cell the user is currently inside - shown as live amber
   /// highlight on the map while tracking is active.
   List<LatLng>? _currentH3Boundary;
-  /// Last committed H3 cell index — the one currently rendered on the map.
+  /// Last committed H3 cell index - the one currently rendered on the map.
   BigInt? _currentH3Index;
-  /// Cells visited this session — shown as optimistic pending tiles before backend confirms.
+  /// Cells visited this session - shown as optimistic pending tiles before backend confirms.
   final Set<BigInt> _sessionVisitedCells = {};
   List<List<LatLng>> _pendingCellBoundaries = [];
   /// Candidate cell waiting for stability confirmation.
@@ -102,36 +96,29 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   /// How many consecutive GPS readings have landed in [_pendingH3Index].
   int _pendingH3Count = 0;
   /// Minimum consecutive hits before committing a new live cell.
-  /// At 10s GPS interval: 3 hits = ~30s — prevents H3 cell drift from low-accuracy
+  /// At 10s GPS interval: 3 hits = ~30s - prevents H3 cell drift from low-accuracy
   /// fixes leaking into the live map. Accuracy filter in ForegroundService now rejects
   /// >50m reads, so stable 3-hit confirmation eliminates the last ~5% drift cases.
   static const _kLiveCellStabilityThreshold = 3;
-  /// Cached tile count — avoids recomputing on every build frame.
+  /// Cached tile count - avoids recomputing on every build frame.
   int get _claimedTileCount => _h3Tiles.where((t) => t.boundary != null).length;
-  /// Current streak — loaded after session ends, shown in session summary sheet.
+  /// Current streak - pushed to the home-screen widget.
   int _currentStreak = 0;
-  /// Upload count during the current tracking session — shown in the live pill and summary sheet.
-  int _sessionUploadCount = 0;
   /// Whether community tiles are visible on the map.
   bool _showCommunity = true;
-  /// Running averages for session sensor data — each accumulates as liveConditions fires.
-  final _luxAcc = _RunningAverage();
-  final _hpaAcc = _RunningAverage();
-  final _rmsAcc = _RunningAverage();
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _locationService.isRunning.addListener(_handleServiceRunningChange);
-    _locationService.liveConditions.addListener(_accumulateSessionSensors);
     _checkServiceStatus();
     _setupUploadSuccessListener();
     _checkBatteryOptimization();
     unawaited(_checkPermissionHealth());
-    // Load cached tiles off the main thread — map shows last known state before network.
+    // Load cached tiles off the main thread - map shows last known state before network.
     unawaited(_loadCachedTiles());
-    // Prefetch Firebase token before tile requests fire — avoids token latency
+    // Prefetch Firebase token before tile requests fire - avoids token latency
     // adding to the first network call. Fire-and-forget; Dio interceptor handles
     // the actual injection. This just warms the Firebase SDK's token cache.
     unawaited(FirebaseAuth.instance.currentUser?.getIdToken());
@@ -140,15 +127,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     _loadUserLocation();
     _subscribeToLocationUpdates();
     unawaited(_loadStreak());
-    _maybeShowPendingFirstUpload();
-  }
-
-  void _maybeShowPendingFirstUpload() {
-    if (!_prefs.firstUploadPending) return;
-    Future.delayed(const Duration(milliseconds: 400), () {
-      if (!mounted || !context.mounted) return;
-      _showFirstUploadSheet();
-    });
   }
 
   Future<void> _loadStreak() async {
@@ -170,81 +148,20 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     );
   }
 
-  /// Accumulates live sensor readings into running totals for the session summary.
-  void _accumulateSessionSensors() {
-    if (!_locationService.isRunning.value || _locationService.isPaused.value) return;
-    final cond = _locationService.liveConditions.value;
-    if (cond.lux != null) _luxAcc.add(cond.lux!.toDouble());
-    if (cond.hpa != null) _hpaAcc.add(cond.hpa!);
-    if (cond.rms != null) _rmsAcc.add(cond.rms!);
-  }
-
   void _handleServiceRunningChange() {
     unawaited(_updateHomeWidget());
     if (_locationService.isRunning.value) {
       _sessionStartZoneCount = _claimedTileCount;
-      _sessionStartTime = DateTime.now();
-      _sessionUploadCount = 0;
       _sessionVisitedCells.clear();
       _pendingCellBoundaries = [];
-      _luxAcc.reset(); _hpaAcc.reset(); _rmsAcc.reset();
       _checkBatteryOptimization();
-      _maybeShowFirstStart();
     } else {
-      // Tracking stopped — persist session data for return hint.
+      // Tracking stopped - persist session data for return hint.
       final gained = _claimedTileCount - _sessionStartZoneCount;
-      final sessionDuration = _sessionStartTime != null
-          ? DateTime.now().difference(_sessionStartTime!)
-          : Duration.zero;
       final clampedGained = gained.clamp(0, 9999);
-      final isPersonalBest = clampedGained > 0 && clampedGained > _prefs.bestSessionZonesGained;
       unawaited(_prefs.saveLastSession(zonesGained: clampedGained));
-      // Show summary for any session ≥2 min, regardless of whether zones were gained.
-      final worthSummary = sessionDuration >= const Duration(minutes: 2);
-      if (worthSummary && _sessionStartZoneCount >= 0 && mounted) {
-        final total = _claimedTileCount;
-        final uploads = _sessionUploadCount;
-        Future.delayed(AppDurations.fast, () {
-          if (!mounted || !context.mounted) return;
-          // Fall back to last cached sensor readings if the live stream
-          // didn't accumulate enough data (e.g. very short session or sensors slow to start).
-          final lux = _luxAcc.value ?? _prefs.lastLux;
-          final hpa = _hpaAcc.value ?? _prefs.lastHpa;
-          showModalBottomSheet(
-            context: context,
-            backgroundColor: Colors.transparent,
-            isScrollControlled: true,
-            builder: (_) => _SessionSummarySheet(
-              zonesGained: clampedGained,
-              totalZones: total,
-              sessionDuration: sessionDuration,
-              streak: _currentStreak,
-              isPersonalBest: isPersonalBest,
-              uploadsInSession: uploads,
-              onViewStats: widget.onGoToStats,
-              sessionAvgLux: lux,
-              sessionAvgHpa: hpa,
-              sessionAvgVibration: _rmsAcc.value,
-            ),
-          );
-        });
-      }
       _sessionStartZoneCount = 0;
-      _sessionStartTime = null;
-      _sessionUploadCount = 0;
     }
-  }
-
-  Future<void> _maybeShowFirstStart() async {
-    await _prefs.ensureInitialized();
-    if (_prefs.trackingEverStarted) return;
-    await _prefs.setTrackingEverStarted();
-    if (!mounted) return;
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (_) => _FirstStartSheet(),
-    );
   }
 
   Future<void> _checkPermissionHealth() async {
@@ -259,7 +176,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     if (mounted && lost != _permissionLost) setState(() => _permissionLost = lost);
   }
 
-  // ── Bottom action bar controls ──────────────────────────────────────────────
+  // Bottom action bar controls
 
   bool _actionBusy = false;
   DateTime? _lastPosSave;
@@ -277,7 +194,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   Future<bool> _requestAndCheckPermission() async {
     final current = await Geolocator.checkPermission();
     if (current == LocationPermission.deniedForever) {
-      if (mounted) AppSnackbars.showInfo(context, context.l10n.permissionLocationMessage);
+      // Android won't ask again: open the app's settings page directly.
+      await Geolocator.openAppSettings();
       return false;
     }
     final granted = await Geolocator.requestPermission();
@@ -330,70 +248,37 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     }
   }
 
+  /// Sets [_batteryRestricted] for the inline hint. Never opens anything by
+  /// itself: the dialog only shows if the user taps the hint.
   Future<void> _checkBatteryOptimization() async {
-    await Future.delayed(AppDurations.fast);
-    if (!mounted) return;
-    if (_batteryPromptOpen) return;
-
     try {
       await _prefs.ensureInitialized();
-      if (_prefs.batteryOptimizationPromptDismissed) return;
-
-      final lastShown = _prefs.batteryOptimizationPromptLastShown;
-      if (lastShown != null &&
-          DateTime.now().difference(lastShown) < kBatteryPromptInterval) {
+      if (_prefs.batteryOptimizationPromptDismissed || !_locationService.isRunning.value) {
+        if (_batteryRestricted && mounted) setState(() => _batteryRestricted = false);
         return;
       }
-
-      if (!_locationService.isRunning.value) return;
-
-      const platform = MethodChannel('greengains/foreground');
-      final bool isIgnoring =
-          await platform.invokeMethod('isIgnoringBatteryOptimizations');
-
-      if (!isIgnoring && mounted) {
-        _batteryPromptOpen = true;
-        try {
-          await showDialog<void>(
-            context: context,
-            barrierDismissible: false,
-            builder: (_) => const BatteryOptimizationDialog(),
-          );
-        } finally {
-          _batteryPromptOpen = false;
-        }
+      final restricted = await _locationService.isBatteryRestricted();
+      if (mounted && _batteryRestricted != restricted) {
+        setState(() => _batteryRestricted = restricted);
       }
-    } on PlatformException catch (e) {
-      debugPrint("Failed to check battery optimization: '${e.message}'.");
+    } catch (e) {
+      debugPrint('Failed to check battery optimization: $e');
     }
   }
 
+  /// Straight to Android's own "allow in background" prompt: no in-app dialog
+  /// in between. The hint re-checks on resume and disappears once allowed.
+  Future<void> _openBatteryDialog() => _locationService.requestBatteryExemption();
+
   void _setupUploadSuccessListener() {
     _subs.add(AppEventBus.instance.on<UploadSuccessEvent>().listen(_onUploadSuccess));
-  }
-
-  void _showFirstUploadSheet() {
-    unawaited(_prefs.setFirstUploadCelebrated());
-    unawaited(_prefs.setFirstUploadPending(false));
-    HapticFeedback.mediumImpact();
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (_) => const _FirstUploadSheet(),
-    );
+    _subs.add(AppEventBus.instance.on<TabReselectedEvent>().listen((e) {
+      if (e.index == 0) _recenterTrigger.value++;
+    }));
   }
 
   void _onUploadSuccess(UploadSuccessEvent event) {
     if (!mounted) return;
-    if (_locationService.isRunning.value) {
-      setState(() => _sessionUploadCount++);
-    }
-    // Mark pending immediately — if the app goes to background before the sheet
-    // shows, the resumed check in didChangeAppLifecycleState will pick it up.
-    if (!_prefs.firstUploadCelebrated) {
-      unawaited(_prefs.setFirstUploadPending(true));
-    }
     final prevCount = _claimedTileCount;
     Future.delayed(const Duration(seconds: 3), () {
       if (!mounted) return;
@@ -416,67 +301,13 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         final newCount = _claimedTileCount;
         final gained = newCount - prevCount;
         if (gained > 0) HapticFeedback.mediumImpact();
-        if (!_prefs.firstUploadCelebrated && newCount > 0) {
-          _showFirstUploadSheet();
-          return;
-        }
-        final msg = gained > 0
-            ? context.l10n.uploadSuccessNewZone(newCount)
-            : context.l10n.uploadSuccessMessage;
-        AppSnackbars.showSuccess(context, msg);
-        if (gained > 0) {
-          _maybeCelebrateMilestone(newCount);
-        }
+        // No sheet, no text toast: the new hexagon appearing on the map plus the haptic
+        // above is the feedback.
       });
     });
-    _maybeRequestReview();
-    unawaited(_maybeCelebrateUploadMilestone());
   }
 
-  static const _kUploadMilestones = [10, 50, 100, 500, 1000];
 
-  Future<void> _maybeCelebrateMilestone(int zoneCount) async {
-    await _prefs.ensureInitialized();
-    final lastCelebrated = _prefs.lastMilestoneCelebrated;
-    // Find the highest milestone reached that hasn't been celebrated yet.
-    final earned = _kMilestones.where((m) => m <= zoneCount && m > lastCelebrated).toList();
-    if (earned.isEmpty) return;
-    final milestone = earned.last;
-    await _prefs.setLastMilestoneCelebrated(milestone);
-    if (!mounted) return;
-    HapticFeedback.heavyImpact();
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (_) => _MilestoneSheet(zoneCount: milestone),
-    );
-  }
-
-  Future<void> _maybeCelebrateUploadMilestone() async {
-    await _prefs.ensureInitialized();
-    final count = _prefs.totalUploadCount;
-    final lastCelebrated = _prefs.lastUploadMilestoneCelebrated;
-    final earned = _kUploadMilestones.where((m) => m <= count && m > lastCelebrated).toList();
-    if (earned.isEmpty || !mounted) return;
-    final milestone = earned.last;
-    await _prefs.setLastUploadMilestoneCelebrated(milestone);
-    if (!mounted) return;
-    AppSnackbars.showSuccess(context, context.l10n.uploadMilestone(milestone));
-  }
-
-  /// Show the Play Store in-app review dialog once, after the user's 5th upload.
-  Future<void> _maybeRequestReview() async {
-    try {
-      await _prefs.ensureInitialized();
-      if (_prefs.totalUploadCount < kReviewRequestThreshold) return;
-      if (_prefs.reviewRequested) return;
-      final review = InAppReview.instance;
-      if (await review.isAvailable()) {
-        await review.requestReview();
-        await _prefs.setReviewRequested();
-      }
-    } catch (_) {}
-  }
 
   @override
   void dispose() {
@@ -485,7 +316,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     _subs.cancelAll();
     _slowLoadTimer?.cancel();
     _locationService.isRunning.removeListener(_handleServiceRunningChange);
-    _locationService.liveConditions.removeListener(_accumulateSessionSensors);
     _recenterTrigger.dispose();
     _userLocationNotifier.dispose();
     _userAccuracyNotifier.dispose();
@@ -501,15 +331,15 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       _globalRetryCount = 0;
       _slowLoadTimer?.cancel();
       _showSlowLoadHint = false;
-      // Fire async work without awaiting — lifecycle callbacks must return synchronously.
+      // Fire async work without awaiting - lifecycle callbacks must return synchronously.
       if (_locationService.isRunning.value) {
         unawaited(_locationService.flushSensorBuffers());
       }
       _checkServiceStatus();
+      unawaited(_checkBatteryOptimization());
       _reloadUploadStatus();
       _loadH3Tiles();
       unawaited(_checkPermissionHealth());
-      _maybeShowPendingFirstUpload();
       unawaited(_loadStreak());
     }
   }
@@ -525,7 +355,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   Future<void> _checkServiceStatus() async {
     // The shared_preferences plugin caches the whole file in memory and only
-    // re-reads it on an explicit reload() — it has no way to know the native
+    // re-reads it on an explicit reload() - it has no way to know the native
     // side wrote to the same file directly (ForegroundService.stopForegroundService()
     // does, while the app was backgrounded). Without this, foregroundServiceEnabled
     // below could still read the stale "true" from before a Stop tapped from the
@@ -557,7 +387,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     final personalJson = _prefs.cachedPersonalTiles;
     final globalJson = _prefs.cachedGlobalTiles;
 
-    // Decode both on background isolates in parallel — don't block UI thread.
+    // Decode both on background isolates in parallel - don't block UI thread.
     final results = await Future.wait([
       if (personalJson != null)
         compute((String j) => jsonDecode(j) as Map<String, dynamic>, personalJson)
@@ -596,11 +426,11 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   }
 
   Future<void> _loadH3Tiles({bool force = false}) async {
-    // Skip if recently fetched — prevents hammering backend on every resume.
+    // Skip if recently fetched - prevents hammering backend on every resume.
     if (!force && _lastTilesFetch != null &&
         DateTime.now().difference(_lastTilesFetch!) < _kTilesCooldown) { return; }
     // Stale-while-revalidate: if we have cached tiles, keep showing them while
-    // fetching fresh data in background — no spinner, no blank map on resume.
+    // fetching fresh data in background - no spinner, no blank map on resume.
     // Only show spinner on true cold open (never had tiles yet).
     if (_h3Tiles.isEmpty) {
       setState(() => _h3TilesLoading = true);
@@ -628,12 +458,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           _showSlowLoadHint = false;
           _lastTilesFetch = DateTime.now();
         });
-        // Check for milestone crossings on cold open — catches zones earned while app was closed.
-        unawaited(_maybeCelebrateMilestone(newCount));
         unawaited(_updateHomeWidget());
         // Persist for instant display on next open.
         unawaited(_prefs.setCachedPersonalTiles(jsonEncode(data)));
-        // Geocode neighborhood from the most-sampled tile centroid — fire-and-forget.
+        // Geocode neighborhood from the most-sampled tile centroid - fire-and-forget.
         // Only runs once (or when name is missing). Sends H3 cell centroid (~461m),
         // not the user's actual GPS position.
         if (_prefs.territoryLabel == null && response.tiles.isNotEmpty) {
@@ -707,13 +535,13 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       avgMovement: avgMovement,
       avgVibration: avgVibration,
     );
-    // Only show if not generic "normal" — surface surprises, not averages.
+    // Only show if not generic "normal" - surface surprises, not averages.
     final normal = l10n.insightNormal;
     setState(() => _areaConditionLine = line == normal ? null : line);
   }
 
   /// Load community coverage tiles (all users, cached 5 min on server).
-  /// Loads silently in background — never blocks the loading spinner.
+  /// Loads silently in background - never blocks the loading spinner.
   Future<void> _loadGlobalTiles() async {
     try {
       final data = await BackendClient.get(kApiTilesGlobal);
@@ -760,7 +588,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     }
   }
 
-  /// Return last saved position from prefs — used as initial map center
+  /// Return last saved position from prefs - used as initial map center
   /// so the map opens where the user was, not Colmar.
   LatLng? _cachedLocation() {
     final saved = _prefs.lastKnownPosition;
@@ -795,7 +623,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       _userLocationNotifier.value = smoothPos;
       _userAccuracyNotifier.value = locationData.accuracy;
       _updateCurrentH3Cell(smoothPos);
-      // Debounce persistence — raw GPS coords, not filtered
+      // Debounce persistence - raw GPS coords, not filtered
       final now = DateTime.now();
       if (_lastPosSave == null || now.difference(_lastPosSave!) >= const Duration(seconds: 60)) {
         _lastPosSave = now;
@@ -810,7 +638,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         h3f.GeoCoord(lat: pos.latitude, lon: pos.longitude),
         _kLiveCellResolution,
       );
-      // Already showing this cell — nothing to do.
+      // Already showing this cell - nothing to do.
       if (cellIndex == _currentH3Index) {
         _pendingH3Index = null;
         _pendingH3Count = 0;
@@ -818,7 +646,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       }
       // Stability gate: require N consecutive readings in the new cell before
       // committing. Prevents bus-speed bouncing where cells change every 5-15s
-      // due to GPS multipath — the hex stays locked until you've genuinely
+      // due to GPS multipath - the hex stays locked until you've genuinely
       // settled in the new cell.
       if (cellIndex == _pendingH3Index) {
         _pendingH3Count++;
@@ -828,7 +656,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       }
       if (_pendingH3Count < _kLiveCellStabilityThreshold) return;
 
-      // Stable — commit the new cell.
+      // Stable - commit the new cell.
       _currentH3Index = cellIndex;
       _pendingH3Index = null;
       _pendingH3Count = 0;
@@ -855,21 +683,11 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     HapticFeedback.lightImpact();
     final isDark = context.isDarkMode;
     final l10n = context.l10n;
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (_) => TileInfoSheet(tile: tile, isDark: isDark, l10n: l10n),
-    );
+    pushDetailPage(context, builder: (_) => TileInfoSheet(tile: tile, isDark: isDark, l10n: l10n));
   }
 
   void _openSensorSheet() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (_) => _SensorLiveSheet(locationService: _locationService),
-    );
+    pushDetailPage(context, title: context.l10n.sensorLiveSheetTitle, builder: (_) => _SensorLiveSheet(locationService: _locationService));
   }
 
   @override
@@ -882,7 +700,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       child: Scaffold(
         body: Stack(
           children: [
-            // ── 0. Full-screen heatmap ────────────────────────────────────
+            // 0. Full-screen heatmap
             ListenableBuilder(
               listenable: Listenable.merge([
                 _userLocationNotifier,
@@ -915,7 +733,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               },
             ),
 
-            // ── 0b. Cold-start hint — shown after 8s if still loading ───
+            // 0b. Cold-start hint - shown after 8s if still loading
             if (_showSlowLoadHint)
               Positioned(
                 bottom: bottomPadding + AppTheme.floatingNavHeight + AppTheme.spaceXxl,
@@ -926,7 +744,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                         horizontal: AppTheme.spaceMd, vertical: AppTheme.spaceXs),
                     decoration: BoxDecoration(
                       color: AppColors.mapOverlayMid,
-                      borderRadius: BorderRadius.circular(AppTheme.radiusPill),
+                      borderRadius: BorderRadius.circular(AppTheme.radiusMd),
                     ),
                     child: Text(
                       context.l10n.serverWakingUp,
@@ -939,7 +757,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 ),
               ),
 
-            // ── Overlays ──────────────────────────────────────────────────
+            // Overlays
             SafeArea(
               child: Padding(
                 padding: const EdgeInsets.only(bottom: AppTheme.floatingNavHeight),
@@ -947,7 +765,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
 
-                    // Top bar: Mine/All left — stats right
+                    // Top bar: Mine/All left - stats right
                     Padding(
                       padding: const EdgeInsets.symmetric(
                           horizontal: AppTheme.spaceMd, vertical: AppTheme.spaceSm),
@@ -963,24 +781,21 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                 setState(() => _showCommunity = val),
                           ),
                           const Spacer(),
-                          // Stats pills stacked top-right — tap navigates to Stats
-                          _StatPillStack(
-                            claimedTileCount: _claimedTileCount,
-                            territoryLabel: _prefs.territoryLabel,
-                            areaConditionLine: _areaConditionLine,
-                            currentStreak: _currentStreak,
-                            lastSessionEndAt: _prefs.lastSessionEndAt,
-                            lastSessionZonesGained: _prefs.lastSessionZonesGained,
-                            isTracking: _locationService.isRunning.value,
-                            onTap: () => widget.onGoToStats?.call(),
-                          ),
+                          // Area summary top-right - tap navigates to Stats
+                          if (_claimedTileCount > 0)
+                            _MapSummary(
+                              claimedTileCount: _claimedTileCount,
+                              territoryLabel: _prefs.territoryLabel,
+                              areaConditionLine: _areaConditionLine,
+                              onTap: () => widget.onGoToStats?.call(),
+                            ),
                         ],
                       ),
                     ),
 
                     const Spacer(),
 
-                    // Zero-state — shown once to new users before first zone
+                    // Zero-state - shown once to new users before first zone
                     if (_h3Tiles.isEmpty && !_h3TilesLoading && !_locationService.isRunning.value)
                       const _ZeroStateCard(),
 
@@ -998,7 +813,16 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                         ),
                       ),
 
-                    // Bottom row — floating buttons, no container
+                    if (_batteryRestricted && !_permissionLost)
+                      Padding(
+                        padding: const EdgeInsets.only(
+                            left: AppTheme.spaceMd,
+                            right: AppTheme.spaceMd,
+                            bottom: AppTheme.spaceSm),
+                        child: _BatteryHint(onTap: _openBatteryDialog),
+                      ),
+
+                    // Bottom row - floating buttons, no container
                     Padding(
                       padding: const EdgeInsets.only(
                           left: AppTheme.spaceMd,
@@ -1056,30 +880,22 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   }
 }
 
-// ─── Map overlay pieces ───────────────────────────────────────────────────────
+// Map overlay pieces
 
-/// Stats pills stacked top-right — area, territory, condition, streak, today.
-/// Every input is an explicit parameter so the stack can be reasoned about
-/// without tracing back into HomeScreen's state.
-class _StatPillStack extends StatelessWidget {
-  const _StatPillStack({
+/// One compact panel: area mapped, then neighbourhood and any notable
+/// condition as quiet secondary lines. Streak and today's gain live in Stats -
+/// the map stays the focus.
+class _MapSummary extends StatelessWidget {
+  const _MapSummary({
     required this.claimedTileCount,
     required this.territoryLabel,
     required this.areaConditionLine,
-    required this.currentStreak,
-    required this.lastSessionEndAt,
-    required this.lastSessionZonesGained,
-    required this.isTracking,
     required this.onTap,
   });
 
   final int claimedTileCount;
   final String? territoryLabel;
   final String? areaConditionLine;
-  final int currentStreak;
-  final DateTime? lastSessionEndAt;
-  final int lastSessionZonesGained;
-  final bool isTracking;
   final VoidCallback onTap;
 
   String _areaLabel(BuildContext context) {
@@ -1090,80 +906,57 @@ class _StatPillStack extends StatelessWidget {
     return context.l10n.homeStatArea(area);
   }
 
-  /// Today's gain shows only after a session ended within 20h, while idle.
-  bool get _showTodayPill =>
-      lastSessionEndAt != null &&
-      DateTime.now().difference(lastSessionEndAt!).inHours < 20 &&
-      !isTracking &&
-      lastSessionZonesGained > 0;
-
   @override
   Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    final secondary = [territoryLabel, areaConditionLine]
+        .whereType<String>()
+        .where((s) => s.isNotEmpty);
     return PressScaleDetector(
       onTap: () {
         HapticFeedback.lightImpact();
         onTap();
       },
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          if (claimedTileCount > 0) ...[
-            _StatPill(icon: Icons.hexagon_outlined, label: _areaLabel(context)),
-            if (territoryLabel != null) ...[
-              const SizedBox(height: 3),
+      child: Container(
+        constraints: const BoxConstraints(maxWidth: 200),
+        padding: const EdgeInsets.symmetric(
+            horizontal: AppTheme.spaceSm, vertical: AppTheme.spaceXs),
+        decoration: BoxDecoration(
+          color: AppColors.shadowDark(0.55),
+          borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              _areaLabel(context),
+              style: textTheme.labelLarge?.copyWith(
+                fontWeight: AppFontWeights.semibold,
+                color: AppColors.darkTextPrimary,
+              ),
+            ),
+            for (final line in secondary)
               Padding(
-                padding: const EdgeInsets.only(right: AppTheme.spaceXs),
+                padding: const EdgeInsets.only(top: 2),
                 child: Text(
-                  territoryLabel!,
-                  style: TextStyle(
-                    fontSize: AppTheme.fontSizeXs,
-                    color: AppColors.textTertiary(true),
-                    fontWeight: AppFontWeights.medium,
-                    letterSpacing: 0.2,
-                  ),
+                  line,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   textAlign: TextAlign.end,
+                  style: textTheme.bodySmall?.copyWith(
+                    color: AppColors.darkTextSecondary,
+                  ),
                 ),
               ),
-            ],
-            if (areaConditionLine != null) ...[
-              const SizedBox(height: 2),
-              Padding(
-                padding: const EdgeInsets.only(right: AppTheme.spaceXs),
-                child: Text(
-                  areaConditionLine!,
-                  style: TextStyle(
-                    fontSize: 9.5,
-                    color: AppColors.textTertiary(true).withValues(alpha: 0.6),
-                    fontWeight: AppFontWeights.regular,
-                    letterSpacing: 0.1,
-                  ),
-                  textAlign: TextAlign.end,
-                ),
-              ),
-            ],
           ],
-          if (currentStreak > 0) ...[
-            const SizedBox(height: AppTheme.spaceXxs),
-            _StatPill(
-              icon: Icons.bolt_rounded,
-              label: context.l10n.homeStatStreak(currentStreak),
-            ),
-          ],
-          if (_showTodayPill) ...[
-            const SizedBox(height: AppTheme.spaceXxs),
-            _StatPill(
-              icon: Icons.add_rounded,
-              label: context.l10n.homeStatToday(lastSessionZonesGained),
-              color: AppColors.primary,
-            ),
-          ],
-        ],
+        ),
       ),
     );
   }
 }
 
-/// Shown once to new users before their first zone — fully static, so `const`
+/// Shown once to new users before their first zone - fully static, so `const`
 /// keeps it out of every rebuild.
 class _ZeroStateCard extends StatelessWidget {
   const _ZeroStateCard();
@@ -1199,27 +992,6 @@ class _ZeroStateCard extends StatelessWidget {
                       letterSpacing: AppTheme.letterSpacingSubtle,
                     ),
                   ),
-                  const SizedBox(height: AppTheme.spaceXxxs),
-                  Text(
-                    context.l10n.mapZeroStateBody,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: AppColors.darkTextSecondary,
-                      height: AppLineHeights.normal,
-                    ),
-                  ),
-                  const SizedBox(height: AppTheme.spaceSm),
-                  // Ghost sensor preview — teases what will appear
-                  const Row(
-                    children: [
-                      _GhostSensorChip(icon: Icons.light_mode_rounded, color: AppColors.light),
-                      SizedBox(width: AppTheme.spaceXxs),
-                      _GhostSensorChip(icon: Icons.compress_rounded, color: AppColors.pressure),
-                      SizedBox(width: AppTheme.spaceXxs),
-                      _GhostSensorChip(icon: Icons.directions_walk_rounded, color: AppColors.movement),
-                      SizedBox(width: AppTheme.spaceXxs),
-                      _GhostSensorChip(icon: Icons.eco_rounded, color: AppColors.quality),
-                    ],
-                  ),
                 ],
               ),
             ),
@@ -1230,7 +1002,7 @@ class _ZeroStateCard extends StatelessWidget {
   }
 }
 
-// ─── Bottom action bar ────────────────────────────────────────────────────────
+// Bottom action bar
 
 class _HomeActionBar extends StatelessWidget {
   const _HomeActionBar({
@@ -1255,7 +1027,7 @@ class _HomeActionBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     if (!isRunning) {
-      // Icon-only, like a media player's play button — no label needed, the
+      // Icon-only, like a media player's play button - no label needed, the
       // icon language is already universal.
       return _ActionButton(
         semanticLabel: l10n.homeActionStart,
@@ -1294,7 +1066,7 @@ class _HomeActionBar extends StatelessWidget {
 }
 
 /// Icon-only circular action button. [semanticLabel] carries the meaning for
-/// screen readers since there is no visible text — the icon alone (play/stop,
+/// screen readers since there is no visible text - the icon alone (play/stop,
 /// same convention as any media player) is enough for sighted users.
 class _ActionButton extends StatelessWidget {
   const _ActionButton({
@@ -1369,110 +1141,7 @@ class _ActionButton extends StatelessWidget {
 
 enum _ActionBtnStyle { primary, danger }
 
-// ─── Private widgets ────────────────────────────────────────────────────────
-
-// ── Animated count with bounded haptic feedback ──────────────────────────────
-
-/// Counts from 0 to [count] with a short animation and selectionClick haptics.
-/// Fires at most 10 haptic pulses regardless of count size — one per 10 % step.
-class _HapticCountText extends StatefulWidget {
-  const _HapticCountText({
-    required this.count,
-    required this.duration,
-    this.prefix = '',
-  });
-  final int count;
-  final Duration duration;
-  final String prefix;
-
-  @override
-  State<_HapticCountText> createState() => _HapticCountTextState();
-}
-
-class _HapticCountTextState extends State<_HapticCountText> {
-  int _prev = 0;
-
-  @override
-  Widget build(BuildContext context) {
-    return TweenAnimationBuilder<int>(
-      tween: IntTween(begin: 0, end: widget.count),
-      duration: widget.duration,
-      curve: Curves.easeOut,
-      builder: (_, value, __) {
-        if (value > _prev && widget.count > 0) {
-          // Fire at most 10 ticks, one per 10% of total
-          final prevBucket = _prev * 10 ~/ widget.count;
-          final currBucket = value * 10 ~/ widget.count;
-          if (currBucket > prevBucket) {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (mounted) HapticFeedback.selectionClick();
-            });
-          }
-          _prev = value;
-        }
-        return Text(
-          '${widget.prefix}$value',
-          style: const TextStyle(
-            fontSize: AppTheme.fontSizeDisplay,
-            fontWeight: AppFontWeights.bold,
-            color: Colors.white,
-            letterSpacing: -5,
-            height: 0.92,
-            fontFeatures: [ui.FontFeature.tabularFigures()],
-          ),
-        );
-      },
-    );
-  }
-}
-
-/// Flat-top hex brand mark — matches design's SVG exactly.
-class _BrandMark extends StatelessWidget {
-  const _BrandMark({this.size = 16});
-  final double size;
-
-  @override
-  Widget build(BuildContext context) {
-    return CustomPaint(
-      size: Size(size, size * 0.9),
-      painter: _BrandMarkPainter(),
-    );
-  }
-}
-
-class _BrandMarkPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final w = size.width;
-    final h = size.height;
-    canvas.drawPath(
-      ui.Path()
-        ..moveTo(w * 5 / 20, h * 1 / 18)
-        ..lineTo(w * 15 / 20, h * 1 / 18)
-        ..lineTo(w, h * 9 / 18)
-        ..lineTo(w * 15 / 20, h * 17 / 18)
-        ..lineTo(w * 5 / 20, h * 17 / 18)
-        ..lineTo(0, h * 9 / 18)
-        ..close(),
-      Paint()..color = AppColors.primary,
-    );
-    canvas.drawPath(
-      ui.Path()
-        ..moveTo(w * 7 / 20, h * 5 / 18)
-        ..lineTo(w * 13 / 20, h * 5 / 18)
-        ..lineTo(w * 16 / 20, h * 9 / 18)
-        ..lineTo(w * 13 / 20, h * 13 / 18)
-        ..lineTo(w * 7 / 20, h * 13 / 18)
-        ..lineTo(w * 4 / 20, h * 9 / 18)
-        ..close(),
-      Paint()..color = AppColors.darkBackground,
-    );
-  }
-
-  @override
-  bool shouldRepaint(_BrandMarkPainter old) => false;
-}
-
+// Private widgets
 
 /// Shows gps_fixed (primary tint) when follow mode is active, gps_not_fixed otherwise.
 class _MyLocationButton extends StatelessWidget {
@@ -1486,7 +1155,7 @@ class _MyLocationButton extends StatelessWidget {
       valueListenable: followModeNotifier ?? ValueNotifier(false),
       builder: (context, isFollowing, _) {
         // Standard pattern (Google Maps / Apple Maps):
-        // Button background stays white always — icon color signals state.
+        // Button background stays white always - icon color signals state.
         return Material(
           color: AppColors.mapOverlayDark,
           shape: const CircleBorder(),
@@ -1515,431 +1184,26 @@ class _MyLocationButton extends StatelessWidget {
   }
 }
 
-/// First-start celebration sheet — shown exactly once, the first time tracking starts.
-/// Auto-dismisses after 3 s so it never blocks the map.
-class _FirstStartSheet extends StatefulWidget {
-  @override
-  State<_FirstStartSheet> createState() => _FirstStartSheetState();
-}
-
-class _FirstStartSheetState extends State<_FirstStartSheet> {
-  @override
-  void initState() {
-    super.initState();
-    Future.delayed(const Duration(seconds: 5), () {
-      if (mounted) Navigator.of(context).pop();
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = context.isDarkMode;
-    final l10n = context.l10n;
-    final theme = Theme.of(context);
-
-    return GestureDetector(
-      onTap: () => Navigator.of(context).pop(),
-      child: Container(
-      margin: const EdgeInsets.symmetric(
-        horizontal: AppTheme.spaceMd,
-        vertical: AppTheme.spaceSm,
-      ),
-      decoration: BoxDecoration(
-        color: AppColors.surface(isDark),
-        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
-        border: Border.all(color: AppColors.primary.withValues(alpha: 0.35)),
-      ),
-      child: SafeArea(
-        top: false,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(
-            AppTheme.spaceLg, AppTheme.spaceMd, AppTheme.spaceLg, AppTheme.spaceLg,
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: AppColors.primaryAlpha(0.15),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.sensors, color: AppColors.primary, size: AppIconSizes.md),
-              ),
-              const SizedBox(width: AppTheme.spaceMd),
-              Expanded(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      l10n.firstStartTitle,
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: AppFontWeights.bold,
-                        color: AppColors.primary,
-                      ),
-                    ),
-                    const SizedBox(height: AppTheme.spaceXxxs),
-                    Text(
-                      l10n.firstStartBody,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: AppColors.textSecondary(isDark),
-                        height: 1.4,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    ),
-    );
-  }
-}
-
-/// Milestone celebration sheet — shown when user hits 5/10/25/50/100/250/500 zones.
-/// Validates their contribution with a trophy moment, then auto-dismisses on CTA.
-class _MilestoneSheet extends StatefulWidget {
-  const _MilestoneSheet({required this.zoneCount});
-  final int zoneCount;
-  @override
-  State<_MilestoneSheet> createState() => _MilestoneSheetState();
-}
-
-class _MilestoneSheetState extends State<_MilestoneSheet> {
-  int? get _next {
-    for (final m in _kMilestones) { if (m > widget.zoneCount) return m; }
-    return null;
-  }
-
-  String _milestoneBody(AppLocalizations l10n) {
-    switch (widget.zoneCount) {
-      case 5:    return l10n.milestoneBody5;
-      case 10:   return l10n.milestoneBody10;
-      case 25:   return l10n.milestoneBody25;
-      case 50:   return l10n.milestoneBody50;
-      case 100:  return l10n.milestoneBody100;
-      case 250:  return l10n.milestoneBody250;
-      case 500:  return l10n.milestoneBody500;
-      case 1000: return l10n.milestoneBody1000;
-      default:   return l10n.milestoneReachedBody;
-    }
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    Future.delayed(const Duration(seconds: 5), () {
-      if (mounted) Navigator.of(context).pop();
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = context.isDarkMode;
-    final l10n = context.l10n;
-    final theme = Theme.of(context);
-    final next = _next;
-
-    return GestureDetector(
-      onTap: () => Navigator.of(context).pop(),
-      child: Container(
-        margin: const EdgeInsets.symmetric(
-          horizontal: AppTheme.spaceMd,
-          vertical: AppTheme.spaceSm,
-        ),
-        decoration: BoxDecoration(
-          color: AppColors.surface(isDark),
-          borderRadius: BorderRadius.circular(AppTheme.radiusLg),
-          border: Border.all(color: AppColors.primary.withValues(alpha: 0.35)),
-        ),
-        child: SafeArea(
-          top: false,
-          child: Padding(
-            padding: const EdgeInsets.all(AppTheme.spaceLg),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                AppTheme.dragHandle(isDark),
-                const SizedBox(height: AppTheme.spaceLg),
-                Container(
-                  width: AppTheme.iconCircleMd,
-                  height: AppTheme.iconCircleMd,
-                  decoration: BoxDecoration(
-                    color: AppColors.primaryAlpha(0.15),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(Icons.map_outlined, color: AppColors.primary, size: AppIconSizes.lg),
-                ),
-                const SizedBox(height: AppTheme.spaceMd),
-                Text(
-                  l10n.milestoneReachedTitle(widget.zoneCount),
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    fontWeight: AppFontWeights.bold,
-                    color: AppColors.primary,
-                    letterSpacing: -0.3,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: AppTheme.spaceSm),
-                Text(
-                  _milestoneBody(l10n),
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: AppColors.textSecondary(isDark),
-                    height: 1.5,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                if (next != null) ...[
-                  const SizedBox(height: AppTheme.spaceMd),
-                  Divider(color: AppColors.divider(isDark), height: 1),
-                  const SizedBox(height: AppTheme.spaceMd),
-                  _NextMilestoneBar(current: widget.zoneCount, target: next, isDark: isDark),
-                ],
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// First-upload celebration sheet — shown exactly once when the user's first
-/// zone appears on the map.
-class _FirstUploadSheet extends StatefulWidget {
-  const _FirstUploadSheet();
-  @override
-  State<_FirstUploadSheet> createState() => _FirstUploadSheetState();
-}
-
-class _FirstUploadSheetState extends State<_FirstUploadSheet> {
-  @override
-  void initState() {
-    super.initState();
-    Future.delayed(const Duration(seconds: 6), () {
-      if (mounted) Navigator.of(context).pop();
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = context.isDarkMode;
-
-    return Container(
-      margin: const EdgeInsets.symmetric(
-        horizontal: AppTheme.spaceMd,
-        vertical: AppTheme.spaceSm,
-      ),
-      decoration: BoxDecoration(
-        color: AppColors.surface(isDark),
-        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
-        border: Border.all(color: AppColors.primary.withValues(alpha: 0.30)),
-      ),
-      child: GestureDetector(
-        onTap: () => Navigator.of(context).pop(),
-        child: SafeArea(
-          top: false,
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(
-                AppTheme.spaceLg, AppTheme.spaceMd, AppTheme.spaceLg, AppTheme.spaceLg),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                AppTheme.dragHandle(isDark),
-                const SizedBox(height: AppTheme.spaceLg),
-                const _CelebrationHex(),
-                const SizedBox(height: AppTheme.spaceMd),
-                Text(
-                  context.l10n.firstUploadBadge,
-                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    fontWeight: AppFontWeights.semibold,
-                    color: AppColors.primary,
-                    letterSpacing: 1.4,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: AppTheme.spaceXs),
-                Text(
-                  context.l10n.firstUploadHeadline,
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: AppFontWeights.semibold,
-                    color: Colors.white.withValues(alpha: 0.96),
-                    letterSpacing: -0.6,
-                    height: AppLineHeights.tight,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: AppTheme.spaceSm),
-                Text(
-                  context.l10n.firstUploadSubtext,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Colors.white.withValues(alpha: 0.72),
-                    height: AppLineHeights.relaxed,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: AppTheme.spaceMd),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: AppTheme.spaceMd, vertical: AppTheme.spaceSm),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.06),
-                    border: Border.all(color: Colors.white.withValues(alpha: 0.20)),
-                    borderRadius: BorderRadius.circular(AppTheme.radiusSm),
-                  ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(context.l10n.firstUploadSensorsLabel,
-                              maxLines: 1, overflow: TextOverflow.ellipsis,
-                              style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                                fontWeight: AppFontWeights.semibold,
-                                color: Colors.white.withValues(alpha: 0.60),
-                                letterSpacing: AppTheme.letterSpacingLabel)),
-                            const SizedBox(height: AppTheme.spaceXxxs),
-                            Text(context.l10n.firstUploadSensorsValue,
-                              maxLines: 2, overflow: TextOverflow.ellipsis,
-                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: Colors.white.withValues(alpha: 0.85))),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: AppTheme.spaceMd),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Text(context.l10n.firstUploadPrivacyLabel,
-                              maxLines: 1, overflow: TextOverflow.ellipsis,
-                              textAlign: TextAlign.end,
-                              style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                                fontWeight: AppFontWeights.semibold,
-                                color: Colors.white.withValues(alpha: 0.60),
-                                letterSpacing: AppTheme.letterSpacingLabel)),
-                            const SizedBox(height: AppTheme.spaceXxxs),
-                            Text(context.l10n.firstUploadPrivacyValue,
-                              maxLines: 1, overflow: TextOverflow.ellipsis,
-                              textAlign: TextAlign.end,
-                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: AppColors.primary, fontWeight: AppFontWeights.semibold)),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: AppTheme.spaceMd),
-                Text(
-                  context.l10n.firstUploadKeepMappingCta,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Colors.white.withValues(alpha: 0.55),
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Animated hex icon — shown in the first-upload celebration sheet.
-class _CelebrationHex extends StatelessWidget {
-  const _CelebrationHex();
-
-  @override
-  Widget build(BuildContext context) {
-    return TweenAnimationBuilder<double>(
-      tween: Tween(begin: 0.4, end: 1.0),
-      duration: AppDurations.medium,
-      curve: Curves.elasticOut,
-      builder: (_, scale, __) => Transform.scale(
-        scale: scale,
-        child: Container(
-          width: AppTheme.spaceXxxl,
-          height: AppTheme.spaceXxxl,
-          decoration: BoxDecoration(
-            color: AppColors.primaryAlpha(0.15),
-            shape: BoxShape.circle,
-          ),
-          child: const Icon(Icons.hexagon_outlined, color: AppColors.primary, size: AppIconSizes.lg),
-        ),
-      ),
-    );
-  }
-}
-
 /// Bottom sheet showing live sensor readings.
-/// Opened when user taps the status chip — progressive disclosure pattern.
+/// Opened when user taps the status chip - progressive disclosure pattern.
 class _SensorLiveSheet extends StatelessWidget {
   const _SensorLiveSheet({required this.locationService});
   final ForegroundLocationService locationService;
 
   @override
   Widget build(BuildContext context) {
-    final isDark = context.isDarkMode;
-    return DraggableScrollableSheet(
-      initialChildSize: 0.55,
-      minChildSize: 0.35,
-      maxChildSize: 0.85,
-      expand: false,
-      builder: (context, scrollController) {
-        return Container(
-          decoration: BoxDecoration(
-            color: AppColors.surface(isDark),
-            borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(AppTheme.radiusLg)),
-            border: Border.all(color: AppColors.border(isDark)),
-          ),
-          child: Column(
-            children: [
-              AppTheme.dragHandle(isDark),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(AppTheme.spaceMd, 0,
-                    AppTheme.spaceMd, AppTheme.spaceSm),
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    context.l10n.sensorLiveSheetTitle,
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          fontWeight: AppFontWeights.semibold,
-                        ),
-                  ),
-                ),
-              ),
-              Expanded(
-                child: ListView(
-                  controller: scrollController,
-                  padding: EdgeInsets.only(
-                    left: AppTheme.spaceMd,
-                    right: AppTheme.spaceMd,
-                    bottom: MediaQuery.paddingOf(context).bottom +
-                        AppTheme.spaceMd,
-                  ),
-                  children: [
-                    SensorSection(locationService: locationService),
-                    const SizedBox(height: AppTheme.spaceSm),
-                    _TransparencyCard(locationService: locationService),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        );
-      },
+    return ListView(
+      padding: AppTheme.pagePadding,
+      children: [
+        SensorSection(locationService: locationService),
+        const SizedBox(height: AppTheme.spaceSm),
+        _TransparencyCard(locationService: locationService),
+      ],
     );
   }
 }
 
-/// "What leaves your phone" — plain-language statement of exactly what is
+/// "What leaves your phone" - plain-language statement of exactly what is
 /// uploaded, and explicitly what is NOT collected. Trust through visibility.
 class _TransparencyCard extends StatelessWidget {
   const _TransparencyCard({required this.locationService});
@@ -1967,7 +1231,7 @@ class _TransparencyCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // The line that matters — what we do NOT take.
+                  // The line that matters - what we do NOT take.
                   Text(
                     l10n.transparencyNothingElse,
                     style: theme.textTheme.bodySmall?.copyWith(
@@ -2005,589 +1269,7 @@ class _TransparencyCard extends StatelessWidget {
   }
 }
 
-// ── Live sensor ticker ────────────────────────────────────────────────────────
-
-
-
-class _NextMilestoneBar extends StatelessWidget {
-  const _NextMilestoneBar({
-    required this.current,
-    required this.target,
-    required this.isDark,
-  });
-  final int current;
-  final int target;
-  final bool isDark;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = context.l10n;
-    final prev = _prevMilestone(target);
-    final progress = ((current - prev) / (target - prev)).clamp(0.0, 1.0);
-    final remaining = target - current;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              l10n.statsMilestoneLabel,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                fontWeight: AppFontWeights.semibold,
-                letterSpacing: AppTheme.letterSpacingCaps,
-                color: AppColors.textSecondary(isDark),
-              ),
-            ),
-            Text(
-              l10n.statsMilestoneTarget(target),
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                fontWeight: AppFontWeights.semibold,
-                color: AppColors.textSecondary(isDark),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: AppTheme.spaceTiny),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(AppTheme.radiusMin),
-          child: LinearProgressIndicator(
-            value: progress,
-            minHeight: 5,
-            backgroundColor: AppColors.divider(isDark),
-            valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
-          ),
-        ),
-        const SizedBox(height: AppTheme.spaceXxxs),
-        Text(
-          l10n.statsMilestoneRemaining(remaining),
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-            color: AppColors.textTertiary(isDark),
-          ),
-        ),
-      ],
-    );
-  }
-
-  static int _prevMilestone(int target) {
-    const milestones = [0, 5, 10, 25, 50, 100, 250, 500, 1000];
-    for (int i = milestones.length - 1; i >= 0; i--) {
-      if (milestones[i] < target) return milestones[i];
-    }
-    return 0;
-  }
-}
-
-// ─── Session summary sheet ───────────────────────────────────────────────────
-
-/// Shown after tracking stops when the user claimed new zones this session.
-/// The payoff moment — "here's what you built."
-class _SessionSummarySheet extends StatefulWidget {
-  const _SessionSummarySheet({
-    required this.zonesGained,
-    required this.totalZones,
-    this.sessionDuration = Duration.zero,
-    this.streak = 0,
-    this.isPersonalBest = false,
-    this.uploadsInSession = 0,
-    this.onViewStats,
-    this.sessionAvgLux,
-    this.sessionAvgHpa,
-    this.sessionAvgVibration,
-  });
-
-  final int zonesGained;
-  final int totalZones;
-  final Duration sessionDuration;
-  final int streak;
-  final bool isPersonalBest;
-  final int uploadsInSession;
-  final VoidCallback? onViewStats;
-  final double? sessionAvgLux;
-  final double? sessionAvgHpa;
-  final double? sessionAvgVibration;
-
-  @override
-  State<_SessionSummarySheet> createState() => _SessionSummarySheetState();
-}
-
-class _SessionSummarySheetState extends State<_SessionSummarySheet> {
-  Color _insightAccentColor({required bool isNight}) {
-    final lux = widget.sessionAvgLux;
-    final hpa = widget.sessionAvgHpa;
-    if (isNight && lux != null) return SensorInsights.lightPollutionLevel(lux).color;
-    if (!isNight && lux != null && hpa != null) return SensorInsights.heatLevel(lux, hpa).color;
-    if (lux != null) return SensorInsights.sunlightLevel(lux).color;
-    return AppColors.primary;
-  }
-
-  int? _nextMilestone() {
-    for (final m in _kMilestones) {
-      if (m > widget.totalZones) return m;
-    }
-    return null;
-  }
-
-  /// Returns the milestone hit this session, if any.
-  int? _hitMilestone() {
-    final prev = widget.totalZones - widget.zonesGained;
-    for (final m in _kMilestones) {
-      if (prev < m && m <= widget.totalZones) return m;
-    }
-    return null;
-  }
-
-  Future<void> _share(AppLocalizations l10n, String km2Display) async {
-    final isNight = DateTime.now().hour < 6 || DateTime.now().hour >= 20;
-    final lux = widget.sessionAvgLux;
-    final isDarkSky = isNight && lux != null &&
-        (SensorInsights.lightPollutionLevel(lux) == LightPollutionLevel.pristine ||
-         SensorInsights.lightPollutionLevel(lux) == LightPollutionLevel.low);
-    final text = isDarkSky
-        ? l10n.sessionSummaryShareTextDarkSky(widget.totalZones, km2Display)
-        : widget.zonesGained > 0
-            ? l10n.sessionSummaryShareText(widget.zonesGained, widget.totalZones, km2Display)
-            : l10n.sessionSummaryShareTextEmpty(_fmtDuration(widget.sessionDuration), widget.totalZones, km2Display);
-    await SharePlus.instance.share(ShareParams(text: text));
-  }
-
-  String _fmtDuration(Duration d) {
-    final m = d.inMinutes.toString().padLeft(2, '0');
-    final s = (d.inSeconds % 60).toString().padLeft(2, '0');
-    return '$m:$s';
-  }
-
-  String _nextHookCopy(AppLocalizations l10n) {
-    if (widget.zonesGained == 0) return l10n.sessionSummaryNextHookEmpty;
-    if (widget.streak >= 2) return l10n.sessionSummaryNextHookStreak;
-    if (widget.streak == 1) return l10n.sessionSummaryNextHookFirst;
-    return l10n.sessionSummaryNextHook;
-  }
-
-  String _fmtDate() {
-    final now = DateTime.now();
-    return '${now.month.toString().padLeft(2, '0')}·${now.day.toString().padLeft(2, '0')}·${now.year.toString().substring(2)}';
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = context.isDarkMode;
-    final l10n = context.l10n;
-    final km2 = widget.totalZones * kKm2PerCell;
-    final km2Display = km2 < 1.0 ? km2.toStringAsFixed(2) : km2.toStringAsFixed(1);
-    final next = _nextMilestone();
-    final hit = _hitMilestone();
-
-    return Container(
-      margin: const EdgeInsets.symmetric(
-        horizontal: AppTheme.spaceMd,
-        vertical: AppTheme.spaceSm,
-      ),
-      decoration: BoxDecoration(
-        color: AppColors.surface(isDark),
-        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.18)),
-      ),
-      child: SafeArea(
-        top: false,
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(
-              AppTheme.spaceLg, AppTheme.spaceMd, AppTheme.spaceLg, AppTheme.spaceLg),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // ── Header row ───────────────────────────────────────────────
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    l10n.sessionSummaryBadge,
-                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                      fontWeight: AppFontWeights.semibold,
-                      color: Colors.white.withValues(alpha: 0.70),
-                      letterSpacing: AppTheme.letterSpacingCaps,
-                    ),
-                  ),
-                  GestureDetector(
-                    onTap: () => Navigator.of(context).pop(),
-                    behavior: HitTestBehavior.opaque,
-                    child: Padding(
-                      padding: const EdgeInsets.all(AppTheme.spaceSm),
-                      child: Icon(Icons.close, size: AppIconSizes.xs,
-                          color: AppColors.textSecondary(isDark)),
-                    ),
-                  ),
-                ],
-              ),
-              // ── Environmental insight — lead with what the route did to you ──
-              Builder(builder: (context) {
-                final hasEnv = widget.sessionAvgLux != null ||
-                    widget.sessionAvgHpa != null ||
-                    widget.sessionAvgVibration != null;
-                if (!hasEnv) return const SizedBox(height: AppTheme.spaceLg);
-                final isNight = DateTime.now().hour < 6 || DateTime.now().hour >= 20;
-                final accent = _insightAccentColor(isNight: isNight);
-                final character = SensorInsights.sessionCharacter(
-                  isNight: isNight,
-                  avgLux: widget.sessionAvgLux,
-                  avgHpa: widget.sessionAvgHpa,
-                  avgVibration: widget.sessionAvgVibration,
-                );
-                final insight = SensorInsights.sessionInsight(
-                  l10n,
-                  isNight: isNight,
-                  avgLux: widget.sessionAvgLux,
-                  avgHpa: widget.sessionAvgHpa,
-                  avgVibration: widget.sessionAvgVibration,
-                );
-                return Padding(
-                  padding: const EdgeInsets.only(top: AppTheme.spaceSm, bottom: AppTheme.spaceLg),
-                  child: Container(
-                    padding: const EdgeInsets.fromLTRB(AppTheme.spaceSm, AppTheme.spaceSm, AppTheme.spaceMd, AppTheme.spaceSm),
-                    decoration: BoxDecoration(
-                      color: accent.withValues(alpha: 0.07),
-                      borderRadius: BorderRadius.circular(AppTheme.radiusSm),
-                      border: Border(left: BorderSide(color: accent, width: 2)),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          SensorInsights.sessionCharacterLabel(l10n, character),
-                          style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                            color: accent.withValues(alpha: 0.85),
-                            fontWeight: AppFontWeights.semibold,
-                            letterSpacing: AppTheme.letterSpacingCaps,
-                          ),
-                        ),
-                        const SizedBox(height: AppTheme.spaceXxs),
-                        Text(
-                          insight,
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: Colors.white.withValues(alpha: 0.90),
-                            height: AppLineHeights.normal,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              }),
-
-              // ── Hero ─────────────────────────────────────────────────────
-              if (widget.zonesGained > 0) ...[
-                Text(
-                  l10n.sessionSummaryZonesGainedLabel,
-                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                    fontWeight: AppFontWeights.semibold,
-                    color: AppColors.primary,
-                    letterSpacing: AppTheme.letterSpacingCaps,
-                  ),
-                ),
-                const SizedBox(height: AppTheme.spaceXxs),
-                _HapticCountText(
-                  count: widget.zonesGained,
-                  duration: AppDurations.medium + Duration(milliseconds: widget.zonesGained.clamp(0, 60) * 8),
-                  prefix: '+',
-                ),
-                const SizedBox(height: AppTheme.spaceSm),
-                Text(
-                  l10n.sessionSummarySubline,
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    color: Colors.white.withValues(alpha: 0.72),
-                    letterSpacing: -0.1,
-                  ),
-                ),
-              ] else ...[
-                Text(
-                  l10n.sessionSummaryNoZonesLabel,
-                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                    fontWeight: AppFontWeights.semibold,
-                    color: AppColors.primary,
-                    letterSpacing: AppTheme.letterSpacingCaps,
-                  ),
-                ),
-                const SizedBox(height: AppTheme.spaceXxs),
-                _HapticCountText(
-                  count: widget.totalZones,
-                  duration: AppDurations.shimmer,
-                ),
-                const SizedBox(height: AppTheme.spaceSm),
-                Text(
-                  l10n.sessionSummaryNoZonesSubline,
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    color: Colors.white.withValues(alpha: 0.72),
-                    letterSpacing: -0.1,
-                  ),
-                ),
-              ],
-
-              if (widget.isPersonalBest) ...[
-                const SizedBox(height: AppTheme.spaceMd),
-                Row(
-                  children: [
-                    Icon(Icons.arrow_upward_rounded, size: AppIconSizes.xs, color: AppColors.primary),
-                    const SizedBox(width: AppTheme.spaceXxs),
-                    Text(
-                      l10n.sessionPersonalBest,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        fontWeight: AppFontWeights.semibold,
-                        color: AppColors.primary,
-                        letterSpacing: -0.1,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-
-              // ── Streak chip ───────────────────────────────────────────────
-              if (widget.streak >= 2) ...[
-                const SizedBox(height: AppTheme.spaceSm),
-                Row(
-                  children: [
-                    Icon(Icons.local_fire_department_rounded,
-                        size: AppIconSizes.xs, color: const Color(0xFFF97316)),
-                    const SizedBox(width: AppTheme.spaceXxs),
-                    Text(
-                      l10n.statsStreakDays(widget.streak),
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        fontWeight: AppFontWeights.semibold,
-                        color: const Color(0xFFF97316),
-                        letterSpacing: -0.1,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-
-              // ── Milestone hit banner ──────────────────────────────────────
-              if (hit != null) ...[
-                const SizedBox(height: AppTheme.spaceMd),
-                _MilestoneBanner(milestone: hit, l10n: l10n),
-              ],
-
-              // ── 2×2 stat grid ────────────────────────────────────────────
-              const SizedBox(height: AppTheme.spaceMd),
-              IntrinsicHeight(
-                child: Row(
-                  children: [
-                    _SummaryStatCell(
-                      label: l10n.sessionStatArea,
-                      value: '$km2Display km²',
-                      subValue: l10n.statsCityBlocks((km2 / kKm2PerCityBlock).round()),
-                    ),
-                    VerticalDivider(width: 1, thickness: 1, color: Colors.white.withValues(alpha: 0.14)),
-                    _SummaryStatCell(label: l10n.sessionStatDuration, value: _fmtDuration(widget.sessionDuration)),
-                  ],
-                ),
-              ),
-              Divider(height: 1, thickness: 1, color: Colors.white.withValues(alpha: 0.14)),
-              IntrinsicHeight(
-                child: Row(
-                  children: [
-                    _SummaryStatCell(label: l10n.sessionStatUploads, value: widget.uploadsInSession.toString()),
-                    VerticalDivider(width: 1, thickness: 1, color: Colors.white.withValues(alpha: 0.14)),
-                    _SummaryStatCell(label: l10n.sessionStatTotal, value: widget.totalZones.toString()),
-                  ],
-                ),
-              ),
-
-              // ── Next milestone ────────────────────────────────────────────
-              if (next != null) ...[
-                const SizedBox(height: AppTheme.spaceMd),
-                _NextMilestoneBar(current: widget.totalZones, target: next, isDark: isDark),
-              ],
-
-              // ── Watermark row ─────────────────────────────────────────────
-              const SizedBox(height: AppTheme.spaceMd),
-              Row(
-                children: [
-                  const _BrandMark(size: 10),
-                  const SizedBox(width: AppTheme.spaceXxs + 2),
-                  Text(
-                    l10n.sessionSummaryWatermark,
-                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      fontWeight: AppFontWeights.medium,
-                      color: Colors.white.withValues(alpha: 0.55),
-                      letterSpacing: 1.4,
-                    ),
-                  ),
-                  const Spacer(),
-                  Text(
-                    _fmtDate(),
-                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: Colors.white.withValues(alpha: 0.55),
-                      letterSpacing: AppTheme.letterSpacingLabel,
-                      fontFeatures: const [ui.FontFeature.tabularFigures()],
-                    ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: AppTheme.spaceSm),
-
-              // ── Next-session hook — contextual, never commanding ──────────
-              Text(
-                _nextHookCopy(l10n),
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Colors.white.withValues(alpha: 0.65),
-                  letterSpacing: -0.1,
-                ),
-              ),
-
-              const SizedBox(height: AppTheme.spaceMd),
-
-              // ── CTA buttons ───────────────────────────────────────────────
-              Row(
-                children: [
-                  Expanded(
-                    child: FilledButton.icon(
-                      onPressed: () => _share(l10n, km2Display),
-                      icon: const Icon(Icons.ios_share, size: AppIconSizes.xs),
-                      label: Text(l10n.sessionSummaryShareCta),
-                      style: FilledButton.styleFrom(minimumSize: const Size(0, AppTheme.minTouchTarget)),
-                    ),
-                  ),
-                  const SizedBox(width: AppTheme.spaceSm),
-                  SizedBox(
-                    width: AppTheme.minTouchTarget,
-                    height: AppTheme.minTouchTarget,
-                    child: OutlinedButton(
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                        widget.onViewStats?.call();
-                      },
-                      style: OutlinedButton.styleFrom(
-                        padding: EdgeInsets.zero,
-                        side: BorderSide(color: Colors.white.withValues(alpha: 0.20)),
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(AppTheme.radiusSm)),
-                      ),
-                      child: Icon(Icons.bar_chart, size: AppIconSizes.sm,
-                          color: Colors.white.withValues(alpha: 0.8)),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Glowing banner shown on session summary when user crosses a zone milestone.
-class _MilestoneBanner extends StatefulWidget {
-  const _MilestoneBanner({required this.milestone, required this.l10n});
-  final int milestone;
-  final AppLocalizations l10n;
-
-  @override
-  State<_MilestoneBanner> createState() => _MilestoneBannerState();
-}
-
-class _MilestoneBannerState extends State<_MilestoneBanner>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _ctrl;
-  late final Animation<double> _glow;
-
-  @override
-  void initState() {
-    super.initState();
-    _ctrl = AnimationController(
-      vsync: this,
-      duration: AppDurations.celebration,
-    )..repeat(reverse: true);
-    _glow = Tween<double>(begin: 0.3, end: 1.0).animate(
-      CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut),
-    );
-    HapticFeedback.mediumImpact();
-  }
-
-  @override
-  void dispose() {
-    _ctrl.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _glow,
-      builder: (_, __) => Container(
-        padding: const EdgeInsets.symmetric(
-            horizontal: AppTheme.spaceMd, vertical: AppTheme.spaceSm),
-        decoration: BoxDecoration(
-          color: AppColors.primary.withValues(alpha: 0.10),
-          borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-          border: Border.all(
-              color: AppColors.primary.withValues(alpha: _glow.value * 0.6)),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.primary.withValues(alpha: _glow.value * 0.15),
-              blurRadius: 12,
-              spreadRadius: 2,
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                const Icon(Icons.star_rounded, color: AppColors.primary, size: 16),
-                const SizedBox(width: AppTheme.spaceXs),
-                Expanded(
-                  child: Text(
-                    widget.l10n.sessionMilestoneHit(widget.milestone),
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      fontWeight: AppFontWeights.semibold,
-                      color: AppColors.primary,
-                      letterSpacing: -0.1,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            if (_milestoneFlavor() != null) ...[
-              const SizedBox(height: AppTheme.spaceXxxs + 1),
-              Padding(
-                padding: const EdgeInsets.only(left: 16 + AppTheme.spaceXs),
-                child: Text(
-                  _milestoneFlavor()!,
-                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    color: AppColors.primary.withValues(alpha: 0.70),
-                    letterSpacing: -0.1,
-                  ),
-                ),
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-
-  String? _milestoneFlavor() {
-    switch (widget.milestone) {
-      case 5:    return widget.l10n.sessionMilestone5Flavor;
-      case 10:   return widget.l10n.sessionMilestone10Flavor;
-      case 25:   return widget.l10n.sessionMilestone25Flavor;
-      case 50:   return widget.l10n.sessionMilestone50Flavor;
-      case 100:  return widget.l10n.sessionMilestone100Flavor;
-      case 250:  return widget.l10n.sessionMilestone250Flavor;
-      case 500:  return widget.l10n.sessionMilestone500Flavor;
-      case 1000: return widget.l10n.sessionMilestone1000Flavor;
-      default:   return null;
-    }
-  }
-}
-
-/// Map layer toggle — switches between personal and community coverage tiles.
+/// Map layer toggle - switches between personal and community coverage tiles.
 /// Mine / All segmented pill toggle.
 class _MineAllToggle extends StatelessWidget {
   const _MineAllToggle({
@@ -2642,8 +1324,9 @@ class _Seg extends StatelessWidget {
       child: AnimatedContainer(
         duration: AppDurations.segmentToggle,
         curve: Curves.easeOut,
+        // Vertical padding keeps the tap target above the 24px WCAG 2.2 minimum.
         padding: const EdgeInsets.symmetric(
-            horizontal: AppTheme.spaceSm, vertical: AppTheme.spaceTiny),
+            horizontal: AppTheme.spaceSm, vertical: AppTheme.spaceXs - 2),
         decoration: BoxDecoration(
           color: active ? AppColors.primary : Colors.transparent,
           borderRadius: BorderRadius.circular(AppTheme.radiusPill),
@@ -2660,82 +1343,7 @@ class _Seg extends StatelessWidget {
   }
 }
 
-/// Small frosted pill showing a stat (places or streak).
-/// Ghost sensor chip used in zero-state to preview what sensor data will look like.
-class _GhostSensorChip extends StatelessWidget {
-  const _GhostSensorChip({required this.icon, required this.color});
-  final IconData icon;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceXs, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(AppTheme.radiusSm),
-        border: Border.all(color: color.withValues(alpha: 0.18)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: AppIconSizes.xxs, color: color.withValues(alpha: 0.45)),
-          const SizedBox(width: 4),
-          Text(
-            '—',
-            style: TextStyle(
-              fontSize: AppTheme.fontSizeXs,
-              color: color.withValues(alpha: 0.35),
-              fontWeight: AppFontWeights.semibold,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _StatPill extends StatelessWidget {
-  const _StatPill({required this.icon, required this.label, this.color});
-  final IconData icon;
-  final String label;
-  final Color? color;
-
-  @override
-  Widget build(BuildContext context) {
-    final accent = color ?? AppColors.primary;
-    return Container(
-      padding: const EdgeInsets.symmetric(
-          horizontal: AppTheme.spaceSm, vertical: AppTheme.spaceTiny),
-      decoration: BoxDecoration(
-        color: color != null
-            ? color!.withValues(alpha: 0.18)
-            : AppColors.shadowDark(0.55),
-        borderRadius: BorderRadius.circular(AppTheme.radiusPill),
-        border: color != null
-            ? Border.all(color: color!.withValues(alpha: 0.35))
-            : null,
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: AppIconSizes.xs, color: accent),
-          const SizedBox(width: AppTheme.spaceXxs),
-          Text(
-            label,
-            style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              fontWeight: AppFontWeights.semibold,
-              color: color != null ? accent : Colors.white,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-
-/// Small circular info button — opens sensor sheet.
+/// Small circular info button - opens sensor sheet.
 class _InfoButton extends StatelessWidget {
   const _InfoButton({required this.onTap});
   final VoidCallback onTap;
@@ -2744,6 +1352,7 @@ class _InfoButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return PressScaleDetector(
       onTap: onTap,
+      semanticLabel: context.l10n.sensorLiveSheetTitle,
       child: Container(
         width: _kLocationBtnSize,
         height: _kLocationBtnSize,
@@ -2758,8 +1367,53 @@ class _InfoButton extends StatelessWidget {
   }
 }
 
+/// One-line, tap-to-open hint. Sits in the layout (never over the map's
+/// controls) and does nothing until the user chooses to act on it.
+class _BatteryHint extends StatelessWidget {
+  const _BatteryHint({required this.onTap});
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      child: PressScaleDetector(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(
+              horizontal: AppTheme.spaceSm, vertical: AppTheme.spaceXs),
+          decoration: BoxDecoration(
+            color: AppColors.mapOverlayMid,
+            borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+          ),
+          child: Row(
+            children: [
+              const Icon(Icons.battery_alert_rounded,
+                  size: AppIconSizes.sm, color: AppColors.warning),
+              const SizedBox(width: AppTheme.spaceXs),
+              Expanded(
+                child: Text(
+                  context.l10n.batteryDialogTitle,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: AppColors.darkTextPrimary,
+                    fontWeight: AppFontWeights.medium,
+                  ),
+                ),
+              ),
+              const Icon(Icons.chevron_right_rounded,
+                  size: AppIconSizes.sm, color: AppColors.darkTextSecondary),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 /// Persistent banner shown when background location permission was revoked
-/// while tracking is supposed to be running. Not dismissable — stays until fixed.
+/// while tracking is supposed to be running. Not dismissable - stays until fixed.
 class _PermissionLostCard extends StatelessWidget {
   const _PermissionLostCard({required this.onFix});
   final VoidCallback onFix;
@@ -2796,13 +1450,6 @@ class _PermissionLostCard extends StatelessWidget {
                       letterSpacing: -0.1,
                     ),
                   ),
-                  const SizedBox(height: AppTheme.spaceXxxs),
-                  Text(
-                    l10n.permissionLostBody,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Colors.white.withValues(alpha: 0.72),
-                    ),
-                  ),
                 ],
               ),
             ),
@@ -2811,7 +1458,7 @@ class _PermissionLostCard extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceXs + 2, vertical: AppTheme.spaceTiny + 2),
               decoration: BoxDecoration(
                 color: AppColors.warning.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(AppTheme.radiusPill),
+                borderRadius: BorderRadius.circular(AppTheme.radiusSm),
                 border: Border.all(color: AppColors.warning.withValues(alpha: 0.35)),
               ),
               child: Text(
@@ -2828,63 +1475,3 @@ class _PermissionLostCard extends StatelessWidget {
     );
   }
 }
-
-class _SummaryStatCell extends StatelessWidget {
-  const _SummaryStatCell({required this.label, required this.value, this.subValue});
-  final String label;
-  final String value;
-  final String? subValue;
-
-  @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(
-            vertical: AppTheme.spaceSm, horizontal: AppTheme.spaceSm),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              label,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                fontWeight: AppFontWeights.medium,
-                color: Colors.white.withValues(alpha: 0.62),
-                letterSpacing: AppTheme.letterSpacingLabel,
-              ),
-            ),
-            const SizedBox(height: AppTheme.spaceXxs),
-            Text(
-              value,
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: AppFontWeights.semibold,
-                color: Colors.white.withValues(alpha: 0.96),
-                letterSpacing: AppTheme.letterSpacingSubtle,
-                fontFeatures: const [ui.FontFeature.tabularFigures()],
-              ),
-            ),
-            if (subValue != null) ...[
-              const SizedBox(height: AppTheme.spaceXxxs),
-              Text(
-                subValue!,
-                style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: Colors.white.withValues(alpha: 0.68),
-                  letterSpacing: -0.1,
-                ),
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// Incremental running average — add samples one at a time, read [value] at any point.
-class _RunningAverage {
-  int _n = 0;
-  double _sum = 0;
-  double? get value => _n > 0 ? _sum / _n : null;
-  void add(double v) { _sum += v; _n++; }
-  void reset() { _n = 0; _sum = 0; }
-}
-

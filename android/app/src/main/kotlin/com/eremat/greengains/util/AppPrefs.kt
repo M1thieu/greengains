@@ -10,10 +10,10 @@ package com.eremat.greengains.util
  */
 object AppPrefs {
 
-    /** SharedPreferences file name — Flutter's shared_preferences package uses this name. */
+    /** SharedPreferences file name - Flutter's shared_preferences package uses this name. */
     const val NAME = "FlutterSharedPreferences"
 
-    // ── Service state ────────────────────────────────────────────────────────
+    // Service state
 
     /** Whether the foreground service should auto-restart after reboot. */
     const val FOREGROUND_ENABLED = "flutter.flutter.foreground_service_enabled"
@@ -21,7 +21,7 @@ object AppPrefs {
     /** Whether the user has paused tracking (service stays alive but stops collecting). */
     const val TRACKING_PAUSED = "flutter.flutter.tracking_paused"
 
-    // ── Privacy ──────────────────────────────────────────────────────────────
+    // Privacy
 
     /** Whether the user has consented to location sharing in uploads. */
     const val SHARE_LOCATION = "flutter.flutter.share_location"
@@ -29,7 +29,7 @@ object AppPrefs {
     /** Whether uploads are allowed on mobile data (false = WiFi only). */
     const val USE_MOBILE_DATA = "flutter.flutter.use_mobile_data_uploads"
 
-    // ── Identity ─────────────────────────────────────────────────────────────
+    // Identity
 
     /** Persistent device identifier (UUID v4, generated once per install). */
     const val DEVICE_ID = "flutter.flutter.device_id"
@@ -40,7 +40,7 @@ object AppPrefs {
     /** Firebase ID token, refreshed by Flutter and read by native uploader. */
     const val FIREBASE_AUTH_TOKEN = "flutter.flutter.firebase_auth_token"
 
-    // ── Backend config ───────────────────────────────────────────────────────
+    // Backend config
     // NOTE: These are written by Flutter's main.dart via direct SharedPreferences calls,
     // NOT via AppPreferences.instance, so they only get one "flutter." prefix (from the plugin).
 
@@ -50,47 +50,36 @@ object AppPrefs {
     /** Legacy API key for device→backend authentication. */
     const val BACKEND_API_KEY = "flutter.backend_api_key"
 
-    // ── Upload tracking ──────────────────────────────────────────────────────
+    // Upload tracking
 
     /** ISO 8601 timestamp of the last successful upload, shown in the notification. */
     const val LAST_UPLOAD_AT = "flutter.flutter.last_upload_at"
 
     /**
      * JSON snapshot of upload/network health, written by the native uploader once per cycle and
-     * read by the Diagnostics screen. Contains counts, timestamps and short error classes only —
+     * read by the Diagnostics screen. Contains counts, timestamps and short error classes only -
      * never a response body, token or identifier.
      */
     const val UPLOAD_HEALTH = "flutter.flutter.upload_health"
 
-    // ── Daily count tracking (native-only, not shared with Flutter) ──────────
+    // Daily count tracking (native-only, not shared with Flutter)
 
-    /** ISO date (YYYY-MM-DD) of the last counted upload — used to reset counter at midnight. */
+    /** ISO date (YYYY-MM-DD) of the last counted upload - used to reset counter at midnight. */
     const val UPLOADS_TODAY_DATE = "gg.uploads_today_date"
 
     /** Number of successful uploads on the current day. Resets when date changes. */
     const val UPLOADS_TODAY_COUNT = "gg.uploads_today_count"
 
-    /** Lifetime total successful uploads — shown alongside today's count in the notification. */
+    /** Lifetime total successful uploads - shown alongside today's count in the notification. */
     const val UPLOADS_TOTAL_COUNT = "gg.uploads_total_count"
 
-    /** Total personal mapped zones — written by Flutter after tile load, shown in notification. */
+    /** Total personal mapped zones - written by Flutter after tile load, shown in notification. */
     const val ZONES_TOTAL_COUNT = "flutter.flutter.last_known_zone_count"
 
-    /** Human-readable territory label (neighbourhood/city) — written by Flutter after reverse-geocode. */
+    /** Human-readable territory label (neighbourhood/city) - written by Flutter after reverse-geocode. */
     const val TERRITORY_LABEL = "flutter.flutter.territory_label"
 
-    // ── Streak (written by Flutter after profile fetch, read by StreakAlertWorker) ──
-    /** Current consecutive-days streak — written by Flutter via AppPreferences.setCurrentStreak(). */
+    // Streak (written by Flutter after profile fetch, read by the home widget)
+    /** Current consecutive-days streak - written by Flutter via AppPreferences.setCurrentStreak(). */
     const val CURRENT_STREAK = "flutter.flutter.current_streak"
-
-    // ── Streak alert dedup (native-only) ──────────────────────────────────────
-    /** ISO date of the last streak-at-risk alert — prevents firing more than once per day. */
-    const val STREAK_ALERT_DATE = "gg.streak_alert_date"
-
-    // ── Notification preferences (written by Flutter, read by workers) ────────
-    /** Whether the weekly map digest notification is enabled. Default true. */
-    const val WEEKLY_DIGEST_ENABLED = "flutter.flutter.weekly_digest_enabled"
-
-    /** Whether streak-at-risk reminder notifications are enabled. Default true. */
-    const val STREAK_ALERTS_ENABLED = "flutter.flutter.streak_alerts_enabled"
 }

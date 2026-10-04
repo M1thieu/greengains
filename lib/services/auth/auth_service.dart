@@ -10,6 +10,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../core/app_preferences.dart';
 import '../../services/network/backend_client.dart';
 import '../../core/constants.dart';
+import '../location/foreground_location_service.dart';
 
 class AuthService {
   static final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -138,6 +139,31 @@ class AuthService {
     );
     final userCredential = await FirebaseAuth.instance.signInWithCredential(credential);
     await _persistToken(userCredential.user);
+  }
+
+  /// Signs the user out completely.
+  /// - Stops collection first, so nothing more is uploaded under this account.
+  /// - Clears the device secret + token the native uploader reads.
+  /// - Signs out of Google too: Firebase sign-out alone leaves the Google
+  ///   session cached, and the next sign-in silently reuses the same account.
+  /// OnboardingWrapper reacts to authStateChanges and shows the sign-in page.
+  static Future<void> signOut() async {
+    try {
+      await ForegroundLocationService.instance.stop();
+    } catch (e) {
+      debugPrint('Stopping tracking on sign-out failed: $e');
+    }
+    await AppPreferences.instance.clearAuthCredentials();
+    final isMobile = defaultTargetPlatform == TargetPlatform.android ||
+        defaultTargetPlatform == TargetPlatform.iOS;
+    if (isMobile) {
+      try {
+        await GoogleSignIn().signOut();
+      } catch (e) {
+        debugPrint('Google sign-out failed: $e');
+      }
+    }
+    await _auth.signOut();
   }
 
   static Future<void> _persistToken(User? user) async {

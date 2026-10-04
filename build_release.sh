@@ -4,7 +4,7 @@
 #
 # Required env vars (set once in your shell profile or pass inline):
 #   BACKEND_API_KEY  — your backend API key (never commit this)
-#   BACKEND_URL      — defaults to https://greengains.onrender.com
+#   BACKEND_URL      — defaults to https://greengains-production.up.railway.app
 
 set -euo pipefail
 
@@ -17,7 +17,7 @@ if [[ -z "${BACKEND_API_KEY:-}" ]]; then
   exit 1
 fi
 
-BACKEND_URL="${BACKEND_URL:-https://greengains.onrender.com}"
+BACKEND_URL="${BACKEND_URL:-https://greengains-production.up.railway.app}"
 
 # ── Generate dart_defines.json ────────────────────────────────────────────────
 DEFINES_FILE="dart_defines.json"

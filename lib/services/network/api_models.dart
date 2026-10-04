@@ -2,7 +2,7 @@ import '../../data/models/h3_tile.dart';
 
 export '../../data/models/h3_tile.dart';
 
-// ── Tile responses ──────────────────────────────────────────────────────────
+// Tile responses
 
 class UserTilesResponse {
   final List<H3Tile> tiles;
@@ -28,7 +28,7 @@ class GlobalTilesResponse {
   }
 }
 
-// ── Profile response ────────────────────────────────────────────────────────
+// Profile response
 
 class UserProfileResponse {
   final int totalUploads;
@@ -79,7 +79,7 @@ class UserProfileResponse {
   }
 }
 
-// ── Referral responses ──────────────────────────────────────────────────────
+// Referral responses
 
 class ReferralCodeResponse {
   final String referralCode;
@@ -101,7 +101,7 @@ class ReferralStatsResponse {
       );
 }
 
-// ── Weekly target ───────────────────────────────────────────────────────────
+// Weekly target
 
 class WeeklyTargetResponse {
   final String weekStart;
@@ -128,7 +128,7 @@ class WeeklyTargetResponse {
       );
 }
 
-// ── Local rank ("Local Legend") ───────────────────────────────────────────────
+// Local rank ("Local Legend")
 
 class LocalRankResponse {
   final bool hasActivity;
@@ -161,7 +161,7 @@ class LocalRankResponse {
       );
 }
 
-// ── Impact ("only you've ever mapped this") ───────────────────────────────────
+// Impact ("only you've ever mapped this")
 
 class ImpactResponse {
   final bool hasActivity;
@@ -182,7 +182,7 @@ class ImpactResponse {
       );
 }
 
-// ── Weekly insight ("what your city is doing to you this week") ───────────────
+// Weekly insight ("what your city is doing to you this week")
 
 class WeeklyInsightResponse {
   final bool hasActivity;
@@ -227,7 +227,7 @@ class WeeklyInsightResponse {
       );
 }
 
-// ── Community stats ─────────────────────────────────────────────────────────
+// Community stats
 
 class GlobalStatsResponse {
   final int activeMappers;

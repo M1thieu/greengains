@@ -80,7 +80,7 @@ class _MyAppState extends State<MyApp> {
         return true;
       };
 
-      // Setup auth listener (non-blocking background work — also sets Crashlytics user ID)
+      // Setup auth listener (non-blocking background work)
       _setupAuthTokenSync();
 
       // No anonymous sign-in - all users must authenticate with Google
@@ -121,11 +121,8 @@ class _MyAppState extends State<MyApp> {
     FirebaseAuth.instance.idTokenChanges().listen((User? user) async {
       if (user == null) {
         debugPrint('User is currently signed out!');
-        FirebaseCrashlytics.instance.setUserIdentifier('');
       } else {
         debugPrint('User is signed in: ${user.uid}');
-        // Tag crash reports with the user's UID for faster triage
-        FirebaseCrashlytics.instance.setUserIdentifier(user.uid);
         try {
           final token = await user.getIdToken();
           if (token != null) {
@@ -134,7 +131,7 @@ class _MyAppState extends State<MyApp> {
             await AppPreferences.instance.setFirebaseAuthToken(token);
             debugPrint('Synced Firebase Token to SharedPreferences');
 
-            // Device registration - FIRE AND FORGET (non-blocking)
+            // Device registration, not awaited.
             AuthService.registerDevice(user).catchError((e) {
               debugPrint('Device registration failed (non-critical): $e');
             });
@@ -228,7 +225,7 @@ class _InitializingScreen extends StatelessWidget {
 /// Wrapper that reacts to Firebase auth state.
 /// - Signed in + onboarding done  → AppShell
 /// - Signed in + onboarding not done → OnboardingScreen (page 0)
-/// - Signed out + onboarding done  → OnboardingScreen (page 1 — sign-in only)
+/// - Signed out + onboarding done  → OnboardingScreen (page 1 - sign-in only)
 /// - Signed out + onboarding not done → OnboardingScreen (page 0)
 class OnboardingWrapper extends StatefulWidget {
   const OnboardingWrapper({super.key});
@@ -239,11 +236,16 @@ class OnboardingWrapper extends StatefulWidget {
 
 class _OnboardingWrapperState extends State<OnboardingWrapper> {
   // AppPreferences.onboardingComplete is a plain synchronous flag, not a
-  // ChangeNotifier/Stream — writing it does nothing to make StreamBuilder
+  // ChangeNotifier/Stream - writing it does nothing to make StreamBuilder
   // below re-run, since that only reacts to authStateChanges(). Without this,
   // OnboardingScreen stayed on screen (its button stuck mid-spinner) after a
   // successful completion until some unrelated auth event happened to fire.
   bool _justCompleted = false;
+
+  // Created once: calling authStateChanges() inside build() hands StreamBuilder
+  // a new stream on every setState, which resubscribes and flashes the
+  // initializing screen.
+  final Stream<User?> _authChanges = FirebaseAuth.instance.authStateChanges();
 
   Future<void> _handleOnboardingComplete() async {
     await AppPreferences.instance.setOnboardingComplete(true);
@@ -253,7 +255,7 @@ class _OnboardingWrapperState extends State<OnboardingWrapper> {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<User?>(
-      stream: FirebaseAuth.instance.authStateChanges(),
+      stream: _authChanges,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const _InitializingScreen();

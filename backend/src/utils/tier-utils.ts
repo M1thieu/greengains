@@ -3,7 +3,7 @@ import { FastifyRequest, FastifyReply } from 'fastify';
 import { getPool } from '../database';
 
 /**
- * Subscription tier helpers — single source of truth for tier limits.
+ * Subscription tier helpers - single source of truth for tier limits.
  * Uses user_tiers table (simple: user_id → tier).
  */
 
@@ -91,10 +91,3 @@ export function requireTier(minTier: SubscriptionTier) {
   };
 }
 
-export function getMaxHistoryDays(tier: SubscriptionTier): number {
-  return TIER_HISTORY_DAYS[tier]
-}
-
-export function getExportRowLimit(tier: SubscriptionTier): number {
-  return TIER_EXPORT_ROWS[tier]
-}

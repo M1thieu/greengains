@@ -2,11 +2,11 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { latLngToCell } from 'h3-js';
 import {
-  accumulateWindows, buildDayBuckets, computeWindowResults, planWeatherLookups,
+  accumulateWindows, buildDayBuckets, computeWindowResults, planWeatherLookups, pressureSigmaHpa,
   movementScore, vibrationScore, truncateToWindow, nextWindowStart,
   BatchRow, WindowAccumulator,
 } from './aggregationCore';
-import { weatherRegionKey, WeatherObservation } from '../utils/weatherService';
+import { WeatherObservation } from '../utils/weatherService';
 
 const WINDOW_MS = 5 * 60 * 1000;
 const T0 = new Date('2026-06-01T12:00:00Z').getTime();
@@ -25,7 +25,7 @@ function row(overrides: Partial<BatchRow> & { t: number }): BatchRow {
   };
 }
 
-// ─── movementScore / vibrationScore: pure, no data needed ──────────────────────────────────────
+// movementScore / vibrationScore: pure, no data needed
 
 test('movementScore is 0 at rest under either sensor convention', () => {
   assert.equal(movementScore(0), 0);      // TYPE_LINEAR_ACCELERATION at rest
@@ -41,7 +41,7 @@ test('vibrationScore is 0 for a perfectly smooth signal and clamps at 1', () => 
   assert.equal(vibrationScore(50), 1);
 });
 
-// ─── truncateToWindow / nextWindowStart ─────────────────────────────────────────────────────────
+// truncateToWindow / nextWindowStart
 
 test('truncateToWindow floors to the window boundary, nextWindowStart advances by exactly one window', () => {
   const mid = new Date(T0 + 137_000);
@@ -50,7 +50,7 @@ test('truncateToWindow floors to the window boundary, nextWindowStart advances b
   assert.equal(nextWindowStart(start, WINDOW_MS).getTime(), T0 + WINDOW_MS);
 });
 
-// ─── accumulateWindows ──────────────────────────────────────────────────────────────────────────
+// accumulateWindows
 
 test('two readings in the same window and geohash accumulate into one bucket', () => {
   const rows = [
@@ -103,7 +103,7 @@ test('h3_res9 column is preferred over decoding the geohash', () => {
 
 test('a later row can still fill in a missing h3Index for an existing bucket', () => {
   // '!!!' is truthy (kept) but invalid base32, so decodeGeohash fails and the first row
-  // genuinely leaves h3Index null — unlike '', which accumulateWindows would drop outright.
+  // genuinely leaves h3Index null - unlike '', which accumulateWindows would drop outright.
   const buckets = accumulateWindows(
     [row({ t: T0, geohash: '!!!', h3_res9: null }), row({ t: T0 + 1000, geohash: '!!!', h3_res9: 'deadbeef' })],
     WINDOW_MS, UP_TO,
@@ -111,7 +111,7 @@ test('a later row can still fill in a missing h3Index for an existing bucket', (
   assert.equal([...buckets.values()][0].h3Index, 'deadbeef');
 });
 
-// ─── buildDayBuckets ────────────────────────────────────────────────────────────────────────────
+// buildDayBuckets
 
 function makeWindowAcc(overrides: Partial<WindowAccumulator>): WindowAccumulator {
   return {
@@ -153,7 +153,7 @@ test('daily rollup uses RAW pressure, not the spatially blended per-window value
   assert.equal([...days.values()][0].pressureSum / [...days.values()][0].pressureSamples, 1000);
 });
 
-// ─── planWeatherLookups: deduping ────────────────────────────────────────────────────────────────
+// planWeatherLookups: deduping
 
 test('two buckets whose centroids round to the same region+hour produce ONE lookup', () => {
   // Two H3 cells close enough together to round to the same 0.25 deg / hour key.
@@ -182,7 +182,7 @@ test('a bucket with no resolvable centroid needs no lookup', () => {
   assert.equal(planWeatherLookups(windows).length, 0);
 });
 
-// ─── computeWindowResults: weather wiring + fallbacks ───────────────────────────────────────────
+// computeWindowResults: weather wiring + fallbacks
 
 test('pressure anomaly is local minus the fetched background, via the SAME key planWeatherLookups computed', () => {
   const cell = latLngToCell(48.8566, 2.3522, 9);
@@ -211,7 +211,7 @@ test('an empty bucket map produces no results', () => {
   assert.deepEqual(computeWindowResults(new Map(), new Map()), []);
 });
 
-// ─── End-to-end pure pipeline on a realistic small input ────────────────────────────────────────
+// End-to-end pure pipeline on a realistic small input
 
 test('rows -> windows -> (planned + fetched) weather -> results -> days, without any I/O', () => {
   const rows = [
@@ -234,4 +234,13 @@ test('rows -> windows -> (planned + fetched) weather -> results -> days, without
   const days = buildDayBuckets(windows);
   assert.equal(days.size, 1);
   assert.equal([...days.values()][0].samples, 10); // 4 + 6
+});
+
+// pressureSigmaHpa: observation uncertainty for downstream models
+test('pressure sigma shrinks with more devices and is null without data', () => {
+  assert.equal(pressureSigmaHpa(0.04, 0, 1), null);
+  const one = pressureSigmaHpa(0.04, 100, 1)!;
+  const four = pressureSigmaHpa(0.04, 400, 4)!;
+  assert.ok(Math.abs(one - Math.sqrt(0.04 / 100 + 1)) < 1e-12);
+  assert.ok(four < one / 1.9, 'four phones roughly halve the uncertainty');
 });

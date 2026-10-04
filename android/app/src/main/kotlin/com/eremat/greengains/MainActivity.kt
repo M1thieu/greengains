@@ -15,14 +15,9 @@ import android.provider.Settings
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.work.ExistingPeriodicWorkPolicy
-import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
-import java.util.concurrent.TimeUnit
 import com.eremat.greengains.service.ForegroundService
 import com.eremat.greengains.util.AppLogger
-import com.eremat.greengains.worker.StreakAlertWorker
-import com.eremat.greengains.worker.WeeklyDigestWorker
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
@@ -41,23 +36,10 @@ class MainActivity : FlutterActivity() {
         super.onCreate(savedInstanceState)
         AppLogger.init(this)
         AppLogger.i("MainActivity", "App started")
-        checkAndRequestNotificationPermission()
-        // Schedule daily streak-at-risk alert near 20:00 local time.
-        // Worker self-gates: only fires if streak >= 2 and no upload today.
-        val streakWork = PeriodicWorkRequestBuilder<StreakAlertWorker>(1L, TimeUnit.DAYS).build()
-        WorkManager.getInstance(this).enqueueUniquePeriodicWork(
-            StreakAlertWorker.WORK_NAME,
-            ExistingPeriodicWorkPolicy.KEEP,
-            streakWork,
-        )
-        // Weekly passive digest — every 7 days, Sunday morning feel.
-        // Self-gates: skips if no zones collected yet.
-        val weeklyWork = PeriodicWorkRequestBuilder<WeeklyDigestWorker>(7L, TimeUnit.DAYS).build()
-        WorkManager.getInstance(this).enqueueUniquePeriodicWork(
-            WeeklyDigestWorker.WORK_NAME,
-            ExistingPeriodicWorkPolicy.KEEP,
-            weeklyWork,
-        )
+        // The only notification left is the running service's own. Cancel the
+        // streak / weekly-digest workers that older versions scheduled.
+        WorkManager.getInstance(this).cancelUniqueWork("streak_alert_daily")
+        WorkManager.getInstance(this).cancelUniqueWork("weekly_digest")
     }
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
@@ -73,7 +55,10 @@ class MainActivity : FlutterActivity() {
         // Re-sync service state to Flutter after a START_STICKY restart or process death.
         // Without this, Flutter's isRunning/isPaused are stale until the next natural event.
         if (ForegroundService.running) {
-            sensorTriggerChannel.invokeMethod("onTrackingPaused", ForegroundService.trackingPaused)
+            sensorTriggerChannel.invokeMethod(
+                "onServiceState",
+                mapOf("running" to true, "paused" to ForegroundService.trackingPaused),
+            )
         } else {
             sensorTriggerChannel.invokeMethod("onServiceStopped", null)
         }
@@ -83,8 +68,10 @@ class MainActivity : FlutterActivity() {
             .setMethodCallHandler { call, result ->
                 when (call.method) {
                     "startForegroundService" -> {
-                        startForegroundService()
-                        result.success(true)
+                        // Asked here, when the user starts tracking (the service
+                        // notification needs it), not at app launch.
+                        checkAndRequestNotificationPermission()
+                        result.success(startForegroundService())
                     }
                     "pauseForegroundService" -> {
                         result.success(sendServiceAction(ForegroundService.ACTION_PAUSE_TRACKING))
@@ -216,13 +203,9 @@ class MainActivity : FlutterActivity() {
             LOCATION_PERMISSION_REQUEST_CODE -> {
                 val fineGranted = grantResults.getOrNull(0) == PackageManager.PERMISSION_GRANTED
                 val coarseGranted = grantResults.getOrNull(1) == PackageManager.PERMISSION_GRANTED
-                when {
-                    fineGranted || coarseGranted -> {
-                        Toast.makeText(this, getString(R.string.toast_location_granted), Toast.LENGTH_SHORT).show()
-                    }
-                    else -> {
-                        Toast.makeText(this, getString(R.string.toast_location_denied), Toast.LENGTH_SHORT).show()
-                    }
+                // Granted needs no message: the user just tapped Allow. Only explain a refusal.
+                if (!fineGranted && !coarseGranted) {
+                    Toast.makeText(this, getString(R.string.toast_location_denied), Toast.LENGTH_SHORT).show()
                 }
             }
             NOTIFICATION_PERMISSION_REQUEST_CODE -> {
@@ -233,8 +216,10 @@ class MainActivity : FlutterActivity() {
 
     /**
      * Creates and starts the ForegroundService as a foreground service.
+     * Returns false when it could not be started (no location permission, start refused),
+     * so Flutter does not show tracking as on when it isn't.
      */
-    private fun startForegroundService() {
+    private fun startForegroundService(): Boolean {
         // CRITICAL: On Android 14+, location permissions MUST be granted before starting
         // a foreground service with type location. Otherwise it will crash with SecurityException.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
@@ -250,15 +235,21 @@ class MainActivity : FlutterActivity() {
 
             if (!hasFineLocation && !hasCoarseLocation) {
                 android.util.Log.e("GreenGains", "Cannot start foreground service: location permission not granted")
-                return
+                return false
             }
         }
 
         val serviceIntent = Intent(this, ForegroundService::class.java)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            startForegroundService(serviceIntent)
-        } else {
-            startService(serviceIntent)
+        return try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                startForegroundService(serviceIntent)
+            } else {
+                startService(serviceIntent)
+            }
+            true
+        } catch (e: Exception) {
+            android.util.Log.e("GreenGains", "Cannot start foreground service", e)
+            false
         }
     }
 
@@ -285,7 +276,7 @@ class MainActivity : FlutterActivity() {
 
     private fun stopFgService(): Boolean {
         // Route through ACTION_STOP_SERVICE so onStartCommand handles the stop while
-        // the method channel is still alive — ensures onServiceStopped reaches Flutter.
+        // the method channel is still alive - ensures onServiceStopped reaches Flutter.
         // If the service is not running, fall back to stopService() to clean up.
         return if (ForegroundService.running) {
             sendServiceAction(ForegroundService.ACTION_STOP_SERVICE)

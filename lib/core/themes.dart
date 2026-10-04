@@ -5,8 +5,8 @@ import 'package:google_fonts/google_fonts.dart';
 class AppColors {
   AppColors._();
 
-  // Primary brand color — Emerald 500 (modern, Stripe/Linear ecosystem)
-  // Replaces Material Green 500 (0xFF4CAF50) — more vibrant, less Android-default
+  // Primary brand color - Emerald 500 (modern, Stripe/Linear ecosystem)
+  // Replaces Material Green 500 (0xFF4CAF50) - more vibrant, less Android-default
   static const Color primary = Color(0xFF10B981);
   static const Color primaryLight = Color(0xFF34D399); // Emerald 300
   static const Color primaryDark = Color(0xFF059669);  // Emerald 600
@@ -29,7 +29,7 @@ class AppColors {
   static const Color lightBorder = Color(0xFFD8E0DB);
   static const Color lightDivider = Color(0xFFC8D2CC);
 
-  // Dark mode neutrals — slightly blue-tinted navy (Nodle/Linear style).
+  // Dark mode neutrals - slightly blue-tinted navy (Nodle/Linear style).
   // Lifted from pure black to reduce harshness; blue tint adds depth.
   // bg→surface: +12 lightness, surface→elevated: +8, border: +36.
   static const Color darkBackground = Color(0xFF111927);       // dark navy (not void black)
@@ -138,7 +138,7 @@ class AppColors {
     ];
   }
 
-  /// Frosted-glass BoxDecoration — pair with ClipRRect + BackdropFilter(glassBlurSigma).
+  /// Frosted-glass BoxDecoration - pair with ClipRRect + BackdropFilter(glassBlurSigma).
   /// Keeps the blur/border/opacity system consistent across all glass overlays.
   /// Pass [isDark] to adapt the tint and border for light vs dark mode.
   /// For overlays always on dark backgrounds (map chip, FAB), pass isDark: true.
@@ -175,7 +175,7 @@ class AppColors {
   static const Color quality   = Color(0xFF10B981); // Emerald-500 — data quality / air (AQI green)
   static const Color community = Color(0xFF6366F1); // Indigo-500  — community/global tiles
 
-  // MapLibre GL hex strings — mirrors the Color constants above.
+  // MapLibre GL hex strings - mirrors the Color constants above.
   // MapLibre layer paint properties require '#rrggbb' strings, not Color objects.
   static const String lightHex     = '#fbbf24';
   static const String movementHex  = '#f97316';
@@ -197,12 +197,12 @@ class AppColors {
       ? primary.withValues(alpha: 0.05)
       : primary.withValues(alpha: 0.02);
 
-  // Action button colors — home screen floating controls
+  // Action button colors - home screen floating controls
   static const Color actionPrimaryFg  = Color(0xFF04221a); // dark forest on green bg
   static const Color actionDangerBg    = Color(0xFF2a1c1c); // dark red surface
   static const Color actionSegActiveFg = Color(0xFF04221a); // segment active fg (same as primary)
 
-  // Map overlay tints — frosted glass pills that float above the dark map.
+  // Map overlay tints - frosted glass pills that float above the dark map.
   // Always rendered on a dark background, so these use darkBackground as the tint color.
   // Use these instead of hardcoded hex Color(0x??111927) values.
   static const Color mapOverlayDark  = Color(0xD9111927); // 85% — primary pill bg
@@ -224,7 +224,6 @@ class AppDurations {
   static const Duration slow          = Duration(milliseconds: 900);
   static const Duration pageTransition = Duration(milliseconds: 200);
   static const Duration shimmer       = Duration(milliseconds: 750);
-  static const Duration celebration   = Duration(milliseconds: 1800); // zone-gained celebration ring
 }
 
 /// Border and stroke widths
@@ -299,42 +298,8 @@ class AppShadows {
 class AppGradients {
   AppGradients._();
 
-  /// Green glow for active sensor cards and primary CTAs
-  static LinearGradient greenGlow = LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-    colors: [
-      AppColors.primary.withValues(alpha: 0.15),
-      AppColors.primaryLight.withValues(alpha: 0.20),
-    ],
-  );
 
-  /// Button/FAB gradient: top-left light → bottom-right darkened.
-  /// Gives depth without needing a separate shadow pass.
-  static LinearGradient darkBottomGradient(Color base) => LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-    colors: [
-      base.withValues(alpha: 0.95),
-      Color.lerp(base, Colors.black, 0.20)!,
-    ],
-  );
 
-  /// Subtle neutral surface gradient — NO color tint.
-  /// Used sparingly for depth; prefer flat colors for most surfaces.
-  static LinearGradient surfaceGlow(bool isDark) => LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-    colors: isDark
-        ? [
-            const Color(0xFF171717),
-            const Color(0xFF1F1F1F),
-          ]
-        : [
-            const Color(0xFFF9FBF9),
-            const Color(0xFFF2F4F3),
-          ],
-  );
 }
 
 /// Font weight scale for typography personality
@@ -359,7 +324,7 @@ class AppMotion {
   static const standard = Curves.easeInOutCubic;
 
   /// Slight bounce for positive events (upload success, achievements)
-  static const emphasized = Curves.easeOutBack;
+  static const emphasized = Curves.easeOutCubic;
 
   /// Fast start, gentle end for appearing elements
   static const decelerated = Curves.easeOut;
@@ -403,8 +368,7 @@ class AppTheme {
   static const double spaceLg = 24;
   static const double spaceXl = 32;
   static const double spaceXxl = 48;
-  static const double spaceXxxl = 72; // celebration / display circle sizes
-  static const double iconCircleMd = 56.0; // milestone / trophy icon circles
+  static const double iconCircleMd = 56.0;
 
   // Common layout tokens
   static const double ctaGapLink = 4;
@@ -426,7 +390,7 @@ class AppTheme {
 
   // Floating nav bar
   static const double floatingNavHeight = 64;
-  static const double fontSizeNavLabel  = 10.0; // sub-caption, below bodySmall(12)
+  static const double fontSizeNavLabel  = 12.0; // nav labels (Material label size)
 
   // Typography behaviour
   static const double letterSpacingSubtle  = -0.5; // large titles, section headings
@@ -438,7 +402,7 @@ class AppTheme {
   // Interaction
   static const double pressScale = 0.97; // PressScaleDetector — uniform press-down scale
 
-  // Icon box sizes — container for icon + tinted background
+  // Icon box sizes - container for icon + tinted background
   static const double iconBoxSm    = 36.0; // settings rows, list items
   static const double iconBoxMd    = 44.0; // profile header, prominent action rows
   static const double avatarSizeSm = 64.0; // empty-state placeholder icon container
@@ -447,7 +411,7 @@ class AppTheme {
   static const double onboardingHeroHeight = 260.0; // welcome page hex bleed
 
   // Sub-body font sizes
-  static const double fontSizeXxs  = 10.0; // micro — nav labels only
+  static const double fontSizeXxs  = 11.0; // smallest text in the app (map legend)
   static const double fontSizeXs   = 12.0; // captions, badges, secondary labels
   static const double fontSizeBody  = 13.0; // card body copy, secondary text
   static const double fontSizeSm      = 14.0; // primary body, comfortable reading
@@ -464,7 +428,7 @@ class AppTheme {
   static const double onboardingHeroMax = 460;
   static const double onboardingHeroIconRatio = 0.46;
 
-  // Drag handle — standard across all bottom sheets
+  // Drag handle - standard across all bottom sheets
   static const double dragHandleWidth  = 36.0;
   static const double dragHandleHeight = 4.0;
 
@@ -477,7 +441,7 @@ class AppTheme {
   static const double tileTrailingButtonHeight = 40;
   static const double authButtonHeight = 56;
 
-  /// Standard drag handle pill — use at the top of every bottom sheet.
+  /// Standard drag handle pill - use at the top of every bottom sheet.
   static Widget dragHandle(bool isDark) => Center(
         child: Container(
           width: dragHandleWidth,
@@ -569,7 +533,7 @@ class AppTheme {
     );
   }
 
-  /// Standard content card — elevated surface with hairline border.
+  /// Standard content card - elevated surface with hairline border.
   /// Use for any card that holds data (stat tiles, KPI cells, sensor cards, sheet stats).
   static BoxDecoration contentCard({required bool isDark, Color? accentBorder}) =>
       BoxDecoration(
@@ -580,7 +544,7 @@ class AppTheme {
             : Border.all(color: AppColors.border(isDark), width: AppBorderWidths.hairline),
       );
 
-  /// Standard section eyebrow label — ALL CAPS, small, F-pattern scan anchor.
+  /// Standard section eyebrow label - ALL CAPS, small, F-pattern scan anchor.
   /// Use above charts, KPI rows, and data sections.
   static TextStyle eyebrowLabel(bool isDark) => TextStyle(
         fontSize: fontSizeXs,
@@ -589,7 +553,7 @@ class AppTheme {
         letterSpacing: 1.0,
       );
 
-  /// Label below a big stat number — consistent across all stat cells.
+  /// Label below a big stat number - consistent across all stat cells.
   static TextStyle statLabel(bool isDark) => TextStyle(
         fontSize: fontSizeXs,
         color: AppColors.textSecondary(isDark).withValues(alpha: 0.75),
@@ -597,7 +561,8 @@ class AppTheme {
         height: AppLineHeights.snug,
       );
 
-  /// KPI card decoration — flat surface with a colored left-border accent.
+  /// KPI card decoration: flat surface, hairline border. [accentColor] is kept
+  /// for call-site compatibility; a coloured left stripe reads as templated.
   static BoxDecoration kpiCard({
     required bool isDark,
     Color accentColor = AppColors.primary,
@@ -606,9 +571,7 @@ class AppTheme {
       BoxDecoration(
         color: AppColors.surface(isDark),
         borderRadius: BorderRadius.circular(radius),
-        border: Border(
-          left: BorderSide(color: accentColor, width: 3),
-        ),
+        border: Border.all(color: AppColors.border(isDark)),
       );
 
   /// Creates an icon container with primary-colored background
@@ -697,7 +660,8 @@ class AppTheme {
     return base.copyWith(
       colorScheme: scheme,
       pageTransitionsTheme: const PageTransitionsTheme(builders: {
-        TargetPlatform.android: ZoomPageTransitionsBuilder(),
+        // Android 14+: the page follows the back gesture (predictive back).
+        TargetPlatform.android: PredictiveBackPageTransitionsBuilder(),
         TargetPlatform.iOS: ZoomPageTransitionsBuilder(),
         TargetPlatform.windows: ZoomPageTransitionsBuilder(),
         TargetPlatform.macOS: ZoomPageTransitionsBuilder(),
@@ -827,7 +791,8 @@ class AppTheme {
     return base.copyWith(
       colorScheme: scheme,
       pageTransitionsTheme: const PageTransitionsTheme(builders: {
-        TargetPlatform.android: ZoomPageTransitionsBuilder(),
+        // Android 14+: the page follows the back gesture (predictive back).
+        TargetPlatform.android: PredictiveBackPageTransitionsBuilder(),
         TargetPlatform.iOS: ZoomPageTransitionsBuilder(),
         TargetPlatform.windows: ZoomPageTransitionsBuilder(),
         TargetPlatform.macOS: ZoomPageTransitionsBuilder(),

@@ -5,7 +5,7 @@ import { getOrgSubscriptionTier, ensureUserTier, TIER_HISTORY_DAYS } from '../ut
 
 /**
  * Auth Routes
- * GET /api/v1/auth/me — returns uid, email, tier, data_retention_days.
+ * GET /api/v1/auth/me - returns uid, email, tier, data_retention_days.
  * Creates a free-tier row on first call if one doesn't exist yet.
  */
 export async function authRoutes(fastify: FastifyInstance) {

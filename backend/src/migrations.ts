@@ -1,4 +1,3 @@
-import { Pool } from 'pg';
 import { getPool } from './database';
 import * as fs from 'fs';
 import * as path from 'path';

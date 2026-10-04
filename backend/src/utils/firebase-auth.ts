@@ -141,3 +141,17 @@ export async function requireAuth(
 
   return uid;
 }
+
+/**
+ * Deletes the Firebase Auth account (GDPR erasure). A user that is already gone
+ * counts as success, so a retried deletion request is idempotent.
+ */
+export async function deleteFirebaseUser(uid: string): Promise<void> {
+  if (!app) throw new Error('Firebase not initialized');
+  try {
+    await admin.auth(app).deleteUser(uid);
+  } catch (err) {
+    if ((err as { code?: string }).code === 'auth/user-not-found') return;
+    throw err;
+  }
+}

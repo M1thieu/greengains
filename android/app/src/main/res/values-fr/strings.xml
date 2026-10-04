@@ -3,24 +3,24 @@
     <string name="app_name">GreenGains</string>
 
     <!-- Foreground service notification -->
-    <string name="notification_status_collecting">Votre carte grandit</string>
-    <string name="notification_status_stationary">À l\'écoute de votre environnement</string>
+    <string name="notification_status_collecting">Ta carte grandit</string>
+    <string name="notification_status_stationary">À l\'écoute de ton environnement</string>
     <string name="notification_paused_title">En pause</string>
-    <string name="notification_paused_body">Votre trajet n\'est pas enregistré en ce moment</string>
+    <string name="notification_paused_body">Le suivi est en pause</string>
     <string name="notification_collecting_no_upload">Bougez pour commencer à cartographier</string>
-    <string name="notification_body_zones_uploading">%1$d endroits sur votre carte</string>
+    <string name="notification_body_zones_uploading">%1$d endroits sur ta carte</string>
     <string name="notification_body_zones_collecting">%1$d endroits cartographiés</string>
     <string name="notification_body_stationary">%1$d endroits · en veille</string>
-    <string name="notification_body_paused_zones">%1$d endroits sur votre carte</string>
+    <string name="notification_body_paused_zones">%1$d endroits sur ta carte</string>
     <string name="notification_readings_uploading">Premier endroit en cours…</string>
 
     <!-- Ligne de statut étendue -->
-    <string name="notification_sync_uploading">Mise à jour de votre carte</string>
+    <string name="notification_sync_uploading">Mise à jour de ta carte</string>
     <string name="notification_sync_uploaded">Mis à jour %s</string>
     <string name="notification_sync_none">Pas encore mis à jour</string>
     <string name="notification_motion_moving">en mouvement</string>
     <string name="notification_motion_stationary">à l\'arrêt</string>
-    <string name="notification_expanded_paused">Lecture en pause — appuyez sur Reprendre pour capturer votre trajet.</string>
+    <string name="notification_expanded_paused">Lecture en pause. Appuie sur Reprendre pour capturer ton trajet.</string>
 
     <!-- Notification actions -->
     <string name="notification_action_pause">Pause</string>
@@ -28,10 +28,6 @@
     <string name="notification_action_stop">Arrêter</string>
 
     <!-- Temps écoulé depuis la dernière mise à jour -->
-    <string name="notification_upload_just_now">à l\'instant</string>
-    <string name="notification_upload_minutes_ago">il y a %dmin</string>
-    <string name="notification_upload_hours_ago">il y a %dh</string>
-    <string name="notification_upload_yesterday">hier</string>
 
     <!-- Titres de notification -->
     <string name="notif_title_contributing">Cartographie</string>
@@ -43,43 +39,19 @@
 
     <!-- Background worker notification -->
     <string name="notification_worker_title">GreenGains</string>
-    <string name="notification_worker_body">Mise à jour de votre carte</string>
+    <string name="notification_worker_body">Mise à jour de ta carte</string>
 
     <!-- Re-engagement notification -->
-    <string name="notification_streak_channel_name">Rappels carte</string>
-    <string name="notification_streak_title">Série de %1$d jour(s) en danger</string>
-    <string name="notification_streak_body">Marchez n\'importe où pour la garder.</string>
-    <string name="notification_streak_body_zones">%1$d endroits sur votre carte — marchez pour garder votre série.</string>
 
     <!-- Permission result toasts -->
-    <string name="toast_location_granted">Permission de localisation accordée</string>
     <string name="toast_location_denied">Permission de localisation refusée</string>
 
     <!-- Digest hebdomadaire -->
     <string name="notification_weekly_channel_name">Bilan hebdomadaire</string>
-    <string name="notification_weekly_title">Votre carte cette semaine</string>
-    <string name="notification_weekly_body_growth">+%1$d nouveaux endroits — %2$d au total</string>
-    <string name="notification_weekly_body_stable">%1$d endroits cartographiés jusqu\'ici</string>
-    <string name="sensor_lux_dark">Sombre</string>
-    <string name="sensor_lux_indoor">Tamisé</string>
-    <string name="sensor_lux_bright">Lumineux</string>
-    <string name="sensor_lux_direct">Plein soleil</string>
-    <string name="sensor_lux_night_pristine">Ciel noir</string>
-    <string name="sensor_lux_night_low">Obscurité naturelle</string>
-    <string name="sensor_lux_night_moderate">Halo lumineux</string>
-    <string name="sensor_lux_night_high">Pollution lumineuse</string>
-    <string name="notif_motion_still">Immobile</string>
-    <string name="notif_motion_light">Légère activité</string>
-    <string name="notif_motion_active">En mouvement</string>
-    <string name="notif_body_measuring">À l\'écoute de votre environnement</string>
-    <string name="notif_uploaded_ago">· envoyé %1$s</string>
-    <string name="notif_session_zones">+%1$d zones</string>
+    <string name="notif_body_measuring">À l\'écoute de ton environnement</string>
+    <string name="notif_session_zones">Endroits : +%1$d</string>
 
     <!-- Notification de fin de session — résumé passif -->
-    <string name="notification_discovery_channel_name">Résumé de trajet</string>
-    <string name="notification_discovery_title">Trajet sauvegardé · %1$d envois</string>
-    <string name="notification_discovery_body">%1$d endroits sur votre carte — touchez pour explorer.</string>
-    <string name="notification_discovery_body_first">Votre premier trajet est sur la carte — touchez pour le voir.</string>
 
     <!-- Widget écran d'accueil -->
     <string name="widget_zones_label">endroits cartographiés</string>

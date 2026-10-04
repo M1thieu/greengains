@@ -52,7 +52,7 @@ class StatsService {
     }
   }
 
-  /// Fetches the weekly street-level insight — roughest route, new zones,
+  /// Fetches the weekly street-level insight - roughest route, new zones,
   /// brightest street, solo territory. Powers the civic intelligence card.
   Future<WeeklyInsightResponse?> fetchWeeklyInsight() async {
     try {

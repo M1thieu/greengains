@@ -58,7 +58,7 @@ class ForegroundLocationService {
   final ValueNotifier<UploadStatusSnapshot> uploadStatus =
       ValueNotifier(const UploadStatusSnapshot());
 
-  /// Live sensor snapshot — fires on every light or pressure update.
+  /// Live sensor snapshot - fires on every light or pressure update.
   /// Null fields = sensor hasn't reported yet this session.
   final liveConditions = ValueNotifier<({int? lux, double? hpa, double? rms})>(
     (lux: null, hpa: null, rms: null),
@@ -96,7 +96,7 @@ class ForegroundLocationService {
       );
     }
 
-    // Load last magnetic reading (magnitude only — x/y/z are orientation-dependent)
+    // Load last magnetic reading (magnitude only - x/y/z are orientation-dependent)
     final magnetic = prefs.getLastMagnetic();
     if (magnetic != null) {
       _lastMagneticField = MagneticFieldData(
@@ -167,6 +167,13 @@ class ForegroundLocationService {
           break;
         case 'onBufferUpdate':
           pendingReadings.value = (call.arguments as num?)?.toInt() ?? 0;
+          break;
+        case 'onServiceState':
+          // Authoritative state pushed by the native service whenever it starts
+          // (including starts the app didn't initiate) and on engine attach.
+          final state = call.arguments as Map;
+          _isRunningNotifier.value = state['running'] == true;
+          _isPausedNotifier.value = state['paused'] == true;
           break;
         case 'onTrackingPaused':
           final paused = (call.arguments as bool?) ?? false;
@@ -263,7 +270,7 @@ class ForegroundLocationService {
   /// Check if the foreground service is currently running
   Future<bool> isServiceRunning() async {
     // A state change is in progress (start/stop/pause/resume): treat as running and
-    // skip the isTrackingPaused query — racing it would overwrite the in-flight change.
+    // skip the isTrackingPaused query - racing it would overwrite the in-flight change.
     if (_isChangingState) {
       return true;
     }
@@ -271,7 +278,7 @@ class ForegroundLocationService {
     try {
       final result = await _fgChannel.invokeMethod<bool>('isForegroundServiceRunning');
       _isRunningNotifier.value = result ?? false;
-      // Only query paused state if the service is actually running — avoids a stale
+      // Only query paused state if the service is actually running - avoids a stale
       // false overwriting an in-flight pauseTracking/resumeTracking result.
       if (result == true) {
         final paused = await _fgChannel.invokeMethod<bool>('isTrackingPaused');
@@ -283,6 +290,27 @@ class ForegroundLocationService {
     } catch (e) {
       debugPrint('Error checking service status: $e');
       return false;
+    }
+  }
+
+  /// True when Android's battery optimisation may stop background tracking.
+  /// Platforms without that concept (or without the native side) report false.
+  Future<bool> isBatteryRestricted() async {
+    try {
+      final ignoring = await _fgChannel.invokeMethod<bool>('isIgnoringBatteryOptimizations');
+      return ignoring == false;
+    } catch (e) {
+      debugPrint('Battery optimisation check unavailable: $e');
+      return false;
+    }
+  }
+
+  /// Opens the platform's own "allow in background" prompt, if it has one.
+  Future<void> requestBatteryExemption() async {
+    try {
+      await _fgChannel.invokeMethod<void>('requestIgnoreBatteryOptimizations');
+    } catch (e) {
+      debugPrint('Battery exemption request unavailable: $e');
     }
   }
 

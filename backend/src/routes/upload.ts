@@ -24,7 +24,7 @@ import {
 } from '../utils/uploadValidation';
 
 
-// Neighborhood average cache keyed by geohash6 prefix — avoids a per-upload
+// Neighborhood average cache keyed by geohash6 prefix - avoids a per-upload
 // 7-day LIKE scan when multiple devices map the same cell back-to-back.
 // Entries are geographically stable enough that 15-min staleness is acceptable.
 interface _NeighborEntry {
@@ -46,7 +46,7 @@ const _NEIGHBOR_TTL_MS = 15 * 60 * 1000;
  * Logs the divergence for monitoring; a future device-reputation layer can use these
  * logs to downweight persistently divergent devices.
  *
- * Source: IEEE IoT Journal 2019 — co-located participant cross-validation pattern.
+ * Source: IEEE IoT Journal 2019 - co-located participant cross-validation pattern.
  * Also: PurpleAir dual-sensor agreement, openSenseMap spatial consistency checks.
  */
 async function checkCoLocationOutlier(
@@ -56,10 +56,10 @@ async function checkCoLocationOutlier(
   summary: Summary,
   log: { warn: (obj: unknown, msg: string) => void },
 ): Promise<void> {
-  // Use geohash6 prefix (≈1.2 km × 0.6 km) — enough neighbors, not too broad.
+  // Use geohash6 prefix (≈1.2 km × 0.6 km) - enough neighbors, not too broad.
   const geohashPrefix = geohash.slice(0, 6);
 
-  // Serve from cache if fresh — skip the 7-day scan on repeated uploads in the same cell.
+  // Serve from cache if fresh - skip the 7-day scan on repeated uploads in the same cell.
   let neighborCount: number;
   let neighborLight: number | null;
   let neighborPressure: number | null;
@@ -134,16 +134,8 @@ function inferTransportMode(accelRms: number, speedMps?: number): string {
   return 'unknown';
 }
 
-// ISA standard atmosphere: normalize measured pressure to sea level so readings
-// from cells at different elevations are comparable across the map.
-// P_SL = P / (1 - 0.0000225577 × h)^5.25588  (h in metres, P in hPa)
-function pressureToSeaLevel(hpa: number, altitudeM: number): number {
-  const factor = Math.pow(1 - 0.0000225577 * altitudeM, 5.25588);
-  return factor > 0 ? hpa / factor : hpa;
-}
-
-export function summarizeBatch(readings: SensorReading[], batchAccuracyM?: number, speedMps?: number, altitudeM?: number): Summary {
-  // Light — filter statistical outliers (MAD method) before averaging.
+export function summarizeBatch(readings: SensorReading[], batchAccuracyM?: number, speedMps?: number): Summary {
+  // Light - filter statistical outliers (MAD method) before averaging.
   // E.g. a single 65535 lux spike from sensor glitch won't skew the window average.
   const lightRaw = readings.filter(r => r.light !== undefined).map(r => r.light!);
   const lightReadings = filterOutliersMad(lightRaw);
@@ -155,12 +147,12 @@ export function summarizeBatch(readings: SensorReading[], batchAccuracyM?: numbe
       }
     : undefined;
 
-  // Accel / gyro — outlier filter applied to magnitudes (spikes from drops/taps)
+  // Accel / gyro - outlier filter applied to magnitudes (spikes from drops/taps)
   const accelReadings = readings.filter(r => r.accel !== undefined);
   const accelMagnitudesRaw = accelReadings.length > 0
     ? accelReadings.map(r => vectorMagnitude(r.accel!))
     : [];
-  // Std dev computed on raw (pre-MAD) magnitudes — vibration spikes ARE the signal.
+  // Std dev computed on raw (pre-MAD) magnitudes - vibration spikes ARE the signal.
   const accelStdDev = stdDev(accelMagnitudesRaw);
   const accelMagnitudes = filterOutliersMad(accelMagnitudesRaw);
 
@@ -173,10 +165,14 @@ export function summarizeBatch(readings: SensorReading[], batchAccuracyM?: numbe
   const periodStart = new Date(Math.min(...readings.map(r => r.t.getTime())));
   const periodEnd = new Date(Math.max(...readings.map(r => r.t.getTime())));
 
-  // Pressure — normalize to sea level (when altitude known), then filter spikes.
-  const pressureRaw = readings.filter(r => r.pressure !== undefined).map(r =>
-    altitudeM !== undefined ? pressureToSeaLevel(r.pressure!, altitudeM) : r.pressure!
-  );
+  // Pressure - kept as measured (station pressure), then filter spikes.
+  // Not reduced to sea level: Android's GPS altitude is height above the WGS84
+  // ellipsoid, not above sea level (~45-50 m apart in France, up to ±100 m
+  // worldwide), plus ±10-30 m of GPS vertical noise. At ~8 m/hPa that added a
+  // 1-6 hPa error to a sensor whose relative precision is ~0.1 hPa, and only to
+  // batches that carried an altitude. Elevation is instead handled downstream by
+  // comparing against Open-Meteo surface_pressure (pressureAnomalyHpa).
+  const pressureRaw = readings.filter(r => r.pressure !== undefined).map(r => r.pressure!);
   const pressureReadings = filterOutliersMad(pressureRaw);
   const pressureSummary = pressureReadings.length > 0
     ? {
@@ -186,7 +182,7 @@ export function summarizeBatch(readings: SensorReading[], batchAccuracyM?: numbe
       }
     : undefined;
 
-  // Magnetic — index [3] is pre-computed magnitude [x,y,z,mag]
+  // Magnetic - index [3] is pre-computed magnitude [x,y,z,mag]
   const magneticRaw = readings
     .filter(r => r.magnetic !== undefined && r.magnetic.length === 4)
     .map(r => r.magnetic![3]);
@@ -221,7 +217,7 @@ export function summarizeBatch(readings: SensorReading[], batchAccuracyM?: numbe
     };
   }
 
-  // Quality counters — computed once here so the aggregator never needs to pull
+  // Quality counters - computed once here so the aggregator never needs to pull
   // the full raw batch array across the wire. ~80-95% reduction in wire transfer
   // for the aggregation job on batches with many readings.
   const quality = analyzeQuality(readings, batchAccuracyM);
@@ -253,9 +249,9 @@ export function summarizeBatch(readings: SensorReading[], batchAccuracyM?: numbe
 }
 
 function buildStoragePayload(batch: UploadBatch, qualityMultiplier = 1.0): StoragePayload {
-  const summary = summarizeBatch(batch.batch, batch.location?.accuracy_m, batch.location?.speed_mps, batch.location?.altitude);
+  const summary = summarizeBatch(batch.batch, batch.location?.accuracy_m, batch.location?.speed_mps);
 
-  // Apply the integrity multiplier to quality_valid — batches flagged as static/high-speed/etc.
+  // Apply the integrity multiplier to quality_valid - batches flagged as static/high-speed/etc.
   // get proportionally fewer valid readings credited, which flows into per-tile qualityRatio.
   if (qualityMultiplier < 1.0) {
     summary.quality_valid = Math.round(summary.quality_valid * qualityMultiplier);
@@ -270,7 +266,7 @@ function buildStoragePayload(batch: UploadBatch, qualityMultiplier = 1.0): Stora
 
   if (batch.location) {
     // Privacy by architecture: round to 3 decimals (~110m) before storage.
-    // H3 cells are computed from precise coords at ingest, BEFORE this runs —
+    // H3 cells are computed from precise coords at ingest, BEFORE this runs -
     // nothing finer than a zone ever touches disk, so no precise trail can leak.
     // Anti-teleport speed checks tolerate this error (they detect km-scale jumps).
     // Bearing is dropped: it reveals direction of travel, and nothing reads it.
@@ -287,6 +283,7 @@ function buildStoragePayload(batch: UploadBatch, qualityMultiplier = 1.0): Stora
   if (batch.wifi_rssi_avg !== undefined) payload.wifi_rssi_avg = batch.wifi_rssi_avg;
   if (batch.wifi_ap_count !== undefined) payload.wifi_ap_count = batch.wifi_ap_count;
   if (batch.network) payload.network = batch.network;
+  if (batch.device_model) payload.device_model = batch.device_model;
 
   return payload;
 }
@@ -303,7 +300,7 @@ async function upsertUserStats(
     return;
   }
 
-  // Use pre-computed summary values — quality_valid already has qualityMultiplier applied.
+  // Use pre-computed summary values - quality_valid already has qualityMultiplier applied.
   // Re-running analyzeQuality here would ignore the multiplier and overcount valid samples.
   const uptimeSeconds = calculateUptimeSeconds(summary);
 
@@ -384,9 +381,9 @@ export async function uploadRoutes(fastify: FastifyInstance) {
 
         const pool = getPool();
 
-        // ── Abuse prevention checks ───────────────────────────────────────────
+        // Abuse prevention checks
 
-        // 1. Rate limits — device + user in one DB round-trip
+        // 1. Rate limits - device + user in one DB round-trip
         const { deviceExceeded, userExceeded } = await checkRateLimits(pool, deviceHash, userId);
         if (deviceExceeded) {
           request.log.warn({ deviceHash, limitType: 'device', maxPerHour: 120 }, 'Upload rate limit exceeded');
@@ -413,7 +410,7 @@ export async function uploadRoutes(fastify: FastifyInstance) {
         }
 
         // 3. GPS velocity check: reject if implied speed exceeds MAX_GPS_SPEED_MPS
-        // (uploadValidation.ts — kept there, not duplicated as a number here, so this comment
+        // (uploadValidation.ts - kept there, not duplicated as a number here, so this comment
         // can't go stale again the way it did before: it used to say "300 m/s" after the
         // constant itself had already been tightened to 100).
         if (await checkGpsVelocity(pool, deviceHash, batch)) {
@@ -423,7 +420,7 @@ export async function uploadRoutes(fastify: FastifyInstance) {
           });
         }
 
-        // 4. Batch integrity: O(n) pure-compute checks — no DB queries.
+        // 4. Batch integrity: O(n) pure-compute checks - no DB queries.
         const integrity = checkBatchIntegrity(batch);
         if (integrity.allPocket) {
           // >95% pocket-likely readings = no usable data in this batch.
@@ -448,18 +445,17 @@ export async function uploadRoutes(fastify: FastifyInstance) {
           );
         }
 
-        // ─────────────────────────────────────────────────────────────────────
 
-        // Build storage payload (integrity flags baked into JSON — no schema change)
+        // Build storage payload (integrity flags baked into JSON - no schema change)
         const sanitizedPayload = buildStoragePayload(batch, integrity.qualityMultiplier);
         const payloadJson = JSON.stringify(sanitizedPayload);
 
-        // Compute H3 indices at ingest — stored as indexed columns for fast tile queries.
+        // Compute H3 indices at ingest - stored as indexed columns for fast tile queries.
         // Industry pattern: Helium/Nodle/Hivemapper all index by H3 cell at ingest, never at query time.
         const h3Res9 = batch.location ? latLngToCell(batch.location.lat, batch.location.lon, H3_RES_PERSONAL) : null;
         const h3Res8 = batch.location ? latLngToCell(batch.location.lat, batch.location.lon, H3_RES_GLOBAL) : null;
 
-        // Atomically store batch + update stats — both succeed or neither does.
+        // Atomically store batch + update stats - both succeed or neither does.
         // Without a transaction, a failed stats upsert would leave counts stale
         // until the device's next successful upload corrects them.
         const client = await pool.connect();
@@ -468,10 +464,10 @@ export async function uploadRoutes(fastify: FastifyInstance) {
           await client.query('BEGIN');
 
           const insertResult = await client.query(
-            `INSERT INTO sensor_batches (device_hash, timestamp_utc, batch_json, user_id, h3_res9, h3_res8, sensor_flags)
-             VALUES ($1, $2, $3::jsonb, $4, $5, $6, $7)
+            `INSERT INTO sensor_batches (device_hash, timestamp_utc, batch_json, user_id, h3_res9, h3_res8, sensor_flags, device_model)
+             VALUES ($1, $2, $3::jsonb, $4, $5, $6, $7, $8)
              ON CONFLICT (device_hash, timestamp_utc) DO NOTHING`,
-            [deviceHash, batch.timestamp, payloadJson, userId, h3Res9, h3Res8, batch.sensor_flags ?? 0],
+            [deviceHash, batch.timestamp, payloadJson, userId, h3Res9, h3Res8, batch.sensor_flags ?? 0, batch.device_model ?? null],
           );
           insertRowCount = insertResult.rowCount ?? 0;
 
@@ -487,7 +483,7 @@ export async function uploadRoutes(fastify: FastifyInstance) {
           client.release();
         }
 
-        // Duplicate batch (same device + timestamp already stored) — accept silently
+        // Duplicate batch (same device + timestamp already stored) - accept silently
         if (insertRowCount === 0) {
           return reply.code(202).send({ accepted_records: 0, duplicate: true });
         }
@@ -510,7 +506,7 @@ export async function uploadRoutes(fastify: FastifyInstance) {
 
         request.log.info(logData, 'Stored sensor batch');
 
-        // Invalidate in-memory cache + refresh DB cache — both fire-and-forget
+        // Invalidate in-memory cache + refresh DB cache - both fire-and-forget
         // so the 202 response isn't delayed. Next profile read gets fresh data.
         if (userId) {
           invalidateProfileCache(userId);
@@ -522,7 +518,7 @@ export async function uploadRoutes(fastify: FastifyInstance) {
         // Co-location cross-validation (fire-and-forget, does not affect 202 response).
         // Compare this batch's sensor averages against recent batches at the same geohash
         // from OTHER devices. Large divergence = spatial outlier flag.
-        // Source: IEEE IoT Journal 2019 — co-located participant cross-validation.
+        // Source: IEEE IoT Journal 2019 - co-located participant cross-validation.
         if (batch.geohash && sanitizedPayload.summary.count >= 10) {
           checkCoLocationOutlier(pool, batch.geohash, deviceHash, sanitizedPayload.summary, fastify.log)
             .catch((err: unknown) => fastify.log.error({ err }, 'Co-location check failed'));

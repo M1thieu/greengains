@@ -64,3 +64,25 @@ test('summary carries a per-key aux summary, and none for old clients', () => {
   const old = UploadBatchSchema.parse({ device_id: 'd', timestamp: T, batch: [{ t: T, light: 5 }] });
   assert.equal(summarizeBatch(old.batch).aux, undefined);
 });
+
+test('pressure summary is the measured station pressure, never reduced with GPS altitude', () => {
+  // Android altitude is above the WGS84 ellipsoid (~50 m off sea level in France): reducing with
+  // it added a 1-6 hPa error. The station value is what Open-Meteo surface_pressure compares to.
+  const b = UploadBatchSchema.parse({
+    ...batchWithAux(undefined),
+    location: { lat: 48.85, lon: 2.35, accuracy_m: 10, altitude: 400 },
+  });
+  const s = summarizeBatch(b.batch, b.location?.accuracy_m, b.location?.speed_mps);
+  assert.ok(Math.abs(s.pressure!.avg - 1013.05) < 1e-9);
+});
+
+test('device_model is kept when well-formed and dropped (not the batch) when not', () => {
+  const ok = UploadBatchSchema.safeParse({ ...batchWithAux(undefined), device_model: 'Google Pixel 8' });
+  assert.ok(ok.success);
+  assert.equal(ok.data.device_model, 'Google Pixel 8');
+  for (const bad of ['', 'x'.repeat(81), 'a\nb', 42]) {
+    const r = UploadBatchSchema.safeParse({ ...batchWithAux(undefined), device_model: bad });
+    assert.ok(r.success, 'batch must still be accepted');
+    assert.equal(r.data.device_model, undefined);
+  }
+});

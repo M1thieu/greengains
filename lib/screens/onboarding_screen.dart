@@ -6,7 +6,6 @@ import 'package:package_info_plus/package_info_plus.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:geolocator/geolocator.dart';
 import '../core/app_preferences.dart';
@@ -21,11 +20,11 @@ import '../core/constants.dart';
 import '../utils/app_snackbars.dart';
 import 'webview_screen.dart';
 
-// ── Onboarding layout constants ───────────────────────────────────────────────
+// Onboarding layout constants
 // Hero icon sizes that don't map directly to AppIconSizes entries.
 const _kWelcomeHeroSize = AppIconSizes.xl + AppTheme.spaceLg; // 48+24 = 72 — eco icon
 
-/// Onboarding — 2 pages: Welcome → Sign In
+/// Onboarding - 2 pages: Welcome → Sign In
 /// Typography-first premium redesign (Stripe/Linear/Vercel aesthetic).
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({
@@ -78,7 +77,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   Future<void> _handleGoogleSignIn() async {
-    // Capture l10n before async gap (Flutter best practice)
+    // Capture l10n before the async gap.
     final l10n = context.l10n;
     if (_signingIn) return;
     setState(() => _signingIn = true);
@@ -93,7 +92,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       unawaited(
         PackageInfo.fromPlatform().then((packageInfo) =>
           BackendClient.post(kApiUserConsent, {
-            'platform': Platform.isIOS ? 'ios' : 'android',
+            // Only platforms the consent record knows; others omit the field.
+            if (Platform.isIOS) 'platform': 'ios',
+            if (Platform.isAndroid) 'platform': 'android',
             'appVersion': packageInfo.version,
           }).then((body) async {
             final rawDate = body['agreedAt'];
@@ -101,7 +102,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             await AppPreferences.instance.setConsentDate(dt ?? DateTime.now());
           }),
         ).catchError((_) {
-          // Non-critical — consent date will be set on next successful call.
+          // Non-critical - consent date will be set on next successful call.
         }),
       );
 
@@ -113,9 +114,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         );
       }
 
-      AppSnackbars.showSuccess(context, l10n.signInSuccess);
-      await Future.delayed(AppDurations.medium);
-      if (!mounted) return;
       // First-time onboarding → advance to "start mapping" page.
       // Re-sign-in (initialPage > 0) → complete immediately.
       if (widget.initialPage > 0) {
@@ -145,27 +143,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
       if (permission == LocationPermission.deniedForever) {
         setState(() => _startingTracking = false);
-        final l10n = context.l10n;
-        await showDialog<void>(
-          context: context,
-          builder: (ctx) => AlertDialog(
-            title: Text(l10n.onboardingPermissionDeniedForeverTitle),
-            content: Text(l10n.onboardingPermissionDeniedForeverBody),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(ctx).pop(),
-                child: Text(l10n.buttonPrevious),
-              ),
-              FilledButton(
-                onPressed: () {
-                  Navigator.of(ctx).pop();
-                  Geolocator.openAppSettings();
-                },
-                child: Text(l10n.onboardingOpenSettings),
-              ),
-            ],
-          ),
-        );
+        // Android won't ask again: open the app's settings page directly.
+        await Geolocator.openAppSettings();
         return;
       }
 
@@ -175,10 +154,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         return;
       }
 
-      // Permission granted — prompt battery optimization before completing.
-      await _requestBatteryExemption();
-      if (!mounted) return;
-
       await ForegroundLocationService.instance.start();
       if (mounted) widget.onComplete();
     } catch (e) {
@@ -187,21 +162,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         setState(() => _startingTracking = false);
         AppSnackbars.showError(context, context.l10n.errorGeneric);
       }
-    }
-  }
-
-  /// Request battery optimization exemption inline — fires once during onboarding
-  /// right after location permission is granted, while the user is still engaged.
-  Future<void> _requestBatteryExemption() async {
-    try {
-      const platform = MethodChannel('greengains/foreground');
-      final bool isIgnoring =
-          await platform.invokeMethod('isIgnoringBatteryOptimizations');
-      if (!isIgnoring) {
-        await platform.invokeMethod('requestIgnoreBatteryOptimizations');
-      }
-    } catch (_) {
-      // Non-critical — tracking works without it, just may be killed by Doze.
     }
   }
 
@@ -217,7 +177,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     return Scaffold(
       body: Stack(
         children: [
-          // Page switcher — Welcome → Sign In → Start Mapping (first-time only)
+          // Page switcher - Welcome → Sign In → Start Mapping (first-time only)
           AnimatedSwitcher(
             duration: AppDurations.medium,
             switchInCurve: Curves.easeOut,
@@ -242,7 +202,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             ),
           ),
 
-          // Bottom navigation — dots + conditional full-width CTA
+          // Bottom navigation - dots + conditional full-width CTA
           Positioned(
             bottom: 0,
             left: 0,
@@ -291,7 +251,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     );
   }
 
-  // ── Page 1: Welcome ─────────────────────────────────────────────────────────
+  // Page 1: Welcome
   Widget _buildWelcomePage(ThemeData theme, bool isDark, AppLocalizations l10n) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -321,20 +281,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       color: AppColors.darkTextPrimary,
                     ),
                   ),
-                  const SizedBox(height: AppTheme.spaceSm),
-                  Text(
-                    l10n.onboardingWelcomeSubtitle,
-                    style: TextStyle(
-                      fontSize: AppTheme.fontSizeMd,
-                      height: AppLineHeights.relaxed,
-                      color: AppColors.darkTextSecondary,
-                    ),
-                  ),
                   const Spacer(),
                   _FeatureRow(
                     icon: Icons.battery_saver_outlined,
                     title: l10n.onboardingFeature1Title,
-                    description: l10n.onboardingFeature1Description,
                     isDark: isDark,
                     theme: theme,
                   ),
@@ -342,7 +292,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   _FeatureRow(
                     icon: Icons.shield_outlined,
                     title: l10n.onboardingFeature2Title,
-                    description: l10n.onboardingFeature2Description,
                     isDark: isDark,
                     theme: theme,
                   ),
@@ -350,7 +299,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   _FeatureRow(
                     icon: Icons.map_outlined,
                     title: l10n.onboardingFeature3Title,
-                    description: l10n.onboardingFeature3Description,
                     isDark: isDark,
                     theme: theme,
                   ),
@@ -363,7 +311,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     );
   }
 
-  // ── Page 2: Sign In ──────────────────────────────────────────────────────────
+  // Page 2: Sign In
   Widget _buildSignInPage(ThemeData theme, bool isDark, AppLocalizations l10n) {
     return SafeArea(
       child: Padding(
@@ -378,14 +326,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               style: theme.textTheme.headlineLarge?.copyWith(
                 fontWeight: AppFontWeights.bold,
                 letterSpacing: AppTheme.letterSpacingSubtle,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: AppTheme.spaceMd),
-            Text(
-              l10n.onboardingSignInSubtitle,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: AppColors.textSecondary(isDark),
               ),
               textAlign: TextAlign.center,
             ),
@@ -411,7 +351,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             ],
             const Spacer(),
 
-            // Privacy Policy / TOS — split-placeholder pattern:
+            // Privacy Policy / TOS - split-placeholder pattern:
             // pass sentinel tokens into the localized template, then split
             // on them to extract surrounding prose segments.
             // This preserves correct word order for every locale.
@@ -477,7 +417,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
             const SizedBox(height: AppTheme.spaceLg),
 
-            // Invite code — optional, collapsed by default
+            // Invite code - optional, collapsed by default
             AnimatedSize(
               duration: AppDurations.fast,
               curve: AppMotion.standard,
@@ -515,8 +455,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     ),
             ),
 
-            // Official Google Sign-In Button — full-width
-            SizedBox(
+            // Official Google Sign-In Button - full-width
+            Semantics(
+              button: true,
+              label: l10n.signInWithGoogleLabel,
+              child: SizedBox(
               width: double.infinity,
               child: InkWell(
                 onTap: _signingIn ? null : _handleGoogleSignIn,
@@ -552,6 +495,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       ),
               ),
             ),
+            ),
 
             const SizedBox(height: AppTheme.spaceXxl),
           ],
@@ -560,7 +504,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     );
   }
 
-  // ── Page 3: Start Mapping ─────────────────────────────────────────────────────
+  // Page 3: Start Mapping
   Widget _buildStartPage(ThemeData theme, bool isDark, AppLocalizations l10n) {
     return SafeArea(
       child: Padding(
@@ -597,7 +541,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             _FeatureRow(
               icon: Icons.battery_saver_outlined,
               title: l10n.permissionPrimingBattery,
-              description: l10n.permissionPrimingBatteryDesc,
               isDark: isDark,
               theme: theme,
             ),
@@ -605,7 +548,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             _FeatureRow(
               icon: Icons.security_outlined,
               title: l10n.permissionPrimingCollects,
-              description: l10n.permissionPrimingCollectsDesc,
               isDark: isDark,
               theme: theme,
             ),
@@ -634,20 +576,18 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 }
 
-// ── Onboarding feature row ────────────────────────────────────────────────────
+// Onboarding feature row
 
 class _FeatureRow extends StatelessWidget {
   const _FeatureRow({
     required this.icon,
     required this.title,
-    required this.description,
     required this.isDark,
     required this.theme,
   });
 
   final IconData icon;
   final String title;
-  final String description;
   final bool isDark;
   final ThemeData theme;
 
@@ -685,7 +625,7 @@ class _FeatureRow extends StatelessWidget {
   }
 }
 
-// ── Onboarding hex hero animation ────────────────────────────────────────────
+// Onboarding hex hero animation
 
 class _OnboardingHexHero extends StatefulWidget {
   const _OnboardingHexHero();

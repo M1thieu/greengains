@@ -8,12 +8,12 @@ package com.eremat.greengains.service
  * measurement (how noisy the sensor is), adapting in real time.
  *
  * Tuned for barometric pressure from MEMS sensors (Bosch BME280 class):
- *   Q = 0.001  — process noise: pressure changes slowly (~0.1–1 hPa/hr for weather)
- *   R = 0.04   — measurement noise variance (~0.2 hPa RMS per BME280 datasheet, R = σ²)
+ *   Q = 0.001  - process noise: pressure changes slowly (~0.1–1 hPa/hr for weather)
+ *   R = 0.04   - measurement noise variance (~0.2 hPa RMS per BME280 datasheet, R = σ²)
  *
- * @param processNoise     Q — variance of how fast the true value can change. Lower = smoother
+ * @param processNoise     Q - variance of how fast the true value can change. Lower = smoother
  *                         but slower to track real changes (e.g. entering a building).
- * @param measurementNoise R — sensor noise variance. Higher = less trust in raw readings.
+ * @param measurementNoise R - sensor noise variance. Higher = less trust in raw readings.
  */
 class KalmanFilter1D(
     private val processNoise: Double,

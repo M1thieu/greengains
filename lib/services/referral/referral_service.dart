@@ -52,13 +52,13 @@ class ReferralService {
         {'referralCode': referralCode},
       );
     } catch (e) {
-      // Non-critical — never block the copy action
+      // Non-critical - never block the copy action
       debugPrint('Referral invite log failed (non-critical): $e');
     }
   }
 
   /// Fetch the current user's referral stats (invites shared, conversions).
-  /// Returns null on error — callers should handle gracefully.
+  /// Returns null on error - callers should handle gracefully.
   Future<({int invitesShared, int conversions})?> fetchStats() async {
     try {
       final data = await BackendClient.get(

@@ -106,3 +106,14 @@ class ProfileUpdatedEvent extends AppEvent {
   String get debugInfo =>
       'uploads=$totalUploads, days=$daysActive, cells=$coverageCells, streak=$longestStreak';
 }
+
+/// The user tapped the bottom-nav tab that is already open: the screen goes
+/// back to its starting point (map recentres, lists scroll to the top).
+class TabReselectedEvent extends AppEvent {
+  final int index;
+
+  TabReselectedEvent(this.index);
+
+  @override
+  String get debugInfo => 'index=$index';
+}

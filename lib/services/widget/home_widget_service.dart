@@ -2,7 +2,7 @@ import 'package:flutter/services.dart';
 
 /// Pushes zone count, streak, and active state to the Android home screen widget.
 ///
-/// Uses the existing greengains/foreground MethodChannel — no extra package needed.
+/// Uses the existing greengains/foreground MethodChannel - no extra package needed.
 /// Silently ignores failures (widget not installed is non-critical).
 class HomeWidgetService {
   HomeWidgetService._();
@@ -21,7 +21,7 @@ class HomeWidgetService {
         'isActive': isActive,
       });
     } catch (_) {
-      // Widget not placed on home screen or update failed — non-critical.
+      // Widget not placed on home screen or update failed - non-critical.
     }
   }
 }

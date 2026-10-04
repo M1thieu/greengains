@@ -5,7 +5,7 @@ import { EARTH_RADIUS_METERS } from '../constants';
 import { vectorMagnitude as vecMagnitude, stdDev } from './sensor-analytics';
 
 // Max batches accepted per device per sliding hour window.
-// ~1 batch every 30s for a full hour — generous for real usage, blocks burst bots.
+// ~1 batch every 30s for a full hour - generous for real usage, blocks burst bots.
 const MAX_BATCHES_PER_HOUR = 120;
 
 // Max batches accepted per user (all their devices combined) per sliding hour window.
@@ -24,7 +24,7 @@ const MAX_USER_BATCHES_PER_HOUR = 300;
  *
  * This does not reopen the "low-altitude aircraft" hole the previous 300->100 tightening closed:
  * a Cessna 172, the world's most common small aircraft, cruises at 110-124 knots = 56.6-63.8 m/s
- * and tops out near 140 knots = 72 m/s — already well under even the OLD 100 m/s bound. The
+ * and tops out near 140 knots = 72 m/s - already well under even the OLD 100 m/s bound. The
  * Shanghai Maglev, once the fastest revenue rail service at 431 km/h, was itself slowed to
  * 300 km/h = 83.3 m/s in 2021 and no longer factors in.
  *
@@ -34,14 +34,14 @@ const MAX_USER_BATCHES_PER_HOUR = 300;
  */
 const MAX_GPS_SPEED_MPS = 115;
 
-// ─── In-Memory Rate Limiting ──────────────────────────────────────────────────
+// In-Memory Rate Limiting
 //
-// Fixed-window counters in an LRU cache — eliminates DB queries for the vast
+// Fixed-window counters in an LRU cache - eliminates DB queries for the vast
 // majority of requests (normal devices are far below 120 batches/hour).
 //
 // Architecture:
-//   Fast path  — memory count well below limit → return immediately, no DB.
-//   Slow path  — memory count at/over limit → confirm against DB to avoid
+//   Fast path  - memory count well below limit → return immediately, no DB.
+//   Slow path  - memory count at/over limit → confirm against DB to avoid
 //               false positives from process restarts resetting counters.
 //
 // Horizontal scaling: each process has its own memory window; the DB query on
@@ -74,12 +74,12 @@ function _rlIncrement(key: string): number {
   return existing.count;
 }
 
-// ─── Rate Limiting ────────────────────────────────────────────────────────────
+// Rate Limiting
 
 /**
  * Checks both device and user rate limits.
  *
- * Fast path (normal requests): O(1) in-memory check — zero DB queries.
+ * Fast path (normal requests): O(1) in-memory check - zero DB queries.
  * Slow path (at/over limit): single DB subquery confirms to avoid false
  * positives from process restarts and multi-instance deployments.
  */
@@ -98,7 +98,7 @@ export async function checkRateLimits(
     return { deviceExceeded: false, userExceeded: false };
   }
 
-  // Confirm against DB — process restarts reset in-memory counters and could
+  // Confirm against DB - process restarts reset in-memory counters and could
   // let a burst through. DB is authoritative; memory is just the fast gate.
   const result = await pool.query<{ device_count: string; user_count: string }>(
     `SELECT
@@ -122,7 +122,7 @@ export async function checkRateLimits(
 }
 
 
-// ─── Sensor Range Validation ──────────────────────────────────────────────────
+// Sensor Range Validation
 
 const SENSOR_BOUNDS = {
   light:    { min: 0,    max: 130_000 }, // lux: pitch dark → direct sunlight
@@ -165,9 +165,9 @@ export function validateSensorRanges(batch: UploadBatch): string | null {
   return null;
 }
 
-// ─── Batch Integrity Checks ───────────────────────────────────────────────────
+// Batch Integrity Checks
 //
-// All checks run in O(n) on the batch array — zero DB queries.
+// All checks run in O(n) on the batch array - zero DB queries.
 // Return a flag string for logging; callers decide whether to reject or just tag.
 
 /** Max realistic batch window: 30 min. Longer implies buffered/replayed data. */
@@ -214,7 +214,7 @@ const PRESSURE_SPIKE_RATIO_THRESHOLD = 0.15;
 /**
  * Max plausible divergence (metres) between GPS altitude and pressure-derived altitude.
  * GPS altitude error is typically ±30–100m; a divergence >300m means one source is bad.
- * Source: Zaliva & Franchetti, CMU — "Barometric and GPS Altitude Sensor Fusion" (2014).
+ * Source: Zaliva & Franchetti, CMU - "Barometric and GPS Altitude Sensor Fusion" (2014).
  */
 const BARO_GPS_ALTITUDE_DIVERGENCE_M = 300;
 
@@ -225,25 +225,25 @@ export interface BatchIntegrityResult {
   windowTooLong: boolean;   // batch spans more than 30 minutes
   likelyStatic: boolean;    // device never moved — possible fake node
   allPocket: boolean;       // >95% readings in pocket — unusable
-  /** GPS speed implies vehicle travel (>15 m/s ≈ 54 km/h) — less useful for pedestrian tiles. */
+  /** GPS speed implies vehicle travel (>15 m/s ≈ 54 km/h) - less useful for pedestrian tiles. */
   highSpeed: boolean;
-  /** >80% of light readings are exactly 0 — sensor blocked/face-down, not genuine darkness. */
+  /** >80% of light readings are exactly 0 - sensor blocked/face-down, not genuine darkness. */
   lightSensorStuck: boolean;
   /** GPS accuracy too coarse (>150m) for meaningful hex-tile attribution. */
   coarseGps: boolean;
   /**
-   * >15% of consecutive pressure transitions exceed 5 hPa — physically implausible on the ground.
+   * >15% of consecutive pressure transitions exceed 5 hPa - physically implausible on the ground.
    * Source: NIST/MDPI IoT temporal consistency; Street Bump delta-threshold pattern.
    */
   pressureSpikes: boolean;
   /**
-   * Reading timestamps are not monotonically increasing — clock skew or corrupted buffer.
-   * Source: IoT data quality framework (MDPI 2021) — timeliness & consistency dimensions.
+   * Reading timestamps are not monotonically increasing - clock skew or corrupted buffer.
+   * Source: IoT data quality framework (MDPI 2021) - timeliness & consistency dimensions.
    */
   timestampDisordered: boolean;
   /**
    * Pressure-derived altitude diverges from GPS altitude by >300m.
-   * Source: Zaliva & Franchetti, CMU — "Barometric and GPS Altitude Sensor Fusion" (2014).
+   * Source: Zaliva & Franchetti, CMU - "Barometric and GPS Altitude Sensor Fusion" (2014).
    */
   baroGpsDivergence: boolean;
   /** 0–1 composite quality multiplier (1.0 = fully trusted, 0.0 = reject). */
@@ -253,7 +253,7 @@ export interface BatchIntegrityResult {
 
 /**
  * Pure-compute integrity check on an upload batch.
- * No DB queries — runs at ingest time, costs a single O(n) pass.
+ * No DB queries - runs at ingest time, costs a single O(n) pass.
  *
  * Catches: suspiciously long capture windows (buffered/replayed batches),
  * devices that never move (fake nodes), and fully-pocketed sessions.
@@ -261,14 +261,14 @@ export interface BatchIntegrityResult {
 export function checkBatchIntegrity(batch: UploadBatch): BatchIntegrityResult {
   const readings = batch.batch;
 
-  // ── Window duration ───────────────────────────────────────────────────────
+  // Window duration
   const timestamps = readings.map(r => r.t.getTime()).filter(t => !isNaN(t));
   const windowMs = timestamps.length >= 2
     ? Math.max(...timestamps) - Math.min(...timestamps)
     : 0;
   const windowTooLong = windowMs > MAX_BATCH_WINDOW_MS;
 
-  // ── Static device detection ───────────────────────────────────────────────
+  // Static device detection
   const accelMags = readings
     .filter(r => r.accel !== undefined)
     .map(r => vecMagnitude(r.accel!));
@@ -276,7 +276,7 @@ export function checkBatchIntegrity(batch: UploadBatch): BatchIntegrityResult {
     accelMags.length >= STATIC_DEVICE_MIN_READINGS &&
     stdDev(accelMags) < STATIC_DEVICE_STD_DEV_THRESHOLD;
 
-  // ── Pocket ratio ──────────────────────────────────────────────────────────
+  // Pocket ratio
   const pocketReadings = readings.filter(r =>
     String(r.quality?.pocket ?? '').toLowerCase() === 'likely',
   ).length;
@@ -284,12 +284,12 @@ export function checkBatchIntegrity(batch: UploadBatch): BatchIntegrityResult {
     readings.length > 0 &&
     pocketReadings / readings.length > HIGH_POCKET_RATIO_THRESHOLD;
 
-  // ── Vehicle speed ─────────────────────────────────────────────────────────
+  // Vehicle speed
   // batch.location.speed_mps is the GPS-reported speed at batch submission time.
-  // > 15 m/s implies a vehicle — pedestrian-scale tile data is less trustworthy.
+  // > 15 m/s implies a vehicle - pedestrian-scale tile data is less trustworthy.
   const highSpeed = (batch.location?.speed_mps ?? 0) > VEHICLE_SPEED_THRESHOLD_MPS;
 
-  // ── Stuck light sensor ────────────────────────────────────────────────────
+  // Stuck light sensor
   // >80% of light readings exactly 0 → sensor blocked (face-down, dense case).
   // A genuinely dark room has 0–10 lux with slight variation; exactly 0 flat = blocked.
   const lightReadings = readings.filter(r => r.light !== undefined);
@@ -298,13 +298,13 @@ export function checkBatchIntegrity(batch: UploadBatch): BatchIntegrityResult {
     lightReadings.length >= STUCK_LIGHT_MIN_READINGS &&
     stuckLightCount / lightReadings.length > STUCK_LIGHT_RATIO_THRESHOLD;
 
-  // ── GPS accuracy ──────────────────────────────────────────────────────────
+  // GPS accuracy
   // accuracy_m > 150m means we can't reliably attribute this batch to a single
-  // H3 res-9 hex (~174m diameter). Downweight, but don't reject — coarse GPS
+  // H3 res-9 hex (~174m diameter). Downweight, but don't reject - coarse GPS
   // is still useful for res-8 global tiles (~461m hex).
   const coarseGps = (batch.location?.accuracy_m ?? 0) > COARSE_GPS_ACCURACY_M;
 
-  // ── Pressure rate-of-change (temporal consistency) ────────────────────────
+  // Pressure rate-of-change (temporal consistency)
   // Consecutive readings jumping >5 hPa = sensor glitch, not real weather.
   // Ground-level weather fronts move at ~5–10 hPa/hour; within a batch (minutes)
   // any single-sample jump over 5 hPa is physically impossible.
@@ -322,18 +322,18 @@ export function checkBatchIntegrity(batch: UploadBatch): BatchIntegrityResult {
     pressureTransitions >= PRESSURE_SPIKE_MIN_TRANSITIONS &&
     pressureSpikeCount / pressureTransitions > PRESSURE_SPIKE_RATIO_THRESHOLD;
 
-  // ── Timestamp monotonicity ────────────────────────────────────────────────
+  // Timestamp monotonicity
   // Readings should be chronologically ordered. Out-of-order timestamps indicate
   // clock skew, corrupted ring buffers, or data replay.
-  // Source: MDPI 2021 "Data Quality Management in IoT" — timeliness & consistency dimensions.
+  // Source: MDPI 2021 "Data Quality Management in IoT" - timeliness & consistency dimensions.
   const timestampDisordered =
     timestamps.length >= 3 &&
     !timestamps.every((t, i) => i === 0 || t >= timestamps[i - 1]);
 
-  // ── Barometer ↔ GPS altitude cross-check ─────────────────────────────────
+  // Barometer ↔ GPS altitude cross-check
   // Convert mean pressure to altitude using ISA formula, compare to GPS altitude.
   // Divergence >300m = bad GPS altitude or malfunctioning barometer.
-  // Source: Zaliva & Franchetti, CMU — "Barometric and GPS Altitude Sensor Fusion" (2014).
+  // Source: Zaliva & Franchetti, CMU - "Barometric and GPS Altitude Sensor Fusion" (2014).
   let baroGpsDivergence = false;
   const gpsAltitude = batch.location?.altitude;
   if (gpsAltitude != null && pressureSeq.length >= 3) {
@@ -344,17 +344,17 @@ export function checkBatchIntegrity(batch: UploadBatch): BatchIntegrityResult {
     baroGpsDivergence = Math.abs(baroAltitude - gpsAltitude) > BARO_GPS_ALTITUDE_DIVERGENCE_M;
   }
 
-  // ── Charging state ────────────────────────────────────────────────────────
+  // Charging state
   // Charging almost always means the phone is stationary on a desk or in a car.
   // Still useful environmental data, but less valuable for pedestrian tile density.
   // Purple Air uses this same logic to classify indoor vs outdoor nodes.
   const isCharging = batch.is_charging === true;
 
-  // ── Sensor completeness bonus ─────────────────────────────────────────────
+  // Sensor completeness bonus
   // sensor_flags bitmask: LIGHT=1, MOTION=2, PRESSURE=4, GYRO=8, MAGNETIC=16.
   // More active sensors = more cross-validation possible = higher baseline trust.
   // A batch with all 5 sensors gets a 10% bonus; each missing sensor costs 2%.
-  // Capped so this never pushes multiplier above 1.0 — it only partially offsets penalties.
+  // Capped so this never pushes multiplier above 1.0 - it only partially offsets penalties.
   const sensorCount = batch.sensor_flags != null
     ? [1, 2, 4, 8, 16].filter(bit => (batch.sensor_flags! & bit) !== 0).length
     : 0;
@@ -363,7 +363,7 @@ export function checkBatchIntegrity(batch: UploadBatch): BatchIntegrityResult {
     : sensorCount === 2 ? 1.02
     : 1.0;
 
-  // ── Composite quality multiplier ──────────────────────────────────────────
+  // Composite quality multiplier
   let qualityMultiplier = 1.0;
   if (windowTooLong)        qualityMultiplier *= 0.5;
   if (likelyStatic)         qualityMultiplier *= 0.3;
@@ -385,7 +385,7 @@ export function checkBatchIntegrity(batch: UploadBatch): BatchIntegrityResult {
   };
 }
 
-// ─── GPS Velocity Check ───────────────────────────────────────────────────────
+// GPS Velocity Check
 
 /** Haversine distance in metres between two lat/lon coordinates. */
 function haversineMetres(lat1: number, lon1: number, lat2: number, lon2: number): number {
@@ -406,7 +406,7 @@ function haversineMetres(lat1: number, lon1: number, lat2: number, lon2: number)
  * Skips the check when:
  * - This batch carries no location data
  * - No previous batch with location exists for this device
- * - Time delta ≤ 0 (clock skew / duplicate timestamp — handled by dedup index)
+ * - Time delta ≤ 0 (clock skew / duplicate timestamp - handled by dedup index)
  */
 export async function checkGpsVelocity(
   pool: Pool,

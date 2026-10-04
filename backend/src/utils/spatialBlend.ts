@@ -43,7 +43,7 @@ export interface CellEstimate {
 
 const cellVariance = (c: CellEstimate) => c.noiseVar / c.n;
 
-// ─── Noise from (min, max, n): range estimator, d2 of statistical process control ───────────
+// Noise from (min, max, n): range estimator, d2 of statistical process control
 
 /** Abramowitz & Stegun 7.1.26, |error| < 1.5e-7. */
 function erf(x: number): number {
@@ -86,7 +86,7 @@ export function rangeVariance(min: number, max: number, n: number): number | nul
   return sigma * sigma;
 }
 
-// ─── Blend ────────────────────────────────────────────────────────────────────────────────────
+// Blend
 
 /**
  * Semivariance at the neighbour lag, noise-corrected, from observed adjacent cell pairs.

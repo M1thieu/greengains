@@ -5,11 +5,12 @@ import 'screens/profile_screen.dart';
 import 'screens/statistics_screen.dart';
 import 'core/extensions/context_extensions.dart';
 import 'core/services/time_ago_service.dart';
+import 'core/events/app_events.dart';
 import 'core/themes.dart';
 import 'services/location/foreground_location_service.dart';
 import 'widgets/press_scale_detector.dart';
 
-// ── Floating nav bar constants ─────────────────────────────────────────────────
+// Floating nav bar constants
 const _kNavBackgroundAlpha = 0.60;
 const _kNavBorderAlpha     = 0.08;
 const _kNavShadowAlpha     = 0.40;
@@ -17,7 +18,7 @@ const _kNavShadowBlur      = 32.0;
 const _kNavShadowOffsetY   = 12.0;
 
 /// Main navigation shell with floating bottom nav bar (Silencio-style).
-/// extendBody: true — map/content bleeds to full screen height behind the nav.
+/// extendBody: true - map/content bleeds to full screen height behind the nav.
 class AppShell extends StatefulWidget {
   const AppShell({super.key});
 
@@ -66,12 +67,14 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
   }
 
   void _onTabSelected(int index) {
+    if (index == _currentIndex) {
+      AppEventBus.instance.emit(TabReselectedEvent(index));
+      return;
+    }
     setState(() => _currentIndex = index);
-    _pageController.animateToPage(
-      index,
-      duration: AppDurations.fast,
-      curve: AppMotion.standard,
-    );
+    // Instant switch: sliding through the tabs in between (Map -> Stats ->
+    // Profile) is movement nobody asked for.
+    _pageController.jumpToPage(index);
   }
 
   @override
@@ -81,8 +84,15 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
         _locationService.isRunning.value && !_locationService.isPaused.value;
     final bottomPadding = MediaQuery.paddingOf(context).bottom;
 
-    return Scaffold(
-      // Map extends to full screen height — nav floats on top.
+    // Android back on Stats or Profile returns to the Map first; back on the
+    // Map leaves the app, as in any tabbed app.
+    return PopScope(
+      canPop: _currentIndex == 0,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) _onTabSelected(0);
+      },
+      child: Scaffold(
+      // Map extends to full screen height - nav floats on top.
       extendBody: true,
       body: PageView(
         controller: _pageController,
@@ -94,7 +104,7 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
           _KeepAlive(child: ProfileScreen(onGoToMap: () => _onTabSelected(0), onGoToStats: () => _onTabSelected(1))),
         ],
       ),
-      // Floating pill nav bar — RepaintBoundary isolates it from page rebuilds.
+      // Floating pill nav bar - RepaintBoundary isolates it from page rebuilds.
       bottomNavigationBar: RepaintBoundary(
         child: Padding(
         padding: EdgeInsets.only(
@@ -111,7 +121,7 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
             ),
             child: Container(
           height: AppTheme.floatingNavHeight,
-          // No borderRadius here — ClipRRect already clips the shape.
+          // No borderRadius here - ClipRRect already clips the shape.
           decoration: AppColors.glassDecoration(
             isDark: isDark,
             backgroundAlpha: _kNavBackgroundAlpha,
@@ -157,6 +167,7 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
         ),
         ),
       ),
+    ),
     );
   }
 }
@@ -203,24 +214,20 @@ class _NavItem extends StatelessWidget {
                 size: AppIconSizes.md,
               ),
             ),
-            // Label only visible on selected tab — cleaner than always-visible labels
-            AnimatedSize(
-              duration: AppDurations.fast,
-              curve: AppMotion.standard,
-              child: selected
-                  ? Padding(
-                      padding: const EdgeInsets.only(top: AppTheme.spaceXxxs),
-                      child: Text(
-                        label,
-                        style: TextStyle(
-                          color: AppColors.primary,
-                          fontSize: AppTheme.fontSizeNavLabel,
-                          fontWeight: AppFontWeights.semibold,
-                          letterSpacing: 0.2,
-                        ),
-                      ),
-                    )
-                  : const SizedBox.shrink(),
+            // Labels always visible: with 3 destinations, icon-only tabs
+            // make people guess (Material / NN/g navigation guidance).
+            Padding(
+              padding: const EdgeInsets.only(top: AppTheme.spaceXxxs),
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: color,
+                  fontSize: AppTheme.fontSizeNavLabel,
+                  fontWeight: selected ? AppFontWeights.semibold : AppFontWeights.medium,
+                ),
+              ),
             ),
           ],
           ),

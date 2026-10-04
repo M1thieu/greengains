@@ -20,10 +20,10 @@ import '../utils/app_snackbars.dart';
 import '../widgets/referral_invite_card.dart';
 import '../widgets/stat_cell.dart';
 import 'settings_screen.dart';
+import '../widgets/detail_page.dart';
 
 
 /// Profile screen showing user information and quick stats
-/// REDESIGNED: Compact layout that fits without scrolling
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key, this.onGoToMap, this.onGoToStats});
   final VoidCallback? onGoToMap;
@@ -34,6 +34,7 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
+  final _scrollController = ScrollController();
   bool _signingIn = false;
 
   int? _totalUploads;
@@ -41,7 +42,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   int? _coverageCells;
   int? _currentStreak;
   int? _longestStreak;
-  // Previous display values — so count-up never resets to 0 on reload
+  // Previous display values - so count-up never resets to 0 on reload
   double _prevTotalUploads = 0;
   double _prevDaysActive = 0;
   double _prevKm2 = 0;
@@ -52,6 +53,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void initState() {
     super.initState();
     _loadProfileStats();
+    _subs.add(AppEventBus.instance.on<TabReselectedEvent>().listen((e) {
+      if (e.index == 2 && _scrollController.hasClients) {
+        _scrollController.animateTo(0, duration: AppDurations.fast, curve: Curves.easeOut);
+      }
+    }));
     _subs.add(AppEventBus.instance.on<ProfileUpdatedEvent>().listen((event) {
       if (mounted) {
         setState(() {
@@ -84,6 +90,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   void dispose() {
     _subs.cancelAll();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -104,7 +111,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       );
     }
 
-    // Signed-in: collapsing SliverAppBar — avatar expands, shrinks on scroll
+    // Signed-in: collapsing SliverAppBar - avatar expands, shrinks on scroll
     return Scaffold(
       body: RefreshIndicator(
         onRefresh: _loadProfileStats,
@@ -153,19 +160,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: AppTheme.spaceSm),
-          Text(
-            l10n.profileUnlockBody,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: AppColors.textSecondary(isDark),
-            ),
-            textAlign: TextAlign.center,
-          ),
           const SizedBox(height: AppTheme.spaceXl),
 
           // Google Sign In Button
           PressScaleDetector(
             onTap: _signingIn ? null : _handleGoogleSignIn,
+            semanticLabel: l10n.signInWithGoogleLabel,
             child: _signingIn
                 ? Container(
                     height: 56,
@@ -210,7 +210,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     try {
       await AuthService.signInWithGoogleUniversal();
       if (!mounted) return;
-      AppSnackbars.showSuccess(context, l10n.signInSuccess);
       setState(() {}); // Trigger rebuild to show signed-in state
     } catch (e) {
       debugPrint('Sign-in error: $e');
@@ -232,10 +231,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
           onRefresh: _loadProfileStats,
           color: AppColors.primary,
           child: ListView(
+            controller: _scrollController,
             padding: EdgeInsets.fromLTRB(
                 AppTheme.spaceLg, topPad + AppTheme.spaceXxl + AppTheme.spaceSm, AppTheme.spaceLg, navBottom),
             children: [
-              // ── Avatar + identity ─────────────────────────────────────
+              // Avatar + identity
               Center(
                 child: Column(
                   children: [
@@ -310,15 +310,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
               const SizedBox(height: AppTheme.spaceXl),
 
-              // ── Streak hero ────────────────────────────────────────────
+              // Streak hero
               _buildStreakHero(theme, isDark, l10n),
               const SizedBox(height: AppTheme.spaceSm),
 
-              // ── Impact stats row ───────────────────────────────────────
+              // Impact stats row
               _buildImpactRow(theme, isDark, l10n),
               const SizedBox(height: AppTheme.spaceMd),
 
-              // ── Referral ───────────────────────────────────────────────
+              // Referral
               ReferralInviteCard(
                 user: user,
                 neighborhoodName: AppPreferences.instance.territoryLabel,
@@ -326,28 +326,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ],
           ),
         ),
-        // Top-right button — settings gear (sign out lives in Settings > Account)
+        // Top-right: standard settings icon (48px target, no box)
         Positioned(
           top: topPad + AppTheme.spaceXxs,
           right: AppTheme.spaceXs,
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              PressScaleDetector(
-                onTap: () => Navigator.of(context).push(
+              IconButton(
+                icon: Icon(Icons.settings_outlined, color: AppColors.textSecondary(isDark)),
+                tooltip: l10n.settingsTitle,
+                onPressed: () => Navigator.of(context).push(
                   MaterialPageRoute(builder: (_) => const SettingsScreen()),
-                ),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: AppColors.surfaceElevated(isDark),
-                    borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-                  ),
-                  padding: const EdgeInsets.all(AppTheme.spaceXs),
-                  child: Icon(
-                    Icons.settings_outlined,
-                    size: AppIconSizes.sm,
-                    color: AppColors.textSecondary(isDark),
-                  ),
                 ),
               ),
             ],
@@ -368,18 +358,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: AppColors.surface(isDark),
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(AppTheme.radiusLg)),
-      ),
-      builder: (_) {
+    pushDetailPage(context, builder: (_) {
         final bottomPad = MediaQuery.paddingOf(context).bottom + AppTheme.spaceLg;
         return SingleChildScrollView(
           padding: EdgeInsets.fromLTRB(AppTheme.spaceLg, AppTheme.spaceMd, AppTheme.spaceLg, bottomPad),
           child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-            AppTheme.dragHandle(isDark),
             const SizedBox(height: AppTheme.spaceMd),
             Text(value, style: theme.textTheme.displaySmall?.copyWith(
               fontWeight: AppFontWeights.bold,
@@ -432,8 +415,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ]),
         );
 
-      },
-    );
+      });
   }
 
   Widget _buildStreakHero(ThemeData theme, bool isDark, AppLocalizations l10n) {
@@ -769,7 +751,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 }
 
-// ── Mapper role chip ─────────────────────────────────────────────────────────
+// Mapper role chip
 
 class _MapperRoleChip extends StatelessWidget {
   const _MapperRoleChip({
@@ -785,21 +767,12 @@ class _MapperRoleChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final role = SensorInsights.mapperRole(cells);
     final label = SensorInsights.mapperRoleLabel(l10n, role);
-    return Container(
-      padding: const EdgeInsets.symmetric(
-          horizontal: AppTheme.spaceXs + 2, vertical: AppTheme.spaceXxxs + 1),
-      decoration: BoxDecoration(
-        color: AppColors.primary.withValues(alpha: 0.10),
-        borderRadius: BorderRadius.circular(AppTheme.radiusPill),
-        border: Border.all(color: AppColors.primary.withValues(alpha: 0.22)),
-      ),
-      child: Text(
-        label,
-        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-          color: AppColors.primary,
-          fontWeight: AppFontWeights.semibold,
-          letterSpacing: 0.2,
-        ),
+    // Plain accent text - a role under the name needs no pill around it.
+    return Text(
+      label,
+      style: Theme.of(context).textTheme.labelMedium?.copyWith(
+        color: AppColors.primary,
+        fontWeight: AppFontWeights.semibold,
       ),
     );
   }

@@ -41,7 +41,7 @@ export const QualityMetadataSchema = z.object({
 
 /**
  * Extra channels that only SOME phones have: ambient temperature, relative humidity, a second
- * (rear) light sensor, sensor-chip temperatures. Generic on purpose — a new sensor needs no
+ * (rear) light sensor, sensor-chip temperatures. Generic on purpose - a new sensor needs no
  * server change, only a new key. Keys are lowercase snake_case, values finite numbers, at most
  * MAX_AUX_CHANNELS of them. Anything else drops this map and never the reading: an optional
  * channel must not be able to cost us the core sensor data. Value ranges are validated by
@@ -59,7 +59,7 @@ export const SensorReadingSchema = z.object({
   aux: AuxChannelsSchema.optional().catch(undefined),
   accel: z.array(z.number()).length(3).optional(),
   gyro: z.array(z.number()).length(3).optional(),
-  // [x, y, z, magnitude] in µT — magnitude pre-computed on device to avoid backend recomputation
+  // [x, y, z, magnitude] in µT - magnitude pre-computed on device to avoid backend recomputation
   magnetic: z.array(z.number()).length(4).optional(),
   pressure: z.number().optional(),
   quality: QualityMetadataSchema.optional(),
@@ -77,12 +77,12 @@ export const NetworkTelemetrySchema = z.object({
   validated: z.boolean().optional(),
   metered: z.boolean().optional(),
   roaming: z.boolean().optional(),
-  /** Android's own link-speed estimates in kbps — estimates only, 0 = unspecified. */
+  /** Android's own link-speed estimates in kbps - estimates only, 0 = unspecified. */
   down_kbps: z.number().int().min(0).max(10_000_000).optional(),
   up_kbps: z.number().int().min(0).max(10_000_000).optional(),
   /** 1 = first attempt; >1 means earlier attempts failed. */
   attempt: z.number().int().min(1).max(50).optional(),
-  /** Age in seconds of the oldest reading at send time — delay caused by deferral. */
+  /** Age in seconds of the oldest reading at send time - delay caused by deferral. */
   queued_s: z.number().int().min(0).max(30 * 24 * 3600).optional(),
   /** Round-trip ms and compressed bytes of the previous successful upload. */
   last_upload_ms: z.number().int().min(0).max(600_000).optional(),
@@ -114,12 +114,18 @@ export const UploadBatchSchema = z.object({
   is_charging: z.boolean().optional(),
   /** WiFi signal strength in dBm at upload time. Null if not on WiFi. Range: -30 (excellent) to -90 (poor). */
   wifi_rssi_avg: z.number().int().min(-127).max(0).optional(),
-  /** Count of visible WiFi access points at upload time. Urban density proxy — no SSIDs or MACs stored. */
+  /** Count of visible WiFi access points at upload time. Urban density proxy - no SSIDs or MACs stored. */
   wifi_ap_count: z.number().int().min(0).max(500).optional(),
   /** Bitmask: LIGHT=1, MOTION=2, PRESSURE=4, GYRO=8, MAGNETIC=16 */
   sensor_flags: z.number().int().min(0).max(31).optional(),
-  /** .catch(undefined): telemetry is best-effort — a malformed block must never cost us the sensor data. */
+  /** .catch(undefined): telemetry is best-effort - a malformed block must never cost us the sensor data. */
   network: NetworkTelemetrySchema.optional().catch(undefined),
+  /**
+   * "<manufacturer> <model>" (Android Build.MANUFACTURER + Build.MODEL). Phone sensors carry a
+   * stable per-model bias (barometer ±1-2 hPa, light sensor up to ±60 %), so this is the key a
+   * per-model calibration needs. Low-entropy, shared by every unit of that model.
+   */
+  device_model: z.string().trim().min(1).max(80).regex(/^[\x20-\x7E]+$/).optional().catch(undefined),
 });
 
 export type LocationData = z.infer<typeof LocationDataSchema>;
@@ -154,5 +160,6 @@ export interface StoragePayload {
   wifi_rssi_avg?: number;
   wifi_ap_count?: number;
   network?: NetworkTelemetry;
+  device_model?: string;
   quality_multiplier?: number;
 }

@@ -2,27 +2,21 @@
   "@@locale": "fr",
 
   "onboardingWelcomeTitle": "Enfin connaître son quartier.",
-  "onboardingWelcomeSubtitle": "Votre téléphone lit chaque rue que vous traversez — son éclairage, ses vibrations, son animation. Vos trajets, vus autrement.",
   "onboardingFeature1Title": "Rien à faire.",
-  "onboardingFeature1Description": "Lancez une fois, gardez votre téléphone. La carte se construit seule.",
   "onboardingFeature2Title": "Privé par défaut",
-  "onboardingFeature2Description": "Votre trajet n'est jamais conservé. Les données sont anonymisées avant de quitter votre téléphone.",
-  "onboardingFeature3Title": "Voyez votre environnement.",
-  "onboardingFeature3Description": "Niveaux de lumière, pression atmosphérique, état des routes — l'environnement invisible que vous traversez chaque jour.",
-  "onboardingSignInTitle": "Votre carte commence ici.",
-  "onboardingSignInSubtitle": "Connectez-vous pour garder votre carte synchronisée sur tous vos appareils.",
-  "onboardingPrivacyNotice": "En continuant, vous acceptez notre {privacyPolicy} et nos {termsOfService}.",
+  "onboardingFeature3Title": "Vois ton environnement.",
+  "onboardingSignInTitle": "Ta carte commence ici.",
+  "onboardingPrivacyNotice": "En continuant, tu acceptes notre {privacyPolicy} et nos {termsOfService}.",
   "@onboardingPrivacyNotice": {
     "placeholders": {
       "privacyPolicy": {"type": "String"},
       "termsOfService": {"type": "String"}
     }
   },
+  "signInWithGoogleLabel": "Continuer avec Google",
   "privacyPolicy": "Politique de confidentialité",
   "termsOfService": "Conditions d'utilisation",
-  "buttonPrevious": "Précédent",
   "buttonNext": "Suivant",
-  "signInSuccess": "Connexion réussie",
   "signInError": "Connexion annulée ou échouée",
 
   "navHome": "Accueil",
@@ -30,84 +24,37 @@
   "navProfile": "Profil",
   "navSettings": "Paramètres",
 
-  "homeTitle": "GreenGains",
-  "homeIdleTagline": "Vois ce que tes trajets t'exposent",
-  "homeIdleSubtitle": "Laisse-le actif. Lumière, chaleur, surfaces — tout en silence.",
-  "homeStatPlaces": "{count} endroits",
-  "@homeStatPlaces": { "placeholders": { "count": { "type": "int" } } },
   "homeStatArea": "{area} cartographié",
   "@homeStatArea": { "placeholders": { "area": { "type": "String" } } },
-  "homeStatStreak": "{count, plural, =1{1 jour d'affilée} other{{count} jours d'affilée}}",
-  "@homeStatStreak": { "placeholders": { "count": { "type": "int" } } },
-  "homeStatToday": "+{count} aujourd'hui",
-  "@homeStatToday": { "placeholders": { "count": { "type": "int" } } },
   "homeActionStart": "Démarrer",
   "homeActionStop": "Arrêter",
   "homeActionResume": "Reprendre",
   "startTracking": "Démarrer le suivi",
   "stopTracking": "Arrêter le suivi",
-  "trackingActive": "Suivi actif",
   "trackingPaused": "Suivi en pause",
-  "trackingStopped": "Suivi arrêté",
-  "uploadSuccess": "Envoi réussi",
-  "uploadFailed": "Échec de l'envoi",
-  "lastUpload": "Dernier envoi : {time}",
+  "lastUpload": "Dernière mise à jour : {time}",
   "@lastUpload": {
     "placeholders": {
       "time": {"type": "String"}
     }
   },
-  "noUploadYet": "Aucun envoi pour le moment",
 
-  "statsTitle": "Votre carte",
-  "totalUploads": "Total d'envois",
-  "todayUploads": "Envois du jour",
-  "coverageTiles": "Tuiles couvertes",
-  "dataCollected": "Données collectées",
-  "timesContributed": "{count} contributions",
-  "@timesContributed": {
-    "placeholders": {
-      "count": {"type": "int"}
-    }
-  },
+  "totalUploads": "Total de scans",
 
-  "mapTitle": "Carte de couverture",
-  "mapRecenter": "Recentrer",
-  "mapZoomIn": "Zoomer",
-  "mapZoomOut": "Dézoomer",
-  "mapYourLocation": "Votre position",
-  "mapCoverageLegend": "Couverture",
-
-  "profileTitle": "Profil",
-  "profileSignOut": "Se déconnecter",
-  "profileSignedInAs": "Connecté en tant que",
   "profileMemberSince": "Membre depuis le {date}",
   "@profileMemberSince": {
     "placeholders": {
       "date": {"type": "String"}
     }
   },
-  "profileLastMapped": "Dernière cartographie {ago}",
-  "@profileLastMapped": {
-    "placeholders": {
-      "ago": {"type": "String"}
-    }
-  },
-  "profileDeleteAccount": "Supprimer le compte",
-  "profileDeleteConfirm": "Êtes-vous sûr ? Cette action est irréversible.",
 
   "settingsTitle": "Paramètres",
-  "settingsGeneral": "Général",
-  "settingsPrivacy": "Confidentialité et données",
   "settingsAbout": "À propos",
-  "settingsLanguage": "Langue",
   "settingsLanguageSystem": "Système",
   "settingsLanguageEnglish": "English",
   "settingsLanguageFrench": "Français",
   "settingsDisplay": "Affichage",
-  "settingsTheme": "Thème",
-  "settingsLocationSharing": "Partage de position",
-  "settingsMobileData": "Envoi sur données mobiles",
+  "settingsMobileData": "Utiliser les données mobiles",
   "settingsVersion": "Version {version}",
   "@settingsVersion": {
     "placeholders": {
@@ -115,25 +62,11 @@
     }
   },
 
-  "permissionLocationTitle": "Autorisation de localisation",
-  "permissionLocationMessage": "Autorisez la localisation pour que votre téléphone cartographie pendant vos déplacements.",
-  "permissionLocationButton": "Autoriser",
-  "permissionBatteryTitle": "Optimisation de la batterie",
-  "permissionBatteryMessage": "Veuillez désactiver l'optimisation de la batterie pour un suivi en arrière-plan fiable.",
-  "permissionBatteryButton": "Ouvrir les paramètres",
+  "permissionLocationMessage": "Autorise la localisation pour que ton téléphone cartographie pendant tes déplacements.",
 
   "errorGeneric": "Une erreur s'est produite. Veuillez réessayer.",
-  "errorNetwork": "Pas de connexion internet",
-  "errorLocationUnavailable": "Position indisponible",
-  "errorUploadFailed": "Synchronisation impossible. Nouvelle tentative plus tard.",
-  "errorSignInRequired": "Veuillez vous connecter pour continuer",
 
-  "buttonOk": "OK",
   "buttonCancel": "Annuler",
-  "buttonYes": "Oui",
-  "buttonNo": "Non",
-  "buttonSave": "Enregistrer",
-  "buttonDelete": "Supprimer",
   "buttonClose": "Fermer",
   "buttonRetry": "Réessayer",
   "loading": "Chargement...",
@@ -143,60 +76,15 @@
 
   "profileUserFallback": "Utilisateur",
 
-  "chipContributing": "Cartographie",
   "chipPaused": "En pause",
-  "chipTapStart": "Appuie sur ▶ pour commencer",
-  "chipTapStartFirst": "Commence à cartographier ton quartier",
-  "chipDataPts": "{count, plural, =1{1 scan} other{{count} scans}}",
-  "@chipDataPts": {
-    "placeholders": { "count": { "type": "int" } }
-  },
-  "homeSessionZones": "{count, plural, =0{Cartographie} =1{+1 nouvel endroit} other{+{count} nouveaux endroits}}",
-  "@homeSessionZones": {
-    "placeholders": { "count": { "type": "int" } }
-  },
-  "homeYourMap": "VOTRE CARTE",
-  "homeCityPct": "{pct}% de la ville explorée",
-  "@homeCityPct": {
-    "placeholders": { "pct": { "type": "String" } }
-  },
-  "profileImpactSection": "VOTRE CARTE",
-  "homeFirstUseHint": "Appuyez sur ▶ pour voir votre premier endroit apparaître",
-  "homeFirstTrackingHint": "Lecture de la lumière, chaleur et surfaces. Première zone après l'envoi.",
-  "homeTrackingReadings": "{count, plural, =1{1 mesure capturée} other{{count} mesures capturées}}",
-  "@homeTrackingReadings": {
-    "placeholders": { "count": { "type": "num", "format": "compact" } }
-  },
-  "homeReturnHint": "{count, plural, =1{1 endroit sur ta carte. Appuie sur ▶ pour explorer plus} other{{count} endroits sur ta carte. Appuie sur ▶ pour explorer plus}}",
-  "@homeReturnHint": {
-    "placeholders": { "count": { "type": "int" } }
-  },
 
-  "uploadSuccessMessage": "Carte mise à jour !",
-  "uploadSuccessNewZone": "Nouvel endroit ajouté · {count} sur ta carte",
-  "@uploadSuccessNewZone": {
-    "placeholders": { "count": { "type": "int" } }
-  },
-  "semanticsRefreshMap": "Actualiser les données de la carte",
-  "semanticsToggleTracking": "Activer/désactiver le suivi",
   "semanticsCenterOnMe": "Centrer la carte sur ma position",
-  "semanticsZoneCount": "{count, plural, =1{1 endroit : voir les stats} other{{count} endroits : voir les stats}}",
-  "@semanticsZoneCount": {
-    "placeholders": {
-      "count": { "type": "int" }
-    }
-  },
-  "tipViewLiveDataTitle": "Voir les données en direct",
-  "tipViewLiveDataMessage": "Appuyez ci-dessous pour voir les données que vous contribuez actuellement",
 
-  "statsScreenTitle": "Statistiques",
   "statsToday": "Aujourd'hui",
   "statsThisWeek": "Cette semaine",
   "statsDaysActive": "Jours actifs",
-  "statsTotal": "Total",
-  "statsCoverage": "Endroits",
   "statsAreasLabel": "endroits couverts",
-  "statsDataPtsLabel": "données collectées",
+  "statsDataPtsLabel": "mesures",
   "statsKmMapped": "km² couverts",
   "statsBarCalloutUploads": "{count, plural, =1{1 scan} other{{count} scans}}",
   "@statsBarCalloutUploads": {
@@ -206,32 +94,19 @@
   "statsBarCalloutBest": "Meilleur jour",
   "statsBestDayLabel": "Meilleur jour",
   "statsAvgPerDay": "Moy. / jour",
-  "statsVerdictStrong": "Excellente semaine",
-  "statsVerdictGood": "Bonne semaine",
-  "statsVerdictSlow": "Semaine calme",
-  "statsVerdictNone": "Pas encore",
-  "statsVerdictSubStrong": "Actif {days} jours sur 7 cette semaine.",
-  "@statsVerdictSubStrong": { "placeholders": { "days": { "type": "int" } } },
-  "statsVerdictSubGood": "Actif {days} jours sur 7 cette semaine.",
-  "@statsVerdictSubGood": { "placeholders": { "days": { "type": "int" } } },
-  "statsVerdictSubSlow": "Actif {days} jour cette semaine.",
-  "@statsVerdictSubSlow": { "placeholders": { "days": { "type": "int" } } },
-  "statsVerdictSubNone": "Active le suivi et vis ta journée.",
   "statsWeeklyTargetLabel": "CETTE SEMAINE",
   "statsWeeklyTargetComplete": "Objectif atteint",
 
-  "statsLocalLegendLabel": "LÉGENDE LOCALE",
-  "statsLocalLegendLeader": "Mappeur le plus actif de ton secteur cette semaine",
-  "statsLocalLegendRank": "#{rank} sur {total} dans le secteur cette semaine",
+  "statsLocalLegendLabel": "TON QUARTIER",
+  "statsLocalLegendLeader": "Tu es le plus actif de ton quartier cette semaine",
+  "statsLocalLegendRank": "{rank}e sur {total} dans ton quartier cette semaine",
   "@statsLocalLegendRank": { "placeholders": { "rank": { "type": "int" }, "total": { "type": "int" } } },
-  "statsLocalLegendGap": "{count, plural, =1{1 zone pour prendre la tête} other{{count} zones pour prendre la tête}}",
+  "statsLocalLegendGap": "{count, plural, =1{1 endroit pour passer en tête} other{{count} endroits pour passer en tête}}",
   "@statsLocalLegendGap": { "placeholders": { "count": { "type": "int" } } },
 
   "statsImpactLabel": "TON IMPACT",
-  "statsImpactSolo": "{count, plural, =1{Tu es la seule personne à avoir cartographié 1 de tes zones} other{Tu es la seule personne à avoir cartographié {count} de tes zones}}",
+  "statsImpactSolo": "{count, plural, =1{Tu es le seul à être passé par 1 de tes endroits} other{Tu es le seul à être passé par {count} de tes endroits}}",
   "@statsImpactSolo": { "placeholders": { "count": { "type": "int" } } },
-  "statsWeeklyTargetRemaining": "{count} de plus",
-  "@statsWeeklyTargetRemaining": { "placeholders": { "count": { "type": "int" } } },
   "statsDetailTitle": "Tes données",
   "statsCityBlocks": "~{count} pâtés de maisons couverts",
   "@statsCityBlocks": { "placeholders": { "count": { "type": "int" } } },
@@ -241,9 +116,8 @@
   "statsRecordTotalUploads": "Total de scans",
   "statsRecordFirstDay": "Premier jour de cartographie",
   "statsRecordBestSession": "Meilleure session",
-  "statsZoneExplainer": "Une zone correspond environ à un pâté de maisons — enregistré en passant.",
-  "statsUploadExplainer": "Lumière, chaleur et qualité des surfaces capturées à cet instant.",
-  "statsTabCore": "Aperçu",
+  "statsZoneExplainer": "Un endroit, c'est à peu près un pâté de maisons.",
+  "statsUploadExplainer": "Lumière, chaleur et sol au moment du scan.",
   "statsTabInDepth": "Détails",
   "statsOpenDetails": "En détail",
   "statsInDepth30Days": "30 derniers jours",
@@ -256,124 +130,51 @@
       "count": { "type": "int" }
     }
   },
-  "statsHeatmapNoUploads": "{date} · aucun envoi",
+  "statsHeatmapNoUploads": "{date} · aucun scan",
   "@statsHeatmapNoUploads": {
     "placeholders": {
       "date": { "type": "String" }
     }
   },
-  "statsInDepthHabits": "Vos habitudes",
+  "statsInDepthHabits": "Tes habitudes",
   "statsInDepthActiveDays": "Jours actifs",
   "statsInDepthAvgPerDay": "Moy. / jour actif",
   "statsInDepthBestWeekday": "Meilleur jour",
-  "statsInDepthWhenYouMap": "Quand vous cartographiez",
+  "statsInDepthWhenYouMap": "Quand tu scannes",
   "statsDaysUnit": "jours",
   "statsCurrentStreakLabel": "Série actuelle",
   "statsLongestLabel": "Record",
   "statsAllTimeSection": "TOTAL",
   "statsUploadsUnit": "scans",
   "statsBestWeekLabel": "Meilleure semaine",
-  "statsQualitySection": "QUALITÉ DU SIGNAL",
+  "statsQualitySection": "FIABILITÉ",
   "statsQualityExcellent": "Excellent",
   "statsQualityGood": "Bon",
   "statsQualityFair": "Correct",
   "statsQualityLow": "Faible",
-  "statsQualitySubtitle": "La clarté de tes mesures : signal fort, moins d'erreurs",
+  "statsQualitySubtitle": "Plus c'est haut, plus tes mesures sont fiables.",
   "statsAvgPrefix": "moy.",
 
-  "infoKmTitle": "Territoire cartographié",
-  "infoKmBody": "Chaque zone fait environ un pâté de maisons. C'est la part de ta zone enregistrée.",
-  "infoDataPtsTitle": "Endroits cartographiés",
-  "infoDataPtsBody": "Chaque passage enregistre ce que cet endroit est vraiment. Plus de passages, plus de précision.",
-  "infoTodayTitle": "Aujourd'hui",
-  "infoTodayBody": "Lumière, météo et activité captées aujourd'hui à chaque arrêt.",
-  "infoThisWeekTitle": "Cette semaine",
-  "infoThisWeekBody": "Enregistrements des 7 derniers jours.",
-  "infoDaysActiveTitle": "Jours actifs",
-  "infoDaysActiveBody": "Jours où ton téléphone était actif. Pas besoin de sortir tous les jours.",
-  "infoBestDayTitle": "Meilleur jour",
-  "infoBestDayBody": "Votre jour le plus actif cette semaine. Souvent plus de temps en extérieur.",
-  "infoMilestoneTitle": "Prochain palier",
-  "infoMilestoneBody": "Chaque nouvel endroit cartographié compte pour le prochain palier.",
-  "infoTileQualityTitle": "Qualité de couverture",
-  "infoTileQualityBody": "Vert = bien couvert, jaune = partiel, rouge = plus de passages nécessaires.",
-"infoTilePersonalTitle": "Votre endroit",
-  "infoTilePersonalBody": "Votre téléphone a enregistré ici.",
-  "infoTileCommunityTitle": "Endroit communautaire",
-  "infoTileCommunityBody": "Cartographié par d'autres. Passez ici pour vous l'approprier.",
-  "statsTotalContributions": "Fois où tu as cartographié",
+  "infoTileQualityTitle": "Fiabilité",
+"infoTilePersonalTitle": "Ton endroit",
   "statsActivityTrend": "Cette semaine",
-  "statsLast7Days": "7 derniers jours",
   "statsTodayLabel": "AUJOURD'HUI",
-  "statsHistoryNote": "L'historique hebdomadaire apparaîtra après plusieurs jours de données",
-  "statsContributionTimeline": "Historique des contributions",
   "statsStartContributing": "Pas encore de données.",
-  "statsEmptyDescription": "Active le suivi une fois. Lumière, chaleur, surfaces — enregistrés en silence.",
   "statsEmptyGoMap": "Activer le suivi",
-  "statsEmptyUnlockHint": "Marche pour débloquer",
-  "statsUpdatedPrefix": "Mis à jour ",
-  "statsDayMon": "Lun",
-  "statsDayTue": "Mar",
-  "statsDayWed": "Mer",
-  "statsDayThu": "Jeu",
-  "statsDayFri": "Ven",
-  "statsDaySat": "Sam",
-  "statsDayToday": "Aujourd'hui",
+  "statsLoadErrorTitle": "Impossible de charger tes stats",
+  "statsCollectingTitle": "Collecte en cours",
 
-  "mapLoadingText": "Chargement de la carte...",
-  "mapCenterTooltip": "Centrer sur la position",
-
-  "yourContributions": "VOTRE TERRITOIRE",
-  "impactCardContext": "endroits cartographiés",
-  "loadingStatsLabel": "Chargement des statistiques",
-  "noContributionsYet": "Rien d'enregistré. Appuyez sur ▶ pour démarrer.",
-  "startContributingTitle": "Commencer à cartographier",
-  "startContributingHint": "Votre téléphone cartographie silencieusement pendant vos déplacements",
-  "areaCovered": "Zone couverte",
-  "activeStreak": "Territoire",
-  "contributionStatsSemanticsLabel": "Vos contributions : {uploads}. Zone couverte : {area}.",
-  "@contributionStatsSemanticsLabel": {
-    "placeholders": {
-      "uploads": {"type": "String"},
-      "area": {"type": "String"}
-    }
-  },
-
-  "chipZones": "endroits",
-  "chipSensors": "signaux",
-  "homeZonesMapped": "{count, plural, =1{1 endroit sur ta carte} other{{count} endroits sur ta carte}}",
-  "@homeZonesMapped": {
-    "placeholders": { "count": { "type": "int" } }
-  },
   "tileInfoSamplesLabel": "relevés",
   "tileInfoDevicesLabel": "personnes",
-  "tileInfoQualityLabel": "Couverture",
+  "tileInfoQualityLabel": "Fiabilité",
   "tileInfoAreaLabel": "surface",
   "tileInfoPersonal": "Le tien",
   "tileInfoCommunity": "Pas encore le tien",
   "tileOnlyYouMapped": "Seul(e) toi es passé(e) ici",
-  "tickerMotionStill": "immobile",
-  "tickerMotionMoving": "en mouvement",
-  "tickerMotionActive": "actif",
-  "tileInfoSamples": "{count, plural, =1{1 relevé} other{{count} relevés}}",
-  "@tileInfoSamples": {
-    "placeholders": {
-      "count": {"type": "int"}
-    }
-  },
-  "tileInfoNoSensorData": "Localisation uniquement. Pas de mesures pour cet endroit.",
-  "tileInfoConfidence": "Confiance",
-  "tileInfoQuality": "Qualité de couverture",
-  "tileInfoDevices": "{count, plural, =1{1 personne} other{{count} personnes}}",
-  "@tileInfoDevices": {
-    "placeholders": {
-      "count": {"type": "int"}
-    }
-  },
-  "tileScanningNow": "En cours de scan",
+  "tileInfoNoSensorData": "Position seulement, pas encore de mesures ici.",
 
-  "noCoverageYet": "Aucune couverture",
-  "startTrackingToMap": "Commencez le suivi pour cartographier votre secteur",
+  "noCoverageYet": "Rien ici pour l'instant",
+  "startTrackingToMap": "Lance le suivi pour remplir ta carte",
   "tilesCount": "{count} tuiles",
   "@tilesCount": {
     "placeholders": {
@@ -381,14 +182,6 @@
     }
   },
 
-  "sensorLiveReadings": "Ce qui t'entoure",
-  "sensorLiveSubtitle": "Lumière, mouvement et pression, en direct depuis ton téléphone.",
-  "sensorInactiveTitle": "Rien n'est enregistré",
-  "sensorInactiveSubtitle": "Active le suivi pour voir les données en direct.",
-  "sensorPausedTitle": "Enregistrement en pause",
-  "sensorPausedSubtitle": "Reprenez le suivi pour continuer à enregistrer",
-  "sensorAroundYou": "Autour de vous",
-  "sensorPressure": "Pression",
   "sensorUnitLux": "lx",
   "sensorUnitHpa": "hPa",
   "sensorUnitMovement": "m/s²",
@@ -399,10 +192,6 @@
   "sensorMagneticField": "Interférences",
   "sensorOrientation": "Orientation",
   "sensorAirPressure": "Pression de l'air",
-  "sensorAccelerationIntensity": "Intensité d'accélération",
-  "sensorRotationSpeed": "Vitesse de rotation",
-  "sensorAtmosphericPressure": "Pression atmosphérique",
-  "sensorStatusPaused": "En pause",
   "sensorStatusConnecting": "Connexion…",
   "sensorStatusLive": "En direct",
   "sensorStatusLastReading": "Dernière lecture",
@@ -412,19 +201,10 @@
   "lightNormal": "Normal",
   "lightBright": "Lumineux",
   "lightVeryBright": "Très lumineux",
-  "lightDarkHint": "Très peu de lumière artificielle",
-  "lightDimHint": "Faible luminosité ambiante",
-  "lightNormalHint": "Éclairage intérieur typique",
-  "lightBrightHint": "Près d'une fenêtre ou en extérieur",
-  "lightVeryBrightHint": "Soleil direct, exposition UV maximale",
   "magnetVeryLow": "Très faible",
   "magnetNormal": "Normal",
   "magnetElevated": "Élevé",
   "magnetHighNearMetal": "Élevé. Près d'un métal.",
-  "magnetVeryLowHint": "Interférences électromagnétiques minimales",
-  "magnetNormalHint": "Champ électromagnétique ambiant normal",
-  "magnetElevatedHint": "Possible infrastructure métallique à proximité",
-  "magnetHighHint": "Près d'équipements électriques ou de machinerie lourde",
 
   "daysActive": "{count, plural, =1{1 jour} other{{count} jours}}",
   "@daysActive": {
@@ -433,43 +213,19 @@
     }
   },
 
-  "trackingFabStarting": "Démarrage...",
-  "trackingFabRecording": "Cartographie en arrière-plan",
-  "trackingFabResume": "Appuyer pour reprendre",
-  "trackingFabStart": "Appuyer pour démarrer",
-  "trackingFabStopInSettings": "Cartographie active. Désactivez-la dans les réglages.",
   "trackingErrorUpdateFailed": "Impossible de mettre à jour le suivi. Veuillez réessayer.",
 
   "settingsThemeLight": "Clair",
   "settingsThemeDark": "Sombre",
   "settingsThemeAuto": "Auto",
   "settingsTracking": "Cartographie",
-  "settingsTrackingDesc": "Désactivez pour arrêter toute cartographie en arrière-plan",
-  "settingsLocationDescription": "Nécessaire pour la carte de couverture en direct",
-  "settingsMobileDataDescription": "Envoyer via LTE/5G si nécessaire",
   "settingsLegal": "Légal",
-  "settingsPrivacyPolicyDesc": "Comment nous gérons vos données",
-  "settingsTermsOfServiceDesc": "Conditions générales d'utilisation",
   "settingsDataTransparency": "Transparence des données",
-  "settingsDataDeletion": "Demande de suppression des données",
-  "settingsDataDeletionDesc": "Effacer toutes vos données enregistrées",
   "settingsExportData": "Exporter mes données",
-  "settingsExportDataPreparing": "Préparation de l'export…",
   "settingsExportDataFailed": "Impossible d'exporter tes données. Réessaie plus tard.",
-  "settingsDataSection": "Données",
-  "settingsConsentDate": "Consentement : {date}",
-  "@settingsConsentDate": {
-    "placeholders": {
-      "date": { "type": "String" }
-    }
-  },
-  "settingsDataRetention": "Mesures stockées 30 jours",
-  "referralInviteTitle": "Inviter des amis",
-  "referralInviteDescription": "Chaque personne qui rejoint cartographie des endroits que tu n'as pas encore couverts.",
+  "referralInviteDescription": "Chaque ami qui rejoint ajoute des endroits à la carte.",
   "layerMine": "Miennes",
   "layerAll": "Tout",
-  "referralLinkCopied": "Lien copié",
-  "referralCopyLink": "Copier le lien",
   "referralShareLink": "Partager",
   "referralConversions": "{count, plural, =0{Aucun ami rejoint pour l'instant} =1{1 ami a rejoint} other{{count} amis ont rejoint}}",
   "@referralConversions": {
@@ -478,38 +234,12 @@
     }
   },
 
-  "tooltipRefresh": "Actualiser",
-  "tooltipDismiss": "Fermer",
-
-  "statsHighlightsLabel": "FAITS MARQUANTS",
-  "statsMappingSince": "Cartographie depuis",
-  "statsFailedToLoad": "Impossible de charger les statistiques",
-  "statsReadyToContribute": "Active le suivi et vis ta journée.",
-  "statsFirstContributionHint": "Active le suivi pour enregistrer ta première zone",
-
-  "statsWeeklyLabel": "7 JOURS",
-
   "statsWeeklyTotal": "{count} cette semaine",
 
-  "statsMilestoneLabel": "Prochain palier",
-  "statsMilestoneHint": "Continue à sortir — chaque trajet étend ta couverture.",
   "statsMilestoneElite": "Tous les paliers atteints.",
-  "statsMilestoneRemaining": "{count, plural, =1{1 zone restante} other{{count} zones restantes}}",
+  "statsMilestoneRemaining": "{count, plural, =1{Encore 1 endroit} other{Encore {count} endroits}}",
   "@statsMilestoneRemaining": {
     "placeholders": { "count": { "type": "int" } }
-  },
-  "milestoneNudge": "{remaining} pour {target}",
-  "@milestoneNudge": {
-    "placeholders": {
-      "remaining": { "type": "int" },
-      "target": { "type": "int" }
-    }
-  },
-  "statsCommunityAreas": "{count} endroits cartographiés par des gens près de toi",
-  "@statsCommunityAreas": {
-    "placeholders": {
-      "count": {"type": "int"}
-    }
   },
   "@statsWeeklyTotal": {
     "placeholders": {
@@ -517,116 +247,45 @@
     }
   },
 
-  "batteryDialogTitle": "Continuez à cartographier",
-  "batteryDialogBody": "Désactivez l'optimisation de la batterie pour que l'appli continue de cartographier en arrière-plan.",
-  "batteryDialogBodyBold": "Veuillez désactiver l'« Optimisation de la batterie » pour GreenGains dans l'écran suivant.",
-  "batteryDialogDismissForever": "Ne plus afficher",
-  "batteryDialogLater": "Plus tard",
-  "batteryDialogAllow": "Autoriser l'exécution en arrière-plan",
-  "batteryDialogError": "Impossible d'ouvrir les paramètres de la batterie",
-  "batteryDialogOemXiaomiHint": "Sur Xiaomi/Redmi : activez aussi le démarrage auto dans Paramètres → Applications → Gérer les apps → GreenGains → Démarrage auto",
-  "batteryDialogOemHuaweiHint": "Sur Huawei/Honor : dans Paramètres → Batterie → Lancement des apps, réglez GreenGains en manuel avec tous les interrupteurs activés",
-  "batteryDialogOemSamsungHint": "Sur Samsung : réglez GreenGains sur Sans restriction dans Paramètres → Batterie → Limites d'utilisation en arrière-plan",
-
-  "locationPermBannerBody": "Choisissez 'Toujours autoriser' pour cartographier en arrière-plan",
-  "locationPermBannerFix": "Corriger",
-
-  "legendYou": "Vous",
-  "legendCommunity": "Communauté",
-  "referralStepShare": "Partager",
-  "referralStepJoin": "Ils rejoignent",
-  "referralStepEarn": "Carte grandit",
+  "batteryDialogTitle": "Laisser tourner en arrière-plan",
 
   "settingsDiagnostics": "Diagnostics capteurs",
-  "settingsDiagnosticsDesc": "Lectures en temps réel de vos capteurs",
+  "settingsDiagnosticsDesc": "Lectures en temps réel de tes capteurs",
 
-  "settingsNotifications": "Notifications",
-  "settingsWeeklyDigest": "Bilan hebdomadaire",
-  "settingsWeeklyDigestDesc": "Résumé dominical de vos nouveaux endroits cartographiés",
-  "settingsStreakAlerts": "Rappels de série",
-  "settingsStreakAlertsDesc": "Alerte quand votre série de jours actifs est en danger",
-
-  "sensorLiveSheetTitle": "Ce que tu mesures",
+  "sensorLiveSheetTitle": "Autour de toi",
 
   "transparencyNothingElse": "Pas de trajet précis. Pas de micro. Pas de contacts. Rien d'autre.",
-  "transparencyLastUpload": "Dernier envoi",
+  "transparencyLastUpload": "Dernière mise à jour",
   "transparencyNoUploadYet": "Rien d'envoyé pour l'instant.",
 
   "tileQualityExcellent": "Bien couvert",
   "tileQualityGood": "Bonne couverture",
   "tileQualityFair": "Repasse ici",
-  "tileQualityStaling": "Données vieillissantes",
-  "tileDecayWarning": "Données vieilles de {days} jours. Repasse ici pour les rafraîchir.",
+  "tileQualityStaling": "Infos anciennes",
+  "tileDecayWarning": "Infos d'il y a {days} jours. Repasse ici pour les mettre à jour.",
   "@tileDecayWarning": { "placeholders": { "days": { "type": "int" } } },
-  "tileDecayHint": "Cartographié il y a {days} jours. Le score va bientôt baisser.",
+  "tileDecayHint": "Mis à jour il y a {days} jours.",
   "@tileDecayHint": { "placeholders": { "days": { "type": "int" } } },
 
-  "tileMeasuredWith": "Enregistré avec",
-
-  "legendHighLabel": "Qualité élevée",
-  "legendHighSub": "Beaucoup de bonnes données ici",
-  "legendMidLabel": "Qualité moyenne",
-  "legendMidSub": "Quelques données. Repasse ici pour améliorer.",
-  "legendLowLabel": "Qualité faible",
+  "legendHighLabel": "Très fiable",
+  "legendHighSub": "Beaucoup de mesures ici",
+  "legendMidLabel": "Assez fiable",
+  "legendMidSub": "Quelques mesures. Repasse ici pour en ajouter.",
+  "legendLowLabel": "Peu fiable",
   "legendLowSub": "Presque rien. Il faut y repasser.",
   "legendCommunitySub": "Enregistré par d'autres personnes",
 
-  "permissionPrimingTitle": "Une chose avant de commencer",
   "permissionPrimingBattery": "Batterie intelligente",
-  "permissionPrimingBatteryDesc": "Moins d'1 % par heure. S'adapte automatiquement en arrière-plan.",
   "permissionPrimingCollects": "Conçu pour la vie privée",
-  "permissionPrimingCollectsDesc": "Luminosité, activité et météo uniquement. Jamais votre trajet ni votre identité.",
-  "permissionPrimingCta": "Activer la localisation",
-  "settingsBatteryMode": "Batterie intelligente",
-  "settingsBatteryModeDesc": "Discret à l'arrêt, précis en mouvement. S'adapte automatiquement.",
 
-  "firstStartTitle": "Cartographie en arrière-plan.",
-  "firstStartBody": "Lumière, chaleur, surfaces — enregistrés en silence. Continue.",
-
-  "alwaysOnBannerBody": "Définissez la localisation sur 'Toujours' pour continuer à cartographier en arrière-plan",
-  "alwaysOnBannerFix": "Corriger",
-
-  "milestoneReachedTitle": "{count} endroits cartographiés",
-  "@milestoneReachedTitle": {
-    "placeholders": { "count": { "type": "int" } }
-  },
-  "milestoneReachedBody": "Continuez.",
-  "milestoneReachedCta": "Continuer",
-
-  "firstUploadTitle": "Premier endroit cartographié.",
-  "firstUploadBody": "Continuez à bouger. Votre carte grandit.",
-  "firstUploadCta": "Voir ma carte",
-
-  "onboardingSocialProof": "{count} personnes cartographient déjà leur quartier",
+  "onboardingSocialProof": "{count} personnes remplissent déjà la carte de leur quartier",
   "@onboardingSocialProof": {
     "placeholders": { "count": { "type": "int" } }
   },
 
-  "sessionSummaryZonesClaimed": "{count, plural, =1{endroit cartographié} other{endroits cartographiés}}",
-  "@sessionSummaryZonesClaimed": {
-    "placeholders": { "count": { "type": "int" } }
-  },
-  "sessionSummaryTotal": "Total : {zones} endroits · {km2} km²",
-  "@sessionSummaryTotal": {
-    "placeholders": {
-      "zones": { "type": "int" },
-      "km2": { "type": "String" }
-    }
-  },
-  "sessionSummaryCta": "Voir ma carte",
-  "sessionSummaryDone": "Top",
-  "statsMapGrowing": "carte en cours. continuez à marcher",
   "statsWeeklyChartOffline": "Graphique hebdomadaire disponible une fois connecté",
-  "uploadMilestone": "{count} envois. Continuez !",
-  "@uploadMilestone": {
-    "placeholders": { "count": { "type": "int" } }
-  },
   "statsViewOnMap": "Voir sur la carte",
-  "statsCommunityMappers": "{count, plural, =1{1 personne cartographie ce mois} other{{count} personnes cartographient ce mois}}",
-  "@statsCommunityMappers": {
-    "placeholders": { "count": { "type": "int" } }
-  },
-  "tileFirstMapped": "Cartographié le {date}",
+  "tileFirstMapped": "Premier passage le {date}",
   "@tileFirstMapped": {
     "placeholders": { "date": { "type": "String" } }
   },
@@ -635,19 +294,11 @@
   "@statsSinceDate": {
     "placeholders": { "date": { "type": "String" } }
   },
-  "statsStreakLabel": "Série",
-  "statsStreakAtRisk": "Sors aujourd'hui pour garder ta série.",
-  "statsStreakDays": "{count, plural, =1{1 jour de suite} other{{count} jours de suite}}",
-  "@statsStreakDays": {
-    "placeholders": { "count": { "type": "int" } }
-  },
   "statsStreakNewRecord": "Nouveau record",
-  "statsStreakPersonalBest": "Record : {count} jours",
-  "@statsStreakPersonalBest": { "placeholders": { "count": { "type": "int" } } },
   "statsChartWeekTab": "Semaine",
   "statsChartMonthTab": "Mois",
   "statsChartMonthEmpty": "Marche plus de jours pour débloquer la vue mensuelle",
-  "statsBarCalloutDetail": "~{count, plural, =1{1 scan} other{{count} scans}} · luminosité · activité · météo",
+  "statsBarCalloutDetail": "~{count, plural, =1{1 scan} other{{count} scans}} · lumière · mouvement · météo",
   "@statsBarCalloutDetail": { "placeholders": { "count": { "type": "int" } } },
   "statsTerritoryDetails": "Voir les détails du territoire",
   "statsTerritorySheetTitle": "Ton territoire",
@@ -659,53 +310,10 @@
   "statsTerritoryMotionLabel": "Activité",
   "statsTerritoryMotionDesc": "L'animation habituelle de cet endroit : personnes, trafic, mouvement",
   "statsTerritoryPressureLabel": "Météo",
-  "statsTerritoryPressureDesc": "La pression atmosphérique enregistrée ici. Reflète les conditions météo locales.",
+  "statsTerritoryPressureDesc": "La pression de l'air ici. Elle suit la météo.",
   "statsTerritoryMapCta": "Touche un endroit sur la carte pour voir ses mesures",
 
   "tileCommunityClaimCta": "Passe par ici pour te l'approprier",
-  "tileLowQualityHint": "Repasse par ici. Plus tu y vas, plus les données s'améliorent.",
-  "homeZonesOnYourMap": "{count, plural, =1{1 endroit sur ta carte} other{{count} endroits sur ta carte}}",
-  "@homeZonesOnYourMap": {
-    "placeholders": { "count": { "type": "int" } }
-  },
-  "homeCommunityScopeHint": "{count, plural, =1{1 endroit cartographié dans votre secteur} other{{count} endroits cartographiés dans votre secteur}}",
-  "@homeCommunityScopeHint": {
-    "placeholders": { "count": { "type": "int" } }
-  },
-  "tileCivicNote": "Mesuré par toi.",
-  "tileShareButton": "Partager ce lieu",
-  "tileShareText": "J'ai mesuré cet endroit : {condition}. Viens voir sur la carte.",
-  "@tileShareText": { "placeholders": { "condition": { "type": "String" } } },
-  "sessionSummaryShareText": "J'ai cartographié +{gained} nouveaux endroits aujourd'hui. {total} au total · {km2} km²",
-  "@sessionSummaryShareText": {
-    "placeholders": {
-      "gained": { "type": "int" },
-      "total": { "type": "int" },
-      "km2": { "type": "String" }
-    }
-  },
-  "sessionSummaryShareTextEmpty": "Cartographié pendant {duration}. {total} endroits sur ma carte · {km2} km²",
-  "@sessionSummaryShareTextEmpty": {
-    "placeholders": {
-      "duration": { "type": "String" },
-      "total": { "type": "int" },
-      "km2": { "type": "String" }
-    }
-  },
-  "sessionSummaryShareTextDarkSky": "Zone de ciel noir cartographiée ce soir — {total} zones sur ma carte de pollution lumineuse · {km2} km²\nhttps://greengains.app/dashboard/#map",
-  "@sessionSummaryShareTextDarkSky": {
-    "placeholders": {
-      "total": { "type": "int" },
-      "km2": { "type": "String" }
-    }
-  },
-
-  "sensorLuxLabel": "{lux} lux",
-  "@sensorLuxLabel": { "placeholders": { "lux": { "type": "int" } } },
-  "sensorHpaLabel": "{hpa} hPa",
-  "@sensorHpaLabel": { "placeholders": { "hpa": { "type": "String" } } },
-  "sensorMovementLabel": "{val}",
-  "@sensorMovementLabel": { "placeholders": { "val": { "type": "String" } } },
 
   "sensorLuxDark": "Sombre",
   "sensorLuxIndoor": "Tamisé",
@@ -716,17 +324,10 @@
   "sensorMovementMid": "Actif",
   "sensorMovementHigh": "Animé",
   "sensorMovementIntense": "Très fréquenté",
-  "sensorMovementLowHint": "Peu de passages ou vibrations",
-  "sensorMovementMidHint": "Activité piétonne légère",
-  "sensorMovementHighHint": "Transports ou foule",
-  "sensorMovementIntenseHint": "Trafic dense ou machinerie",
 
   "sensorHpaLow": "Air dégagé",
   "sensorHpaMid": "Stable",
   "sensorHpaHigh": "Air lourd",
-  "sensorHpaLowHint": "Haute pression, temps stable et sec probable",
-  "sensorHpaMidHint": "Pression atmosphérique normale à cette altitude",
-  "sensorHpaHighHint": "Basse pression, temps instable possible",
 
   "sensorAccelStill": "À peine en mouvement",
   "sensorAccelWalk": "Marche",
@@ -737,39 +338,13 @@
   "sensorGyroSlow": "Légère rotation",
   "sensorGyroFast": "Rotation rapide",
 
-  "tileSensorInsightsLabel": "Ce qu'on y trouve",
-
   "tileVibrationCalm": "Très calme",
   "tileVibrationLight": "Activité légère",
-  "tileVibrationActive": "Surface animée",
+  "tileVibrationActive": "Ça bouge beaucoup",
   "tileVibrationHeavy": "Trafic intense",
 
-  "tileConditionSummary": "Généralement {light}, {movement}, sous {pressure}.",
-  "@tileConditionSummary": {
-    "placeholders": {
-      "light": { "type": "String" },
-      "movement": { "type": "String" },
-      "pressure": { "type": "String" }
-    }
-  },
-  "tileConditionSummaryNoHpa": "Généralement {light} et {movement}.",
-  "@tileConditionSummaryNoHpa": {
-    "placeholders": {
-      "light": { "type": "String" },
-      "movement": { "type": "String" }
-    }
-  },
-  "tileConditionSummaryWithSurface": "Généralement {light}, {movement}, {surface}.",
-  "@tileConditionSummaryWithSurface": {
-    "placeholders": {
-      "light": { "type": "String" },
-      "movement": { "type": "String" },
-      "surface": { "type": "String" }
-    }
-  },
-  "tileSurfaceSmooth": "route lisse",
-  "tileSurfaceNormal": "route normale",
-  "tileSurfaceRough": "route dégradée",
+  "tileSurfaceSmooth": "sol lisse",
+  "tileSurfaceRough": "sol irrégulier",
   "tileSurfaceHeavy": "très dégradée",
 
   "tileCondLightDark": "sombre",
@@ -785,8 +360,8 @@
 
   "sessionCharacterDarkSky": "CIEL NOIR",
   "sessionCharacterBrightCity": "NUIT ÉCLAIRÉE",
-  "sessionCharacterHotRoute": "TRAJET CHAUD",
-  "sessionCharacterRoughRoad": "ROUTES DÉGRADÉES",
+  "sessionCharacterHotRoute": "SORTIE CHAUDE",
+  "sessionCharacterRoughRoad": "SOL IRRÉGULIER",
   "sessionCharacterSunExposed": "CIEL OUVERT",
 
   "mapperRoleContributor": "Contributeur",
@@ -796,106 +371,21 @@
   "mapperRoleCityMapper": "Cartographe urbain",
   "mapperRoleUrbanScientist": "Scientifique urbain",
 
-  "milestoneBody5": "Vos relevés sont sur la carte. Chaque rue parcourue est une zone de moins à découvrir.",
-  "milestoneBody10": "Un bloc complet, lu. Des rues que personne d'autre n'a encore cartographiées.",
-  "milestoneBody25": "Vous connaissez des endroits que la plupart des cartographes n'atteignent jamais.",
-  "milestoneBody50": "La moitié d'un quartier, terminée. Assez de terrain pour compter.",
-  "milestoneBody100": "Vous êtes dans le peloton de tête. Votre secteur le sait.",
-  "milestoneBody250": "Cartographie à l'échelle d'un district. Une compagnie rare.",
-  "milestoneBody500": "Des données que la plupart des apps n'auront jamais. Vous les avez construites.",
-  "milestoneBody1000": "Vous êtes un jeu de données à l'échelle d'une ville. C'est de la vraie science.",
-
-  "sessionMilestone5Flavor": "Votre quartier commence à prendre forme.",
-  "sessionMilestone10Flavor": "Un bloc complet, cartographié.",
-  "sessionMilestone25Flavor": "La surface d'un petit parc, couverte.",
-  "sessionMilestone50Flavor": "La moitié d'un îlot urbain, le vôtre.",
-  "sessionMilestone100Flavor": "Un quartier entier, sur la carte.",
-  "sessionMilestone250Flavor": "Vous avez couvert un district urbain.",
-  "sessionMilestone500Flavor": "Une couverture que peu d'apps atteignent.",
-  "sessionMilestone1000Flavor": "Cartographie à l'échelle d'une ville. Rare.",
-
-  "territoryHeroLabel": "{neighborhood} · {count} endroits",
-  "@territoryHeroLabel": {
-    "placeholders": {
-      "neighborhood": { "type": "String" },
-      "count": { "type": "int" }
-    }
-  },
   "serverWakingUp": "Chargement…",
-  "ambientHereLabel": "Ici",
-  "ambientNearbyLabel": "À proximité",
-  "ambientUnmappedLabel": "Passe par ici pour révéler les données",
   "permissionLostTitle": "Accès à la localisation désactivé",
-  "permissionLostBody": "Votre carte ne se met plus à jour. Appuyez pour corriger.",
   "permissionLostCta": "Corriger dans les réglages",
-  "referralNeighborhoodHook": "Aidez à cartographier {neighborhood}. Chaque voisin couvre ce que vous n'avez pas encore atteint.",
+  "referralNeighborhoodHook": "Invite tes voisins à remplir la carte de {neighborhood}.",
   "@referralNeighborhoodHook": {
     "placeholders": { "neighborhood": { "type": "String" } }
   },
 
   "onboardingActivateTitle": "Presque là",
-  "onboardingActivateSubtitle": "Votre téléphone mesure l'environnement autour de vous en déplacement. Votre trajet n'est jamais enregistré.",
-  "onboardingActivateCta": "Commencer à cartographier",
-  "onboardingPermissionDenied": "L'accès à la localisation est nécessaire pour cartographier votre ville.",
-  "onboardingPermissionDeniedForeverTitle": "Permission requise",
-  "onboardingPermissionDeniedForeverBody": "L'accès à la localisation a été refusé définitivement. Ouvrez les Réglages et activez-le sous Autorisations → Localisation.",
-  "onboardingOpenSettings": "Ouvrir les réglages",
+  "onboardingActivateSubtitle": "Ton téléphone mesure l'environnement autour de toi pendant tes déplacements. Ton trajet n'est jamais enregistré.",
+  "onboardingActivateCta": "Commencer",
+  "onboardingPermissionDenied": "La localisation est nécessaire pour remplir ta carte.",
 
-  "homeMaxClusterHint": "plus grande zone : {count} endroits",
-  "@homeMaxClusterHint": {
-    "placeholders": { "count": { "type": "int" } }
-  },
-
-  "firstUploadBadge": "PREMIER ENDROIT CARTOGRAPHIÉ",
-  "firstUploadHeadline": "Ton premier endroit est sur la carte.",
-  "firstUploadSubtext": "Chaque endroit par où tu passes s'ajoute automatiquement.",
-  "firstUploadSensorsLabel": "ENREGISTRÉ EN SILENCE",
-  "firstUploadSensorsValue": "lumière · chaleur · qualité des surfaces",
-  "firstUploadPrivacyLabel": "CONFIDENTIALITÉ",
-  "firstUploadPrivacyValue": "anonyme · trajet non enregistré",
-  "firstUploadKeepMappingCta": "Continuer à cartographier",
-
-  "liveSensorsHeader": "CAPTEURS EN DIRECT",
-  "liveSensorMotionLabel": "Mouvement",
-  "liveSensorPressureLabel": "Pression",
-
-  "sessionSummaryBadge": "TERMINÉ",
-"sessionSummaryZonesGainedLabel": "NOUVEAUX ENDROITS",
-  "sessionSummarySubline": "ajoutés",
-  "sessionSummaryNoZonesLabel": "TA CARTE",
-  "sessionSummaryNoZonesSubline": "Essaie un autre itinéraire la prochaine fois.",
-  "sessionSummaryWatermark": "Cartographié avec GreenGains",
-  "sessionSummaryShareCta": "Partager",
-  "sessionMilestoneHit": "{milestone} endroits.",
-  "@sessionMilestoneHit": {
-    "placeholders": {
-      "milestone": { "type": "int" }
-    }
-  },
-  "sessionSummaryNextHook": "Tourne en silence partout où tu vas.",
-  "sessionSummaryNextHookEmpty": "Enregistré en silence à chaque sortie.",
-  "sessionStatArea": "SURFACE",
-  "sessionStatDuration": "TEMPS",
-  "sessionStatTotal": "TOTAL",
-  "sessionStatUploads": "SYNCS",
-  "sessionStatAreaExplain": "Surface totale cartographiée cette session, selon les zones couvertes.",
-  "sessionStatDurationExplain": "Durée pendant laquelle le suivi était actif lors de cette session.",
-  "sessionStatUploadsExplain": "Nombre d'envois de données pendant cette session.",
-  "sessionStatTotalExplain": "Total des zones uniques cartographiées sur toutes tes sessions.",
-  "statsUploadsHint": "envois",
-  "statsKpiTodayExplain": "Syncs envoyés aujourd'hui.",
-  "statsKpiWeekExplain": "Syncs envoyés cette semaine.",
-  "statsKpiBestDayExplain": "Maximum de syncs en une journée.",
-  "statsKpiAvgExplain": "Moyenne de syncs les jours actifs.",
-  "profileTileUploadsExplain": "Total des syncs envoyés à nos serveurs.",
-  "profileTileDaysExplain": "Jours avec au moins une contribution.",
-  "profileTileAreaExplain": "Surface cartographiée sur toutes tes sessions.",
-  "@profileTileAreaExplain": {
-    "placeholders": { "area": { "type": "String" } }
-  },
-  "profileTileAreaCells": "zones explorées",
+  "profileTileAreaCells": "endroits",
   "profileStatCityBlocks": "îlots de ville",
-  "profileStreakExplain": "Jours consécutifs avec au moins un sync.",
   "profileStreakToMilestone": "{days} {unit} avant le cap des {milestone} {unit}",
   "@profileStreakToMilestone": {
     "placeholders": {
@@ -904,69 +394,35 @@
       "milestone": { "type": "int" }
     }
   },
-  "profileUploadsExplanation": "Chaque envoi regroupe des lectures de capteurs capturées à un endroit.",
-  "profileDaysExplanation": "Jours où ton téléphone était actif au moins une fois. Plus de jours, couverture plus récente.",
-  "profileZonesExplanation": "Chaque zone fait environ la taille d'un pâté de maisons. Consultez la carte pour voir les endroits couverts.",
+  "profileUploadsExplanation": "Un scan, c'est ce que ton téléphone mesure à un endroit.",
+  "profileDaysExplanation": "Jours où ton téléphone a scanné au moins une fois.",
+  "profileZonesExplanation": "Un endroit, c'est à peu près un pâté de maisons. Touche la carte pour les voir.",
   "profileSeeInStats": "Voir dans les stats",
   "profileViewOnMap": "Voir sur la carte",
 
-  "statsMilestoneTarget": "{target} endroits",
-  "@statsMilestoneTarget": {
-    "placeholders": { "target": { "type": "int" } }
-  },
   "statsActivitySection": "TA SEMAINE",
   "statsVsPrevWeek": "{delta}% vs sem. préc.",
   "@statsVsPrevWeek": { "placeholders": { "delta": { "type": "String" } } },
-  "statsTerritorySection": "TA ZONE",
+  "statsTerritorySection": "TON QUARTIER",
   "mapTapHint": "Touchez un endroit pour explorer",
-  "sessionPersonalBest": "Record personnel",
-  "returnDeltaTitle": "{zones} nouveaux endroits pendant ton absence.",
-  "@returnDeltaTitle": {
-    "placeholders": { "zones": { "type": "int" } }
-  },
-  "returnDeltaDismiss": "OK",
 
-  "settingsAccount": "Compte",
   "settingsSignOut": "Se déconnecter",
-  "settingsSignOutConfirmTitle": "Se déconnecter ?",
-  "settingsSignOutConfirmBody": "Tu devras te reconnecter pour voir ta carte.",
-  "settingsSignOutConfirm": "Se déconnecter",
-  "settingsSignOutCancel": "Annuler",
-
-  "mappingActiveSheetTitle": "En cours de cartographie",
-  "mappingActiveSheetBody": "Continuez à bouger pour découvrir de nouveaux endroits. Votre carte grandit automatiquement.",
-  "mappingActiveSheetZones": "{count, plural, =0{Aucun nouvel endroit} =1{1 nouvel endroit cette session} other{{count} nouveaux endroits cette session}}",
-  "@mappingActiveSheetZones": {
-    "placeholders": { "count": { "type": "int" } }
-  },
-  "mappingActiveSheetCta": "Ouvrir la carte",
-  "mappingActiveSheetStop": "Arrêter la cartographie",
-
-  "homeStreakBadge": "{count, plural, =1{1 jour de suite} other{{count} jours de suite}}",
-  "@homeStreakBadge": {
-    "placeholders": { "count": { "type": "int" } }
-  },
+  "settingsDeleteAccount": "Supprimer mon compte",
+  "settingsDeleteAccountWarning": "Ton compte et toutes tes données seront effacés. C'est définitif.",
+  "settingsDeleteAccountConfirm": "Supprimer",
 
   "streakResetBanner": "Série réinitialisée. Recommence aujourd’hui.",
 
-  "sessionSummaryNextHookStreak": "Série en vie.",
-  "sessionSummaryNextHookFirst": "Ta contribution se construit automatiquement — continue comme ça.",
-
-  "weeklyGoalTitle": "Semaine complète.",
-  "weeklyGoalBody": "À la semaine prochaine.",
-  "weeklyGoalDismiss": "Super",
-
-  "statsEmptyLockLight": "Lumière — ciel noir la nuit, soleil le jour",
-  "statsEmptyLockMovement": "Activité — l'animation de chaque endroit",
-  "statsEmptyLockPressure": "Météo — chaleur et pression sur tes trajets",
-  "statsEmptyLockSurface": "Revêtement — lisse ou dégradé, rue par rue",
+  "statsEmptyLockLight": "Lumière : ciel noir la nuit, soleil le jour",
+  "statsEmptyLockMovement": "Activité : l'animation de chaque endroit",
+  "statsEmptyLockPressure": "Météo : chaleur et pression autour de toi",
   "statsKm2Unit": "km²",
   "statsLast30DaysUnit": "/ 30",
 
-  "referralWaiting": "Lien partagé. Personne encore — tu es peut-être le premier dans ta zone.",
+  "referralWaiting": "Lien partagé. Personne pour l'instant. Tu es peut-être le premier de ton quartier.",
   "referralFirstJoined": "Première personne rejointe.",
   "referralShareAgain": "Partager à nouveau",
-  "referralShareText": "Rejoins-moi sur GreenGains — on cartographie la pollution lumineuse, la pression atmosphérique et l'état des routes. Utilise mon code {code} à l'inscription.",
+  "referralShareText": "Rejoins-moi sur GreenGains : on cartographie la lumière, la météo et l'état des rues autour de nous. Mon code : {code}",
   "@referralShareText": {
     "placeholders": {
       "code": { "type": "String" }
@@ -975,72 +431,47 @@
 
   "onboardingHaveCode": "Tu as un code d'invitation ?",
   "onboardingCodeHint": "Entrer le code (ex. GG-XXXXX)",
-  "onboardingCodeApplied": "Code d'invitation appliqué.",
 
   "profileUnlockTitle": "Ta carte est en train d'être sauvegardée.",
-  "profileUnlockBody": "Connecte-toi pour la conserver et la synchroniser sur tous tes appareils.",
-  "profileUnlockCta": "Me connecter pour garder ma carte",
 
   "mapZeroStateTitle": "Ton premier endroit est à une marche",
-  "mapZeroStateBody": "Lance le suivi une fois. Ta rue apparaît sur la carte dès que tu bouges.",
 
-  "snapshotCardTitle": "TON QUARTIER",
-  "snapshotReadings": "{count, plural, =1{1 mesure} other{{count} mesures}}",
-  "@snapshotReadings": {
-    "placeholders": { "count": { "type": "int" } }
-  },
-  "snapshotAcrossZones": "sur {count, plural, =1{1 zone} other{{count} zones}}",
-  "@snapshotAcrossZones": {
-    "placeholders": { "count": { "type": "int" } }
-  },
-  "snapshotLightDark": "Sombre",
-  "snapshotLightDim": "Peu éclairé",
-  "snapshotLightNormal": "Bien éclairé",
-  "snapshotLightBright": "Lumineux",
-  "snapshotLightVeryBright": "Très lumineux",
-  "snapshotMovementCalm": "Calme",
-  "snapshotMovementActive": "Actif",
-  "snapshotMovementBusy": "Animé",
-  "snapshotPressureLow": "Basse pression",
-  "snapshotPressureStable": "Stable",
-  "snapshotPressureHigh": "Haute pression",
-
-  "insightNoData": "Pas encore assez de données pour cette zone.",
+  "insightNoData": "Pas encore assez de mesures ici.",
   "insightNormal": "Rien d'inhabituel détecté ici.",
-  "insightRouteHeader": "TON TRAJET",
+  "insightRouteHeader": "TA SORTIE",
 
-  "insightLightPristine": "Presque aucune lumière artificielle ici. Ta mélatonine reste intacte sur ce trajet.",
+  "insightLightPristine": "Très peu de lumière artificielle ici.",
   "insightLightLow": "Naturellement sombre ici. Bon pour décompresser si tu rentres par là.",
   "insightLightModerate": "Un peu de halo lumineux. Assez pour affecter ton horloge biologique à la longue.",
-  "insightLightHigh": "Lumineux la nuit — comme une pièce allumée. Pas idéal avant de dormir.",
+  "insightLightHigh": "Lumineux la nuit, comme une pièce allumée. Pas idéal avant de dormir.",
   "insightLightSevere": "Très lumineux la nuit. Ton corps pense qu'il fait encore jour ici.",
 
-  "insightSunShaded": "Zone ombragée et fraîche. Moins d'UV que les rues ouvertes.",
+  "insightSunShaded": "Endroit ombragé et frais.",
   "insightSunPartial": "Conditions extérieures normales.",
-  "insightSunBright": "Zone ouverte, bien exposée à la lumière naturelle.",
+  "insightSunBright": "Endroit bien ensoleillé.",
   "insightSunIntense": "Fort soleil direct. Pense à t'hydrater ou chercher de l'ombre en été.",
 
-  "insightSurfaceSmooth": "Surface lisse. Agréable pour le vélo, les articulations, les poussettes.",
-  "insightSurfaceNormal": "Revêtement normal.",
-  "insightSurfaceRough": "Route dégradée. Plus difficile pour le vélo, les articulations, les poussettes.",
-  "insightSurfacePoor": "Surface très dégradée. À éviter si tu es à vélo ou avec une poussette.",
+  "insightSurfaceSmooth": "Sol lisse.",
+  "insightSurfaceNormal": "Sol normal.",
+  "insightSurfaceRough": "Sol irrégulier.",
+  "insightSurfacePoor": "Sol très irrégulier.",
 
-  "insightHeatExposed": "Cette zone chauffe. Sensiblement plus chaud que les rues voisines.",
+  "insightHeatExposed": "Plus chaud que les rues autour.",
 
-  "insightSessionDarkSky": "Peu de lumière artificielle sur ce trajet. Bon pour le sommeil si tu rentres par là.",
-  "insightSessionBrightCity": "Lumineux la nuit sur tout ce trajet. Comme marcher dans un bureau éclairé avant de dormir.",
-  "insightSessionRoughRoute": "Route dégradée sur ce trajet. Plus difficile que des alternatives plus lisses.",
-  "insightSessionHotRoute": "Ce trajet chauffe. Pense à des alternatives plus fraîches en été.",
+  "insightSessionDarkSky": "Peu de lumière artificielle pendant ta sortie.",
+  "insightSessionBrightCity": "Très éclairé la nuit pendant ta sortie.",
+  "insightSessionRoughRoute": "Sol irrégulier pendant ta sortie.",
+  "insightSessionHotRoute": "Il faisait chaud pendant ta sortie.",
 
   "statsInsightLabel": "CETTE SEMAINE",
-  "statsInsightRoughest": "Tronçon le plus dégradé : {street} — plus cahoteuse que {pct}% de tes trajets",
+  "statsInsightRoughest": "Rue la plus irrégulière : {street} (plus que {pct} % de tes sorties)",
   "@statsInsightRoughest": {
     "placeholders": {
       "street": { "type": "String" },
       "pct": { "type": "int" }
     }
   },
-  "statsInsightNewZones": "{count, plural, =1{1 nouvel endroit cartographié cette semaine} other{{count} nouveaux endroits cartographiés cette semaine}}",
+  "statsInsightNewZones": "{count, plural, =1{1 nouvel endroit cette semaine} other{{count} nouveaux endroits cette semaine}}",
   "@statsInsightNewZones": { "placeholders": { "count": { "type": "int" } } },
   "statsInsightSolo": "{count, plural, =1{1 endroit où tu es le seul à être passé} other{{count} endroits où tu es le seul à être passé}}",
   "@statsInsightSolo": { "placeholders": { "count": { "type": "int" } } },

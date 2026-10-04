@@ -17,7 +17,7 @@ interface BboxQuery {
 }
 
 /**
- * Public road quality tile endpoint — no auth required.
+ * Public road quality tile endpoint - no auth required.
  * Returns aggregated vibration scores per H3 res-9 cell (~174m hex).
  * Designed for telematics, insurance, and routing API consumers.
  *

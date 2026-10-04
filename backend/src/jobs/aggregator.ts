@@ -31,14 +31,14 @@ const WINDOW_MS = AGGREGATION_WINDOW_MINUTES * 60 * 1000;
  * Defensive cap on simultaneous outbound requests to Open-Meteo while fetching the weather
  * lookups a run's window buckets need (deduped by {@link planWeatherLookups} first, so this is
  * "how many distinct regions/hours at once", not "how many buckets"). An operational safety
- * value, not a statistical one — chosen to be comfortably polite to a third-party API, not tuned.
+ * value, not a statistical one - chosen to be comfortably polite to a third-party API, not tuned.
  */
 const WEATHER_FETCH_CONCURRENCY = 8;
 
 let aggregationTimer: NodeJS.Timeout | null = null;
 let lastPurgeDate: string | null = null; // UTC date string — purge runs at most once per day
 
-// A job that fails every minute and one that never ran look identical from outside — and the
+// A job that fails every minute and one that never ran look identical from outside - and the
 // error only reaches Sentry. This makes the last outcome readable from /health.
 const aggregationStatus = {
   runs: 0,
@@ -117,7 +117,7 @@ export async function runAggregationJob(): Promise<void> {
     return; // nothing new
   }
 
-  // Select only the sub-fields the aggregator needs — avoids pulling the raw
+  // Select only the sub-fields the aggregator needs - avoids pulling the raw
   // batch readings array (often 80–95% of the payload) across the wire.
   const rows = await pool.query<BatchRow>(
     `SELECT
@@ -138,15 +138,15 @@ export async function runAggregationJob(): Promise<void> {
     return;
   }
 
-  // ── Functional core: pure bucketing + weather-lookup planning (no I/O) ──────────────────────
+  // Functional core: pure bucketing + weather-lookup planning (no I/O)
   const windowBuckets = accumulateWindows(rows.rows, WINDOW_MS, upToExclusive);
   if (windowBuckets.size === 0) {
     return;
   }
 
-  // ── Imperative shell: fetch exactly the weather this run needs, once per distinct region+hour,
+  // Imperative shell: fetch exactly the weather this run needs, once per distinct region+hour,
   // with bounded concurrency instead of one sequential `await` per window bucket (a run with many
-  // active cells — routine multi-user traffic, or catching up a backlog after downtime — used to
+  // active cells - routine multi-user traffic, or catching up a backlog after downtime - used to
   // serialize one network round-trip per bucket; see the request-coalescing note on
   // weatherRegionKey and the p-limit-style cap on WEATHER_FETCH_CONCURRENCY above). ────────────
   const weatherLookups = planWeatherLookups(windowBuckets);
@@ -159,7 +159,7 @@ export async function runAggregationJob(): Promise<void> {
     weatherLookups.map((lookup, i) => [lookup.key, weatherResults[i]]),
   );
 
-  // ── Back to the functional core: everything from here on is pure, given the fetched weather. ──
+  // Back to the functional core: everything from here on is pure, given the fetched weather.
   const windowResults: WindowResult[] = computeWindowResults(windowBuckets, weatherByKey);
   const dayBuckets: Map<DayKey, DayAccumulator> = buildDayBuckets(windowBuckets);
 
@@ -195,7 +195,7 @@ export async function runAggregationJob(): Promise<void> {
         console.log(`[aggregation] purged ${purgeResult.rowCount} raw batches older than ${SENSOR_BATCH_RETENTION_DAYS} days`);
       }
     } catch (purgeError) {
-      // Non-fatal — log and continue; will retry tomorrow
+      // Non-fatal - log and continue; will retry tomorrow
       console.error('[aggregation] daily purge failed', { err: purgeError });
     }
   }
@@ -229,25 +229,27 @@ async function upsertWindowResults(
   const qualitySampleCounts = results.map(r => r.qualitySamples);
   const qualityValidRatios = results.map(r => r.qualityValidRatio);
   const pocketRatios = results.map(r => r.pocketRatio);
+  const pressureSigmas = results.map(r => r.pressureSigmaHpa);
 
   await client.query(
     `INSERT INTO sensor_aggregates_5m (
       window_start, window_end, geohash, h3_index, samples_count, device_count,
       avg_light, avg_light_min, avg_light_max, avg_accel_rms,
       avg_gyro_rms, avg_pressure, pressure_anomaly_hpa, weather_temp_c, movement_score, vibration_score, battery_avg, location_share,
-      quality_samples, quality_valid_ratio, quality_pocket_ratio
+      quality_samples, quality_valid_ratio, quality_pocket_ratio, pressure_sigma_hpa
     )
     SELECT * FROM UNNEST(
       $1::timestamptz[], $2::timestamptz[], $3::text[], $4::text[],
       $5::int[], $6::int[], $7::double precision[], $8::double precision[],
       $9::double precision[], $10::double precision[], $11::double precision[],
       $12::double precision[], $13::double precision[], $14::double precision[],
-      $15::double precision[], $16::double precision[], $17::double precision[], $18::double precision[], $19::bigint[], $20::double precision[], $21::double precision[]
+      $15::double precision[], $16::double precision[], $17::double precision[], $18::double precision[], $19::bigint[], $20::double precision[], $21::double precision[],
+      $22::double precision[]
     ) AS t(
       window_start, window_end, geohash, h3_index, samples_count, device_count,
       avg_light, avg_light_min, avg_light_max, avg_accel_rms,
       avg_gyro_rms, avg_pressure, pressure_anomaly_hpa, weather_temp_c, movement_score, vibration_score, battery_avg, location_share,
-      quality_samples, quality_valid_ratio, quality_pocket_ratio
+      quality_samples, quality_valid_ratio, quality_pocket_ratio, pressure_sigma_hpa
     )
     ON CONFLICT (window_start, geohash)
     DO UPDATE SET
@@ -269,12 +271,13 @@ async function upsertWindowResults(
       quality_samples = EXCLUDED.quality_samples,
       quality_valid_ratio = EXCLUDED.quality_valid_ratio,
       quality_pocket_ratio = EXCLUDED.quality_pocket_ratio,
+      pressure_sigma_hpa = EXCLUDED.pressure_sigma_hpa,
       updated_at = NOW()`,
     [
       windowStarts, windowEnds, geohashes, h3Indexes, samplesCounts,
       deviceCounts, avgLights, lightMins, lightMaxes,
       avgAccelRms, avgGyroRms, avgPressures, pressureAnomalies, weatherTemps, movementScores, vibrationScores, batteryAvgs, locationShares,
-      qualitySampleCounts, qualityValidRatios, pocketRatios
+      qualitySampleCounts, qualityValidRatios, pocketRatios, pressureSigmas
     ],
   );
 }

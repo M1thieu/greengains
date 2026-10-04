@@ -1,8 +1,9 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../core/themes.dart';
 import 'time_ago_text.dart';
 
-// ── SensorDataCard layout constants ──────────────────────────────────────────
+// SensorDataCard layout constants
 const _kSensorIconPad     = AppTheme.spaceXs;     //  8 — icon container padding
 const _kSensorValuePadH   = AppTheme.spaceXs;     //  8 — value pill h-padding
 const _kSensorValuePadV   = AppTheme.spaceXxxs;   //  2 — value pill v-padding
@@ -124,7 +125,7 @@ class _SensorDataCardState extends State<SensorDataCard>
                 padding: const EdgeInsets.all(_kSensorIconPad),
                 decoration: BoxDecoration(
                   // Flat icon bg: primary tint when active, surfaceActive when not.
-                  // No gradient, no glow — Linear/Vercel flat icon style.
+                  // No gradient, no glow - Linear/Vercel flat icon style.
                   color: isActive
                       ? _accent.withValues(alpha: 0.12)
                       : AppColors.surfaceActive(isDark),
@@ -191,7 +192,9 @@ class _SensorDataCardState extends State<SensorDataCard>
                             ),
                           )
                         : _ShimmerLoading(isDark: isDark),
-                    if (widget.rawValue != null) ...[
+                    // Raw values with units (lux, hPa, m/s²) are developer
+                    // information: debug builds only. Users get the plain label.
+                    if (kDebugMode && widget.rawValue != null) ...[
                       const SizedBox(height: AppTheme.spaceXxs),
                       Text(
                         widget.rawValue!,
@@ -247,24 +250,28 @@ class _StatusBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppTheme.spaceSm,
-        vertical: AppTheme.spaceXxs,
-      ),
-      decoration: BoxDecoration(
-        color: active
-            ? accentColor.withValues(alpha: 0.15)
-            : AppColors.border(isDark),
-        borderRadius: BorderRadius.circular(AppTheme.radiusSm),
-      ),
-      child: Text(
-        label,
-        style: theme.textTheme.labelSmall?.copyWith(
-          color: active ? accentColor : theme.colorScheme.outline,
-          fontWeight: AppFontWeights.semibold,
+    // Status dot + label, no container: the state reads at a glance without
+    // adding another filled shape to the card header.
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 6,
+          height: 6,
+          decoration: BoxDecoration(
+            color: active ? accentColor : AppColors.textTertiary(isDark),
+            shape: BoxShape.circle,
+          ),
         ),
-      ),
+        const SizedBox(width: AppTheme.spaceXxs),
+        Text(
+          label,
+          style: theme.textTheme.labelSmall?.copyWith(
+            color: active ? AppColors.textPrimary(isDark) : AppColors.textSecondary(isDark),
+            fontWeight: AppFontWeights.medium,
+          ),
+        ),
+      ],
     );
   }
 }

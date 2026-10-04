@@ -56,7 +56,7 @@ internal class SensorQualityAnalyzer {
     }
 
     /**
-     * Returns true when the light sensor is obscured — phone is face-down or likely in a pocket.
+     * Returns true when the light sensor is obscured - phone is face-down or likely in a pocket.
      * Use this to gate light samples out of the averaging window at collection time.
      *
      * Detection priority (most reliable first):
@@ -65,7 +65,7 @@ internal class SensorQualityAnalyzer {
      *   3. Low lux + upright tilt → heuristic (pocket without proximity sensor)
      */
     fun isLightObscured(): Boolean = synchronized(this) {
-        // Proximity is a direct physical measurement — no false positives when NEAR
+        // Proximity is a direct physical measurement - no false positives when NEAR
         if (lastProximityNear == true) return@synchronized true
         val orientationInfo = computeOrientation()
         if (orientationInfo.state == OrientationState.FACE_DOWN) return@synchronized true
@@ -199,7 +199,7 @@ internal class SensorQualityAnalyzer {
         if (lastProximityNear != null) {
             return when {
                 lastProximityNear == true -> PocketState.LIKELY
-                // FACE_UP: gravity vector confirms screen faces the ceiling — physically
+                // FACE_UP: gravity vector confirms screen faces the ceiling - physically
                 // impossible to be in a pocket, regardless of lighting conditions.
                 orientationInfo.state == OrientationState.FACE_UP -> PocketState.UNLIKELY
                 lux != null && lux > BRIGHT_ENV_LUX -> PocketState.UNLIKELY
@@ -207,7 +207,7 @@ internal class SensorQualityAnalyzer {
             }
         }
 
-        // No proximity sensor — fall back to lux+tilt heuristic.
+        // No proximity sensor - fall back to lux+tilt heuristic.
         // This path fires on ~1% of modern phones without a proximity sensor.
         val tilt = orientationInfo.tiltDegrees
         if (lux == null || tilt == null) {
@@ -227,7 +227,7 @@ internal class SensorQualityAnalyzer {
      * GPS precision score [0.0, 1.0] based solely on the reported horizontal accuracy.
      *
      * location.accuracy is Android's 68% confidence radius (1σ). Motion state and pocket
-     * state are intentionally excluded — a runner's GPS fix is not spatially less valid
+     * state are intentionally excluded - a runner's GPS fix is not spatially less valid
      * than a stationary person's. Only the GPS signal quality itself matters here.
      *
      * Formula: linear interpolation from 0m (score=1.0) to MAX_ACCEPT_M (score=0.0),
@@ -269,7 +269,7 @@ internal class SensorQualityAnalyzer {
         private const val POCKET_TILT_MIN = 60f
         private const val POCKET_TILT_MAX = 120f
         private const val STALE_LOCATION_MS = 60_000L
-        // Accuracy filter threshold — matches the upstream rejection gate in ForegroundService.
+        // Accuracy filter threshold - matches the upstream rejection gate in ForegroundService.
         // Stationary mode accepts up to 150m (BALANCED_POWER fix quality), active accepts 50m.
         // Using 150m here so the score is always computed even for stationary fixes.
         private const val MAX_ACCEPTED_ACCURACY_M = 150f

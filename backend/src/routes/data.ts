@@ -186,7 +186,7 @@ export async function dataRoutes(fastify: FastifyInstance) {
         const tier = await getOrgSubscriptionTier(pool, userId);
         const maxDays = TIER_HISTORY_DAYS[tier] ?? 7;
 
-        // Use daily aggregates for wide ranges — same pattern as /aggregated endpoint
+        // Use daily aggregates for wide ranges - same pattern as /aggregated endpoint
         const isDailyBucket = query.bucket === 'day';
         const table = isDailyBucket ? 'sensor_aggregates_daily' : 'sensor_aggregates_5m';
         const timeColumn = isDailyBucket ? 'day' : 'window_start';
@@ -239,7 +239,7 @@ export async function dataRoutes(fastify: FastifyInstance) {
    */
   fastify.post(
     '/api/v1/data/export',
-    // requireTier('pro') gates at preHandler level (DIMO pattern) — defense in depth
+    // requireTier('pro') gates at preHandler level (DIMO pattern) - defense in depth
     { preHandler: [requireFirebaseAuth, requireTier('pro')] },
     async (request: FastifyRequest, reply: FastifyReply) => {
       const userId = request.user!.uid;
@@ -345,7 +345,7 @@ export async function dataRoutes(fastify: FastifyInstance) {
 
         const fromTime = new Date(Date.now() - query.hours * MS_PER_HOUR);
 
-        // Use daily aggregates for wide ranges — 5m table may not retain data beyond ~7d
+        // Use daily aggregates for wide ranges - 5m table may not retain data beyond ~7d
         // and scanning thousands of 5m windows is slow. Daily table is pre-aggregated.
         const useDaily = query.hours > 168;
 
@@ -496,7 +496,7 @@ export async function dataRoutes(fastify: FastifyInstance) {
    * GET /api/v1/data/foot-traffic
    * Foot traffic patterns by H3 cell and hour of day (UTC).
    * Aggregates device_count from 5m windows over the last N days.
-   * Use case: urban planners, retailers — "which blocks are busy at 8am vs 8pm".
+   * Use case: urban planners, retailers - "which blocks are busy at 8am vs 8pm".
    * Tier-aware window: free=7d, pro=90d, enterprise=365d.
    */
   fastify.get(

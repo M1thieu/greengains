@@ -6,11 +6,11 @@ const pageviewSchema = z.object({
   referrer: z.string().max(512).optional(),
   lang:     z.enum(['en', 'fr']).optional(),
   w:        z.number().int().min(0).max(10000).optional(),
-  // ua intentionally dropped — not stored, not logged
+  // ua intentionally dropped - not stored, not logged
 });
 
 export async function telemetryRoutes(fastify: FastifyInstance) {
-  // POST /api/telemetry/pageview — unauthenticated, CORS open, fire-and-forget
+  // POST /api/telemetry/pageview - unauthenticated, CORS open, fire-and-forget
   fastify.route({
     method:  ['POST', 'OPTIONS'],
     url:     '/api/telemetry/pageview',
@@ -29,7 +29,7 @@ export async function telemetryRoutes(fastify: FastifyInstance) {
 
         const { url, referrer, lang, w } = body.data;
 
-        // Structured log — queryable in Railway log explorer, no PII
+        // Structured log - queryable in Railway log explorer, no PII
         request.log.info({
           event:    'pageview',
           url:      url?.slice(0, 200) ?? null,
