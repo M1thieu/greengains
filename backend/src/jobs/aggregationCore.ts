@@ -86,6 +86,25 @@ export interface DayAccumulator {
   pocketLikelySamples: number;
 }
 
+/**
+ * Typical absolute error of an uncalibrated phone barometer, as a 1-sigma
+ * (hPa). Studies report ~±1 hPa per device, stable over time (NOAA, J. Atmos.
+ * Oceanic Technol. 2018; Hintz et al., Meteorol. Appl. 2019). Averaging N
+ * devices shrinks it by sqrt(N); per-model calibration (device_model) would
+ * shrink it further.
+ */
+export const PHONE_BAROMETER_BIAS_HPA = 1.0;
+
+/**
+ * Uncertainty of a cell's mean pressure: within-batch noise over the readings
+ * plus the per-device bias over the devices. What a model needs to weight
+ * this observation against its own background.
+ */
+export function pressureSigmaHpa(noiseVar: number, readings: number, devices: number): number | null {
+  if (readings <= 0 || devices <= 0) return null;
+  return Math.sqrt(noiseVar / readings + (PHONE_BAROMETER_BIAS_HPA ** 2) / devices);
+}
+
 export interface WindowResult {
   windowStart: Date;
   windowEnd: Date;
@@ -101,6 +120,8 @@ export interface WindowResult {
   avgGyroRms: number;
   avgPressure: number | null;
   pressureAnomalyHpa: number | null;
+  /** 1-sigma uncertainty of avgPressure (hPa); see pressureSigmaHpa(). */
+  pressureSigmaHpa: number | null;
   weatherTempC: number | null;
   movementScore: number;
   vibrationScore: number;
@@ -388,6 +409,11 @@ export function computeWindowResults(
       avgLight, lightMin, lightMax,
       avgAccelRms, avgAccelStdDev, avgGyroRms,
       avgPressure, pressureAnomalyHpa, weatherTempC,
+      pressureSigmaHpa: avgPressureRaw === null ? null : pressureSigmaHpa(
+        bucket.pressureNoiseN > 0 ? bucket.pressureNoiseNum / bucket.pressureNoiseN : 0,
+        bucket.pressureSamples,
+        bucket.deviceIds.size,
+      ),
       movementScore: movementScore(avgAccelRms),
       vibrationScore: vibrationScore(avgAccelStdDev),
       batteryAvg: bucket.batterySamples > 0 ? bucket.batterySum / bucket.batterySamples : null,

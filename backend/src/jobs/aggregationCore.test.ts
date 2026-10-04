@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { latLngToCell } from 'h3-js';
 import {
-  accumulateWindows, buildDayBuckets, computeWindowResults, planWeatherLookups,
+  accumulateWindows, buildDayBuckets, computeWindowResults, planWeatherLookups, pressureSigmaHpa,
   movementScore, vibrationScore, truncateToWindow, nextWindowStart,
   BatchRow, WindowAccumulator,
 } from './aggregationCore';
@@ -234,4 +234,13 @@ test('rows -> windows -> (planned + fetched) weather -> results -> days, without
   const days = buildDayBuckets(windows);
   assert.equal(days.size, 1);
   assert.equal([...days.values()][0].samples, 10); // 4 + 6
+});
+
+// pressureSigmaHpa: observation uncertainty for downstream models
+test('pressure sigma shrinks with more devices and is null without data', () => {
+  assert.equal(pressureSigmaHpa(0.04, 0, 1), null);
+  const one = pressureSigmaHpa(0.04, 100, 1)!;
+  const four = pressureSigmaHpa(0.04, 400, 4)!;
+  assert.ok(Math.abs(one - Math.sqrt(0.04 / 100 + 1)) < 1e-12);
+  assert.ok(four < one / 1.9, 'four phones roughly halve the uncertainty');
 });

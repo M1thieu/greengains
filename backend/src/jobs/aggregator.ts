@@ -229,25 +229,27 @@ async function upsertWindowResults(
   const qualitySampleCounts = results.map(r => r.qualitySamples);
   const qualityValidRatios = results.map(r => r.qualityValidRatio);
   const pocketRatios = results.map(r => r.pocketRatio);
+  const pressureSigmas = results.map(r => r.pressureSigmaHpa);
 
   await client.query(
     `INSERT INTO sensor_aggregates_5m (
       window_start, window_end, geohash, h3_index, samples_count, device_count,
       avg_light, avg_light_min, avg_light_max, avg_accel_rms,
       avg_gyro_rms, avg_pressure, pressure_anomaly_hpa, weather_temp_c, movement_score, vibration_score, battery_avg, location_share,
-      quality_samples, quality_valid_ratio, quality_pocket_ratio
+      quality_samples, quality_valid_ratio, quality_pocket_ratio, pressure_sigma_hpa
     )
     SELECT * FROM UNNEST(
       $1::timestamptz[], $2::timestamptz[], $3::text[], $4::text[],
       $5::int[], $6::int[], $7::double precision[], $8::double precision[],
       $9::double precision[], $10::double precision[], $11::double precision[],
       $12::double precision[], $13::double precision[], $14::double precision[],
-      $15::double precision[], $16::double precision[], $17::double precision[], $18::double precision[], $19::bigint[], $20::double precision[], $21::double precision[]
+      $15::double precision[], $16::double precision[], $17::double precision[], $18::double precision[], $19::bigint[], $20::double precision[], $21::double precision[],
+      $22::double precision[]
     ) AS t(
       window_start, window_end, geohash, h3_index, samples_count, device_count,
       avg_light, avg_light_min, avg_light_max, avg_accel_rms,
       avg_gyro_rms, avg_pressure, pressure_anomaly_hpa, weather_temp_c, movement_score, vibration_score, battery_avg, location_share,
-      quality_samples, quality_valid_ratio, quality_pocket_ratio
+      quality_samples, quality_valid_ratio, quality_pocket_ratio, pressure_sigma_hpa
     )
     ON CONFLICT (window_start, geohash)
     DO UPDATE SET
@@ -269,12 +271,13 @@ async function upsertWindowResults(
       quality_samples = EXCLUDED.quality_samples,
       quality_valid_ratio = EXCLUDED.quality_valid_ratio,
       quality_pocket_ratio = EXCLUDED.quality_pocket_ratio,
+      pressure_sigma_hpa = EXCLUDED.pressure_sigma_hpa,
       updated_at = NOW()`,
     [
       windowStarts, windowEnds, geohashes, h3Indexes, samplesCounts,
       deviceCounts, avgLights, lightMins, lightMaxes,
       avgAccelRms, avgGyroRms, avgPressures, pressureAnomalies, weatherTemps, movementScores, vibrationScores, batteryAvgs, locationShares,
-      qualitySampleCounts, qualityValidRatios, pocketRatios
+      qualitySampleCounts, qualityValidRatios, pocketRatios, pressureSigmas
     ],
   );
 }
