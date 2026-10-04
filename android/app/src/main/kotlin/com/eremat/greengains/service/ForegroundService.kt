@@ -505,23 +505,33 @@ class ForegroundService : Service() {
         Log.d(TAG, "FIFO buffers flushed")
     }
 
-    private fun stopForegroundService() {
+    /**
+     * [userInitiated] = the user tapped Stop (app or notification): the "tracking
+     * enabled" intent is cleared. When Android destroys the service on its own
+     * (memory, OEM battery killer, shutdown) the intent is kept, so boot and the
+     * next app open bring tracking back instead of it dying silently.
+     */
+    private fun stopForegroundService(userInitiated: Boolean = true) {
+        if (!running && !userInitiated) return // already stopped by the user
         sessionStartMillis = null
         running = false
         trackingPausedState = false
         trackingPaused = false
-        setServiceEnabledPref(false)
-        setTrackingPausedPref(false)
+        if (userInitiated) {
+            setServiceEnabledPref(false)
+            setTrackingPausedPref(false)
+        }
 
         // Flush FIFO buffers before stopping to avoid losing last 60s of data
         stopTracking()
 
-        // Signal Flutter before stopSelf() so the method channel is still valid.
-        // This lets the UI update isRunning/isPaused even when stopped from the notification.
-        methodChannel?.invokeMethod("onServiceStopped", null)
+        // Tell Flutter (if attached) so the button flips even when stopped from the
+        // notification or by Android. Same path as every other message: main
+        // looper + caught errors, so a detaching engine cannot crash the stop.
+        postToFlutter("service stopped") { it.invokeMethod("onServiceStopped", null) }
 
         stopForeground(true)
-        stopSelf()
+        if (userInitiated) stopSelf()
     }
 
     @SuppressLint("MissingPermission")
@@ -1036,7 +1046,7 @@ class ForegroundService : Service() {
 
     override fun onDestroy() {
         super.onDestroy()
-        stopForegroundService()
+        stopForegroundService(userInitiated = false)
         coroutineScope.coroutineContext.cancelChildren()
     }
 
