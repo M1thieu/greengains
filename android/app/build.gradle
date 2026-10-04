@@ -92,4 +92,11 @@ dependencies {
 
     // JVM unit tests for pure-Kotlin logic (no Android runtime needed)
     testImplementation "junit:junit:4.13.2"
+
+    constraints {
+        // shared_preferences_android pulls in androidx.datastore, whose libdatastore_shared_counter.so
+        // ends PT_GNU_RELRO off a 16 KB boundary up to 1.2.0 (Android 17 flags the app as not
+        // 16 KB compatible). 1.2.1 is the first release laid out correctly.
+        implementation("androidx.datastore:datastore-core-android:1.2.1")
+    }
 }

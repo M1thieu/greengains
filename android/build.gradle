@@ -23,6 +23,16 @@ subprojects {
     project.evaluationDependsOn(":app")
 }
 
+// Plugins that compile C/C++ from source (h3_flutter) and set no ndkVersion fall back to AGP's
+// default NDK (26.1), whose linker ends PT_GNU_RELRO off a 16 KB boundary. Android 17 then marks
+// the app as not 16 KB compatible (PAGE_SIZE_APP_COMPAT_FLAG_RELRO_NOT_ALIGNED in logcat).
+// Building them with the app's NDK (Flutter's, 28.x) lays RELRO out correctly.
+subprojects { p ->
+    p.plugins.withId("com.android.library") {
+        p.android.ndkVersion = rootProject.project(":app").android.ndkVersion
+    }
+}
+
 tasks.register("clean", Delete) {
     delete rootProject.layout.buildDirectory
 }
