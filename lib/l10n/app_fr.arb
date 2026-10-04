@@ -32,14 +32,14 @@
   "startTracking": "Démarrer le suivi",
   "stopTracking": "Arrêter le suivi",
   "trackingPaused": "Suivi en pause",
-  "lastUpload": "Dernier envoi : {time}",
+  "lastUpload": "Dernière mise à jour : {time}",
   "@lastUpload": {
     "placeholders": {
       "time": {"type": "String"}
     }
   },
 
-  "totalUploads": "Total d'envois",
+  "totalUploads": "Total de scans",
 
   "profileMemberSince": "Membre depuis le {date}",
   "@profileMemberSince": {
@@ -54,7 +54,7 @@
   "settingsLanguageEnglish": "English",
   "settingsLanguageFrench": "Français",
   "settingsDisplay": "Affichage",
-  "settingsMobileData": "Envoi sur données mobiles",
+  "settingsMobileData": "Utiliser les données mobiles",
   "settingsVersion": "Version {version}",
   "@settingsVersion": {
     "placeholders": {
@@ -84,7 +84,7 @@
   "statsThisWeek": "Cette semaine",
   "statsDaysActive": "Jours actifs",
   "statsAreasLabel": "endroits couverts",
-  "statsDataPtsLabel": "données collectées",
+  "statsDataPtsLabel": "mesures",
   "statsKmMapped": "km² couverts",
   "statsBarCalloutUploads": "{count, plural, =1{1 scan} other{{count} scans}}",
   "@statsBarCalloutUploads": {
@@ -97,15 +97,15 @@
   "statsWeeklyTargetLabel": "CETTE SEMAINE",
   "statsWeeklyTargetComplete": "Objectif atteint",
 
-  "statsLocalLegendLabel": "LÉGENDE LOCALE",
-  "statsLocalLegendLeader": "Mappeur le plus actif de ton secteur cette semaine",
-  "statsLocalLegendRank": "#{rank} sur {total} dans le secteur cette semaine",
+  "statsLocalLegendLabel": "TON QUARTIER",
+  "statsLocalLegendLeader": "Tu es le plus actif de ton quartier cette semaine",
+  "statsLocalLegendRank": "{rank}e sur {total} dans ton quartier cette semaine",
   "@statsLocalLegendRank": { "placeholders": { "rank": { "type": "int" }, "total": { "type": "int" } } },
-  "statsLocalLegendGap": "{count, plural, =1{1 zone pour prendre la tête} other{{count} zones pour prendre la tête}}",
+  "statsLocalLegendGap": "{count, plural, =1{1 endroit pour passer en tête} other{{count} endroits pour passer en tête}}",
   "@statsLocalLegendGap": { "placeholders": { "count": { "type": "int" } } },
 
   "statsImpactLabel": "TON IMPACT",
-  "statsImpactSolo": "{count, plural, =1{Tu es la seule personne à avoir cartographié 1 de tes zones} other{Tu es la seule personne à avoir cartographié {count} de tes zones}}",
+  "statsImpactSolo": "{count, plural, =1{Tu es le seul à être passé par 1 de tes endroits} other{Tu es le seul à être passé par {count} de tes endroits}}",
   "@statsImpactSolo": { "placeholders": { "count": { "type": "int" } } },
   "statsDetailTitle": "Tes données",
   "statsCityBlocks": "~{count} pâtés de maisons couverts",
@@ -116,8 +116,8 @@
   "statsRecordTotalUploads": "Total de scans",
   "statsRecordFirstDay": "Premier jour de cartographie",
   "statsRecordBestSession": "Meilleure session",
-  "statsZoneExplainer": "Une zone correspond environ à un pâté de maisons, enregistré en passant.",
-  "statsUploadExplainer": "Lumière, chaleur et qualité des surfaces capturées à cet instant.",
+  "statsZoneExplainer": "Un endroit, c'est à peu près un pâté de maisons.",
+  "statsUploadExplainer": "Lumière, chaleur et sol au moment du scan.",
   "statsTabInDepth": "Détails",
   "statsOpenDetails": "En détail",
   "statsInDepth30Days": "30 derniers jours",
@@ -130,7 +130,7 @@
       "count": { "type": "int" }
     }
   },
-  "statsHeatmapNoUploads": "{date} · aucun envoi",
+  "statsHeatmapNoUploads": "{date} · aucun scan",
   "@statsHeatmapNoUploads": {
     "placeholders": {
       "date": { "type": "String" }
@@ -140,22 +140,22 @@
   "statsInDepthActiveDays": "Jours actifs",
   "statsInDepthAvgPerDay": "Moy. / jour actif",
   "statsInDepthBestWeekday": "Meilleur jour",
-  "statsInDepthWhenYouMap": "Quand tu cartographies",
+  "statsInDepthWhenYouMap": "Quand tu scannes",
   "statsDaysUnit": "jours",
   "statsCurrentStreakLabel": "Série actuelle",
   "statsLongestLabel": "Record",
   "statsAllTimeSection": "TOTAL",
   "statsUploadsUnit": "scans",
   "statsBestWeekLabel": "Meilleure semaine",
-  "statsQualitySection": "QUALITÉ DU SIGNAL",
+  "statsQualitySection": "FIABILITÉ",
   "statsQualityExcellent": "Excellent",
   "statsQualityGood": "Bon",
   "statsQualityFair": "Correct",
   "statsQualityLow": "Faible",
-  "statsQualitySubtitle": "La clarté de tes mesures : signal fort, moins d'erreurs",
+  "statsQualitySubtitle": "Plus c'est haut, plus tes mesures sont fiables.",
   "statsAvgPrefix": "moy.",
 
-  "infoTileQualityTitle": "Qualité de couverture",
+  "infoTileQualityTitle": "Fiabilité",
 "infoTilePersonalTitle": "Ton endroit",
   "statsActivityTrend": "Cette semaine",
   "statsTodayLabel": "AUJOURD'HUI",
@@ -166,15 +166,15 @@
 
   "tileInfoSamplesLabel": "relevés",
   "tileInfoDevicesLabel": "personnes",
-  "tileInfoQualityLabel": "Couverture",
+  "tileInfoQualityLabel": "Fiabilité",
   "tileInfoAreaLabel": "surface",
   "tileInfoPersonal": "Le tien",
   "tileInfoCommunity": "Pas encore le tien",
   "tileOnlyYouMapped": "Seul(e) toi es passé(e) ici",
-  "tileInfoNoSensorData": "Localisation uniquement. Pas de mesures pour cet endroit.",
+  "tileInfoNoSensorData": "Position seulement, pas encore de mesures ici.",
 
-  "noCoverageYet": "Aucune couverture",
-  "startTrackingToMap": "Lance le suivi pour cartographier ton secteur",
+  "noCoverageYet": "Rien ici pour l'instant",
+  "startTrackingToMap": "Lance le suivi pour remplir ta carte",
   "tilesCount": "{count} tuiles",
   "@tilesCount": {
     "placeholders": {
@@ -223,7 +223,7 @@
   "settingsDataTransparency": "Transparence des données",
   "settingsExportData": "Exporter mes données",
   "settingsExportDataFailed": "Impossible d'exporter tes données. Réessaie plus tard.",
-  "referralInviteDescription": "Chaque personne qui rejoint cartographie des endroits que tu n'as pas encore couverts.",
+  "referralInviteDescription": "Chaque ami qui rejoint ajoute des endroits à la carte.",
   "layerMine": "Miennes",
   "layerAll": "Tout",
   "referralShareLink": "Partager",
@@ -237,7 +237,7 @@
   "statsWeeklyTotal": "{count} cette semaine",
 
   "statsMilestoneElite": "Tous les paliers atteints.",
-  "statsMilestoneRemaining": "{count, plural, =1{1 zone restante} other{{count} zones restantes}}",
+  "statsMilestoneRemaining": "{count, plural, =1{Encore 1 endroit} other{Encore {count} endroits}}",
   "@statsMilestoneRemaining": {
     "placeholders": { "count": { "type": "int" } }
   },
@@ -247,45 +247,45 @@
     }
   },
 
-  "batteryDialogTitle": "Continuez à cartographier",
+  "batteryDialogTitle": "Laisser tourner en arrière-plan",
 
   "settingsDiagnostics": "Diagnostics capteurs",
   "settingsDiagnosticsDesc": "Lectures en temps réel de tes capteurs",
 
-  "sensorLiveSheetTitle": "Ce que tu mesures",
+  "sensorLiveSheetTitle": "Autour de toi",
 
   "transparencyNothingElse": "Pas de trajet précis. Pas de micro. Pas de contacts. Rien d'autre.",
-  "transparencyLastUpload": "Dernier envoi",
+  "transparencyLastUpload": "Dernière mise à jour",
   "transparencyNoUploadYet": "Rien d'envoyé pour l'instant.",
 
   "tileQualityExcellent": "Bien couvert",
   "tileQualityGood": "Bonne couverture",
   "tileQualityFair": "Repasse ici",
-  "tileQualityStaling": "Données vieillissantes",
-  "tileDecayWarning": "Données vieilles de {days} jours. Repasse ici pour les rafraîchir.",
+  "tileQualityStaling": "Infos anciennes",
+  "tileDecayWarning": "Infos d'il y a {days} jours. Repasse ici pour les mettre à jour.",
   "@tileDecayWarning": { "placeholders": { "days": { "type": "int" } } },
-  "tileDecayHint": "Cartographié il y a {days} jours. Le score va bientôt baisser.",
+  "tileDecayHint": "Mis à jour il y a {days} jours.",
   "@tileDecayHint": { "placeholders": { "days": { "type": "int" } } },
 
-  "legendHighLabel": "Qualité élevée",
-  "legendHighSub": "Beaucoup de bonnes données ici",
-  "legendMidLabel": "Qualité moyenne",
-  "legendMidSub": "Quelques données. Repasse ici pour améliorer.",
-  "legendLowLabel": "Qualité faible",
+  "legendHighLabel": "Très fiable",
+  "legendHighSub": "Beaucoup de mesures ici",
+  "legendMidLabel": "Assez fiable",
+  "legendMidSub": "Quelques mesures. Repasse ici pour en ajouter.",
+  "legendLowLabel": "Peu fiable",
   "legendLowSub": "Presque rien. Il faut y repasser.",
   "legendCommunitySub": "Enregistré par d'autres personnes",
 
   "permissionPrimingBattery": "Batterie intelligente",
   "permissionPrimingCollects": "Conçu pour la vie privée",
 
-  "onboardingSocialProof": "{count} personnes cartographient déjà leur quartier",
+  "onboardingSocialProof": "{count} personnes remplissent déjà la carte de leur quartier",
   "@onboardingSocialProof": {
     "placeholders": { "count": { "type": "int" } }
   },
 
   "statsWeeklyChartOffline": "Graphique hebdomadaire disponible une fois connecté",
   "statsViewOnMap": "Voir sur la carte",
-  "tileFirstMapped": "Cartographié le {date}",
+  "tileFirstMapped": "Premier passage le {date}",
   "@tileFirstMapped": {
     "placeholders": { "date": { "type": "String" } }
   },
@@ -298,7 +298,7 @@
   "statsChartWeekTab": "Semaine",
   "statsChartMonthTab": "Mois",
   "statsChartMonthEmpty": "Marche plus de jours pour débloquer la vue mensuelle",
-  "statsBarCalloutDetail": "~{count, plural, =1{1 scan} other{{count} scans}} · luminosité · activité · météo",
+  "statsBarCalloutDetail": "~{count, plural, =1{1 scan} other{{count} scans}} · lumière · mouvement · météo",
   "@statsBarCalloutDetail": { "placeholders": { "count": { "type": "int" } } },
   "statsTerritoryDetails": "Voir les détails du territoire",
   "statsTerritorySheetTitle": "Ton territoire",
@@ -310,7 +310,7 @@
   "statsTerritoryMotionLabel": "Activité",
   "statsTerritoryMotionDesc": "L'animation habituelle de cet endroit : personnes, trafic, mouvement",
   "statsTerritoryPressureLabel": "Météo",
-  "statsTerritoryPressureDesc": "La pression atmosphérique enregistrée ici. Reflète les conditions météo locales.",
+  "statsTerritoryPressureDesc": "La pression de l'air ici. Elle suit la météo.",
   "statsTerritoryMapCta": "Touche un endroit sur la carte pour voir ses mesures",
 
   "tileCommunityClaimCta": "Passe par ici pour te l'approprier",
@@ -340,11 +340,11 @@
 
   "tileVibrationCalm": "Très calme",
   "tileVibrationLight": "Activité légère",
-  "tileVibrationActive": "Surface animée",
+  "tileVibrationActive": "Ça bouge beaucoup",
   "tileVibrationHeavy": "Trafic intense",
 
-  "tileSurfaceSmooth": "route lisse",
-  "tileSurfaceRough": "route dégradée",
+  "tileSurfaceSmooth": "sol lisse",
+  "tileSurfaceRough": "sol irrégulier",
   "tileSurfaceHeavy": "très dégradée",
 
   "tileCondLightDark": "sombre",
@@ -360,8 +360,8 @@
 
   "sessionCharacterDarkSky": "CIEL NOIR",
   "sessionCharacterBrightCity": "NUIT ÉCLAIRÉE",
-  "sessionCharacterHotRoute": "TRAJET CHAUD",
-  "sessionCharacterRoughRoad": "ROUTES DÉGRADÉES",
+  "sessionCharacterHotRoute": "SORTIE CHAUDE",
+  "sessionCharacterRoughRoad": "SOL IRRÉGULIER",
   "sessionCharacterSunExposed": "CIEL OUVERT",
 
   "mapperRoleContributor": "Contributeur",
@@ -374,17 +374,17 @@
   "serverWakingUp": "Chargement…",
   "permissionLostTitle": "Accès à la localisation désactivé",
   "permissionLostCta": "Corriger dans les réglages",
-  "referralNeighborhoodHook": "Aide à cartographier {neighborhood}. Chaque voisin couvre ce que tu n'as pas encore atteint.",
+  "referralNeighborhoodHook": "Invite tes voisins à remplir la carte de {neighborhood}.",
   "@referralNeighborhoodHook": {
     "placeholders": { "neighborhood": { "type": "String" } }
   },
 
   "onboardingActivateTitle": "Presque là",
   "onboardingActivateSubtitle": "Ton téléphone mesure l'environnement autour de toi pendant tes déplacements. Ton trajet n'est jamais enregistré.",
-  "onboardingActivateCta": "Commencer à cartographier",
-  "onboardingPermissionDenied": "L'accès à la localisation est nécessaire pour cartographier ta ville.",
+  "onboardingActivateCta": "Commencer",
+  "onboardingPermissionDenied": "La localisation est nécessaire pour remplir ta carte.",
 
-  "profileTileAreaCells": "zones explorées",
+  "profileTileAreaCells": "endroits",
   "profileStatCityBlocks": "îlots de ville",
   "profileStreakToMilestone": "{days} {unit} avant le cap des {milestone} {unit}",
   "@profileStreakToMilestone": {
@@ -394,16 +394,16 @@
       "milestone": { "type": "int" }
     }
   },
-  "profileUploadsExplanation": "Chaque envoi regroupe des lectures de capteurs capturées à un endroit.",
-  "profileDaysExplanation": "Jours où ton téléphone était actif au moins une fois. Plus de jours, couverture plus récente.",
-  "profileZonesExplanation": "Chaque zone fait environ la taille d'un pâté de maisons. Consultez la carte pour voir les endroits couverts.",
+  "profileUploadsExplanation": "Un scan, c'est ce que ton téléphone mesure à un endroit.",
+  "profileDaysExplanation": "Jours où ton téléphone a scanné au moins une fois.",
+  "profileZonesExplanation": "Un endroit, c'est à peu près un pâté de maisons. Touche la carte pour les voir.",
   "profileSeeInStats": "Voir dans les stats",
   "profileViewOnMap": "Voir sur la carte",
 
   "statsActivitySection": "TA SEMAINE",
   "statsVsPrevWeek": "{delta}% vs sem. préc.",
   "@statsVsPrevWeek": { "placeholders": { "delta": { "type": "String" } } },
-  "statsTerritorySection": "TA ZONE",
+  "statsTerritorySection": "TON QUARTIER",
   "mapTapHint": "Touchez un endroit pour explorer",
 
   "settingsSignOut": "Se déconnecter",
@@ -415,14 +415,14 @@
 
   "statsEmptyLockLight": "Lumière : ciel noir la nuit, soleil le jour",
   "statsEmptyLockMovement": "Activité : l'animation de chaque endroit",
-  "statsEmptyLockPressure": "Météo : chaleur et pression sur tes trajets",
+  "statsEmptyLockPressure": "Météo : chaleur et pression autour de toi",
   "statsKm2Unit": "km²",
   "statsLast30DaysUnit": "/ 30",
 
-  "referralWaiting": "Lien partagé. Personne pour l'instant. Tu es peut-être le premier dans ta zone.",
+  "referralWaiting": "Lien partagé. Personne pour l'instant. Tu es peut-être le premier de ton quartier.",
   "referralFirstJoined": "Première personne rejointe.",
   "referralShareAgain": "Partager à nouveau",
-  "referralShareText": "Rejoins-moi sur GreenGains. On cartographie la pollution lumineuse, la pression atmosphérique et l'état des routes. Utilise mon code {code} à l'inscription.",
+  "referralShareText": "Rejoins-moi sur GreenGains : on cartographie la lumière, la météo et l'état des rues autour de nous. Mon code : {code}",
   "@referralShareText": {
     "placeholders": {
       "code": { "type": "String" }
@@ -436,42 +436,42 @@
 
   "mapZeroStateTitle": "Ton premier endroit est à une marche",
 
-  "insightNoData": "Pas encore assez de données pour cette zone.",
+  "insightNoData": "Pas encore assez de mesures ici.",
   "insightNormal": "Rien d'inhabituel détecté ici.",
-  "insightRouteHeader": "TON TRAJET",
+  "insightRouteHeader": "TA SORTIE",
 
-  "insightLightPristine": "Presque aucune lumière artificielle ici. Ta mélatonine reste intacte sur ce trajet.",
+  "insightLightPristine": "Très peu de lumière artificielle ici.",
   "insightLightLow": "Naturellement sombre ici. Bon pour décompresser si tu rentres par là.",
   "insightLightModerate": "Un peu de halo lumineux. Assez pour affecter ton horloge biologique à la longue.",
   "insightLightHigh": "Lumineux la nuit, comme une pièce allumée. Pas idéal avant de dormir.",
   "insightLightSevere": "Très lumineux la nuit. Ton corps pense qu'il fait encore jour ici.",
 
-  "insightSunShaded": "Zone ombragée et fraîche. Moins d'UV que les rues ouvertes.",
+  "insightSunShaded": "Endroit ombragé et frais.",
   "insightSunPartial": "Conditions extérieures normales.",
-  "insightSunBright": "Zone ouverte, bien exposée à la lumière naturelle.",
+  "insightSunBright": "Endroit bien ensoleillé.",
   "insightSunIntense": "Fort soleil direct. Pense à t'hydrater ou chercher de l'ombre en été.",
 
-  "insightSurfaceSmooth": "Surface lisse. Agréable pour le vélo, les articulations, les poussettes.",
-  "insightSurfaceNormal": "Revêtement normal.",
-  "insightSurfaceRough": "Route dégradée. Plus difficile pour le vélo, les articulations, les poussettes.",
-  "insightSurfacePoor": "Surface très dégradée. À éviter si tu es à vélo ou avec une poussette.",
+  "insightSurfaceSmooth": "Sol lisse.",
+  "insightSurfaceNormal": "Sol normal.",
+  "insightSurfaceRough": "Sol irrégulier.",
+  "insightSurfacePoor": "Sol très irrégulier.",
 
-  "insightHeatExposed": "Cette zone chauffe. Sensiblement plus chaud que les rues voisines.",
+  "insightHeatExposed": "Plus chaud que les rues autour.",
 
-  "insightSessionDarkSky": "Peu de lumière artificielle sur ce trajet. Bon pour le sommeil si tu rentres par là.",
-  "insightSessionBrightCity": "Lumineux la nuit sur tout ce trajet. Comme marcher dans un bureau éclairé avant de dormir.",
-  "insightSessionRoughRoute": "Route dégradée sur ce trajet. Plus difficile que des alternatives plus lisses.",
-  "insightSessionHotRoute": "Ce trajet chauffe. Pense à des alternatives plus fraîches en été.",
+  "insightSessionDarkSky": "Peu de lumière artificielle pendant ta sortie.",
+  "insightSessionBrightCity": "Très éclairé la nuit pendant ta sortie.",
+  "insightSessionRoughRoute": "Sol irrégulier pendant ta sortie.",
+  "insightSessionHotRoute": "Il faisait chaud pendant ta sortie.",
 
   "statsInsightLabel": "CETTE SEMAINE",
-  "statsInsightRoughest": "Tronçon le plus dégradé : {street}, plus cahoteux que {pct}% de tes trajets",
+  "statsInsightRoughest": "Rue la plus irrégulière : {street} (plus que {pct} % de tes sorties)",
   "@statsInsightRoughest": {
     "placeholders": {
       "street": { "type": "String" },
       "pct": { "type": "int" }
     }
   },
-  "statsInsightNewZones": "{count, plural, =1{1 nouvel endroit cartographié cette semaine} other{{count} nouveaux endroits cartographiés cette semaine}}",
+  "statsInsightNewZones": "{count, plural, =1{1 nouvel endroit cette semaine} other{{count} nouveaux endroits cette semaine}}",
   "@statsInsightNewZones": { "placeholders": { "count": { "type": "int" } } },
   "statsInsightSolo": "{count, plural, =1{1 endroit où tu es le seul à être passé} other{{count} endroits où tu es le seul à être passé}}",
   "@statsInsightSolo": { "placeholders": { "count": { "type": "int" } } },

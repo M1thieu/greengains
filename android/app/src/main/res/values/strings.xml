@@ -7,7 +7,7 @@
     <string name="notification_status_collecting">Your map is growing</string>
     <string name="notification_status_stationary">Watching your surroundings</string>
     <string name="notification_paused_title">Paused</string>
-    <string name="notification_paused_body">Your route isn\'t being captured</string>
+    <string name="notification_paused_body">Tracking is paused</string>
     <string name="notification_collecting_no_upload">Walk around to start mapping</string>
     <!-- Zone-first body strings — shown when zonesTotal > 0 -->
     <!-- %1$d = zones total -->
@@ -39,7 +39,7 @@
 
     <!-- Notification titles — one word, state-aware -->
     <string name="notif_title_contributing">Mapping</string>
-    <string name="notif_title_standby">Standby</string>
+    <string name="notif_title_standby">On standby</string>
     <!-- Duration format strings -->
     <string name="notif_body_starting">Reading…</string>
     <!-- %1$d = hours, %2$d = minutes (zero-padded) -->
@@ -70,7 +70,7 @@
     <!-- Uploaded N min ago suffix appended to notification body -->
     <!-- Session zone counter — live count of new zones discovered this session -->
     <!-- %1$d = zones discovered since session start -->
-    <string name="notif_session_zones">+%1$d zones</string>
+    <string name="notif_session_zones">Places: +%1$d</string>
 
     <!-- Post-session discovery notification — fires when user stops tracking -->
     <!-- %1$d = uploads in this session -->

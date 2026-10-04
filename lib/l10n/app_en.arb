@@ -32,14 +32,14 @@
   "startTracking": "Start Tracking",
   "stopTracking": "Stop Tracking",
   "trackingPaused": "Tracking Paused",
-  "lastUpload": "Last upload: {time}",
+  "lastUpload": "Last update: {time}",
   "@lastUpload": {
     "placeholders": {
       "time": {"type": "String"}
     }
   },
 
-  "totalUploads": "Total Uploads",
+  "totalUploads": "Total scans",
 
   "profileMemberSince": "Member since {date}",
   "@profileMemberSince": {
@@ -54,7 +54,7 @@
   "settingsLanguageEnglish": "English",
   "settingsLanguageFrench": "Français",
   "settingsDisplay": "Display",
-  "settingsMobileData": "Mobile Data Upload",
+  "settingsMobileData": "Use mobile data",
   "settingsVersion": "Version {version}",
   "@settingsVersion": {
     "placeholders": {
@@ -84,7 +84,7 @@
   "statsThisWeek": "This week",
   "statsDaysActive": "Days Active",
   "statsAreasLabel": "places covered",
-  "statsDataPtsLabel": "data points",
+  "statsDataPtsLabel": "readings",
   "statsKmMapped": "km² covered",
   "statsBarCalloutUploads": "{count, plural, =1{1 scan} other{{count} scans}}",
   "@statsBarCalloutUploads": {
@@ -97,15 +97,15 @@
   "statsWeeklyTargetLabel": "THIS WEEK",
   "statsWeeklyTargetComplete": "Goal reached",
 
-  "statsLocalLegendLabel": "LOCAL LEGEND",
-  "statsLocalLegendLeader": "Top mapper in your area this week",
-  "statsLocalLegendRank": "#{rank} of {total} nearby this week",
+  "statsLocalLegendLabel": "YOUR NEIGHBORHOOD",
+  "statsLocalLegendLeader": "You're the most active in your neighborhood this week",
+  "statsLocalLegendRank": "#{rank} of {total} in your neighborhood this week",
   "@statsLocalLegendRank": { "placeholders": { "rank": { "type": "int" }, "total": { "type": "int" } } },
-  "statsLocalLegendGap": "{count, plural, =1{1 zone to take the lead} other{{count} zones to take the lead}}",
+  "statsLocalLegendGap": "{count, plural, =1{1 place to take the lead} other{{count} places to take the lead}}",
   "@statsLocalLegendGap": { "placeholders": { "count": { "type": "int" } } },
 
   "statsImpactLabel": "YOUR IMPACT",
-  "statsImpactSolo": "{count, plural, =1{Only you have ever mapped 1 of your zones} other{Only you have ever mapped {count} of your zones}}",
+  "statsImpactSolo": "{count, plural, =1{You're the only one who's been to 1 of your places} other{You're the only one who's been to {count} of your places}}",
   "@statsImpactSolo": { "placeholders": { "count": { "type": "int" } } },
   "statsDetailTitle": "Your data",
   "statsCityBlocks": "~{count} city blocks covered",
@@ -116,15 +116,15 @@
   "statsRecordTotalUploads": "Total scans",
   "statsRecordFirstDay": "First mapping day",
   "statsRecordBestSession": "Best session",
-  "statsZoneExplainer": "A zone is roughly one city block, recorded as you pass through.",
-  "statsUploadExplainer": "Light, heat and surface quality captured at that moment.",
+  "statsZoneExplainer": "A place is roughly one city block.",
+  "statsUploadExplainer": "Light, heat and ground at the time of the scan.",
   "statsTabInDepth": "In depth",
   "statsOpenDetails": "In depth",
   "statsInDepth30Days": "Last 30 days",
   "statsHeatmapLess": "less",
   "statsHeatmapMore": "more",
   "statsHeatmapDayDetail": "{date} · {count} passes",
-  "statsHeatmapNoUploads": "{date} · no uploads",
+  "statsHeatmapNoUploads": "{date} · no scans",
   "@statsHeatmapNoUploads": {
     "placeholders": {
       "date": { "type": "String" }
@@ -140,22 +140,22 @@
   "statsInDepthActiveDays": "Active days",
   "statsInDepthAvgPerDay": "Avg / active day",
   "statsInDepthBestWeekday": "Best weekday",
-  "statsInDepthWhenYouMap": "When you map",
+  "statsInDepthWhenYouMap": "When you scan",
   "statsDaysUnit": "days",
   "statsCurrentStreakLabel": "Current streak",
   "statsLongestLabel": "Longest",
   "statsAllTimeSection": "ALL TIME",
   "statsUploadsUnit": "scans",
   "statsBestWeekLabel": "Best week",
-  "statsQualitySection": "SIGNAL QUALITY",
+  "statsQualitySection": "RELIABILITY",
   "statsQualityExcellent": "Excellent",
   "statsQualityGood": "Good",
   "statsQualityFair": "Fair",
   "statsQualityLow": "Low",
-  "statsQualitySubtitle": "How clean your readings are: strong signal, fewer gaps",
+  "statsQualitySubtitle": "The higher, the more reliable your readings.",
   "statsAvgPrefix": "avg",
 
-  "infoTileQualityTitle": "Coverage quality",
+  "infoTileQualityTitle": "Reliability",
 "infoTilePersonalTitle": "Your area",
   "statsActivityTrend": "Your week",
   "statsTodayLabel": "TODAY",
@@ -166,15 +166,15 @@
 
   "tileInfoSamplesLabel": "readings",
   "tileInfoDevicesLabel": "people",
-  "tileInfoQualityLabel": "Coverage",
+  "tileInfoQualityLabel": "Reliability",
   "tileInfoAreaLabel": "area",
   "tileInfoPersonal": "Yours",
   "tileInfoCommunity": "Not yours yet",
   "tileOnlyYouMapped": "Only you've been here",
-  "tileInfoNoSensorData": "Location only. No sensor readings for this spot.",
+  "tileInfoNoSensorData": "Location only, no readings here yet.",
 
-  "noCoverageYet": "No coverage yet",
-  "startTrackingToMap": "Start tracking to map your area",
+  "noCoverageYet": "Nothing here yet",
+  "startTrackingToMap": "Start tracking to fill your map",
   "tilesCount": "{count} tiles",
   "@tilesCount": {
     "placeholders": {
@@ -223,7 +223,7 @@
   "settingsDataTransparency": "Data Transparency",
   "settingsExportData": "Export My Data",
   "settingsExportDataFailed": "Couldn't export your data. Try again later.",
-  "referralInviteDescription": "Every person who joins maps places you haven't reached.",
+  "referralInviteDescription": "Every friend who joins adds places to the map.",
   "layerMine": "Mine",
   "layerAll": "All",
   "referralShareLink": "Share",
@@ -237,7 +237,7 @@
   "statsWeeklyTotal": "{count} this week",
 
   "statsMilestoneElite": "All milestones reached.",
-  "statsMilestoneRemaining": "{count, plural, =1{1 zone to go} other{{count} zones to go}}",
+  "statsMilestoneRemaining": "{count, plural, =1{1 more place} other{{count} more places}}",
   "@statsMilestoneRemaining": {
     "placeholders": { "count": { "type": "int" } }
   },
@@ -247,45 +247,45 @@
     }
   },
 
-  "batteryDialogTitle": "Keep mapping",
+  "batteryDialogTitle": "Keep running in the background",
 
   "settingsDiagnostics": "Sensor Diagnostics",
   "settingsDiagnosticsDesc": "Live readings from your device sensors",
 
-  "sensorLiveSheetTitle": "What you're measuring",
+  "sensorLiveSheetTitle": "Around you",
 
   "transparencyNothingElse": "No precise route. No microphone. No contacts. Nothing else.",
-  "transparencyLastUpload": "Last upload",
+  "transparencyLastUpload": "Last update",
   "transparencyNoUploadYet": "Nothing sent yet.",
 
   "tileQualityExcellent": "Well covered",
   "tileQualityGood": "Good coverage",
   "tileQualityFair": "Pass here again",
-  "tileQualityStaling": "Staling",
-  "tileDecayWarning": "Data is {days} days old. Walk here to refresh it.",
+  "tileQualityStaling": "Getting old",
+  "tileDecayWarning": "Info from {days} days ago. Come back here to update it.",
   "@tileDecayWarning": { "placeholders": { "days": { "type": "int" } } },
-  "tileDecayHint": "Mapped {days} days ago. Score will drop soon.",
+  "tileDecayHint": "Updated {days} days ago.",
   "@tileDecayHint": { "placeholders": { "days": { "type": "int" } } },
 
-  "legendHighLabel": "High quality",
-  "legendHighSub": "Lots of good data from here",
-  "legendMidLabel": "Medium quality",
-  "legendMidSub": "Some data. Walk here again to fill it in.",
-  "legendLowLabel": "Low quality",
+  "legendHighLabel": "Very reliable",
+  "legendHighSub": "Lots of readings here",
+  "legendMidLabel": "Fairly reliable",
+  "legendMidSub": "A few readings. Come back to add more.",
+  "legendLowLabel": "Not very reliable",
   "legendLowSub": "Barely any data. Needs more passes.",
   "legendCommunitySub": "Recorded by other people",
 
   "permissionPrimingBattery": "Smart battery",
   "permissionPrimingCollects": "Private by design",
 
-  "onboardingSocialProof": "{count} people already mapping their neighborhood",
+  "onboardingSocialProof": "{count} people are already filling in their neighborhood map",
   "@onboardingSocialProof": {
     "placeholders": { "count": { "type": "int" } }
   },
 
   "statsWeeklyChartOffline": "Weekly chart loads once connected",
   "statsViewOnMap": "View on map",
-  "tileFirstMapped": "First mapped {date}",
+  "tileFirstMapped": "First visit {date}",
   "@tileFirstMapped": {
     "placeholders": { "date": { "type": "String" } }
   },
@@ -298,7 +298,7 @@
   "statsChartWeekTab": "Week",
   "statsChartMonthTab": "Month",
   "statsChartMonthEmpty": "Walk more days to unlock monthly view",
-  "statsBarCalloutDetail": "~{count, plural, =1{1 scan} other{{count} scans}} · brightness · activity · weather",
+  "statsBarCalloutDetail": "~{count, plural, =1{1 scan} other{{count} scans}} · light · movement · weather",
   "@statsBarCalloutDetail": { "placeholders": { "count": { "type": "int" } } },
   "statsTerritoryDetails": "See territory details",
   "statsTerritorySheetTitle": "Your territory",
@@ -310,7 +310,7 @@
   "statsTerritoryMotionLabel": "Activity",
   "statsTerritoryMotionDesc": "How lively this place usually feels: people, traffic, movement",
   "statsTerritoryPressureLabel": "Weather",
-  "statsTerritoryPressureDesc": "The air pressure recorded here. Reflects local weather conditions.",
+  "statsTerritoryPressureDesc": "Air pressure here. It follows the weather.",
   "statsTerritoryMapCta": "Tap any place on the map to see its readings",
 
   "tileCommunityClaimCta": "Walk through here to make it yours",
@@ -340,11 +340,11 @@
 
   "tileVibrationCalm": "Very still",
   "tileVibrationLight": "Light activity",
-  "tileVibrationActive": "Active surface",
+  "tileVibrationActive": "Lots of movement",
   "tileVibrationHeavy": "Heavy traffic",
 
-  "tileSurfaceSmooth": "smooth road",
-  "tileSurfaceRough": "rough road",
+  "tileSurfaceSmooth": "smooth ground",
+  "tileSurfaceRough": "uneven ground",
   "tileSurfaceHeavy": "very rough",
 
   "tileCondLightDark": "dark",
@@ -360,8 +360,8 @@
 
   "sessionCharacterDarkSky": "DARK SKY",
   "sessionCharacterBrightCity": "LIT STREETS",
-  "sessionCharacterHotRoute": "HOT ROUTE",
-  "sessionCharacterRoughRoad": "ROUGH ROADS",
+  "sessionCharacterHotRoute": "HOT OUTING",
+  "sessionCharacterRoughRoad": "UNEVEN GROUND",
   "sessionCharacterSunExposed": "OPEN SKY",
 
   "mapperRoleContributor": "Contributor",
@@ -374,17 +374,17 @@
   "serverWakingUp": "Loading…",
   "permissionLostTitle": "Location access off",
   "permissionLostCta": "Fix in Settings",
-  "referralNeighborhoodHook": "Help map {neighborhood}. Every neighbor fills in what you haven't reached.",
+  "referralNeighborhoodHook": "Invite your neighbors to fill in the map of {neighborhood}.",
   "@referralNeighborhoodHook": {
     "placeholders": { "neighborhood": { "type": "String" } }
   },
 
   "onboardingActivateTitle": "Almost there",
   "onboardingActivateSubtitle": "Your phone reads the environment around you as you go. Your route is never stored.",
-  "onboardingActivateCta": "Start mapping",
-  "onboardingPermissionDenied": "Location permission is required to map your city.",
+  "onboardingActivateCta": "Start",
+  "onboardingPermissionDenied": "Location is needed to fill your map.",
 
-  "profileTileAreaCells": "zones explored",
+  "profileTileAreaCells": "places",
   "profileStatCityBlocks": "city blocks",
   "profileStreakToMilestone": "{days} {unit} to {milestone}-{unit} streak",
   "@profileStreakToMilestone": {
@@ -394,16 +394,16 @@
       "milestone": { "type": "int" }
     }
   },
-  "profileUploadsExplanation": "Each upload is a batch of sensor readings captured at one location.",
-  "profileDaysExplanation": "Days where your phone was active at least once. More days means richer, more recent coverage.",
-  "profileZonesExplanation": "Each zone is roughly a city block. Tap the map to see which areas you've covered.",
+  "profileUploadsExplanation": "A scan is what your phone measures at one place.",
+  "profileDaysExplanation": "Days your phone scanned at least once.",
+  "profileZonesExplanation": "A place is roughly one city block. Tap the map to see them.",
   "profileSeeInStats": "See in Stats",
   "profileViewOnMap": "View on Map",
 
   "statsActivitySection": "YOUR WEEK",
   "statsVsPrevWeek": "{delta}% vs prev week",
   "@statsVsPrevWeek": { "placeholders": { "delta": { "type": "String" } } },
-  "statsTerritorySection": "YOUR AREA",
+  "statsTerritorySection": "YOUR NEIGHBORHOOD",
   "mapTapHint": "Tap a place to explore",
 
   "settingsSignOut": "Sign out",
@@ -415,14 +415,14 @@
 
   "statsEmptyLockLight": "Light: dark sky at night, sunlight by day",
   "statsEmptyLockMovement": "Activity: how lively each place feels",
-  "statsEmptyLockPressure": "Weather: heat and pressure along your routes",
+  "statsEmptyLockPressure": "Weather: heat and pressure around you",
   "statsKm2Unit": "km²",
   "statsLast30DaysUnit": "/ 30",
 
-  "referralWaiting": "Link shared. No one yet. You might be first in your area.",
+  "referralWaiting": "Link shared. No one yet. You might be the first in your neighborhood.",
   "referralFirstJoined": "First person joined.",
   "referralShareAgain": "Share again",
-  "referralShareText": "Join me on GreenGains. We're mapping light pollution, air pressure and road conditions around us. Use my invite code {code} when you sign up.",
+  "referralShareText": "Join me on GreenGains: we're mapping light, weather and street conditions around us. My code: {code}",
   "@referralShareText": {
     "placeholders": {
       "code": { "type": "String" }
@@ -436,42 +436,42 @@
 
   "mapZeroStateTitle": "Your first place is one walk away",
 
-  "insightNoData": "Not enough data yet for this area.",
+  "insightNoData": "Not enough readings here yet.",
   "insightNormal": "Nothing unusual detected here.",
-  "insightRouteHeader": "YOUR ROUTE",
+  "insightRouteHeader": "YOUR OUTING",
 
-  "insightLightPristine": "Almost no artificial light here. Your melatonin stays intact on this route.",
+  "insightLightPristine": "Very little artificial light here.",
   "insightLightLow": "Naturally dark here. Good for winding down if you come home this way.",
   "insightLightModerate": "Some sky glow. Enough artificial light to affect your body clock over time.",
   "insightLightHigh": "Bright at night, like a lit room. Not ideal before sleep.",
   "insightLightSevere": "Very bright at night. Your body thinks it's still daytime here.",
 
-  "insightSunShaded": "Shaded and cool. Lower UV than open streets.",
+  "insightSunShaded": "Shaded and cool.",
   "insightSunPartial": "Normal outdoor conditions.",
-  "insightSunBright": "Open and well-exposed to daylight.",
+  "insightSunBright": "Sunny spot.",
   "insightSunIntense": "Strong direct sun. Worth planning water or shade here in summer.",
 
-  "insightSurfaceSmooth": "Smooth surface. Easy on bikes, joints and strollers.",
-  "insightSurfaceNormal": "Normal pavement.",
-  "insightSurfaceRough": "Rough road. Harder on bikes, joints and strollers.",
-  "insightSurfacePoor": "Very rough surface. Worth avoiding if you're on a bike or with a stroller.",
+  "insightSurfaceSmooth": "Smooth ground.",
+  "insightSurfaceNormal": "Normal ground.",
+  "insightSurfaceRough": "Uneven ground.",
+  "insightSurfacePoor": "Very uneven ground.",
 
-  "insightHeatExposed": "This zone runs hot. Noticeably warmer than nearby streets.",
+  "insightHeatExposed": "Warmer than the streets around.",
 
-  "insightSessionDarkSky": "Low artificial light on this route. Good for sleep if you come home this way.",
-  "insightSessionBrightCity": "Bright at night throughout this route. Like walking through a lit office before bed.",
-  "insightSessionRoughRoute": "Rough road on this route. Harder on your body than smoother alternatives.",
-  "insightSessionHotRoute": "This route runs hot. Worth considering cooler alternatives in summer.",
+  "insightSessionDarkSky": "Little artificial light during your outing.",
+  "insightSessionBrightCity": "Brightly lit at night during your outing.",
+  "insightSessionRoughRoute": "Uneven ground during your outing.",
+  "insightSessionHotRoute": "It was hot during your outing.",
 
   "statsInsightLabel": "THIS WEEK",
-  "statsInsightRoughest": "Roughest stretch: {street}, bumpier than {pct}% of your mapped routes",
+  "statsInsightRoughest": "Most uneven street: {street} (more than {pct}% of your outings)",
   "@statsInsightRoughest": {
     "placeholders": {
       "street": { "type": "String" },
       "pct": { "type": "int" }
     }
   },
-  "statsInsightNewZones": "{count, plural, =1{1 new place mapped this week} other{{count} new places mapped this week}}",
+  "statsInsightNewZones": "{count, plural, =1{1 new place this week} other{{count} new places this week}}",
   "@statsInsightNewZones": { "placeholders": { "count": { "type": "int" } } },
   "statsInsightSolo": "{count, plural, =1{1 place only you've ever been} other{{count} places only you've ever been}}",
   "@statsInsightSolo": { "placeholders": { "count": { "type": "int" } } },

@@ -80,11 +80,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String lastUpload(String time) {
-    return 'Last upload: $time';
+    return 'Last update: $time';
   }
 
   @override
-  String get totalUploads => 'Total Uploads';
+  String get totalUploads => 'Total scans';
 
   @override
   String profileMemberSince(String date) {
@@ -110,7 +110,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsDisplay => 'Display';
 
   @override
-  String get settingsMobileData => 'Mobile Data Upload';
+  String get settingsMobileData => 'Use mobile data';
 
   @override
   String settingsVersion(String version) {
@@ -167,7 +167,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get statsAreasLabel => 'places covered';
 
   @override
-  String get statsDataPtsLabel => 'data points';
+  String get statsDataPtsLabel => 'readings';
 
   @override
   String get statsKmMapped => 'km² covered';
@@ -202,14 +202,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get statsWeeklyTargetComplete => 'Goal reached';
 
   @override
-  String get statsLocalLegendLabel => 'LOCAL LEGEND';
+  String get statsLocalLegendLabel => 'YOUR NEIGHBORHOOD';
 
   @override
-  String get statsLocalLegendLeader => 'Top mapper in your area this week';
+  String get statsLocalLegendLeader =>
+      'You\'re the most active in your neighborhood this week';
 
   @override
   String statsLocalLegendRank(int rank, int total) {
-    return '#$rank of $total nearby this week';
+    return '#$rank of $total in your neighborhood this week';
   }
 
   @override
@@ -217,8 +218,8 @@ class AppLocalizationsEn extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count zones to take the lead',
-      one: '1 zone to take the lead',
+      other: '$count places to take the lead',
+      one: '1 place to take the lead',
     );
     return '$_temp0';
   }
@@ -231,8 +232,8 @@ class AppLocalizationsEn extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Only you have ever mapped $count of your zones',
-      one: 'Only you have ever mapped 1 of your zones',
+      other: 'You\'re the only one who\'s been to $count of your places',
+      one: 'You\'re the only one who\'s been to 1 of your places',
     );
     return '$_temp0';
   }
@@ -264,12 +265,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get statsRecordBestSession => 'Best session';
 
   @override
-  String get statsZoneExplainer =>
-      'A zone is roughly one city block, recorded as you pass through.';
+  String get statsZoneExplainer => 'A place is roughly one city block.';
 
   @override
   String get statsUploadExplainer =>
-      'Light, heat and surface quality captured at that moment.';
+      'Light, heat and ground at the time of the scan.';
 
   @override
   String get statsTabInDepth => 'In depth';
@@ -293,7 +293,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String statsHeatmapNoUploads(String date) {
-    return '$date · no uploads';
+    return '$date · no scans';
   }
 
   @override
@@ -309,7 +309,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get statsInDepthBestWeekday => 'Best weekday';
 
   @override
-  String get statsInDepthWhenYouMap => 'When you map';
+  String get statsInDepthWhenYouMap => 'When you scan';
 
   @override
   String get statsDaysUnit => 'days';
@@ -330,7 +330,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get statsBestWeekLabel => 'Best week';
 
   @override
-  String get statsQualitySection => 'SIGNAL QUALITY';
+  String get statsQualitySection => 'RELIABILITY';
 
   @override
   String get statsQualityExcellent => 'Excellent';
@@ -346,13 +346,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get statsQualitySubtitle =>
-      'How clean your readings are: strong signal, fewer gaps';
+      'The higher, the more reliable your readings.';
 
   @override
   String get statsAvgPrefix => 'avg';
 
   @override
-  String get infoTileQualityTitle => 'Coverage quality';
+  String get infoTileQualityTitle => 'Reliability';
 
   @override
   String get infoTilePersonalTitle => 'Your area';
@@ -382,7 +382,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tileInfoDevicesLabel => 'people';
 
   @override
-  String get tileInfoQualityLabel => 'Coverage';
+  String get tileInfoQualityLabel => 'Reliability';
 
   @override
   String get tileInfoAreaLabel => 'area';
@@ -397,14 +397,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tileOnlyYouMapped => 'Only you\'ve been here';
 
   @override
-  String get tileInfoNoSensorData =>
-      'Location only. No sensor readings for this spot.';
+  String get tileInfoNoSensorData => 'Location only, no readings here yet.';
 
   @override
-  String get noCoverageYet => 'No coverage yet';
+  String get noCoverageYet => 'Nothing here yet';
 
   @override
-  String get startTrackingToMap => 'Start tracking to map your area';
+  String get startTrackingToMap => 'Start tracking to fill your map';
 
   @override
   String tilesCount(int count) {
@@ -522,7 +521,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get referralInviteDescription =>
-      'Every person who joins maps places you haven\'t reached.';
+      'Every friend who joins adds places to the map.';
 
   @override
   String get layerMine => 'Mine';
@@ -558,14 +557,14 @@ class AppLocalizationsEn extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count zones to go',
-      one: '1 zone to go',
+      other: '$count more places',
+      one: '1 more place',
     );
     return '$_temp0';
   }
 
   @override
-  String get batteryDialogTitle => 'Keep mapping';
+  String get batteryDialogTitle => 'Keep running in the background';
 
   @override
   String get settingsDiagnostics => 'Sensor Diagnostics';
@@ -575,14 +574,14 @@ class AppLocalizationsEn extends AppLocalizations {
       'Live readings from your device sensors';
 
   @override
-  String get sensorLiveSheetTitle => 'What you\'re measuring';
+  String get sensorLiveSheetTitle => 'Around you';
 
   @override
   String get transparencyNothingElse =>
       'No precise route. No microphone. No contacts. Nothing else.';
 
   @override
-  String get transparencyLastUpload => 'Last upload';
+  String get transparencyLastUpload => 'Last update';
 
   @override
   String get transparencyNoUploadYet => 'Nothing sent yet.';
@@ -597,32 +596,32 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tileQualityFair => 'Pass here again';
 
   @override
-  String get tileQualityStaling => 'Staling';
+  String get tileQualityStaling => 'Getting old';
 
   @override
   String tileDecayWarning(int days) {
-    return 'Data is $days days old. Walk here to refresh it.';
+    return 'Info from $days days ago. Come back here to update it.';
   }
 
   @override
   String tileDecayHint(int days) {
-    return 'Mapped $days days ago. Score will drop soon.';
+    return 'Updated $days days ago.';
   }
 
   @override
-  String get legendHighLabel => 'High quality';
+  String get legendHighLabel => 'Very reliable';
 
   @override
-  String get legendHighSub => 'Lots of good data from here';
+  String get legendHighSub => 'Lots of readings here';
 
   @override
-  String get legendMidLabel => 'Medium quality';
+  String get legendMidLabel => 'Fairly reliable';
 
   @override
-  String get legendMidSub => 'Some data. Walk here again to fill it in.';
+  String get legendMidSub => 'A few readings. Come back to add more.';
 
   @override
-  String get legendLowLabel => 'Low quality';
+  String get legendLowLabel => 'Not very reliable';
 
   @override
   String get legendLowSub => 'Barely any data. Needs more passes.';
@@ -638,7 +637,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String onboardingSocialProof(int count) {
-    return '$count people already mapping their neighborhood';
+    return '$count people are already filling in their neighborhood map';
   }
 
   @override
@@ -649,7 +648,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String tileFirstMapped(String date) {
-    return 'First mapped $date';
+    return 'First visit $date';
   }
 
   @override
@@ -677,7 +676,7 @@ class AppLocalizationsEn extends AppLocalizations {
       other: '$count scans',
       one: '1 scan',
     );
-    return '~$_temp0 · brightness · activity · weather';
+    return '~$_temp0 · light · movement · weather';
   }
 
   @override
@@ -719,7 +718,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get statsTerritoryPressureDesc =>
-      'The air pressure recorded here. Reflects local weather conditions.';
+      'Air pressure here. It follows the weather.';
 
   @override
   String get statsTerritoryMapCta =>
@@ -789,16 +788,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tileVibrationLight => 'Light activity';
 
   @override
-  String get tileVibrationActive => 'Active surface';
+  String get tileVibrationActive => 'Lots of movement';
 
   @override
   String get tileVibrationHeavy => 'Heavy traffic';
 
   @override
-  String get tileSurfaceSmooth => 'smooth road';
+  String get tileSurfaceSmooth => 'smooth ground';
 
   @override
-  String get tileSurfaceRough => 'rough road';
+  String get tileSurfaceRough => 'uneven ground';
 
   @override
   String get tileSurfaceHeavy => 'very rough';
@@ -840,10 +839,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sessionCharacterBrightCity => 'LIT STREETS';
 
   @override
-  String get sessionCharacterHotRoute => 'HOT ROUTE';
+  String get sessionCharacterHotRoute => 'HOT OUTING';
 
   @override
-  String get sessionCharacterRoughRoad => 'ROUGH ROADS';
+  String get sessionCharacterRoughRoad => 'UNEVEN GROUND';
 
   @override
   String get sessionCharacterSunExposed => 'OPEN SKY';
@@ -877,7 +876,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String referralNeighborhoodHook(String neighborhood) {
-    return 'Help map $neighborhood. Every neighbor fills in what you haven\'t reached.';
+    return 'Invite your neighbors to fill in the map of $neighborhood.';
   }
 
   @override
@@ -888,14 +887,14 @@ class AppLocalizationsEn extends AppLocalizations {
       'Your phone reads the environment around you as you go. Your route is never stored.';
 
   @override
-  String get onboardingActivateCta => 'Start mapping';
+  String get onboardingActivateCta => 'Start';
 
   @override
   String get onboardingPermissionDenied =>
-      'Location permission is required to map your city.';
+      'Location is needed to fill your map.';
 
   @override
-  String get profileTileAreaCells => 'zones explored';
+  String get profileTileAreaCells => 'places';
 
   @override
   String get profileStatCityBlocks => 'city blocks';
@@ -907,15 +906,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get profileUploadsExplanation =>
-      'Each upload is a batch of sensor readings captured at one location.';
+      'A scan is what your phone measures at one place.';
 
   @override
-  String get profileDaysExplanation =>
-      'Days where your phone was active at least once. More days means richer, more recent coverage.';
+  String get profileDaysExplanation => 'Days your phone scanned at least once.';
 
   @override
   String get profileZonesExplanation =>
-      'Each zone is roughly a city block. Tap the map to see which areas you\'ve covered.';
+      'A place is roughly one city block. Tap the map to see them.';
 
   @override
   String get profileSeeInStats => 'See in Stats';
@@ -932,7 +930,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get statsTerritorySection => 'YOUR AREA';
+  String get statsTerritorySection => 'YOUR NEIGHBORHOOD';
 
   @override
   String get mapTapHint => 'Tap a place to explore';
@@ -960,8 +958,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get statsEmptyLockMovement => 'Activity: how lively each place feels';
 
   @override
-  String get statsEmptyLockPressure =>
-      'Weather: heat and pressure along your routes';
+  String get statsEmptyLockPressure => 'Weather: heat and pressure around you';
 
   @override
   String get statsKm2Unit => 'km²';
@@ -971,7 +968,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get referralWaiting =>
-      'Link shared. No one yet. You might be first in your area.';
+      'Link shared. No one yet. You might be the first in your neighborhood.';
 
   @override
   String get referralFirstJoined => 'First person joined.';
@@ -981,7 +978,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String referralShareText(String code) {
-    return 'Join me on GreenGains. We\'re mapping light pollution, air pressure and road conditions around us. Use my invite code $code when you sign up.';
+    return 'Join me on GreenGains: we\'re mapping light, weather and street conditions around us. My code: $code';
   }
 
   @override
@@ -997,17 +994,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mapZeroStateTitle => 'Your first place is one walk away';
 
   @override
-  String get insightNoData => 'Not enough data yet for this area.';
+  String get insightNoData => 'Not enough readings here yet.';
 
   @override
   String get insightNormal => 'Nothing unusual detected here.';
 
   @override
-  String get insightRouteHeader => 'YOUR ROUTE';
+  String get insightRouteHeader => 'YOUR OUTING';
 
   @override
-  String get insightLightPristine =>
-      'Almost no artificial light here. Your melatonin stays intact on this route.';
+  String get insightLightPristine => 'Very little artificial light here.';
 
   @override
   String get insightLightLow =>
@@ -1026,59 +1022,53 @@ class AppLocalizationsEn extends AppLocalizations {
       'Very bright at night. Your body thinks it\'s still daytime here.';
 
   @override
-  String get insightSunShaded => 'Shaded and cool. Lower UV than open streets.';
+  String get insightSunShaded => 'Shaded and cool.';
 
   @override
   String get insightSunPartial => 'Normal outdoor conditions.';
 
   @override
-  String get insightSunBright => 'Open and well-exposed to daylight.';
+  String get insightSunBright => 'Sunny spot.';
 
   @override
   String get insightSunIntense =>
       'Strong direct sun. Worth planning water or shade here in summer.';
 
   @override
-  String get insightSurfaceSmooth =>
-      'Smooth surface. Easy on bikes, joints and strollers.';
+  String get insightSurfaceSmooth => 'Smooth ground.';
 
   @override
-  String get insightSurfaceNormal => 'Normal pavement.';
+  String get insightSurfaceNormal => 'Normal ground.';
 
   @override
-  String get insightSurfaceRough =>
-      'Rough road. Harder on bikes, joints and strollers.';
+  String get insightSurfaceRough => 'Uneven ground.';
 
   @override
-  String get insightSurfacePoor =>
-      'Very rough surface. Worth avoiding if you\'re on a bike or with a stroller.';
+  String get insightSurfacePoor => 'Very uneven ground.';
 
   @override
-  String get insightHeatExposed =>
-      'This zone runs hot. Noticeably warmer than nearby streets.';
+  String get insightHeatExposed => 'Warmer than the streets around.';
 
   @override
   String get insightSessionDarkSky =>
-      'Low artificial light on this route. Good for sleep if you come home this way.';
+      'Little artificial light during your outing.';
 
   @override
   String get insightSessionBrightCity =>
-      'Bright at night throughout this route. Like walking through a lit office before bed.';
+      'Brightly lit at night during your outing.';
 
   @override
-  String get insightSessionRoughRoute =>
-      'Rough road on this route. Harder on your body than smoother alternatives.';
+  String get insightSessionRoughRoute => 'Uneven ground during your outing.';
 
   @override
-  String get insightSessionHotRoute =>
-      'This route runs hot. Worth considering cooler alternatives in summer.';
+  String get insightSessionHotRoute => 'It was hot during your outing.';
 
   @override
   String get statsInsightLabel => 'THIS WEEK';
 
   @override
   String statsInsightRoughest(String street, int pct) {
-    return 'Roughest stretch: $street, bumpier than $pct% of your mapped routes';
+    return 'Most uneven street: $street (more than $pct% of your outings)';
   }
 
   @override
@@ -1086,8 +1076,8 @@ class AppLocalizationsEn extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count new places mapped this week',
-      one: '1 new place mapped this week',
+      other: '$count new places this week',
+      one: '1 new place this week',
     );
     return '$_temp0';
   }

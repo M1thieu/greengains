@@ -6,7 +6,7 @@
     <string name="notification_status_collecting">Ta carte grandit</string>
     <string name="notification_status_stationary">À l\'écoute de ton environnement</string>
     <string name="notification_paused_title">En pause</string>
-    <string name="notification_paused_body">Ton trajet n\'est pas enregistré en ce moment</string>
+    <string name="notification_paused_body">Le suivi est en pause</string>
     <string name="notification_collecting_no_upload">Bougez pour commencer à cartographier</string>
     <string name="notification_body_zones_uploading">%1$d endroits sur ta carte</string>
     <string name="notification_body_zones_collecting">%1$d endroits cartographiés</string>
@@ -49,7 +49,7 @@
     <!-- Digest hebdomadaire -->
     <string name="notification_weekly_channel_name">Bilan hebdomadaire</string>
     <string name="notif_body_measuring">À l\'écoute de ton environnement</string>
-    <string name="notif_session_zones">+%1$d zones</string>
+    <string name="notif_session_zones">Endroits : +%1$d</string>
 
     <!-- Notification de fin de session — résumé passif -->
 

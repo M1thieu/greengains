@@ -233,13 +233,13 @@ abstract class AppLocalizations {
   /// No description provided for @lastUpload.
   ///
   /// In en, this message translates to:
-  /// **'Last upload: {time}'**
+  /// **'Last update: {time}'**
   String lastUpload(String time);
 
   /// No description provided for @totalUploads.
   ///
   /// In en, this message translates to:
-  /// **'Total Uploads'**
+  /// **'Total scans'**
   String get totalUploads;
 
   /// No description provided for @profileMemberSince.
@@ -287,7 +287,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsMobileData.
   ///
   /// In en, this message translates to:
-  /// **'Mobile Data Upload'**
+  /// **'Use mobile data'**
   String get settingsMobileData;
 
   /// No description provided for @settingsVersion.
@@ -395,7 +395,7 @@ abstract class AppLocalizations {
   /// No description provided for @statsDataPtsLabel.
   ///
   /// In en, this message translates to:
-  /// **'data points'**
+  /// **'readings'**
   String get statsDataPtsLabel;
 
   /// No description provided for @statsKmMapped.
@@ -449,25 +449,25 @@ abstract class AppLocalizations {
   /// No description provided for @statsLocalLegendLabel.
   ///
   /// In en, this message translates to:
-  /// **'LOCAL LEGEND'**
+  /// **'YOUR NEIGHBORHOOD'**
   String get statsLocalLegendLabel;
 
   /// No description provided for @statsLocalLegendLeader.
   ///
   /// In en, this message translates to:
-  /// **'Top mapper in your area this week'**
+  /// **'You\'re the most active in your neighborhood this week'**
   String get statsLocalLegendLeader;
 
   /// No description provided for @statsLocalLegendRank.
   ///
   /// In en, this message translates to:
-  /// **'#{rank} of {total} nearby this week'**
+  /// **'#{rank} of {total} in your neighborhood this week'**
   String statsLocalLegendRank(int rank, int total);
 
   /// No description provided for @statsLocalLegendGap.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, =1{1 zone to take the lead} other{{count} zones to take the lead}}'**
+  /// **'{count, plural, =1{1 place to take the lead} other{{count} places to take the lead}}'**
   String statsLocalLegendGap(int count);
 
   /// No description provided for @statsImpactLabel.
@@ -479,7 +479,7 @@ abstract class AppLocalizations {
   /// No description provided for @statsImpactSolo.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, =1{Only you have ever mapped 1 of your zones} other{Only you have ever mapped {count} of your zones}}'**
+  /// **'{count, plural, =1{You\'re the only one who\'s been to 1 of your places} other{You\'re the only one who\'s been to {count} of your places}}'**
   String statsImpactSolo(int count);
 
   /// No description provided for @statsDetailTitle.
@@ -533,13 +533,13 @@ abstract class AppLocalizations {
   /// No description provided for @statsZoneExplainer.
   ///
   /// In en, this message translates to:
-  /// **'A zone is roughly one city block, recorded as you pass through.'**
+  /// **'A place is roughly one city block.'**
   String get statsZoneExplainer;
 
   /// No description provided for @statsUploadExplainer.
   ///
   /// In en, this message translates to:
-  /// **'Light, heat and surface quality captured at that moment.'**
+  /// **'Light, heat and ground at the time of the scan.'**
   String get statsUploadExplainer;
 
   /// No description provided for @statsTabInDepth.
@@ -581,7 +581,7 @@ abstract class AppLocalizations {
   /// No description provided for @statsHeatmapNoUploads.
   ///
   /// In en, this message translates to:
-  /// **'{date} · no uploads'**
+  /// **'{date} · no scans'**
   String statsHeatmapNoUploads(String date);
 
   /// No description provided for @statsInDepthHabits.
@@ -611,7 +611,7 @@ abstract class AppLocalizations {
   /// No description provided for @statsInDepthWhenYouMap.
   ///
   /// In en, this message translates to:
-  /// **'When you map'**
+  /// **'When you scan'**
   String get statsInDepthWhenYouMap;
 
   /// No description provided for @statsDaysUnit.
@@ -653,7 +653,7 @@ abstract class AppLocalizations {
   /// No description provided for @statsQualitySection.
   ///
   /// In en, this message translates to:
-  /// **'SIGNAL QUALITY'**
+  /// **'RELIABILITY'**
   String get statsQualitySection;
 
   /// No description provided for @statsQualityExcellent.
@@ -683,7 +683,7 @@ abstract class AppLocalizations {
   /// No description provided for @statsQualitySubtitle.
   ///
   /// In en, this message translates to:
-  /// **'How clean your readings are: strong signal, fewer gaps'**
+  /// **'The higher, the more reliable your readings.'**
   String get statsQualitySubtitle;
 
   /// No description provided for @statsAvgPrefix.
@@ -695,7 +695,7 @@ abstract class AppLocalizations {
   /// No description provided for @infoTileQualityTitle.
   ///
   /// In en, this message translates to:
-  /// **'Coverage quality'**
+  /// **'Reliability'**
   String get infoTileQualityTitle;
 
   /// No description provided for @infoTilePersonalTitle.
@@ -755,7 +755,7 @@ abstract class AppLocalizations {
   /// No description provided for @tileInfoQualityLabel.
   ///
   /// In en, this message translates to:
-  /// **'Coverage'**
+  /// **'Reliability'**
   String get tileInfoQualityLabel;
 
   /// No description provided for @tileInfoAreaLabel.
@@ -785,19 +785,19 @@ abstract class AppLocalizations {
   /// No description provided for @tileInfoNoSensorData.
   ///
   /// In en, this message translates to:
-  /// **'Location only. No sensor readings for this spot.'**
+  /// **'Location only, no readings here yet.'**
   String get tileInfoNoSensorData;
 
   /// No description provided for @noCoverageYet.
   ///
   /// In en, this message translates to:
-  /// **'No coverage yet'**
+  /// **'Nothing here yet'**
   String get noCoverageYet;
 
   /// No description provided for @startTrackingToMap.
   ///
   /// In en, this message translates to:
-  /// **'Start tracking to map your area'**
+  /// **'Start tracking to fill your map'**
   String get startTrackingToMap;
 
   /// No description provided for @tilesCount.
@@ -1007,7 +1007,7 @@ abstract class AppLocalizations {
   /// No description provided for @referralInviteDescription.
   ///
   /// In en, this message translates to:
-  /// **'Every person who joins maps places you haven\'t reached.'**
+  /// **'Every friend who joins adds places to the map.'**
   String get referralInviteDescription;
 
   /// No description provided for @layerMine.
@@ -1049,13 +1049,13 @@ abstract class AppLocalizations {
   /// No description provided for @statsMilestoneRemaining.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, =1{1 zone to go} other{{count} zones to go}}'**
+  /// **'{count, plural, =1{1 more place} other{{count} more places}}'**
   String statsMilestoneRemaining(int count);
 
   /// No description provided for @batteryDialogTitle.
   ///
   /// In en, this message translates to:
-  /// **'Keep mapping'**
+  /// **'Keep running in the background'**
   String get batteryDialogTitle;
 
   /// No description provided for @settingsDiagnostics.
@@ -1073,7 +1073,7 @@ abstract class AppLocalizations {
   /// No description provided for @sensorLiveSheetTitle.
   ///
   /// In en, this message translates to:
-  /// **'What you\'re measuring'**
+  /// **'Around you'**
   String get sensorLiveSheetTitle;
 
   /// No description provided for @transparencyNothingElse.
@@ -1085,7 +1085,7 @@ abstract class AppLocalizations {
   /// No description provided for @transparencyLastUpload.
   ///
   /// In en, this message translates to:
-  /// **'Last upload'**
+  /// **'Last update'**
   String get transparencyLastUpload;
 
   /// No description provided for @transparencyNoUploadYet.
@@ -1115,49 +1115,49 @@ abstract class AppLocalizations {
   /// No description provided for @tileQualityStaling.
   ///
   /// In en, this message translates to:
-  /// **'Staling'**
+  /// **'Getting old'**
   String get tileQualityStaling;
 
   /// No description provided for @tileDecayWarning.
   ///
   /// In en, this message translates to:
-  /// **'Data is {days} days old. Walk here to refresh it.'**
+  /// **'Info from {days} days ago. Come back here to update it.'**
   String tileDecayWarning(int days);
 
   /// No description provided for @tileDecayHint.
   ///
   /// In en, this message translates to:
-  /// **'Mapped {days} days ago. Score will drop soon.'**
+  /// **'Updated {days} days ago.'**
   String tileDecayHint(int days);
 
   /// No description provided for @legendHighLabel.
   ///
   /// In en, this message translates to:
-  /// **'High quality'**
+  /// **'Very reliable'**
   String get legendHighLabel;
 
   /// No description provided for @legendHighSub.
   ///
   /// In en, this message translates to:
-  /// **'Lots of good data from here'**
+  /// **'Lots of readings here'**
   String get legendHighSub;
 
   /// No description provided for @legendMidLabel.
   ///
   /// In en, this message translates to:
-  /// **'Medium quality'**
+  /// **'Fairly reliable'**
   String get legendMidLabel;
 
   /// No description provided for @legendMidSub.
   ///
   /// In en, this message translates to:
-  /// **'Some data. Walk here again to fill it in.'**
+  /// **'A few readings. Come back to add more.'**
   String get legendMidSub;
 
   /// No description provided for @legendLowLabel.
   ///
   /// In en, this message translates to:
-  /// **'Low quality'**
+  /// **'Not very reliable'**
   String get legendLowLabel;
 
   /// No description provided for @legendLowSub.
@@ -1187,7 +1187,7 @@ abstract class AppLocalizations {
   /// No description provided for @onboardingSocialProof.
   ///
   /// In en, this message translates to:
-  /// **'{count} people already mapping their neighborhood'**
+  /// **'{count} people are already filling in their neighborhood map'**
   String onboardingSocialProof(int count);
 
   /// No description provided for @statsWeeklyChartOffline.
@@ -1205,7 +1205,7 @@ abstract class AppLocalizations {
   /// No description provided for @tileFirstMapped.
   ///
   /// In en, this message translates to:
-  /// **'First mapped {date}'**
+  /// **'First visit {date}'**
   String tileFirstMapped(String date);
 
   /// No description provided for @statsSinceDate.
@@ -1241,7 +1241,7 @@ abstract class AppLocalizations {
   /// No description provided for @statsBarCalloutDetail.
   ///
   /// In en, this message translates to:
-  /// **'~{count, plural, =1{1 scan} other{{count} scans}} · brightness · activity · weather'**
+  /// **'~{count, plural, =1{1 scan} other{{count} scans}} · light · movement · weather'**
   String statsBarCalloutDetail(int count);
 
   /// No description provided for @statsTerritoryDetails.
@@ -1301,7 +1301,7 @@ abstract class AppLocalizations {
   /// No description provided for @statsTerritoryPressureDesc.
   ///
   /// In en, this message translates to:
-  /// **'The air pressure recorded here. Reflects local weather conditions.'**
+  /// **'Air pressure here. It follows the weather.'**
   String get statsTerritoryPressureDesc;
 
   /// No description provided for @statsTerritoryMapCta.
@@ -1439,7 +1439,7 @@ abstract class AppLocalizations {
   /// No description provided for @tileVibrationActive.
   ///
   /// In en, this message translates to:
-  /// **'Active surface'**
+  /// **'Lots of movement'**
   String get tileVibrationActive;
 
   /// No description provided for @tileVibrationHeavy.
@@ -1451,13 +1451,13 @@ abstract class AppLocalizations {
   /// No description provided for @tileSurfaceSmooth.
   ///
   /// In en, this message translates to:
-  /// **'smooth road'**
+  /// **'smooth ground'**
   String get tileSurfaceSmooth;
 
   /// No description provided for @tileSurfaceRough.
   ///
   /// In en, this message translates to:
-  /// **'rough road'**
+  /// **'uneven ground'**
   String get tileSurfaceRough;
 
   /// No description provided for @tileSurfaceHeavy.
@@ -1541,13 +1541,13 @@ abstract class AppLocalizations {
   /// No description provided for @sessionCharacterHotRoute.
   ///
   /// In en, this message translates to:
-  /// **'HOT ROUTE'**
+  /// **'HOT OUTING'**
   String get sessionCharacterHotRoute;
 
   /// No description provided for @sessionCharacterRoughRoad.
   ///
   /// In en, this message translates to:
-  /// **'ROUGH ROADS'**
+  /// **'UNEVEN GROUND'**
   String get sessionCharacterRoughRoad;
 
   /// No description provided for @sessionCharacterSunExposed.
@@ -1613,7 +1613,7 @@ abstract class AppLocalizations {
   /// No description provided for @referralNeighborhoodHook.
   ///
   /// In en, this message translates to:
-  /// **'Help map {neighborhood}. Every neighbor fills in what you haven\'t reached.'**
+  /// **'Invite your neighbors to fill in the map of {neighborhood}.'**
   String referralNeighborhoodHook(String neighborhood);
 
   /// No description provided for @onboardingActivateTitle.
@@ -1631,19 +1631,19 @@ abstract class AppLocalizations {
   /// No description provided for @onboardingActivateCta.
   ///
   /// In en, this message translates to:
-  /// **'Start mapping'**
+  /// **'Start'**
   String get onboardingActivateCta;
 
   /// No description provided for @onboardingPermissionDenied.
   ///
   /// In en, this message translates to:
-  /// **'Location permission is required to map your city.'**
+  /// **'Location is needed to fill your map.'**
   String get onboardingPermissionDenied;
 
   /// No description provided for @profileTileAreaCells.
   ///
   /// In en, this message translates to:
-  /// **'zones explored'**
+  /// **'places'**
   String get profileTileAreaCells;
 
   /// No description provided for @profileStatCityBlocks.
@@ -1661,19 +1661,19 @@ abstract class AppLocalizations {
   /// No description provided for @profileUploadsExplanation.
   ///
   /// In en, this message translates to:
-  /// **'Each upload is a batch of sensor readings captured at one location.'**
+  /// **'A scan is what your phone measures at one place.'**
   String get profileUploadsExplanation;
 
   /// No description provided for @profileDaysExplanation.
   ///
   /// In en, this message translates to:
-  /// **'Days where your phone was active at least once. More days means richer, more recent coverage.'**
+  /// **'Days your phone scanned at least once.'**
   String get profileDaysExplanation;
 
   /// No description provided for @profileZonesExplanation.
   ///
   /// In en, this message translates to:
-  /// **'Each zone is roughly a city block. Tap the map to see which areas you\'ve covered.'**
+  /// **'A place is roughly one city block. Tap the map to see them.'**
   String get profileZonesExplanation;
 
   /// No description provided for @profileSeeInStats.
@@ -1703,7 +1703,7 @@ abstract class AppLocalizations {
   /// No description provided for @statsTerritorySection.
   ///
   /// In en, this message translates to:
-  /// **'YOUR AREA'**
+  /// **'YOUR NEIGHBORHOOD'**
   String get statsTerritorySection;
 
   /// No description provided for @mapTapHint.
@@ -1757,7 +1757,7 @@ abstract class AppLocalizations {
   /// No description provided for @statsEmptyLockPressure.
   ///
   /// In en, this message translates to:
-  /// **'Weather: heat and pressure along your routes'**
+  /// **'Weather: heat and pressure around you'**
   String get statsEmptyLockPressure;
 
   /// No description provided for @statsKm2Unit.
@@ -1775,7 +1775,7 @@ abstract class AppLocalizations {
   /// No description provided for @referralWaiting.
   ///
   /// In en, this message translates to:
-  /// **'Link shared. No one yet. You might be first in your area.'**
+  /// **'Link shared. No one yet. You might be the first in your neighborhood.'**
   String get referralWaiting;
 
   /// No description provided for @referralFirstJoined.
@@ -1793,7 +1793,7 @@ abstract class AppLocalizations {
   /// No description provided for @referralShareText.
   ///
   /// In en, this message translates to:
-  /// **'Join me on GreenGains. We\'re mapping light pollution, air pressure and road conditions around us. Use my invite code {code} when you sign up.'**
+  /// **'Join me on GreenGains: we\'re mapping light, weather and street conditions around us. My code: {code}'**
   String referralShareText(String code);
 
   /// No description provided for @onboardingHaveCode.
@@ -1823,7 +1823,7 @@ abstract class AppLocalizations {
   /// No description provided for @insightNoData.
   ///
   /// In en, this message translates to:
-  /// **'Not enough data yet for this area.'**
+  /// **'Not enough readings here yet.'**
   String get insightNoData;
 
   /// No description provided for @insightNormal.
@@ -1835,13 +1835,13 @@ abstract class AppLocalizations {
   /// No description provided for @insightRouteHeader.
   ///
   /// In en, this message translates to:
-  /// **'YOUR ROUTE'**
+  /// **'YOUR OUTING'**
   String get insightRouteHeader;
 
   /// No description provided for @insightLightPristine.
   ///
   /// In en, this message translates to:
-  /// **'Almost no artificial light here. Your melatonin stays intact on this route.'**
+  /// **'Very little artificial light here.'**
   String get insightLightPristine;
 
   /// No description provided for @insightLightLow.
@@ -1871,7 +1871,7 @@ abstract class AppLocalizations {
   /// No description provided for @insightSunShaded.
   ///
   /// In en, this message translates to:
-  /// **'Shaded and cool. Lower UV than open streets.'**
+  /// **'Shaded and cool.'**
   String get insightSunShaded;
 
   /// No description provided for @insightSunPartial.
@@ -1883,7 +1883,7 @@ abstract class AppLocalizations {
   /// No description provided for @insightSunBright.
   ///
   /// In en, this message translates to:
-  /// **'Open and well-exposed to daylight.'**
+  /// **'Sunny spot.'**
   String get insightSunBright;
 
   /// No description provided for @insightSunIntense.
@@ -1895,55 +1895,55 @@ abstract class AppLocalizations {
   /// No description provided for @insightSurfaceSmooth.
   ///
   /// In en, this message translates to:
-  /// **'Smooth surface. Easy on bikes, joints and strollers.'**
+  /// **'Smooth ground.'**
   String get insightSurfaceSmooth;
 
   /// No description provided for @insightSurfaceNormal.
   ///
   /// In en, this message translates to:
-  /// **'Normal pavement.'**
+  /// **'Normal ground.'**
   String get insightSurfaceNormal;
 
   /// No description provided for @insightSurfaceRough.
   ///
   /// In en, this message translates to:
-  /// **'Rough road. Harder on bikes, joints and strollers.'**
+  /// **'Uneven ground.'**
   String get insightSurfaceRough;
 
   /// No description provided for @insightSurfacePoor.
   ///
   /// In en, this message translates to:
-  /// **'Very rough surface. Worth avoiding if you\'re on a bike or with a stroller.'**
+  /// **'Very uneven ground.'**
   String get insightSurfacePoor;
 
   /// No description provided for @insightHeatExposed.
   ///
   /// In en, this message translates to:
-  /// **'This zone runs hot. Noticeably warmer than nearby streets.'**
+  /// **'Warmer than the streets around.'**
   String get insightHeatExposed;
 
   /// No description provided for @insightSessionDarkSky.
   ///
   /// In en, this message translates to:
-  /// **'Low artificial light on this route. Good for sleep if you come home this way.'**
+  /// **'Little artificial light during your outing.'**
   String get insightSessionDarkSky;
 
   /// No description provided for @insightSessionBrightCity.
   ///
   /// In en, this message translates to:
-  /// **'Bright at night throughout this route. Like walking through a lit office before bed.'**
+  /// **'Brightly lit at night during your outing.'**
   String get insightSessionBrightCity;
 
   /// No description provided for @insightSessionRoughRoute.
   ///
   /// In en, this message translates to:
-  /// **'Rough road on this route. Harder on your body than smoother alternatives.'**
+  /// **'Uneven ground during your outing.'**
   String get insightSessionRoughRoute;
 
   /// No description provided for @insightSessionHotRoute.
   ///
   /// In en, this message translates to:
-  /// **'This route runs hot. Worth considering cooler alternatives in summer.'**
+  /// **'It was hot during your outing.'**
   String get insightSessionHotRoute;
 
   /// No description provided for @statsInsightLabel.
@@ -1955,13 +1955,13 @@ abstract class AppLocalizations {
   /// No description provided for @statsInsightRoughest.
   ///
   /// In en, this message translates to:
-  /// **'Roughest stretch: {street}, bumpier than {pct}% of your mapped routes'**
+  /// **'Most uneven street: {street} (more than {pct}% of your outings)'**
   String statsInsightRoughest(String street, int pct);
 
   /// No description provided for @statsInsightNewZones.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, =1{1 new place mapped this week} other{{count} new places mapped this week}}'**
+  /// **'{count, plural, =1{1 new place this week} other{{count} new places this week}}'**
   String statsInsightNewZones(int count);
 
   /// No description provided for @statsInsightSolo.
