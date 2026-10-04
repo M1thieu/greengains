@@ -1361,6 +1361,7 @@ class _InfoButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return PressScaleDetector(
       onTap: onTap,
+      semanticLabel: context.l10n.sensorLiveSheetTitle,
       child: Container(
         width: _kLocationBtnSize,
         height: _kLocationBtnSize,

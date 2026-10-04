@@ -454,7 +454,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             ),
 
             // Official Google Sign-In Button - full-width
-            SizedBox(
+            Semantics(
+              button: true,
+              label: l10n.signInWithGoogleLabel,
+              child: SizedBox(
               width: double.infinity,
               child: InkWell(
                 onTap: _signingIn ? null : _handleGoogleSignIn,
@@ -489,6 +492,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         fit: BoxFit.contain,
                       ),
               ),
+            ),
             ),
 
             const SizedBox(height: AppTheme.spaceXxl),

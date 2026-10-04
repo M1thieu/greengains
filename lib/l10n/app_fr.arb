@@ -13,6 +13,7 @@
       "termsOfService": {"type": "String"}
     }
   },
+  "signInWithGoogleLabel": "Continuer avec Google",
   "privacyPolicy": "Politique de confidentialité",
   "termsOfService": "Conditions d'utilisation",
   "buttonPrevious": "Précédent",

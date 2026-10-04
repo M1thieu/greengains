@@ -29,6 +29,9 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get signInWithGoogleLabel => 'Continue with Google';
+
+  @override
   String get privacyPolicy => 'Privacy Policy';
 
   @override

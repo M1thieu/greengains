@@ -134,6 +134,12 @@ abstract class AppLocalizations {
   /// **'By continuing, you agree to our {privacyPolicy} and {termsOfService}.'**
   String onboardingPrivacyNotice(String privacyPolicy, String termsOfService);
 
+  /// No description provided for @signInWithGoogleLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue with Google'**
+  String get signInWithGoogleLabel;
+
   /// No description provided for @privacyPolicy.
   ///
   /// In en, this message translates to:

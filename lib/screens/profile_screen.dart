@@ -165,6 +165,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           // Google Sign In Button
           PressScaleDetector(
             onTap: _signingIn ? null : _handleGoogleSignIn,
+            semanticLabel: l10n.signInWithGoogleLabel,
             child: _signingIn
                 ? Container(
                     height: 56,
