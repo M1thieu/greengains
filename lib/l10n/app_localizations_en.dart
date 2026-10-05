@@ -89,18 +89,8 @@ class AppLocalizationsEn extends AppLocalizations {
       'Leave it on. Light, heat, surface — all passive.';
 
   @override
-  String homeStatPlaces(int count) {
-    return '$count places';
-  }
-
-  @override
   String homeStatArea(String area) {
     return '$area mapped';
-  }
-
-  @override
-  String homeStatStreak(int count) {
-    return '$count-day streak';
   }
 
   @override
@@ -219,9 +209,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsPrivacy => 'Privacy & Data';
 
   @override
-  String get settingsAbout => 'About';
-
-  @override
   String get settingsLanguage => 'Language';
 
   @override
@@ -232,9 +219,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsLanguageFrench => 'Français';
-
-  @override
-  String get settingsDisplay => 'Display';
 
   @override
   String get settingsTheme => 'Theme';
@@ -776,7 +760,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get statsEmptyDescription =>
-      'Enable tracking once. Light, heat and surface quality are recorded silently.';
+      'Your measurements show up here after the first upload.';
 
   @override
   String get statsEmptyGoMap => 'Enable tracking';
@@ -881,6 +865,59 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get tileOnlyYouMapped => 'Only you\'ve been here';
+
+  @override
+  String get statsTripsSection => 'Trips';
+
+  @override
+  String tripPlaces(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count places',
+      one: '1 place',
+      zero: 'no place',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String tripMinutes(int minutes) {
+    return '$minutes min';
+  }
+
+  @override
+  String tripHoursMinutes(int hours, String minutes) {
+    return '$hours h $minutes';
+  }
+
+  @override
+  String get mapLayerTitle => 'Map layer';
+
+  @override
+  String get mapLayerQuality => 'Data quality';
+
+  @override
+  String tileContributors(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count contributors',
+      one: '1 contributor',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String tileMeasurements(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count measurements',
+      one: '1 measurement',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get tickerMotionStill => 'still';
@@ -1112,12 +1149,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsThemeAuto => 'Auto';
 
   @override
-  String get settingsTracking => 'Mapping';
-
-  @override
-  String get settingsTrackingDesc => 'Turn off to stop all background mapping';
-
-  @override
   String get settingsLocationDescription =>
       'Required for the live coverage map';
 
@@ -1249,11 +1280,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String milestoneNudge(int remaining, int target) {
-    return '$remaining to $target';
-  }
-
-  @override
   String statsCommunityAreas(int count) {
     return '$count places mapped by people near you';
   }
@@ -1319,25 +1345,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsDiagnostics => 'Sensor Diagnostics';
 
   @override
-  String get settingsDiagnosticsDesc =>
-      'Live readings from your device sensors';
-
-  @override
   String get settingsNotifications => 'Notifications';
-
-  @override
-  String get settingsWeeklyDigest => 'Weekly map update';
-
-  @override
-  String get settingsWeeklyDigestDesc =>
-      'Sunday summary of your new mapped places';
-
-  @override
-  String get settingsStreakAlerts => 'Streak reminders';
-
-  @override
-  String get settingsStreakAlertsDesc =>
-      'Alert when your active days streak is at risk';
 
   @override
   String get sensorLiveSheetTitle => 'What you\'re measuring';
@@ -1426,38 +1434,11 @@ class AppLocalizationsEn extends AppLocalizations {
       'Quiet when still, precise when moving. Adapts automatically.';
 
   @override
-  String get firstStartTitle => 'Mapping in the background.';
-
-  @override
-  String get firstStartBody =>
-      'Light, heat, surface quality — recorded silently. Just go.';
-
-  @override
   String get alwaysOnBannerBody =>
       'Set location to \'Always\' to keep mapping in the background';
 
   @override
   String get alwaysOnBannerFix => 'Fix';
-
-  @override
-  String milestoneReachedTitle(int count) {
-    return '$count places mapped';
-  }
-
-  @override
-  String get milestoneReachedBody => 'Keep going.';
-
-  @override
-  String get milestoneReachedCta => 'Keep going';
-
-  @override
-  String get firstUploadTitle => 'First area mapped.';
-
-  @override
-  String get firstUploadBody => 'Keep moving. Your map is growing.';
-
-  @override
-  String get firstUploadCta => 'See my map';
 
   @override
   String onboardingSocialProof(int count) {
@@ -1977,31 +1958,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get firstUploadBadge => 'FIRST PLACE MAPPED';
-
-  @override
-  String get firstUploadHeadline => 'Your first spot is on the map.';
-
-  @override
-  String get firstUploadSubtext =>
-      'Every place you pass through fills in automatically.';
-
-  @override
-  String get firstUploadSensorsLabel => 'RECORDED PASSIVELY';
-
-  @override
-  String get firstUploadSensorsValue => 'light · heat · surface quality';
-
-  @override
-  String get firstUploadPrivacyLabel => 'PRIVACY';
-
-  @override
-  String get firstUploadPrivacyValue => 'anonymous · no route stored';
-
-  @override
-  String get firstUploadKeepMappingCta => 'Keep mapping';
-
-  @override
   String get liveSensorsHeader => 'LIVE SENSORS';
 
   @override
@@ -2099,36 +2055,12 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get profileTileAreaCells => 'zones explored';
-
-  @override
-  String get profileStatCityBlocks => 'city blocks';
-
-  @override
   String get profileStreakExplain => 'Consecutive days with at least one sync.';
 
   @override
   String profileStreakToMilestone(int days, String unit, int milestone) {
     return '$days $unit to $milestone-$unit streak';
   }
-
-  @override
-  String get profileUploadsExplanation =>
-      'Each upload is a batch of sensor readings captured at one location.';
-
-  @override
-  String get profileDaysExplanation =>
-      'Days where your phone was active at least once. More days means richer, more recent coverage.';
-
-  @override
-  String get profileZonesExplanation =>
-      'Each zone is roughly a city block. Tap the map to see which areas you\'ve covered.';
-
-  @override
-  String get profileSeeInStats => 'See in Stats';
-
-  @override
-  String get profileViewOnMap => 'View on Map';
 
   @override
   String statsMilestoneTarget(int target) {
@@ -2161,23 +2093,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get returnDeltaDismiss => 'Got it';
 
   @override
-  String get settingsAccount => 'Account';
-
-  @override
   String get settingsSignOut => 'Sign out';
-
-  @override
-  String get settingsSignOutConfirmTitle => 'Sign out?';
-
-  @override
-  String get settingsSignOutConfirmBody =>
-      'You\'ll need to sign back in to see your map.';
-
-  @override
-  String get settingsSignOutConfirm => 'Sign out';
-
-  @override
-  String get settingsSignOutCancel => 'Cancel';
 
   @override
   String get mappingActiveSheetTitle => 'Mapping now';
@@ -2233,21 +2149,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get weeklyGoalDismiss => 'Nice';
-
-  @override
-  String get statsEmptyLockLight =>
-      'Light — dark sky at night, sunlight by day';
-
-  @override
-  String get statsEmptyLockMovement => 'Activity — how lively each place feels';
-
-  @override
-  String get statsEmptyLockPressure =>
-      'Weather — heat and pressure along your routes';
-
-  @override
-  String get statsEmptyLockSurface =>
-      'Road feel — smooth or rough, street by street';
 
   @override
   String get statsKm2Unit => 'km²';

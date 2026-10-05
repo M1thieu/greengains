@@ -18,7 +18,6 @@ import '../core/sensor_insights.dart';
 import '../services/auth/auth_service.dart';
 import '../utils/app_snackbars.dart';
 import '../widgets/referral_invite_card.dart';
-import '../widgets/stat_cell.dart';
 import 'settings_screen.dart';
 
 
@@ -41,6 +40,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   int? _coverageCells;
   int? _currentStreak;
   int? _longestStreak;
+  bool _statsLoadFailed = false;
   // Previous display values — so count-up never resets to 0 on reload
   double _prevTotalUploads = 0;
   double _prevDaysActive = 0;
@@ -69,6 +69,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       final profile = UserProfileResponse.fromJson(data);
       if (mounted) {
         setState(() {
+          _statsLoadFailed = false;
           _totalUploads = profile.totalUploads;
           _daysActive = profile.daysActive;
           _coverageCells = profile.coverageCells;
@@ -78,6 +79,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
       }
     } catch (e) {
       debugPrint('Profile stats load failed: $e');
+      // Show "—" instead of a skeleton that would shimmer forever.
+      if (mounted) setState(() => _statsLoadFailed = true);
     }
   }
 
@@ -326,113 +329,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ],
           ),
         ),
-        // Top-right button — settings gear (sign out lives in Settings > Account)
+        // Top-right: settings (sign out lives in the Settings app bar).
         Positioned(
           top: topPad + AppTheme.spaceXxs,
-          right: AppTheme.spaceXs,
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              PressScaleDetector(
-                onTap: () => Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const SettingsScreen()),
-                ),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: AppColors.surfaceElevated(isDark),
-                    borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-                  ),
-                  padding: const EdgeInsets.all(AppTheme.spaceXs),
-                  child: Icon(
-                    Icons.settings_outlined,
-                    size: AppIconSizes.sm,
-                    color: AppColors.textSecondary(isDark),
-                  ),
-                ),
-              ),
-            ],
+          right: AppTheme.spaceXxs,
+          child: IconButton(
+            icon: Icon(Icons.settings_outlined, color: AppColors.textSecondary(isDark)),
+            tooltip: l10n.navSettings,
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const SettingsScreen()),
+            ),
           ),
         ),
       ],
-    );
-  }
-
-  void _showProfileDetail({
-    required String title,
-    required String value,
-    required Color color,
-    String? explanation,
-    List<({String label, String val})> stats = const [],
-    String? ctaLabel,
-    VoidCallback? ctaAction,
-  }) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: AppColors.surface(isDark),
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(AppTheme.radiusLg)),
-      ),
-      builder: (_) {
-        final bottomPad = MediaQuery.paddingOf(context).bottom + AppTheme.spaceLg;
-        return SingleChildScrollView(
-          padding: EdgeInsets.fromLTRB(AppTheme.spaceLg, AppTheme.spaceMd, AppTheme.spaceLg, bottomPad),
-          child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-            AppTheme.dragHandle(isDark),
-            const SizedBox(height: AppTheme.spaceMd),
-            Text(value, style: theme.textTheme.displaySmall?.copyWith(
-              fontWeight: AppFontWeights.bold,
-              letterSpacing: AppTheme.letterSpacingNumeric,
-              height: AppLineHeights.numeric,
-              color: color,
-            )),
-            const SizedBox(height: AppTheme.spaceXxxs),
-            Text(title, style: theme.textTheme.labelMedium?.copyWith(
-              fontWeight: AppFontWeights.semibold,
-              color: AppColors.textSecondary(isDark),
-            )),
-            if (explanation != null) ...[
-              const SizedBox(height: AppTheme.spaceSm),
-              Text(explanation, style: theme.textTheme.bodyMedium?.copyWith(
-                color: AppColors.textSecondary(isDark),
-                height: AppLineHeights.relaxed,
-              )),
-            ],
-            if (stats.isNotEmpty) ...[
-              const SizedBox(height: AppTheme.spaceLg),
-              Row(
-                children: [
-                  for (int i = 0; i < stats.length; i++) ...[
-                    if (i > 0) const SizedBox(width: AppTheme.spaceSm),
-                    Expanded(child: StatCell(value: stats[i].val, label: stats[i].label)),
-                  ],
-                ],
-              ),
-            ],
-            if (ctaLabel != null && ctaAction != null) ...[
-              const SizedBox(height: AppTheme.spaceLg),
-              SizedBox(
-                width: double.infinity,
-                child: FilledButton.icon(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    ctaAction();
-                  },
-                  icon: const Icon(Icons.arrow_forward, size: AppIconSizes.xs),
-                  label: Text(ctaLabel),
-                  style: FilledButton.styleFrom(
-                    backgroundColor: color,
-                    padding: const EdgeInsets.symmetric(vertical: AppTheme.spaceSm),
-                  ),
-                ),
-              ),
-            ],
-            const SizedBox(height: AppTheme.spaceMd),
-          ]),
-        );
-
-      },
     );
   }
 
@@ -449,14 +358,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         : 0.0;
 
     return PressScaleDetector(
-      onTap: current > 0 ? () => _showProfileDetail(
-        title: l10n.statsCurrentStreakLabel.toUpperCase(),
-        value: '$current ${l10n.statsDaysUnit}',
-        color: AppColors.primary,
-        stats: [
-          (label: l10n.statsLongestLabel, val: '$longest ${l10n.statsDaysUnit}'),
-        ],
-      ) : null,
+      onTap: current > 0 ? widget.onGoToStats : null,
       child: Container(
         padding: const EdgeInsets.all(AppTheme.spaceMd),
         decoration: BoxDecoration(
@@ -526,14 +428,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ],
                   ),
                 ),
-                // Fire icon
-                Icon(
-                  Icons.local_fire_department_rounded,
-                  size: AppIconSizes.xl,
-                  color: active
-                      ? AppColors.primary.withValues(alpha: 0.30)
-                      : AppColors.textTertiary(isDark).withValues(alpha: 0.12),
-                ),
               ],
             ),
             if (active) ...[
@@ -591,29 +485,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  /// 3-column impact stat row shown below the user header
+  /// 3-column impact stats on one neutral card, below the user header.
   Widget _buildImpactRow(ThemeData theme, bool isDark, AppLocalizations l10n) {
     final km2 = _coverageCells != null ? (_coverageCells! * kKm2PerCell) : null;
     final kmDisplay = (km2 == null || km2 == 0.0) ? '—' : (km2 < 1.0 ? km2.toStringAsFixed(2) : km2.toStringAsFixed(1));
     final tiles = [
-      (
-        value: _totalUploads != null ? '$_totalUploads' : '—',
-        label: l10n.statsDataPtsLabel,
-        color: AppColors.pressure,
-        icon: Icons.cloud_upload_outlined,
-      ),
-      (
-        value: _daysActive != null ? '$_daysActive' : '—',
-        label: l10n.statsDaysActive,
-        color: AppColors.movement,
-        icon: Icons.calendar_today_outlined,
-      ),
-      (
-        value: kmDisplay,
-        label: l10n.statsKmMapped,
-        color: AppColors.quality,
-        icon: Icons.map_outlined,
-      ),
+      (value: _totalUploads != null ? '$_totalUploads' : '—', label: l10n.statsDataPtsLabel),
+      (value: _daysActive != null ? '$_daysActive' : '—', label: l10n.statsDaysActive),
+      (value: kmDisplay, label: l10n.statsKmMapped),
     ];
 
     final numericValues = [
@@ -623,142 +502,78 @@ class _ProfileScreenState extends State<ProfileScreen> {
     ];
     final prevValues = [_prevTotalUploads, _prevDaysActive, _prevKm2];
 
-    return Row(
-      children: tiles.indexed.map((entry) {
-        final (i, tile) = entry;
+    final cells = <Widget>[];
+    for (final (i, tile) in tiles.indexed) {
         final numeric = numericValues[i];
-        VoidCallback? onTap;
-        if (i == 0 && _totalUploads != null && _totalUploads! > 0) {
-          onTap = () => _showProfileDetail(
-            title: l10n.statsDataPtsLabel.toUpperCase(),
-            value: '$_totalUploads',
-            color: AppColors.pressure,
-            explanation: l10n.profileUploadsExplanation,
-            ctaLabel: l10n.profileSeeInStats,
-            ctaAction: widget.onGoToStats,
+        // Direct pathway to where the number comes from (NN/g), no
+        // intermediate sheet repeating the same value.
+        final VoidCallback? onTap = (numeric == null || numeric <= 0)
+            ? null
+            : (i == 2 ? widget.onGoToMap : widget.onGoToStats);
+        final valueStyle = theme.textTheme.headlineSmall?.copyWith(
+          fontWeight: AppFontWeights.bold,
+          letterSpacing: AppTheme.letterSpacingNumeric,
+          height: AppLineHeights.numeric,
+          color: AppColors.textPrimary(isDark),
+        );
+        final Widget value;
+        if (numeric != null && numeric > 0) {
+          value = TweenAnimationBuilder<double>(
+            key: ValueKey(numeric),
+            tween: Tween(begin: prevValues[i], end: numeric),
+            duration: const Duration(milliseconds: 700),
+            curve: Curves.easeOut,
+            onEnd: () {
+              if (i == 0) { _prevTotalUploads = numeric; }
+              else if (i == 1) { _prevDaysActive = numeric; }
+              else { _prevKm2 = numeric; }
+            },
+            builder: (_, v, __) => Text(
+              i == 2 ? (v < 1.0 ? v.toStringAsFixed(2) : v.toStringAsFixed(1)) : v.round().toString(),
+              style: valueStyle,
+            ),
           );
-        } else if (i == 1 && _daysActive != null && _daysActive! > 0) {
-          onTap = () => _showProfileDetail(
-            title: l10n.statsDaysActive.toUpperCase(),
-            value: '$_daysActive',
-            color: AppColors.movement,
-            explanation: l10n.profileDaysExplanation,
-            ctaLabel: l10n.profileSeeInStats,
-            ctaAction: widget.onGoToStats,
+        } else if (numeric == null && !_statsLoadFailed) {
+          value = Shimmer.fromColors(
+            baseColor: AppColors.shimmerBase(isDark),
+            highlightColor: AppColors.shimmerHighlight(isDark),
+            child: Container(
+              width: 40, height: 24,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(AppTheme.radiusMin),
+              ),
+            ),
           );
-        } else if (i == 2 && km2 != null && km2 > 0) {
-          final cells = _coverageCells!;
-          final blocks = (km2 / kKm2PerCityBlock).round();
-          onTap = () => _showProfileDetail(
-            title: l10n.statsKmMapped.toUpperCase(),
-            value: kmDisplay,
-            color: AppColors.quality,
-            explanation: l10n.profileZonesExplanation,
-            stats: [
-              (label: l10n.profileTileAreaCells, val: '$cells'),
-              (label: l10n.profileStatCityBlocks, val: '~$blocks'),
-            ],
-            ctaLabel: l10n.profileViewOnMap,
-            ctaAction: widget.onGoToMap,
-          );
+        } else {
+          value = Text(tile.value, style: valueStyle);
         }
-        final tappable = onTap != null;
-        return Expanded(
-          child: Padding(
-            padding: EdgeInsets.only(right: i < tiles.length - 1 ? AppTheme.spaceSm : 0),
-            child: PressScaleDetector(
-              onTap: onTap,
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppTheme.spaceMd,
-                  vertical: AppTheme.spaceMd,
-                ),
-                decoration: BoxDecoration(
-                  color: tile.color.withValues(alpha: isDark ? 0.10 : 0.07),
-                  borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-                  border: Border.all(
-                    color: tile.color.withValues(alpha: tappable ? 0.28 : 0.14),
-                    width: 0.5,
-                  ),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              if (numeric != null && numeric > 0)
-                                TweenAnimationBuilder<double>(
-                                  key: ValueKey(numeric),
-                                  tween: Tween(begin: prevValues[i], end: numeric),
-                                  duration: const Duration(milliseconds: 700),
-                                  curve: Curves.easeOut,
-                                  onEnd: () {
-                                    if (i == 0) { _prevTotalUploads = numeric; }
-                                    else if (i == 1) { _prevDaysActive = numeric; }
-                                    else { _prevKm2 = numeric; }
-                                  },
-                                  builder: (_, v, __) {
-                                    final display = i == 2
-                                        ? (v < 1.0 ? v.toStringAsFixed(2) : v.toStringAsFixed(1))
-                                        : v.round().toString();
-                                    return Text(display, style: theme.textTheme.headlineMedium?.copyWith(
-                                      fontWeight: AppFontWeights.bold,
-                                      letterSpacing: AppTheme.letterSpacingNumeric,
-                                      height: AppLineHeights.numeric,
-                                      color: tile.color,
-                                    ));
-                                  },
-                                )
-                              else if (numericValues[i] == null)
-                                Shimmer.fromColors(
-                                  baseColor: AppColors.shimmerBase(isDark),
-                                  highlightColor: AppColors.shimmerHighlight(isDark),
-                                  child: Container(
-                                    width: 48, height: 28,
-                                    decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      borderRadius: BorderRadius.circular(AppTheme.radiusMin),
-                                    ),
-                                  ),
-                                )
-                              else
-                                Text(tile.value, style: theme.textTheme.headlineMedium?.copyWith(
-                                  fontWeight: AppFontWeights.bold,
-                                  letterSpacing: -1.0,
-                                  height: 1.0,
-                                  color: tile.color,
-                                )),
-                            ],
-                          ),
-                        ),
-                        if (tappable)
-                          Icon(Icons.chevron_right_rounded, size: AppIconSizes.xs,
-                              color: tile.color.withValues(alpha: 0.45)),
-                      ],
-                    ),
-                    const SizedBox(height: AppTheme.spaceXxs),
-                    Text(
-                      tile.label,
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        fontWeight: AppFontWeights.medium,
-                        color: tile.color.withValues(alpha: 0.70),
-                        letterSpacing: 0.2,
-                      ),
-                      maxLines: 2,
-                      softWrap: true,
-                    ),
-                  ],
-                ),
+
+        if (i > 0) {
+          cells.add(VerticalDivider(width: 1, thickness: 0.5, color: AppColors.divider(isDark)));
+        }
+        cells.add(Expanded(
+          child: PressScaleDetector(
+            onTap: onTap,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceMd),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  value,
+                  const SizedBox(height: AppTheme.spaceXxs),
+                  Text(tile.label, style: AppTheme.statLabel(isDark), maxLines: 2, softWrap: true),
+                ],
               ),
             ),
           ),
-        );
-      }).toList(),
+        ));
+    }
+
+    return Container(
+      decoration: AppTheme.contentCard(isDark: isDark),
+      padding: const EdgeInsets.symmetric(vertical: AppTheme.spaceMd),
+      child: IntrinsicHeight(child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: cells)),
     );
   }
 
@@ -785,21 +600,11 @@ class _MapperRoleChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final role = SensorInsights.mapperRole(cells);
     final label = SensorInsights.mapperRoleLabel(l10n, role);
-    return Container(
-      padding: const EdgeInsets.symmetric(
-          horizontal: AppTheme.spaceXs + 2, vertical: AppTheme.spaceXxxs + 1),
-      decoration: BoxDecoration(
-        color: AppColors.primary.withValues(alpha: 0.10),
-        borderRadius: BorderRadius.circular(AppTheme.radiusPill),
-        border: Border.all(color: AppColors.primary.withValues(alpha: 0.22)),
-      ),
-      child: Text(
-        label,
-        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-          color: AppColors.primary,
-          fontWeight: AppFontWeights.semibold,
-          letterSpacing: 0.2,
-        ),
+    return Text(
+      label,
+      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+        color: AppColors.primary,
+        fontWeight: AppFontWeights.semibold,
       ),
     );
   }

@@ -33,12 +33,8 @@
   "homeTitle": "GreenGains",
   "homeIdleTagline": "See what your routes expose you to",
   "homeIdleSubtitle": "Leave it on. Light, heat, surface — all passive.",
-  "homeStatPlaces": "{count} places",
-  "@homeStatPlaces": { "placeholders": { "count": { "type": "int" } } },
   "homeStatArea": "{area} mapped",
   "@homeStatArea": { "placeholders": { "area": { "type": "String" } } },
-  "homeStatStreak": "{count}-day streak",
-  "@homeStatStreak": { "placeholders": { "count": { "type": "int" } } },
   "homeStatToday": "+{count} today",
   "@homeStatToday": { "placeholders": { "count": { "type": "int" } } },
   "homeActionStart": "Start",
@@ -99,12 +95,10 @@
   "settingsTitle": "Settings",
   "settingsGeneral": "General",
   "settingsPrivacy": "Privacy & Data",
-  "settingsAbout": "About",
   "settingsLanguage": "Language",
   "settingsLanguageSystem": "System",
   "settingsLanguageEnglish": "English",
   "settingsLanguageFrench": "Français",
-  "settingsDisplay": "Display",
   "settingsTheme": "Theme",
   "settingsLocationSharing": "Location Sharing",
   "settingsMobileData": "Mobile Data Upload",
@@ -308,7 +302,7 @@
   "statsHistoryNote": "Weekly history will appear once you have multiple days of data",
   "statsContributionTimeline": "Contribution Timeline",
   "statsStartContributing": "No data yet.",
-  "statsEmptyDescription": "Enable tracking once. Light, heat and surface quality are recorded silently.",
+  "statsEmptyDescription": "Your measurements show up here after the first upload.",
   "statsEmptyGoMap": "Enable tracking",
   "statsEmptyUnlockHint": "Walk to unlock",
   "statsUpdatedPrefix": "Updated ",
@@ -352,6 +346,19 @@
   "tileInfoPersonal": "Yours",
   "tileInfoCommunity": "Not yours yet",
   "tileOnlyYouMapped": "Only you've been here",
+  "statsTripsSection": "Trips",
+  "tripPlaces": "{count, plural, =0{no place} =1{1 place} other{{count} places}}",
+  "@tripPlaces": { "placeholders": { "count": { "type": "int" } } },
+  "tripMinutes": "{minutes} min",
+  "@tripMinutes": { "placeholders": { "minutes": { "type": "int" } } },
+  "tripHoursMinutes": "{hours} h {minutes}",
+  "@tripHoursMinutes": { "placeholders": { "hours": { "type": "int" }, "minutes": { "type": "String" } } },
+  "mapLayerTitle": "Map layer",
+  "mapLayerQuality": "Data quality",
+  "tileContributors": "{count, plural, =1{1 contributor} other{{count} contributors}}",
+  "@tileContributors": { "placeholders": { "count": { "type": "int" } } },
+  "tileMeasurements": "{count, plural, =1{1 measurement} other{{count} measurements}}",
+  "@tileMeasurements": { "placeholders": { "count": { "type": "int" } } },
   "tickerMotionStill": "still",
   "tickerMotionMoving": "moving",
   "tickerMotionActive": "active",
@@ -443,8 +450,6 @@
   "settingsThemeLight": "Light",
   "settingsThemeDark": "Dark",
   "settingsThemeAuto": "Auto",
-  "settingsTracking": "Mapping",
-  "settingsTrackingDesc": "Turn off to stop all background mapping",
   "settingsLocationDescription": "Required for the live coverage map",
   "settingsMobileDataDescription": "Upload over LTE/5G when needed",
   "settingsLegal": "Legal",
@@ -498,13 +503,6 @@
   "@statsMilestoneRemaining": {
     "placeholders": { "count": { "type": "int" } }
   },
-  "milestoneNudge": "{remaining} to {target}",
-  "@milestoneNudge": {
-    "placeholders": {
-      "remaining": { "type": "int" },
-      "target": { "type": "int" }
-    }
-  },
   "statsCommunityAreas": "{count} places mapped by people near you",
   "@statsCommunityAreas": {
     "placeholders": {
@@ -538,13 +536,8 @@
   "referralStepEarn": "Map grows",
 
   "settingsDiagnostics": "Sensor Diagnostics",
-  "settingsDiagnosticsDesc": "Live readings from your device sensors",
 
   "settingsNotifications": "Notifications",
-  "settingsWeeklyDigest": "Weekly map update",
-  "settingsWeeklyDigestDesc": "Sunday summary of your new mapped places",
-  "settingsStreakAlerts": "Streak reminders",
-  "settingsStreakAlertsDesc": "Alert when your active days streak is at risk",
 
   "sensorLiveSheetTitle": "What you're measuring",
 
@@ -580,22 +573,11 @@
   "settingsBatteryMode": "Smart battery",
   "settingsBatteryModeDesc": "Quiet when still, precise when moving. Adapts automatically.",
 
-  "firstStartTitle": "Mapping in the background.",
-  "firstStartBody": "Light, heat, surface quality — recorded silently. Just go.",
 
   "alwaysOnBannerBody": "Set location to 'Always' to keep mapping in the background",
   "alwaysOnBannerFix": "Fix",
 
-  "milestoneReachedTitle": "{count} places mapped",
-  "@milestoneReachedTitle": {
-    "placeholders": { "count": { "type": "int" } }
-  },
-  "milestoneReachedBody": "Keep going.",
-  "milestoneReachedCta": "Keep going",
 
-  "firstUploadTitle": "First area mapped.",
-  "firstUploadBody": "Keep moving. Your map is growing.",
-  "firstUploadCta": "See my map",
 
   "onboardingSocialProof": "{count} people already mapping their neighborhood",
   "@onboardingSocialProof": {
@@ -846,14 +828,6 @@
     "placeholders": { "count": { "type": "int" } }
   },
 
-  "firstUploadBadge": "FIRST PLACE MAPPED",
-  "firstUploadHeadline": "Your first spot is on the map.",
-  "firstUploadSubtext": "Every place you pass through fills in automatically.",
-  "firstUploadSensorsLabel": "RECORDED PASSIVELY",
-  "firstUploadSensorsValue": "light · heat · surface quality",
-  "firstUploadPrivacyLabel": "PRIVACY",
-  "firstUploadPrivacyValue": "anonymous · no route stored",
-  "firstUploadKeepMappingCta": "Keep mapping",
 
   "liveSensorsHeader": "LIVE SENSORS",
   "liveSensorMotionLabel": "Motion",
@@ -893,8 +867,6 @@
   "@profileTileAreaExplain": {
     "placeholders": { "area": { "type": "String" } }
   },
-  "profileTileAreaCells": "zones explored",
-  "profileStatCityBlocks": "city blocks",
   "profileStreakExplain": "Consecutive days with at least one sync.",
   "profileStreakToMilestone": "{days} {unit} to {milestone}-{unit} streak",
   "@profileStreakToMilestone": {
@@ -904,11 +876,6 @@
       "milestone": { "type": "int" }
     }
   },
-  "profileUploadsExplanation": "Each upload is a batch of sensor readings captured at one location.",
-  "profileDaysExplanation": "Days where your phone was active at least once. More days means richer, more recent coverage.",
-  "profileZonesExplanation": "Each zone is roughly a city block. Tap the map to see which areas you've covered.",
-  "profileSeeInStats": "See in Stats",
-  "profileViewOnMap": "View on Map",
 
   "statsMilestoneTarget": "{target} places",
   "@statsMilestoneTarget": {
@@ -926,12 +893,7 @@
   },
   "returnDeltaDismiss": "Got it",
 
-  "settingsAccount": "Account",
   "settingsSignOut": "Sign out",
-  "settingsSignOutConfirmTitle": "Sign out?",
-  "settingsSignOutConfirmBody": "You'll need to sign back in to see your map.",
-  "settingsSignOutConfirm": "Sign out",
-  "settingsSignOutCancel": "Cancel",
 
   "mappingActiveSheetTitle": "Mapping now",
   "mappingActiveSheetBody": "Keep moving to discover new places. Your map grows automatically.",
@@ -956,10 +918,6 @@
   "weeklyGoalBody": "See you next week.",
   "weeklyGoalDismiss": "Nice",
 
-  "statsEmptyLockLight": "Light — dark sky at night, sunlight by day",
-  "statsEmptyLockMovement": "Activity — how lively each place feels",
-  "statsEmptyLockPressure": "Weather — heat and pressure along your routes",
-  "statsEmptyLockSurface": "Road feel — smooth or rough, street by street",
   "statsKm2Unit": "km²",
   "statsLast30DaysUnit": "/ 30",
 

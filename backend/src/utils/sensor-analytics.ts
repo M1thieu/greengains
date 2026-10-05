@@ -214,3 +214,57 @@ export function calculateUptimeSeconds(summary: Summary): number {
 
   return Math.max(0, Math.floor((end - start) / 1000));
 }
+
+// ── WeatherXM Quality-of-Data checks (github.com/weatherxm-network/qod, README) ──
+
+/**
+ * QoD "suspicious jump" bound for pressure between consecutive raw readings
+ * (WeatherXM QoD Table 7: ≤ 0.5 hPa). It is a station bound: a station does not
+ * move. A phone does, and the hydrostatic equation dp/dz = -ρg gives about
+ * 0.12 hPa per metre, so one flight of stairs already exceeds it. It is therefore
+ * applied only between two readings both taken while the phone is stationary,
+ * the condition the bound was set for.
+ */
+export const QOD_PRESSURE_JUMP_HPA = 0.5;
+
+/** QoD constancy thresholds (WeatherXM QoD Table 6), in milliseconds. */
+export const QOD_PRESSURE_CONSTANT_MS = 120 * 60_000;
+export const QOD_LIGHT_CONSTANT_MS = 120 * 60_000;
+
+type TimedReading = { t: Date; pressure?: number; light?: number; quality?: { motion_state?: string } };
+
+/**
+ * Pressure readings that pass the QoD jump check, in time order. A reading is
+ * dropped when it differs by more than the jump bound from the previous kept
+ * reading and both were taken while stationary.
+ */
+export function qodPressureSeries(readings: TimedReading[]): TimedReading[] {
+  const seq = readings
+    .filter(r => r.pressure !== undefined && Number.isFinite(r.pressure))
+    .sort((a, b) => a.t.getTime() - b.t.getTime());
+  const kept: TimedReading[] = [];
+  for (const r of seq) {
+    const prev = kept[kept.length - 1];
+    const bothStill = prev?.quality?.motion_state === 'stationary' && r.quality?.motion_state === 'stationary';
+    if (prev && bothStill && Math.abs(r.pressure! - prev.pressure!) > QOD_PRESSURE_JUMP_HPA) continue;
+    kept.push(r);
+  }
+  return kept;
+}
+
+/**
+ * QoD constancy check: true when every value of [key] is identical over a span
+ * of at least [minSpanMs]. For light, a constant 0 is excluded (darkness is a
+ * legitimate constant; QoD flags only constant non-zero illuminance).
+ */
+export function qodFrozen(readings: TimedReading[], key: 'pressure' | 'light', minSpanMs: number): boolean {
+  const seq = readings
+    .filter(r => r[key] !== undefined && Number.isFinite(r[key]))
+    .sort((a, b) => a.t.getTime() - b.t.getTime());
+  if (seq.length < 2) return false;
+  const span = seq[seq.length - 1].t.getTime() - seq[0].t.getTime();
+  if (span < minSpanMs) return false;
+  const first = seq[0][key]!;
+  if (key === 'light' && first === 0) return false;
+  return seq.every(r => r[key] === first);
+}

@@ -1,0 +1,38 @@
+# Render Blueprint — backend on Render's free web service (no credit card).
+#
+# Free instances sleep after 15 min without traffic and take about a minute to
+# wake. The app copes: uploads that time out stay queued on the phone and are
+# retried (NativeBackendUploader, store and forward), so nothing is lost.
+#
+# Secrets are not in this file: `sync: false` makes Render ask for each value
+# when the Blueprint is created. Copy them from the old Railway service.
+services:
+  - type: web
+    name: greengains
+    runtime: node
+    plan: free
+    rootDir: backend
+    # Dev dependencies (TypeScript) are needed to build, even with NODE_ENV=production.
+    buildCommand: npm ci --include=dev && npm run build
+    startCommand: npm run start
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NODE_VERSION
+        value: "20"
+      - key: DATABASE_URL
+        sync: false
+      - key: API_KEY
+        sync: false
+      - key: HASH_SECRET
+        sync: false
+      - key: FIREBASE_SERVICE_ACCOUNT
+        sync: false
+      - key: ALLOWED_ORIGINS
+        sync: false
+      - key: ANALYTICS_API_KEYS
+        sync: false
+      - key: RATE_LIMIT_PER_MINUTE
+        sync: false

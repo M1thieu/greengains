@@ -98,6 +98,12 @@ export const NetworkTelemetrySchema = z.object({
   dropped_batches: z.number().int().min(0).max(100_000).optional(),
 });
 
+export const DeviceInfoSchema = z.object({
+  manufacturer: z.string().max(64),
+  model: z.string().max(64),
+  sdk: z.number().int().min(1).max(100),
+});
+
 export const UploadBatchSchema = z.object({
   device_id: z.string().min(1).max(128),
   /** Stable UUID frozen at batch creation on the client. Never changes on retry.
@@ -120,6 +126,9 @@ export const UploadBatchSchema = z.object({
   sensor_flags: z.number().int().min(0).max(31).optional(),
   /** .catch(undefined): telemetry is best-effort — a malformed block must never cost us the sensor data. */
   network: NetworkTelemetrySchema.optional().catch(undefined),
+  /** Phone model, kept per batch (as NoiseCapture and WeatherXM do) so sensor
+   *  readings can be corrected per model. Best-effort like `network`. */
+  device: DeviceInfoSchema.optional().catch(undefined),
 });
 
 export type LocationData = z.infer<typeof LocationDataSchema>;
@@ -154,5 +163,6 @@ export interface StoragePayload {
   wifi_rssi_avg?: number;
   wifi_ap_count?: number;
   network?: NetworkTelemetry;
+  device?: z.infer<typeof DeviceInfoSchema>;
   quality_multiplier?: number;
 }

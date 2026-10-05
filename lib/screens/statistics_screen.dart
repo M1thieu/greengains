@@ -14,7 +14,10 @@ import '../core/constants.dart';
 import '../core/events/app_events.dart';
 import '../core/app_preferences.dart';
 import '../core/utils/composite_subscription.dart';
+import '../services/location/foreground_location_service.dart';
 import '../services/stats/stats_service.dart';
+import '../core/trips.dart';
+import '../data/local/database_helper.dart';
 import '../widgets/press_scale_detector.dart';
 import '../widgets/section_header.dart';
 import '../widgets/stat_cell.dart';
@@ -56,6 +59,8 @@ class StatisticsScreen extends StatefulWidget {
 class _StatisticsScreenState extends State<StatisticsScreen>
     with TickerProviderStateMixin, WidgetsBindingObserver {
   final _contributionRepo = ContributionRepository();
+  final _locationService = ForegroundLocationService.instance;
+  List<Trip> _trips = const [];
 
   // Local stats (always available, even offline)
   ContributionStats? _stats;
@@ -209,7 +214,10 @@ class _StatisticsScreenState extends State<StatisticsScreen>
     if (_stats == null) setState(() => _isLoading = true);
     try {
       final stats = await _contributionRepo.getStats();
-      if (mounted) setState(() { _stats = stats; _isLoading = false; });
+      // Trips over the last 30 days, built from local uploads (dawarich-style).
+      final since = DateTime.now().subtract(const Duration(days: 30)).millisecondsSinceEpoch;
+      final trips = buildTrips(await DatabaseHelper.instance.getContributionPoints(since));
+      if (mounted) setState(() { _stats = stats; _trips = trips; _isLoading = false; });
     } catch (e) {
       debugPrint('Local stats load failed: $e');
       if (mounted) setState(() => _isLoading = false);
@@ -355,6 +363,12 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                 SectionHeader(l10n.statsActivityTrend),
                 const SizedBox(height: AppTheme.spaceXs),
                 _withEntrance(_buildActivityChart(theme, isDark, l10n), 3),
+                if (_trips.isNotEmpty) ...[
+                  const SizedBox(height: AppTheme.spaceMd),
+                  SectionHeader(l10n.statsTripsSection),
+                  const SizedBox(height: AppTheme.spaceXs),
+                  _withEntrance(_buildTrips(theme, isDark, l10n), 3),
+                ],
                 const SizedBox(height: AppTheme.spaceMd),
                 SectionHeader(l10n.statsTerritorySection),
                 const SizedBox(height: AppTheme.spaceXxs),
@@ -1535,6 +1549,63 @@ class _StatisticsScreenState extends State<StatisticsScreen>
     );
   }
 
+  /// Last trips (up to 5), one row each: day and times, then duration and places.
+  Widget _buildTrips(ThemeData theme, bool isDark, AppLocalizations l10n) {
+    final locale = Localizations.localeOf(context).toString();
+    final day = DateFormat.MMMEd(locale);
+    final hm = DateFormat.Hm(locale);
+    final shown = _trips.take(5).toList();
+    return Container(
+      decoration: AppTheme.contentCard(isDark: isDark),
+      padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceMd, vertical: AppTheme.spaceXs),
+      child: Column(
+        children: [
+          for (var i = 0; i < shown.length; i++) ...[
+            if (i > 0) Divider(height: 1, thickness: 0.5, color: AppColors.divider(isDark)),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: AppTheme.spaceSm),
+              child: Row(
+                children: [
+                  const Icon(Icons.route_rounded, size: AppIconSizes.sm, color: AppColors.primary),
+                  const SizedBox(width: AppTheme.spaceSm),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(day.format(shown[i].start), style: theme.textTheme.bodyMedium?.copyWith(
+                          color: AppColors.textPrimary(isDark),
+                        )),
+                        Text('${hm.format(shown[i].start)} – ${hm.format(shown[i].end)}',
+                            style: theme.textTheme.bodySmall?.copyWith(color: AppColors.textSecondary(isDark))),
+                      ],
+                    ),
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(_tripDuration(l10n, shown[i].duration), style: theme.textTheme.bodyMedium?.copyWith(
+                        fontWeight: AppFontWeights.semibold,
+                        color: AppColors.textPrimary(isDark),
+                      )),
+                      Text(l10n.tripPlaces(shown[i].places),
+                          style: theme.textTheme.bodySmall?.copyWith(color: AppColors.textSecondary(isDark))),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  static String _tripDuration(AppLocalizations l10n, Duration d) {
+    final h = d.inHours;
+    final m = d.inMinutes.remainder(60);
+    return h == 0 ? l10n.tripMinutes(m) : l10n.tripHoursMinutes(h, m.toString().padLeft(2, '0'));
+  }
+
   Widget _buildEmptyState(BuildContext context, ThemeData theme, bool isDark, AppLocalizations l10n) {
     return Center(
       child: Padding(
@@ -1552,24 +1623,26 @@ class _StatisticsScreenState extends State<StatisticsScreen>
               textAlign: TextAlign.center,
               style: theme.textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary(isDark)),
             ),
-            const SizedBox(height: AppTheme.spaceLg),
-            // Locked sensor rows — Duolingo-style preview of what gets unlocked
-            _LockedSensorRow(icon: Icons.wb_sunny_outlined, color: AppColors.light, label: l10n.statsEmptyLockLight, isDark: isDark),
-            const SizedBox(height: AppTheme.spaceXs),
-            _LockedSensorRow(icon: Icons.directions_walk_rounded, color: AppColors.movement, label: l10n.statsEmptyLockMovement, isDark: isDark),
-            const SizedBox(height: AppTheme.spaceXs),
-            _LockedSensorRow(icon: Icons.compress_rounded, color: AppColors.pressure, label: l10n.statsEmptyLockPressure, isDark: isDark),
-            if (widget.onGoToHome != null) ...[
-              const SizedBox(height: AppTheme.spaceXl),
-              FilledButton.icon(
-                onPressed: () {
-                  HapticFeedback.lightImpact();
-                  widget.onGoToHome!();
+            // "Enable tracking" only makes sense while tracking is off: with it
+            // on, data simply hasn't been uploaded yet.
+            if (widget.onGoToHome != null)
+              ListenableBuilder(
+                listenable: Listenable.merge([_locationService.isRunning, _locationService.isPaused]),
+                builder: (context, _) {
+                  final tracking = _locationService.isRunning.value || _locationService.isPaused.value;
+                  if (tracking) return const SizedBox.shrink();
+                  return Padding(
+                    padding: const EdgeInsets.only(top: AppTheme.spaceXl),
+                    child: FilledButton(
+                      onPressed: () {
+                        HapticFeedback.lightImpact();
+                        widget.onGoToHome!();
+                      },
+                      child: Text(l10n.statsEmptyGoMap),
+                    ),
+                  );
                 },
-                icon: const Icon(Icons.play_arrow_rounded, size: AppIconSizes.sm),
-                label: Text(l10n.statsEmptyGoMap),
               ),
-            ],
           ],
         ),
       ),
@@ -2301,44 +2374,6 @@ class _Divider extends StatelessWidget {
 }
 
 // ── Locked sensor row for empty state ────────────────────────────────────────
-class _LockedSensorRow extends StatelessWidget {
-  const _LockedSensorRow({
-    required this.icon,
-    required this.color,
-    required this.label,
-    required this.isDark,
-  });
-  final IconData icon;
-  final Color color;
-  final String label;
-  final bool isDark;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppTheme.spaceMd,
-        vertical: AppTheme.spaceXs,
-      ),
-      decoration: AppTheme.contentCard(isDark: isDark),
-      child: Row(
-        children: [
-          Icon(icon, size: AppIconSizes.sm, color: color.withValues(alpha: 0.70)),
-          const SizedBox(width: AppTheme.spaceSm),
-          Expanded(
-            child: Text(
-              label,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: AppColors.textSecondary(isDark),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 // ── In-depth statistics screen ────────────────────────────────────────────────
 
 class StatsDetailArgs {

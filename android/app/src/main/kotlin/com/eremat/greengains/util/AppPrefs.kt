@@ -62,6 +62,9 @@ object AppPrefs {
      */
     const val UPLOAD_HEALTH = "flutter.flutter.upload_health"
 
+    /** Batches waiting for the server to accept them (all builds); shown in the notification. */
+    const val UPLOAD_PENDING_BATCHES = "upload_pending_batches"
+
     // ── Daily count tracking (native-only, not shared with Flutter) ──────────
 
     /** ISO date (YYYY-MM-DD) of the last counted upload — used to reset counter at midnight. */

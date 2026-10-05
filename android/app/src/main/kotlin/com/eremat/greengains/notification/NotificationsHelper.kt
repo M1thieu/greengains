@@ -141,7 +141,14 @@ internal object NotificationsHelper {
         }
 
         // ── Collapsed body ────────────────────────────────────────────────────
-        val uploadSuffix = lastUploadMillis?.let {
+        // Say the truth about sending, as owntracks shows its connection state: when
+        // batches are waiting for the server, that replaces "uploaded X ago".
+        val pendingBatches = context
+            .getSharedPreferences(AppPrefs.NAME, Context.MODE_PRIVATE)
+            .getInt(AppPrefs.UPLOAD_PENDING_BATCHES, 0)
+        val uploadSuffix = if (pendingBatches > 0) {
+            context.resources.getQuantityString(R.plurals.notif_upload_pending, pendingBatches, pendingBatches)
+        } else lastUploadMillis?.let {
             context.getString(R.string.notif_uploaded_ago, formatElapsedUpload(context, it))
         }
         val sessionZonesStr = if (!isPaused && sessionZones > 0)
@@ -150,7 +157,8 @@ internal object NotificationsHelper {
         val body = when {
             isPaused -> context.getString(R.string.notification_paused_body)
             else -> {
-                val envPart = listOfNotNull(lightStr, motionStr)
+                // Motion state goes to the sub-text (owntracks shows its mode there).
+                val envPart = listOfNotNull(lightStr)
                     .joinToString(" · ")
                     .ifEmpty { context.getString(R.string.notif_body_measuring) }
                 listOfNotNull(sessionZonesStr, durationStr, envPart, uploadSuffix).joinToString(" · ")
@@ -190,6 +198,8 @@ internal object NotificationsHelper {
             .setOngoing(true)
             .setOnlyAlertOnce(true)
             .setShowWhen(false)
+            .setCategory(NotificationCompat.CATEGORY_SERVICE)
+            .setSubText(if (isPaused) null else motionStr)
             .addAction(pauseResumeIcon, pauseResumeLabel, pauseResumePending)
             .addAction(R.drawable.ic_notif_stop,
                 context.getString(R.string.notification_action_stop), stopPending)

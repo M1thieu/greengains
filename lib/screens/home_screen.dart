@@ -78,7 +78,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   List<H3Tile> _globalTiles = [];
   bool _h3TilesLoading = true;
   /// Aggregated condition summary of all personal tiles — null if normal or no data.
-  String? _areaConditionLine;
   DateTime? _lastTilesFetch;
   static const _kTilesCooldown = Duration(minutes: 2);
   /// Retry counters — reset on success, capped at kMaxTileRetries.
@@ -114,6 +113,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   int _sessionUploadCount = 0;
   /// Whether community tiles are visible on the map.
   bool _showCommunity = true;
+  MapLayer _mapLayer = MapLayer.quality;
   /// Running averages for session sensor data — each accumulates as liveConditions fires.
   final _luxAcc = _RunningAverage();
   final _hpaAcc = _RunningAverage();
@@ -140,15 +140,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     _loadUserLocation();
     _subscribeToLocationUpdates();
     unawaited(_loadStreak());
-    _maybeShowPendingFirstUpload();
-  }
-
-  void _maybeShowPendingFirstUpload() {
-    if (!_prefs.firstUploadPending) return;
-    Future.delayed(const Duration(milliseconds: 400), () {
-      if (!mounted || !context.mounted) return;
-      _showFirstUploadSheet();
-    });
   }
 
   Future<void> _loadStreak() async {
@@ -189,7 +180,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       _pendingCellBoundaries = [];
       _luxAcc.reset(); _hpaAcc.reset(); _rmsAcc.reset();
       _checkBatteryOptimization();
-      _maybeShowFirstStart();
     } else {
       // Tracking stopped — persist session data for return hint.
       final gained = _claimedTileCount - _sessionStartZoneCount;
@@ -233,18 +223,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       _sessionStartTime = null;
       _sessionUploadCount = 0;
     }
-  }
-
-  Future<void> _maybeShowFirstStart() async {
-    await _prefs.ensureInitialized();
-    if (_prefs.trackingEverStarted) return;
-    await _prefs.setTrackingEverStarted();
-    if (!mounted) return;
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (_) => _FirstStartSheet(),
-    );
   }
 
   Future<void> _checkPermissionHealth() async {
@@ -372,27 +350,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     _subs.add(AppEventBus.instance.on<UploadSuccessEvent>().listen(_onUploadSuccess));
   }
 
-  void _showFirstUploadSheet() {
-    unawaited(_prefs.setFirstUploadCelebrated());
-    unawaited(_prefs.setFirstUploadPending(false));
-    HapticFeedback.mediumImpact();
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (_) => const _FirstUploadSheet(),
-    );
-  }
-
   void _onUploadSuccess(UploadSuccessEvent event) {
     if (!mounted) return;
     if (_locationService.isRunning.value) {
       setState(() => _sessionUploadCount++);
-    }
-    // Mark pending immediately — if the app goes to background before the sheet
-    // shows, the resumed check in didChangeAppLifecycleState will pick it up.
-    if (!_prefs.firstUploadCelebrated) {
-      unawaited(_prefs.setFirstUploadPending(true));
     }
     final prevCount = _claimedTileCount;
     Future.delayed(const Duration(seconds: 3), () {
@@ -416,17 +377,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         final newCount = _claimedTileCount;
         final gained = newCount - prevCount;
         if (gained > 0) HapticFeedback.mediumImpact();
-        if (!_prefs.firstUploadCelebrated && newCount > 0) {
-          _showFirstUploadSheet();
-          return;
-        }
         final msg = gained > 0
             ? context.l10n.uploadSuccessNewZone(newCount)
             : context.l10n.uploadSuccessMessage;
         AppSnackbars.showSuccess(context, msg);
-        if (gained > 0) {
-          _maybeCelebrateMilestone(newCount);
-        }
       });
     });
     _maybeRequestReview();
@@ -434,23 +388,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   }
 
   static const _kUploadMilestones = [10, 50, 100, 500, 1000];
-
-  Future<void> _maybeCelebrateMilestone(int zoneCount) async {
-    await _prefs.ensureInitialized();
-    final lastCelebrated = _prefs.lastMilestoneCelebrated;
-    // Find the highest milestone reached that hasn't been celebrated yet.
-    final earned = _kMilestones.where((m) => m <= zoneCount && m > lastCelebrated).toList();
-    if (earned.isEmpty) return;
-    final milestone = earned.last;
-    await _prefs.setLastMilestoneCelebrated(milestone);
-    if (!mounted) return;
-    HapticFeedback.heavyImpact();
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (_) => _MilestoneSheet(zoneCount: milestone),
-    );
-  }
 
   Future<void> _maybeCelebrateUploadMilestone() async {
     await _prefs.ensureInitialized();
@@ -509,7 +446,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       _reloadUploadStatus();
       _loadH3Tiles();
       unawaited(_checkPermissionHealth());
-      _maybeShowPendingFirstUpload();
       unawaited(_loadStreak());
     }
   }
@@ -628,8 +564,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           _showSlowLoadHint = false;
           _lastTilesFetch = DateTime.now();
         });
-        // Check for milestone crossings on cold open — catches zones earned while app was closed.
-        unawaited(_maybeCelebrateMilestone(newCount));
         unawaited(_updateHomeWidget());
         // Persist for instant display on next open.
         unawaited(_prefs.setCachedPersonalTiles(jsonEncode(data)));
@@ -639,7 +573,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         if (_prefs.territoryLabel == null && response.tiles.isNotEmpty) {
           unawaited(_refreshNeighborhoodName(response.tiles));
         }
-        if (response.tiles.isNotEmpty) _updateAreaConditionLine(response.tiles);
       }
     } on ApiException catch (e) {
       debugPrint('Tiles: ApiException ${e.statusCode}');
@@ -682,34 +615,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     if (name != null && name.isNotEmpty && mounted) {
       await _prefs.setTerritoryLabel(name);
     }
-  }
-
-  /// Aggregate sensor data across personal tiles and derive a condition line.
-  /// Only surfaces non-normal conditions (anomalous light, surface, or activity).
-  void _updateAreaConditionLine(List<H3Tile> tiles) {
-    final goodTiles = tiles.where((t) => (t.qualityRatio ?? 0) > 0.3).toList();
-    if (goodTiles.isEmpty) return;
-    double? avgLux, avgMovement, avgVibration;
-    final luxVals = goodTiles.map((t) => t.avgLux).whereType<double>().toList();
-    final movVals = goodTiles.map((t) => t.avgMovement).whereType<double>().toList();
-    final vibVals = goodTiles.map((t) => t.avgVibration).whereType<double>().toList();
-    if (luxVals.isNotEmpty) avgLux = luxVals.reduce((a, b) => a + b) / luxVals.length;
-    if (movVals.isNotEmpty) avgMovement = movVals.reduce((a, b) => a + b) / movVals.length;
-    if (vibVals.isNotEmpty) avgVibration = vibVals.reduce((a, b) => a + b) / vibVals.length;
-    if (!mounted) return;
-    final l10n = AppLocalizations.of(context);
-    if (l10n == null) return;
-    final isNight = DateTime.now().hour < 6 || DateTime.now().hour >= 20;
-    final line = SensorInsights.tileConditionLine(
-      l10n,
-      isNight: isNight,
-      avgLux: avgLux,
-      avgMovement: avgMovement,
-      avgVibration: avgVibration,
-    );
-    // Only show if not generic "normal" — surface surprises, not averages.
-    final normal = l10n.insightNormal;
-    setState(() => _areaConditionLine = line == normal ? null : line);
   }
 
   /// Load community coverage tiles (all users, cached 5 min on server).
@@ -895,6 +800,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     !_locationService.isPaused.value;
                 return CoverageMapWidget(
                   tiles: [...(_showCommunity ? _globalTiles : <H3Tile>[]), ..._h3Tiles],
+                  mapLayer: _mapLayer,
                   userLocation: _userLocationNotifier.value,
                   userAccuracy: _userAccuracyNotifier.value,
                   currentH3Boundary: _currentH3Boundary,
@@ -955,20 +861,28 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           // Mine / All toggle
-                          _MineAllToggle(
-                            showCommunity: _showCommunity,
-                            mineCount: _claimedTileCount,
-                            communityCount: _globalTiles.length,
-                            onChanged: (val) =>
-                                setState(() => _showCommunity = val),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _MineAllToggle(
+                                showCommunity: _showCommunity,
+                                mineCount: _claimedTileCount,
+                                communityCount: _globalTiles.length,
+                                onChanged: (val) =>
+                                    setState(() => _showCommunity = val),
+                              ),
+                              const SizedBox(height: AppTheme.spaceXs),
+                              _MapLayerButton(
+                                layer: _mapLayer,
+                                onChanged: (l) => setState(() => _mapLayer = l),
+                              ),
+                            ],
                           ),
                           const Spacer(),
                           // Stats pills stacked top-right — tap navigates to Stats
                           _StatPillStack(
                             claimedTileCount: _claimedTileCount,
                             territoryLabel: _prefs.territoryLabel,
-                            areaConditionLine: _areaConditionLine,
-                            currentStreak: _currentStreak,
                             lastSessionEndAt: _prefs.lastSessionEndAt,
                             lastSessionZonesGained: _prefs.lastSessionZonesGained,
                             isTracking: _locationService.isRunning.value,
@@ -1065,8 +979,6 @@ class _StatPillStack extends StatelessWidget {
   const _StatPillStack({
     required this.claimedTileCount,
     required this.territoryLabel,
-    required this.areaConditionLine,
-    required this.currentStreak,
     required this.lastSessionEndAt,
     required this.lastSessionZonesGained,
     required this.isTracking,
@@ -1075,8 +987,6 @@ class _StatPillStack extends StatelessWidget {
 
   final int claimedTileCount;
   final String? territoryLabel;
-  final String? areaConditionLine;
-  final int currentStreak;
   final DateTime? lastSessionEndAt;
   final int lastSessionZonesGained;
   final bool isTracking;
@@ -1091,7 +1001,7 @@ class _StatPillStack extends StatelessWidget {
   }
 
   /// Today's gain shows only after a session ended within 20h, while idle.
-  bool get _showTodayPill =>
+  bool get _showToday =>
       lastSessionEndAt != null &&
       DateTime.now().difference(lastSessionEndAt!).inHours < 20 &&
       !isTracking &&
@@ -1099,65 +1009,48 @@ class _StatPillStack extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (claimedTileCount == 0) return const SizedBox.shrink();
+    final textTheme = Theme.of(context).textTheme;
+    // One surface with plain lines, the way activity apps overlay key figures
+    // on the map; no stack of pills. The streak lives in Profile only.
     return PressScaleDetector(
       onTap: () {
         HapticFeedback.lightImpact();
         onTap();
       },
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          if (claimedTileCount > 0) ...[
-            _StatPill(icon: Icons.hexagon_outlined, label: _areaLabel(context)),
-            if (territoryLabel != null) ...[
-              const SizedBox(height: 3),
-              Padding(
-                padding: const EdgeInsets.only(right: AppTheme.spaceXs),
-                child: Text(
-                  territoryLabel!,
-                  style: TextStyle(
-                    fontSize: AppTheme.fontSizeXs,
-                    color: AppColors.textTertiary(true),
-                    fontWeight: AppFontWeights.medium,
-                    letterSpacing: 0.2,
-                  ),
-                  textAlign: TextAlign.end,
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+            horizontal: AppTheme.spaceSm, vertical: AppTheme.spaceXs),
+        decoration: BoxDecoration(
+          color: AppColors.mapOverlayDark,
+          borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              _areaLabel(context),
+              style: textTheme.labelLarge?.copyWith(
+                fontWeight: AppFontWeights.semibold,
+                color: AppColors.darkTextPrimary,
+              ),
+            ),
+            if (territoryLabel != null)
+              Text(
+                territoryLabel!,
+                style: textTheme.labelSmall?.copyWith(color: AppColors.darkTextSecondary),
+              ),
+            if (_showToday)
+              Text(
+                context.l10n.homeStatToday(lastSessionZonesGained),
+                style: textTheme.labelSmall?.copyWith(
+                  fontWeight: AppFontWeights.semibold,
+                  color: AppColors.primary,
                 ),
               ),
-            ],
-            if (areaConditionLine != null) ...[
-              const SizedBox(height: 2),
-              Padding(
-                padding: const EdgeInsets.only(right: AppTheme.spaceXs),
-                child: Text(
-                  areaConditionLine!,
-                  style: TextStyle(
-                    fontSize: 9.5,
-                    color: AppColors.textTertiary(true).withValues(alpha: 0.6),
-                    fontWeight: AppFontWeights.regular,
-                    letterSpacing: 0.1,
-                  ),
-                  textAlign: TextAlign.end,
-                ),
-              ),
-            ],
           ],
-          if (currentStreak > 0) ...[
-            const SizedBox(height: AppTheme.spaceXxs),
-            _StatPill(
-              icon: Icons.bolt_rounded,
-              label: context.l10n.homeStatStreak(currentStreak),
-            ),
-          ],
-          if (_showTodayPill) ...[
-            const SizedBox(height: AppTheme.spaceXxs),
-            _StatPill(
-              icon: Icons.add_rounded,
-              label: context.l10n.homeStatToday(lastSessionZonesGained),
-              color: AppColors.primary,
-            ),
-          ],
-        ],
+        ),
       ),
     );
   }
@@ -1224,6 +1117,99 @@ class _ZeroStateCard extends StatelessWidget {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+// ─── Map layer picker (WeatherXM-style) ──────────────────────────────────────
+
+/// Round map button showing the active layer's icon; opens the layer list.
+class _MapLayerButton extends StatelessWidget {
+  const _MapLayerButton({required this.layer, required this.onChanged});
+  final MapLayer layer;
+  final ValueChanged<MapLayer> onChanged;
+
+  static IconData iconFor(MapLayer l) => switch (l) {
+        MapLayer.quality => Icons.layers_outlined,
+        MapLayer.light => Icons.wb_sunny_outlined,
+        MapLayer.pressure => Icons.compress_rounded,
+        MapLayer.movement => Icons.directions_walk_rounded,
+      };
+
+  static Color colorFor(MapLayer l) => switch (l) {
+        MapLayer.quality => AppColors.quality,
+        MapLayer.light => AppColors.light,
+        MapLayer.pressure => AppColors.pressure,
+        MapLayer.movement => AppColors.movement,
+      };
+
+  static String labelFor(AppLocalizations l10n, MapLayer l) => switch (l) {
+        MapLayer.quality => l10n.mapLayerQuality,
+        MapLayer.light => l10n.sensorLight,
+        MapLayer.pressure => l10n.sensorAirPressure,
+        MapLayer.movement => l10n.sensorMovement,
+      };
+
+  void _open(BuildContext context) {
+    final l10n = context.l10n;
+    final isDark = context.isDarkMode;
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.surface(isDark),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(AppTheme.radiusLg)),
+      ),
+      builder: (sheetContext) => SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(AppTheme.spaceLg, AppTheme.spaceMd, AppTheme.spaceLg, AppTheme.spaceMd),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              AppTheme.dragHandle(isDark),
+              const SizedBox(height: AppTheme.spaceSm),
+              Text(l10n.mapLayerTitle, style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: AppFontWeights.semibold,
+              )),
+              const SizedBox(height: AppTheme.spaceXs),
+              for (final l in MapLayer.values)
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: Icon(iconFor(l), color: colorFor(l)),
+                  title: Text(labelFor(l10n, l)),
+                  trailing: l == layer ? const Icon(Icons.check_rounded, color: AppColors.primary) : null,
+                  onTap: () {
+                    HapticFeedback.selectionClick();
+                    Navigator.of(sheetContext).pop();
+                    onChanged(l);
+                  },
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: context.l10n.mapLayerTitle,
+      child: Material(
+        color: AppColors.mapOverlayDark,
+        shape: const CircleBorder(),
+        child: InkWell(
+          customBorder: const CircleBorder(),
+          onTap: () => _open(context),
+          child: SizedBox(
+            width: AppTheme.minTouchTarget,
+            height: AppTheme.minTouchTarget,
+            child: Icon(iconFor(layer), size: AppIconSizes.sm, color: colorFor(layer)),
+          ),
         ),
       ),
     );
@@ -1511,368 +1497,6 @@ class _MyLocationButton extends StatelessWidget {
           ),
         );
       },
-    );
-  }
-}
-
-/// First-start celebration sheet — shown exactly once, the first time tracking starts.
-/// Auto-dismisses after 3 s so it never blocks the map.
-class _FirstStartSheet extends StatefulWidget {
-  @override
-  State<_FirstStartSheet> createState() => _FirstStartSheetState();
-}
-
-class _FirstStartSheetState extends State<_FirstStartSheet> {
-  @override
-  void initState() {
-    super.initState();
-    Future.delayed(const Duration(seconds: 5), () {
-      if (mounted) Navigator.of(context).pop();
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = context.isDarkMode;
-    final l10n = context.l10n;
-    final theme = Theme.of(context);
-
-    return GestureDetector(
-      onTap: () => Navigator.of(context).pop(),
-      child: Container(
-      margin: const EdgeInsets.symmetric(
-        horizontal: AppTheme.spaceMd,
-        vertical: AppTheme.spaceSm,
-      ),
-      decoration: BoxDecoration(
-        color: AppColors.surface(isDark),
-        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
-        border: Border.all(color: AppColors.primary.withValues(alpha: 0.35)),
-      ),
-      child: SafeArea(
-        top: false,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(
-            AppTheme.spaceLg, AppTheme.spaceMd, AppTheme.spaceLg, AppTheme.spaceLg,
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: AppColors.primaryAlpha(0.15),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.sensors, color: AppColors.primary, size: AppIconSizes.md),
-              ),
-              const SizedBox(width: AppTheme.spaceMd),
-              Expanded(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      l10n.firstStartTitle,
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: AppFontWeights.bold,
-                        color: AppColors.primary,
-                      ),
-                    ),
-                    const SizedBox(height: AppTheme.spaceXxxs),
-                    Text(
-                      l10n.firstStartBody,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: AppColors.textSecondary(isDark),
-                        height: 1.4,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    ),
-    );
-  }
-}
-
-/// Milestone celebration sheet — shown when user hits 5/10/25/50/100/250/500 zones.
-/// Validates their contribution with a trophy moment, then auto-dismisses on CTA.
-class _MilestoneSheet extends StatefulWidget {
-  const _MilestoneSheet({required this.zoneCount});
-  final int zoneCount;
-  @override
-  State<_MilestoneSheet> createState() => _MilestoneSheetState();
-}
-
-class _MilestoneSheetState extends State<_MilestoneSheet> {
-  int? get _next {
-    for (final m in _kMilestones) { if (m > widget.zoneCount) return m; }
-    return null;
-  }
-
-  String _milestoneBody(AppLocalizations l10n) {
-    switch (widget.zoneCount) {
-      case 5:    return l10n.milestoneBody5;
-      case 10:   return l10n.milestoneBody10;
-      case 25:   return l10n.milestoneBody25;
-      case 50:   return l10n.milestoneBody50;
-      case 100:  return l10n.milestoneBody100;
-      case 250:  return l10n.milestoneBody250;
-      case 500:  return l10n.milestoneBody500;
-      case 1000: return l10n.milestoneBody1000;
-      default:   return l10n.milestoneReachedBody;
-    }
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    Future.delayed(const Duration(seconds: 5), () {
-      if (mounted) Navigator.of(context).pop();
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = context.isDarkMode;
-    final l10n = context.l10n;
-    final theme = Theme.of(context);
-    final next = _next;
-
-    return GestureDetector(
-      onTap: () => Navigator.of(context).pop(),
-      child: Container(
-        margin: const EdgeInsets.symmetric(
-          horizontal: AppTheme.spaceMd,
-          vertical: AppTheme.spaceSm,
-        ),
-        decoration: BoxDecoration(
-          color: AppColors.surface(isDark),
-          borderRadius: BorderRadius.circular(AppTheme.radiusLg),
-          border: Border.all(color: AppColors.primary.withValues(alpha: 0.35)),
-        ),
-        child: SafeArea(
-          top: false,
-          child: Padding(
-            padding: const EdgeInsets.all(AppTheme.spaceLg),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                AppTheme.dragHandle(isDark),
-                const SizedBox(height: AppTheme.spaceLg),
-                Container(
-                  width: AppTheme.iconCircleMd,
-                  height: AppTheme.iconCircleMd,
-                  decoration: BoxDecoration(
-                    color: AppColors.primaryAlpha(0.15),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(Icons.map_outlined, color: AppColors.primary, size: AppIconSizes.lg),
-                ),
-                const SizedBox(height: AppTheme.spaceMd),
-                Text(
-                  l10n.milestoneReachedTitle(widget.zoneCount),
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    fontWeight: AppFontWeights.bold,
-                    color: AppColors.primary,
-                    letterSpacing: -0.3,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: AppTheme.spaceSm),
-                Text(
-                  _milestoneBody(l10n),
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: AppColors.textSecondary(isDark),
-                    height: 1.5,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                if (next != null) ...[
-                  const SizedBox(height: AppTheme.spaceMd),
-                  Divider(color: AppColors.divider(isDark), height: 1),
-                  const SizedBox(height: AppTheme.spaceMd),
-                  _NextMilestoneBar(current: widget.zoneCount, target: next, isDark: isDark),
-                ],
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// First-upload celebration sheet — shown exactly once when the user's first
-/// zone appears on the map.
-class _FirstUploadSheet extends StatefulWidget {
-  const _FirstUploadSheet();
-  @override
-  State<_FirstUploadSheet> createState() => _FirstUploadSheetState();
-}
-
-class _FirstUploadSheetState extends State<_FirstUploadSheet> {
-  @override
-  void initState() {
-    super.initState();
-    Future.delayed(const Duration(seconds: 6), () {
-      if (mounted) Navigator.of(context).pop();
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = context.isDarkMode;
-
-    return Container(
-      margin: const EdgeInsets.symmetric(
-        horizontal: AppTheme.spaceMd,
-        vertical: AppTheme.spaceSm,
-      ),
-      decoration: BoxDecoration(
-        color: AppColors.surface(isDark),
-        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
-        border: Border.all(color: AppColors.primary.withValues(alpha: 0.30)),
-      ),
-      child: GestureDetector(
-        onTap: () => Navigator.of(context).pop(),
-        child: SafeArea(
-          top: false,
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(
-                AppTheme.spaceLg, AppTheme.spaceMd, AppTheme.spaceLg, AppTheme.spaceLg),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                AppTheme.dragHandle(isDark),
-                const SizedBox(height: AppTheme.spaceLg),
-                const _CelebrationHex(),
-                const SizedBox(height: AppTheme.spaceMd),
-                Text(
-                  context.l10n.firstUploadBadge,
-                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    fontWeight: AppFontWeights.semibold,
-                    color: AppColors.primary,
-                    letterSpacing: 1.4,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: AppTheme.spaceXs),
-                Text(
-                  context.l10n.firstUploadHeadline,
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: AppFontWeights.semibold,
-                    color: Colors.white.withValues(alpha: 0.96),
-                    letterSpacing: -0.6,
-                    height: AppLineHeights.tight,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: AppTheme.spaceSm),
-                Text(
-                  context.l10n.firstUploadSubtext,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Colors.white.withValues(alpha: 0.72),
-                    height: AppLineHeights.relaxed,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: AppTheme.spaceMd),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: AppTheme.spaceMd, vertical: AppTheme.spaceSm),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.06),
-                    border: Border.all(color: Colors.white.withValues(alpha: 0.20)),
-                    borderRadius: BorderRadius.circular(AppTheme.radiusSm),
-                  ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(context.l10n.firstUploadSensorsLabel,
-                              maxLines: 1, overflow: TextOverflow.ellipsis,
-                              style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                                fontWeight: AppFontWeights.semibold,
-                                color: Colors.white.withValues(alpha: 0.60),
-                                letterSpacing: AppTheme.letterSpacingLabel)),
-                            const SizedBox(height: AppTheme.spaceXxxs),
-                            Text(context.l10n.firstUploadSensorsValue,
-                              maxLines: 2, overflow: TextOverflow.ellipsis,
-                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: Colors.white.withValues(alpha: 0.85))),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: AppTheme.spaceMd),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Text(context.l10n.firstUploadPrivacyLabel,
-                              maxLines: 1, overflow: TextOverflow.ellipsis,
-                              textAlign: TextAlign.end,
-                              style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                                fontWeight: AppFontWeights.semibold,
-                                color: Colors.white.withValues(alpha: 0.60),
-                                letterSpacing: AppTheme.letterSpacingLabel)),
-                            const SizedBox(height: AppTheme.spaceXxxs),
-                            Text(context.l10n.firstUploadPrivacyValue,
-                              maxLines: 1, overflow: TextOverflow.ellipsis,
-                              textAlign: TextAlign.end,
-                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: AppColors.primary, fontWeight: AppFontWeights.semibold)),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: AppTheme.spaceMd),
-                Text(
-                  context.l10n.firstUploadKeepMappingCta,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Colors.white.withValues(alpha: 0.55),
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Animated hex icon — shown in the first-upload celebration sheet.
-class _CelebrationHex extends StatelessWidget {
-  const _CelebrationHex();
-
-  @override
-  Widget build(BuildContext context) {
-    return TweenAnimationBuilder<double>(
-      tween: Tween(begin: 0.4, end: 1.0),
-      duration: AppDurations.medium,
-      curve: Curves.elasticOut,
-      builder: (_, scale, __) => Transform.scale(
-        scale: scale,
-        child: Container(
-          width: AppTheme.spaceXxxl,
-          height: AppTheme.spaceXxxl,
-          decoration: BoxDecoration(
-            color: AppColors.primaryAlpha(0.15),
-            shape: BoxShape.circle,
-          ),
-          child: const Icon(Icons.hexagon_outlined, color: AppColors.primary, size: AppIconSizes.lg),
-        ),
-      ),
     );
   }
 }
@@ -2695,44 +2319,6 @@ class _GhostSensorChip extends StatelessWidget {
   }
 }
 
-class _StatPill extends StatelessWidget {
-  const _StatPill({required this.icon, required this.label, this.color});
-  final IconData icon;
-  final String label;
-  final Color? color;
-
-  @override
-  Widget build(BuildContext context) {
-    final accent = color ?? AppColors.primary;
-    return Container(
-      padding: const EdgeInsets.symmetric(
-          horizontal: AppTheme.spaceSm, vertical: AppTheme.spaceTiny),
-      decoration: BoxDecoration(
-        color: color != null
-            ? color!.withValues(alpha: 0.18)
-            : AppColors.shadowDark(0.55),
-        borderRadius: BorderRadius.circular(AppTheme.radiusPill),
-        border: color != null
-            ? Border.all(color: color!.withValues(alpha: 0.35))
-            : null,
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: AppIconSizes.xs, color: accent),
-          const SizedBox(width: AppTheme.spaceXxs),
-          Text(
-            label,
-            style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              fontWeight: AppFontWeights.semibold,
-              color: color != null ? accent : Colors.white,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
 
 
 /// Small circular info button — opens sensor sheet.

@@ -15,6 +15,10 @@ import {
   filterOutliersMad,
   calculateUptimeSeconds,
   Summary,
+  qodPressureSeries,
+  qodFrozen,
+  QOD_PRESSURE_CONSTANT_MS,
+  QOD_LIGHT_CONSTANT_MS,
 } from '../utils/sensor-analytics';
 import {
   checkRateLimits,
@@ -145,7 +149,10 @@ function pressureToSeaLevel(hpa: number, altitudeM: number): number {
 export function summarizeBatch(readings: SensorReading[], batchAccuracyM?: number, speedMps?: number, altitudeM?: number): Summary {
   // Light — filter statistical outliers (MAD method) before averaging.
   // E.g. a single 65535 lux spike from sensor glitch won't skew the window average.
-  const lightRaw = readings.filter(r => r.light !== undefined).map(r => r.light!);
+  // WeatherXM QoD constancy: non-zero light frozen for 120 min is a stuck sensor.
+  const lightRaw = qodFrozen(readings, 'light', QOD_LIGHT_CONSTANT_MS)
+    ? []
+    : readings.filter(r => r.light !== undefined).map(r => r.light!);
   const lightReadings = filterOutliersMad(lightRaw);
   const lightSummary = lightReadings.length > 0
     ? {
@@ -174,7 +181,8 @@ export function summarizeBatch(readings: SensorReading[], batchAccuracyM?: numbe
   const periodEnd = new Date(Math.max(...readings.map(r => r.t.getTime())));
 
   // Pressure — normalize to sea level (when altitude known), then filter spikes.
-  const pressureRaw = readings.filter(r => r.pressure !== undefined).map(r =>
+  // WeatherXM QoD: drop stationary jumps > 0.5 hPa, and all pressure if frozen 120 min.
+  const pressureRaw = (qodFrozen(readings, 'pressure', QOD_PRESSURE_CONSTANT_MS) ? [] : qodPressureSeries(readings)).map(r =>
     altitudeM !== undefined ? pressureToSeaLevel(r.pressure!, altitudeM) : r.pressure!
   );
   const pressureReadings = filterOutliersMad(pressureRaw);
@@ -287,6 +295,7 @@ function buildStoragePayload(batch: UploadBatch, qualityMultiplier = 1.0): Stora
   if (batch.wifi_rssi_avg !== undefined) payload.wifi_rssi_avg = batch.wifi_rssi_avg;
   if (batch.wifi_ap_count !== undefined) payload.wifi_ap_count = batch.wifi_ap_count;
   if (batch.network) payload.network = batch.network;
+  if (batch.device) payload.device = batch.device;
 
   return payload;
 }

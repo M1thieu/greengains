@@ -54,12 +54,13 @@ import java.util.zip.GZIPOutputStream
  *  2. Exponential backoff — failures schedule retry at 30s → 1m → 2m → 4m → 8m,
  *     capped at 30m. Prevents hammering a temporarily unavailable server.
  *
- *  3. Max retry limit — after [MAX_RETRIES] attempts the batch is dropped. Prevents
- *     unbounded in-memory queue growth during prolonged outages.
+ *  3. Store and forward (as owntracks keeps its outgoing queue): a batch the server
+ *     has not accepted stays queued, on disk, through any outage. Only a batch the
+ *     server rejects as invalid (400/413/422) is dropped; transient failures (network,
+ *     5xx, a missing deployment's 404) are retried with capped backoff, never counted out.
  *
- *  4. Batch age limit — batches older than [MAX_BATCH_AGE_MS] (4h) are silently
- *     dropped. Stale environmental data has diminishing value and merging very old
- *     readings with current tiles would skew time-series accuracy.
+ *  4. Batch age limit — [MAX_BATCH_AGE_MS] is the server's own limit (30 days, the
+ *     upload schema's "Timestamp too old" rule): an older batch can never be accepted.
  *
  *  5. Gzip compression — payloads are compressed before transmission, typically
  *     saving 60–70% of bandwidth. The server's decompressPayload() handles this.
@@ -109,8 +110,8 @@ class NativeBackendUploader(
     // Kept separate from sensorBuffer so retries don't mix with fresh live data.
     private val retryQueue = ArrayDeque<PendingBatch>()
 
-    private val MAX_RETRIES = 5
-    private val MAX_BATCH_AGE_MS = 4L * 60 * 60_000L  // 4 hours
+    // No retry cap: a transient failure never retires a batch (see class doc, point 3).
+    private val MAX_BATCH_AGE_MS = 30L * 24 * 60 * 60_000L  // server rejects older (upload schema)
 
     // The server rejects batches over 500 readings (UploadBatchSchema); stay well under it.
     private val MAX_BATCH_READINGS = 400
@@ -183,6 +184,63 @@ class NativeBackendUploader(
     // release builds never write it at all.
     private val isDebuggable =
         (context.applicationInfo.flags and android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE) != 0
+
+    /** Batches not yet accepted by the server, kept across process death. */
+    private val queueFile by lazy { java.io.File(context.filesDir, "upload_queue.json") }
+
+    /**
+     * Publishes the number of batches still waiting, then notifies the listener, so
+     * the service's notification is refreshed with an up-to-date count (the queue
+     * file itself is written once per cycle).
+     */
+    private fun emitStatus(event: NativeUploadStatusEvent) {
+        val pending = synchronized(retryQueue) { retryQueue.size }
+        context.getSharedPreferences(AppPrefs.NAME, Context.MODE_PRIVATE).edit()
+            .putInt(AppPrefs.UPLOAD_PENDING_BATCHES, pending)
+            .apply()
+        statusListener?.onStatus(event)
+    }
+
+    /** Writes the retry queue atomically (temp file, then rename). */
+    private fun persistQueue() {
+        try {
+            val snapshot = synchronized(retryQueue) { retryQueue.toList() }
+            context.getSharedPreferences(AppPrefs.NAME, Context.MODE_PRIVATE).edit()
+                .putInt(AppPrefs.UPLOAD_PENDING_BATCHES, snapshot.size)
+                .apply()
+            if (snapshot.isEmpty()) {
+                queueFile.delete()
+                return
+            }
+            val tmp = java.io.File(queueFile.parentFile, queueFile.name + ".tmp")
+            tmp.writeText(gson.toJson(snapshot))
+            if (!tmp.renameTo(queueFile)) {
+                queueFile.delete()
+                tmp.renameTo(queueFile)
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "Could not persist upload queue: ${e.message}")
+        }
+    }
+
+    /** Restores batches left by a previous run; each is due immediately. */
+    private fun loadQueue() {
+        if (!queueFile.exists()) return
+        try {
+            val type = object : com.google.gson.reflect.TypeToken<List<PendingBatch>>() {}.type
+            val restored: List<PendingBatch> = gson.fromJson(queueFile.readText(), type) ?: emptyList()
+            synchronized(retryQueue) {
+                val known = retryQueue.map { it.batchId }.toSet()
+                restored.filter { it.batchId !in known }
+                    .forEach { retryQueue.addLast(it.copy(nextRetryAfter = 0L)) }
+            }
+            Log.i(TAG, "Restored ${restored.size} queued batches from disk")
+        } catch (e: Exception) {
+            // A file from an incompatible build: unreadable, so it cannot be sent anyway.
+            Log.w(TAG, "Discarding unreadable upload queue: ${e.message}")
+            queueFile.delete()
+        }
+    }
 
     private fun persistHealth() {
         if (!isDebuggable) return
@@ -271,7 +329,7 @@ class NativeBackendUploader(
 
         Log.i(TAG, "************************************************************")
         Log.i(TAG, "* Native backend uploader starting")
-        Log.i(TAG, "* Interval: ${uploadIntervalMs / 1000}s | Max retries: $MAX_RETRIES")
+        Log.i(TAG, "* Interval: ${uploadIntervalMs / 1000}s | Queue kept on disk until accepted")
         Log.i(TAG, "* Backoff: 30s → 1m → 2m → 4m → 8m → 30m (cap)")
         Log.i(TAG, "* Endpoint: $baseUrl/upload | Gzip: enabled")
         Log.i(TAG, "************************************************************")
@@ -286,6 +344,7 @@ class NativeBackendUploader(
 
         loadPreviousHealth()
         persistHealth()
+        loadQueue()
 
         uploadJob = coroutineScope.launch {
             while (isActive) {
@@ -304,6 +363,13 @@ class NativeBackendUploader(
         networkMonitor?.transitionListener = null
         uploadJob?.cancel()
         coroutineScope.coroutineContext.cancelChildren()
+        // Readings of the unfinished window would otherwise die with the service:
+        // queue them as batches and write the queue, to be sent on the next start.
+        val pending = synchronized(sensorBuffer) { sensorBuffer.toList().also { sensorBuffer.clear() } }
+        if (pending.isNotEmpty()) {
+            synchronized(retryQueue) { chunkReadings(pending).forEach { retryQueue.addLast(it) } }
+        }
+        persistQueue()
     }
 
     fun addReading(reading: SensorReading) {
@@ -356,11 +422,11 @@ class NativeBackendUploader(
                 if (now - head.capturedAt >= MAX_BATCH_AGE_MS) {
                     retryQueue.removeFirst()
                     val ageHours = (now - head.capturedAt) / 3_600_000L
-                    Log.w(TAG, "Dropped stale batch id=${head.batchId} age=${ageHours}h (limit=4h)")
+                    Log.w(TAG, "Dropped stale batch id=${head.batchId} age=${ageHours}h (server limit: 30 days)")
                     countDropped(head)
                 } else if (now >= head.nextRetryAfter) {
                     retryQueue.removeFirst()
-                    Log.i(TAG, "Retrying batch id=${head.batchId} attempt=${head.retryCount + 1}/$MAX_RETRIES")
+                    Log.i(TAG, "Retrying batch id=${head.batchId} attempt=${head.retryCount + 1}")
                     toSend.addLast(head)
                 } else {
                     break // still in its backoff window
@@ -404,12 +470,13 @@ class NativeBackendUploader(
         }
         } finally {
             persistHealth() // every path, including "skipped: no validated network"
+            persistQueue()
             if (uploadWakeLock?.isHeld == true) uploadWakeLock.release()
         }
     }
 
     private suspend fun uploadPendingBatch(batch: PendingBatch, apiKey: String): UploadResult = withContext(Dispatchers.IO) {
-        statusListener?.onStatus(
+        emitStatus(
             NativeUploadStatusEvent(
                 type       = NativeUploadEventType.STARTED,
                 batchSize  = batch.readings.size,
@@ -516,7 +583,7 @@ class NativeBackendUploader(
 
         saveContributionToDatabase(batchSize, lastUploadTime)
 
-        statusListener?.onStatus(
+        emitStatus(
             NativeUploadStatusEvent(
                 type       = NativeUploadEventType.SUCCESS,
                 timestamp  = lastUploadTime,
@@ -533,23 +600,20 @@ class NativeBackendUploader(
         Log.e(TAG, "Upload FAILED id=${batch.batchId} retry=${batch.retryCount}: $reason")
         AppLogger.e(TAG, "Upload FAILED id=${batch.batchId} retry=${batch.retryCount}: $reason")
 
-        if (batch.retryCount >= MAX_RETRIES) {
-            Log.w(TAG, "Dropping batch ${batch.batchId} — exhausted $MAX_RETRIES retries")
-            countDropped(batch)
-        } else {
-            val delay = backoffMs(batch.retryCount + 1)
-            Log.i(TAG, "Scheduling retry #${batch.retryCount + 1} in ${delay / 1000}s")
-            synchronized(retryQueue) {
-                retryQueue.addLast(
-                    batch.copy(
-                        retryCount     = batch.retryCount + 1,
-                        nextRetryAfter = System.currentTimeMillis() + delay,
-                    )
+        // Transient by construction (permanent rejections never reach here): keep the
+        // batch however long the outage lasts; only its age can retire it.
+        val delay = backoffMs(batch.retryCount + 1)
+        Log.i(TAG, "Scheduling retry #${batch.retryCount + 1} in ${delay / 1000}s")
+        synchronized(retryQueue) {
+            retryQueue.addLast(
+                batch.copy(
+                    retryCount     = batch.retryCount + 1,
+                    nextRetryAfter = System.currentTimeMillis() + delay,
                 )
-            }
+            )
         }
 
-        statusListener?.onStatus(
+        emitStatus(
             NativeUploadStatusEvent(
                 type         = NativeUploadEventType.FAILURE,
                 batchSize    = batch.readings.size,
@@ -572,7 +636,7 @@ class NativeBackendUploader(
             Log.e(TAG, "Upload REJECTED permanently id=${batch.batchId}: $reason")
             AppLogger.e(TAG, "Upload REJECTED permanently id=${batch.batchId}: $reason")
             countDropped(batch)
-            statusListener?.onStatus(
+            emitStatus(
                 NativeUploadStatusEvent(
                     type         = NativeUploadEventType.FAILURE,
                     batchSize    = batch.readings.size,
@@ -599,7 +663,7 @@ class NativeBackendUploader(
         synchronized(retryQueue) {
             retryQueue.addLast(batch.copy(nextRetryAfter = System.currentTimeMillis()))
         }
-        statusListener?.onStatus(
+        emitStatus(
             NativeUploadStatusEvent(
                 type         = NativeUploadEventType.FAILURE,
                 batchSize    = batch.readings.size,
@@ -731,9 +795,13 @@ class NativeBackendUploader(
         }
 
         val locationMap = if (avgLat != null && avgLon != null) {
+            // Coordinates leave the phone rounded to 1e-4° (~11 m), the precision
+            // Hivemapper's open dashcam keeps (H3 res 12, ~9 m edge). That is finer
+            // than every cell the server builds (res 9, 174 m) and than phone GPS
+            // error, so mapping loses nothing while the exact position stays local.
             mapOf(
-                "lat"        to avgLat,
-                "lon"        to avgLon,
+                "lat"        to Math.round(avgLat * 1e4) / 1e4,
+                "lon"        to Math.round(avgLon * 1e4) / 1e4,
                 "accuracy_m" to avgAccuracy,
                 "spread_m"   to spreadM?.let { Math.round(it * 10) / 10.0 },
             ).filterValues { it != null }
@@ -766,6 +834,13 @@ class NativeBackendUploader(
             "is_charging"   to (batteryMonitor?.isCharging() ?: false),
             "sensor_flags"  to sensorFlags,
             "network"       to buildNetworkTelemetry(batch, mark),
+            // Phone model with every batch, as NoiseCapture and WeatherXM keep it:
+            // sensors differ by model, so per-model corrections need it.
+            "device"        to mapOf(
+                "manufacturer" to android.os.Build.MANUFACTURER,
+                "model"        to android.os.Build.MODEL,
+                "sdk"          to android.os.Build.VERSION.SDK_INT,
+            ),
         ).filterValues { it != null }
     }
 

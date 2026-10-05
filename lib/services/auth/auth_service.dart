@@ -29,6 +29,19 @@ class AuthService {
     return _auth.signInWithCredential(credential);
   }
 
+  /// Signs out of Firebase AND of the Google account cache. Without the
+  /// Google sign-out, the next GoogleSignIn().signIn() silently reuses the
+  /// previous account, so a phone with several accounts never shows the
+  /// account chooser again.
+  static Future<void> signOut() async {
+    try {
+      await GoogleSignIn().signOut();
+    } catch (e) {
+      debugPrint('Google sign-out failed: $e');
+    }
+    await _auth.signOut();
+  }
+
   /// Platform-aware Google sign-in.
   /// - Android/iOS: native `google_sign_in` flow (unchanged).
   /// - Windows/macOS/Linux: uses Firebase's desktop provider flow which opens

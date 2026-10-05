@@ -251,6 +251,16 @@ class DatabaseHelper {
     return Sqflite.firstIntValue(result) ?? 0;
   }
 
+  /// (timestamp ms, geohash) of successful uploads since [sinceMs], for trips.
+  Future<List<(int, String?)>> getContributionPoints(int sinceMs) async {
+    final db = await database;
+    final rows = await db.rawQuery(
+      'SELECT timestamp, geohash FROM contributions WHERE success = 1 AND timestamp >= ? ORDER BY timestamp',
+      [sinceMs],
+    );
+    return [for (final r in rows) (r['timestamp'] as int, r['geohash'] as String?)];
+  }
+
   /// Get current streak (consecutive days with uploads)
   Future<int> getStreak() async {
     final db = await database;

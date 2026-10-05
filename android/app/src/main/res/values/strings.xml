@@ -91,7 +91,11 @@
     <string name="notif_motion_active">On the move</string>
     <string name="notif_body_measuring">Reading your surroundings</string>
     <!-- Uploaded N min ago suffix appended to notification body -->
-    <string name="notif_uploaded_ago">· uploaded %1$s</string>
+    <string name="notif_uploaded_ago">uploaded %1$s</string>
+    <plurals name="notif_upload_pending">
+        <item quantity="one">1 batch waiting to send</item>
+        <item quantity="other">%1$d batches waiting to send</item>
+    </plurals>
     <!-- Session zone counter — live count of new zones discovered this session -->
     <!-- %1$d = zones discovered since session start -->
     <string name="notif_session_zones">+%1$d zones</string>

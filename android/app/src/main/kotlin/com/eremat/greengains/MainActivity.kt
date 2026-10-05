@@ -115,6 +115,19 @@ class MainActivity : FlutterActivity() {
                     "getDeviceManufacturer" -> {
                         result.success(Build.MANUFACTURER)
                     }
+                    "openNotificationSettings" -> {
+                        // Android's guidance: let the system settings own notification
+                        // preferences (one entry per channel) instead of in-app toggles.
+                        val intent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                            Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
+                                .putExtra(Settings.EXTRA_APP_PACKAGE, packageName)
+                        } else {
+                            Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+                                .setData(Uri.fromParts("package", packageName, null))
+                        }
+                        startActivity(intent)
+                        result.success(true)
+                    }
                     "updateHomeWidget" -> {
                         val zones = call.argument<Int>("zoneCount") ?: 0
                         val streak = call.argument<Int>("streak") ?: 0

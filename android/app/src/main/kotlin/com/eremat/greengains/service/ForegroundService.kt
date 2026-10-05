@@ -10,7 +10,10 @@ import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ServiceInfo
+import android.hardware.Sensor
 import android.hardware.SensorManager
+import android.hardware.TriggerEvent
+import android.hardware.TriggerEventListener
 import android.location.Location
 import android.os.Binder
 import android.os.Build
@@ -152,6 +155,30 @@ class ForegroundService : Service() {
     // Accuracy-weighted smoothing of the position that is UPLOADED. _locationFlow stays the raw
     // fix (the map UI has its own smoothing and the quality analyzer needs the raw accuracy).
     private val positionFilter = PositionFilter()
+
+    /**
+     * One-shot hardware wake on real movement, the way owntracks uses it: while the
+     * phone is still, the service stops asking for locations (passive priority) and
+     * this sensor wakes it the moment the phone actually moves. Null on phones
+     * without it, which then keep the balanced-power polling.
+     */
+    private val significantMotionSensor: Sensor? by lazy {
+        sensorManager.getDefaultSensor(Sensor.TYPE_SIGNIFICANT_MOTION)
+    }
+    private val significantMotionListener = object : TriggerEventListener() {
+        override fun onTrigger(event: TriggerEvent?) {
+            Log.i(TAG, "Significant motion: leaving passive location")
+            if (running && !trackingPausedState) updateGpsPriority(MotionState.LIGHT)
+        }
+    }
+
+    private fun armSignificantMotion() {
+        significantMotionSensor?.let { sensorManager.requestTriggerSensor(significantMotionListener, it) }
+    }
+
+    private fun disarmSignificantMotion() {
+        significantMotionSensor?.let { sensorManager.cancelTriggerSensor(significantMotionListener, it) }
+    }
     @Volatile private var filteredPosition: FilteredPosition? = null
 
     // Adaptive GPS optimization with interval-based battery savings:
@@ -454,6 +481,7 @@ class ForegroundService : Service() {
         motionSensors.stop()
         proximitySensor.stop()
         magnetometer.stop()
+        disarmSignificantMotion()
         stopLocationUpdates()
         stopNativeUploader()
         batteryMonitor.stopMonitoring()
@@ -467,6 +495,7 @@ class ForegroundService : Service() {
         trackingPaused = true
         setTrackingPausedPref(true)
         // Keep sensors running for live readings — only stop GPS upload pipeline
+        disarmSignificantMotion()
         stopLocationUpdates()
         stopNativeUploader()
         notifyTrackingState()
@@ -573,7 +602,10 @@ class ForegroundService : Service() {
      *   - Transition back from STATIONARY is fast: first accelerometer spike triggers upgrade
      */
     private fun gpsConfigFor(state: MotionState): Pair<Int, Long> = when (state) {
-        MotionState.STATIONARY -> Priority.PRIORITY_BALANCED_POWER_ACCURACY to 60_000L
+        // Still: no location requests of our own when the significant-motion wake exists.
+        MotionState.STATIONARY ->
+            (if (significantMotionSensor != null) Priority.PRIORITY_PASSIVE
+             else Priority.PRIORITY_BALANCED_POWER_ACCURACY) to 60_000L
         MotionState.LIGHT      -> Priority.PRIORITY_HIGH_ACCURACY to 30_000L
         MotionState.ACTIVE     -> Priority.PRIORITY_HIGH_ACCURACY to 10_000L
         MotionState.UNKNOWN    -> Priority.PRIORITY_HIGH_ACCURACY to LOCATION_UPDATES_INTERVAL_MS
@@ -591,9 +623,11 @@ class ForegroundService : Service() {
         // pure overhead. Stop it when still, restart when motion resumes.
         if (becomingStationary && !wasStationary) {
             proximitySensor.stop()
+            armSignificantMotion()
             Log.d(TAG, "Proximity sensor paused — STATIONARY mode")
         } else if (!becomingStationary && wasStationary) {
             proximitySensor.start()
+            disarmSignificantMotion()
             Log.d(TAG, "Proximity sensor resumed — motion detected")
         }
 
@@ -832,6 +866,9 @@ class ForegroundService : Service() {
                 lux = _lightFlow.value,
                 hPa = _pressureFlow.value,
             )
+        } else if (event.type == NativeUploadEventType.FAILURE) {
+            // The batch is now waiting: say so in the notification right away.
+            notifyTrackingState()
         }
     }
 

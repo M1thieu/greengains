@@ -121,25 +121,10 @@ class _ReferralInviteCardState extends State<ReferralInviteCard> {
     }
 
     return Container(
-      decoration: BoxDecoration(
-        color: AppColors.primaryAlpha(0.06),
-        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-        border: Border.all(color: AppColors.primaryAlpha(0.20), width: AppBorderWidths.hairline),
-      ),
+      decoration: AppTheme.contentCard(isDark: isDark),
       padding: const EdgeInsets.all(AppTheme.spaceMd),
       child: Row(
         children: [
-          Container(
-            width: AppIconSizes.xl, height: AppIconSizes.xl,
-            decoration: BoxDecoration(color: AppColors.primaryAlpha(0.14), shape: BoxShape.circle),
-            child: Icon(
-              _conversions > 0 ? Icons.people_rounded : Icons.people_outline_rounded,
-              color: AppColors.primary,
-              size: AppIconSizes.xs,
-            ),
-          ),
-          const SizedBox(width: AppTheme.spaceSm),
-
           Expanded(
             child: AnimatedSwitcher(
               duration: const Duration(milliseconds: 300),

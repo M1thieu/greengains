@@ -21,95 +21,77 @@ import 'time_ago_text.dart';
 
 export '../data/models/h3_tile.dart';
 
+/// What colours the data tiles: overall quality, or one sensor.
+enum MapLayer { quality, light, pressure, movement }
+
 // ── Background isolate grid computation ──────────────────────────────────────
 
 typedef _GridInput = ({
-  double minLat,
-  double maxLat,
-  double minLng,
-  double maxLng,
-  int resolution,
+  double centerLat,
+  double centerLng,
+  /// (resolution, gridDisk radius) per band to build.
+  List<(int, int)> bands,
 });
 
 /// Top-level function so compute() can spawn it in a background isolate.
-/// Uses gridDisk from the viewport center to guarantee full viewport coverage.
+/// Builds one hexagon disk per requested band around the viewport centre.
 ///
-/// polygonToCells only includes cells whose centroid falls inside the polygon —
-/// edge cells get clipped leaving a ragged non-global mosaic. gridDisk(k) from
-/// the center cell covers every cell within k steps, which forms a solid hex
-/// disk that always fully covers the viewport when k is computed from the
-/// diagonal. This is the approach Helium/Nodle use.
+/// gridDisk(k) rather than polygonToCells: the disk is a solid hexagon that
+/// fully covers the padded viewport when k comes from its diagonal, with no
+/// ragged edge where cell centres fall just outside the polygon.
 ///
 /// h3_flutter uses DynamicLibrary.process() — safe in compute() isolates.
-Map<String, dynamic> _buildGrid(_GridInput input) {
+Map<int, Map<String, dynamic>> _buildGrids(_GridInput input) {
   final h3 = const h3f.H3Factory().load();
-
-  final centerLat = (input.minLat + input.maxLat) / 2;
-  final centerLng = (input.minLng + input.maxLng) / 2;
-
-  // Half-diagonal of the padded viewport in metres.
-  // 111 000 m ≈ 1 degree of latitude; longitude degrees are shorter by cos(lat).
-  final latHalfM  = (input.maxLat - input.minLat) / 2 * 111000;
-  final lngHalfM  = (input.maxLng - input.minLng) / 2 * 111000 * cos(centerLat * pi / 180);
-  final diagonalM = sqrt(latHalfM * latHalfM + lngHalfM * lngHalfM);
-
-  // Average H3 edge lengths (metres) per resolution:
-  //   res 8 → 461 m    res 9 → 174 m
-  // Divide diagonal by edge length to get the grid-step radius needed, add
-  // 3 cells of buffer so screen edges are always covered.
-  final edgeM = input.resolution == 9 ? 174.0 : 461.0;
-  final k     = (diagonalM / edgeM).ceil() + 3;
-
-  // Safety cap: at res 8 + zoom 11 the viewport can be >30 km wide; gridDisk
-  // of k=40 is ~5000 cells which is fine but we don't need more than that.
-  final kCapped = k.clamp(3, 40);
-
-  final centerCell = h3.geoToCell(
-    h3f.GeoCoord(lat: centerLat, lon: centerLng),
-    input.resolution,
-  );
-
-  List<BigInt> cells;
-  try {
-    cells = h3.gridDisk(centerCell, kCapped);
-  } catch (_) {
-    return {'type': 'FeatureCollection', 'features': <dynamic>[]};
-  }
-  if (cells.isEmpty) return {'type': 'FeatureCollection', 'features': <dynamic>[]};
-
-  final features = cells.take(3000).map((cell) {
-    final boundary = h3.cellToBoundary(cell);
-    final ring = [
-      ...boundary.map((c) => [c.lon, c.lat]),
-      [boundary.first.lon, boundary.first.lat],
-    ];
-    return <String, dynamic>{
-      'type': 'Feature',
-      'properties': <String, dynamic>{},
-      'geometry': <String, dynamic>{
-        'type': 'Polygon',
-        'coordinates': [ring],
-      },
+  final out = <int, Map<String, dynamic>>{};
+  for (final (res, k) in input.bands) {
+    List<BigInt> cells;
+    try {
+      final centre = h3.geoToCell(h3f.GeoCoord(lat: input.centerLat, lon: input.centerLng), res);
+      cells = h3.gridDisk(centre, k);
+    } catch (_) {
+      continue;
+    }
+    out[res] = {
+      'type': 'FeatureCollection',
+      'features': [
+        for (final cell in cells)
+          {
+            'type': 'Feature',
+            'properties': <String, dynamic>{},
+            'geometry': {
+              'type': 'Polygon',
+              'coordinates': [
+                () {
+                  final b = h3.cellToBoundary(cell);
+                  var ring = [...b.map((c) => [c.lon, c.lat]), [b.first.lon, b.first.lat]];
+                  // A cell crossing the antimeridian would be drawn across the whole
+                  // map: shift its western vertices by 360° so the ring stays compact.
+                  final lons = ring.map((p) => p[0]);
+                  if (lons.reduce(max) - lons.reduce(min) > 180) {
+                    ring = [for (final p in ring) [p[0] < 0 ? p[0] + 360 : p[0], p[1]]];
+                  }
+                  return ring;
+                }(),
+              ],
+            },
+          },
+      ],
     };
-  }).toList();
-  return {'type': 'FeatureCollection', 'features': features};
+  }
+  return out;
 }
 
 // ── Timing constants ──────────────────────────────────────────────────────────
-/// Camera-idle debounce before recomputing the ghost grid.
-/// 500ms is intentional — slower than UI animations to avoid thrashing FFI.
-const _kGridDebounce = Duration(milliseconds: 500);
+/// Camera-idle debounce before recomputing the ghost grid (react-h3-map uses 120 ms).
+/// Short is fine: each band is a few hundred cells and the zoom transitions
+/// themselves are handled per frame by the map's own opacity expressions.
+const _kGridDebounce = Duration(milliseconds: 150);
 
 // ── Layer / source ID constants ───────────────────────────────────────────────
-const _kSourceGrid      = 'gg-grid';
-const _kSourceTiles     = 'gg-tiles';
 const _kSourceLiveCell  = 'gg-live';
 const _kSourcePending   = 'gg-pending';
 const _kSourceUserDot   = 'gg-user';
-const _kLayerGridFill   = 'gg-grid-fill';
-const _kLayerGridLines  = 'gg-grid-lines';
-const _kLayerTilesFill  = 'gg-tiles-fill';
-const _kLayerTilesLine  = 'gg-tiles-line';
 const _kLayerLiveFill   = 'gg-live-fill';
 const _kLayerLiveGlow   = 'gg-live-glow';   // wide translucent ring — hex halo effect
 const _kLayerLiveLine   = 'gg-live-line';
@@ -120,24 +102,82 @@ const _kLayerUserDot     = 'gg-user-dot';
 const _kSourceAccuracy   = 'gg-accuracy';
 const _kLayerAccuracyRing = 'gg-accuracy-ring';
 
-/// H3 resolution for the ghost grid at a given map zoom.
-///
-/// Rule: grid resolution always matches the data tile resolution so ghost cells
-/// align exactly with personal/community tiles. No coarser than res 8 (community
-/// tile resolution) so the mosaic always reads at "neighborhood" scale.
-///
-///   zoom ≥ 14  → res 9  (~174 m cells  — street block, personal tile res)
-///   zoom ≥ 11  → res 8  (~461 m cells  — neighborhood, community tile res)
-///   zoom < 11  → null   — cells would be city-sized, mosaic makes no sense
-///
-/// The layer minzoom handles the hide-below-11 case, but returning null lets
-/// _refreshGrid skip the FFI call entirely.
-int? _gridRes(double zoom) {
-  if (zoom >= 13.5) return 9;  // res 9 (~174m) from zoom 13.5 — MapLibre
-  if (zoom >= 11) return 8;    // camera reads back as 13.998 when set to 14.0
-  return null; // below neighborhood scale — skip grid
+/// Average H3 hexagon edge length in metres per resolution (H3 resolution table).
+const _kH3EdgeM = <int, double>{
+  0: 1107712.6, 1: 418676.0, 2: 158244.7, 3: 59810.9, 4: 22606.4, 5: 8544.4,
+  6: 3229.5, 7: 1220.6, 8: 461.4, 9: 174.4,
+};
+
+/// Max gridDisk radius drawn: 3k(k+1)+1 cells, so 30 gives 2,791 hexagons.
+const int _kGridMaxK = 30;
+
+/// Resolution bands, finest first. 9 is the personal tile resolution.
+const _kBandRes = [9, 8, 7, 6, 5, 4, 3, 2, 1, 0]; // down to res 0: the whole world
+
+/// On-screen hexagon edge each band is centred on, in map pixels. react-h3-map
+/// picks the resolution the same way (default 40 px), so cells keep the same
+/// apparent size at every zoom instead of shrinking to noise or blowing up.
+const double _kTargetEdgePx = 40.0;
+
+/// Zoom span over which one band cross-fades into the next.
+const double _kBandFade = 0.35;
+
+/// Zoom at which a resolution's hexagon edge is [_kTargetEdgePx] on screen.
+/// metres per pixel = 40075016.686 · cos(lat) / (512 · 2^zoom), 512 being the
+/// MapLibre tile size at zoom 0.
+double _bandCentreZoom(int res, double latitude) =>
+    log(40075016.686 * cos(latitude * pi / 180) * _kTargetEdgePx / (512 * _kH3EdgeM[res]!)) / ln2;
+
+/// Zoom range [from, to] in which a band is the one shown; neighbouring bands
+/// meet halfway between their centre zooms. Open-ended at both extremes.
+({double from, double to}) _bandRange(int res, double latitude) {
+  final i = _kBandRes.indexOf(res);
+  final c = _bandCentreZoom(res, latitude);
+  final finer = i > 0 ? (c + _bandCentreZoom(_kBandRes[i - 1], latitude)) / 2 : double.infinity;
+  final coarser = i < _kBandRes.length - 1
+      ? (c + _bandCentreZoom(_kBandRes[i + 1], latitude)) / 2
+      : double.negativeInfinity;
+  return (from: coarser, to: finer);
 }
 
+/// MapLibre expression: [full] inside the band's zoom range, fading linearly to
+/// 0 across [_kBandFade] at each boundary, so two bands cross-fade frame by frame
+/// as the user zooms (the way Helium and WeatherXM fade their layers by zoom)
+/// instead of one grid being swapped for another after the camera stops.
+/// [full] may itself be a data expression (['get', ...]).
+dynamic _bandOpacity(({double from, double to}) range, dynamic full) {
+  const h = _kBandFade / 2;
+  final stops = <dynamic>[];
+  if (range.from.isFinite) {
+    stops..addAll([range.from - h, 0.0])..addAll([range.from + h, full]);
+  }
+  if (range.to.isFinite) {
+    stops..addAll([range.to - h, full])..addAll([range.to + h, 0.0]);
+  }
+  // interpolate clamps outside its stops, so an open-ended side stays at full.
+  if (stops.isEmpty) return full;
+  return ['interpolate', ['linear'], ['zoom'], ...stops];
+}
+
+/// gridDisk radius needed for a viewport of half-diagonal [halfDiagonalM] at
+/// [res]. A k-ring disk is hexagon-shaped; its inner radius is about 1.5·k
+/// edges (centre spacing sqrt(3)·edge times cos 30°).
+int _diskK(double halfDiagonalM, int res) =>
+    ((halfDiagonalM / (1.5 * _kH3EdgeM[res]!)).ceil() + 1).clamp(1, _kGridMaxK);
+
+/// Coarsest band still drawn as data hexagons; below it the heatmap takes over
+/// (WeatherXM shows a heatmap below zoom 10 for the same reason).
+const int _kDataMinRes = 6;
+final List<int> _kDataBands = _kBandRes.where((r) => r >= _kDataMinRes).toList();
+const _kSourceHeat = 'gg-heat';
+const _kLayerHeat = 'gg-heat-layer';
+
+String _gridSource(int res) => 'gg-grid-$res';
+String _gridFillLayer(int res) => 'gg-grid-fill-$res';
+String _gridLineLayer(int res) => 'gg-grid-line-$res';
+String _tileSource(int res) => 'gg-tiles-$res';
+String _tileFillLayer(int res) => 'gg-tiles-fill-$res';
+String _tileLineLayer(int res) => 'gg-tiles-line-$res';
 
 /// Protomaps API key — injected at build time via --dart-define-from-file.
 const _kProtomapsKey =
@@ -190,6 +230,8 @@ class CoverageMapWidget extends StatefulWidget {
   final List<List<ll.LatLng>> pendingCellBoundaries;
   /// GPS accuracy radius in metres — renders a faint accuracy ring around user dot.
   final double? userAccuracy;
+  /// Which value colours the data tiles (WeatherXM-style layer picker).
+  final MapLayer mapLayer;
 
   const CoverageMapWidget({
     super.key,
@@ -209,6 +251,7 @@ class CoverageMapWidget extends StatefulWidget {
     this.followModeNotifier,
     this.lastSessionAt,
     this.pendingCellBoundaries = const [],
+    this.mapLayer = MapLayer.quality,
   });
 
   @override
@@ -226,8 +269,11 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> with WidgetsBindin
   Timer? _haloTimer;
   double _haloPhase = 0.0; // 0..2π, drives sine-wave pulse
   int _gridGeneration = 0;   // incremented on each refresh; stale results are discarded
-  String? _lastGridCenterCell; // H3 cell hex string of last computed grid center
-  int _lastGridZoom = -1;      // floor(zoom) at last grid compute
+  /// Zoom range of each resolution band (set when the style loads).
+  Map<int, ({double from, double to})> _bandRanges = const {};
+  /// Centre cell of the last grid built per band, to skip identical rebuilds.
+  /// Centre and covered radius (m) of the last grid built per band.
+  final Map<int, ({double lat, double lng, double radiusM})> _gridCover = {};
   // MapLibre fires onMapClick when the finger lifts after a long press — suppress
   // taps that arrive within 600 ms of a long press to avoid double-open sheets.
   int _lastLongPressMs = 0;
@@ -303,8 +349,10 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> with WidgetsBindin
 
   // ── GeoJSON builders ────────────────────────────────────────────────────────
 
-  Map<String, dynamic> _tilesToGeoJson() {
-    _tileById.clear();
+  /// Data tiles for one resolution band: tiles finer than [res] are drawn as their
+  /// parent at [res] (styled like the best-sampled child), so data stays on the
+  /// map at every zoom.
+  Map<String, dynamic> _tilesToGeoJson(int res) {
     final features = <Map<String, dynamic>>[];
 
     // Build set of res-8 parents for all personal tiles so we can skip global
@@ -320,6 +368,8 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> with WidgetsBindin
       }
     }
 
+    final aggregated = <BigInt, H3Tile>{};
+
     for (final tile in widget.tiles) {
       if (tile.boundary == null || tile.boundary!.isEmpty) continue;
       // Skip global tile if the user already has personal coverage in that cell.
@@ -329,10 +379,20 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> with WidgetsBindin
           if (personalParents.contains(idx)) continue;
         } catch (_) {}
       }
+      if (tile.h3Index.isNotEmpty) {
+        final idx = BigInt.tryParse(tile.h3Index, radix: 16);
+        if (idx != null && _h3.getResolution(idx) > res) {
+          final parent = _h3.cellToParent(idx, res);
+          final best = aggregated[parent];
+          if (best == null || tile.sampleCount > best.sampleCount) aggregated[parent] = tile;
+          continue;
+        }
+      }
       _tileById[tile.h3Index] = tile;
       final isNew = _isNewSince(tile);
-      final color = isNew ? _newColorHex(tile) : _colorHex(tile);
-      final fillOpacity = isNew ? 0.32 : _fillOpacity(tile);
+      final sensor = widget.mapLayer == MapLayer.quality ? null : _layerStyle(tile);
+      final color = sensor?.color ?? (isNew ? _newColorHex(tile) : _colorHex(tile));
+      final fillOpacity = sensor?.fill ?? (isNew ? 0.32 : _fillOpacity(tile));
       // Centroid = average of boundary points — used for label placement
       final lats = tile.boundary!.map((p) => p.latitude);
       final lngs = tile.boundary!.map((p) => p.longitude);
@@ -344,7 +404,7 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> with WidgetsBindin
           'h3Index': tile.h3Index,
           'color': color,
           'fillOpacity': fillOpacity,
-          'borderOpacity': _strokeOpacity(tile),
+          'borderOpacity': sensor?.stroke ?? _strokeOpacity(tile),
           'borderWidth': tile.isGlobal ? 0.0 : 1.8,
           // Label: quality % for personal, nothing for global (too cluttered)
           'label': tile.isGlobal ? '' : '${_qualityPct(tile)}%',
@@ -362,20 +422,44 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> with WidgetsBindin
         },
       });
     }
+
+    for (final MapEntry(key: parent, value: tile) in aggregated.entries) {
+      final agg = widget.mapLayer == MapLayer.quality ? null : _layerStyle(tile);
+      final ring = _h3.cellToBoundary(parent).map((c) => [c.lon, c.lat]).toList();
+      features.add({
+        'type': 'Feature',
+        'properties': {
+          'h3Index': '', // no single tile behind it: a tap zooms in instead
+          'parent': parent.toRadixString(16),
+          'color': agg?.color ?? _colorHex(tile),
+          'fillOpacity': agg?.fill ?? _fillOpacity(tile),
+          'borderOpacity': agg?.stroke ?? _strokeOpacity(tile),
+          'borderWidth': tile.isGlobal ? 0.0 : 1.2,
+          'label': '',
+        },
+        'geometry': {
+          'type': 'Polygon',
+          'coordinates': [[...ring, ring.first]],
+        },
+      });
+    }
     return {'type': 'FeatureCollection', 'features': features};
   }
 
   /// Separate point GeoJSON for hex labels — MapLibre symbol layers need Point geometry.
+  /// Labels belong to the finest band (the layer's minzoom matches it).
   Map<String, dynamic> _labelsGeoJson() {
     final features = <Map<String, dynamic>>[];
     for (final tile in widget.tiles) {
-      if (tile.isGlobal || tile.boundary == null || tile.boundary!.isEmpty) continue;
+      // Contributor count, only when more than one (Helium hides the label at 1):
+      // it says the cell is shared; the quality detail lives in the cell sheet.
+      if (tile.deviceCount <= 1 || tile.boundary == null || tile.boundary!.isEmpty) continue;
       final lats = tile.boundary!.map((p) => p.latitude);
       final lngs = tile.boundary!.map((p) => p.longitude);
       final cLat = lats.reduce((a, b) => a + b) / tile.boundary!.length;
       final cLng = lngs.reduce((a, b) => a + b) / tile.boundary!.length;
       final opacity = _fillOpacity(tile);
-      final labelText = '${_qualityPct(tile)}%';
+      final labelText = '${tile.deviceCount}';
       final labelColor = _colorHex(tile);
       features.add({
         'type': 'Feature',
@@ -512,6 +596,44 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> with WidgetsBindin
     return (tile.confidence * 100).round().clamp(0, 100);
   }
 
+  /// Value a tile contributes to the current [MapLayer], or null if it has none.
+  /// Light uses log10(lux + 1): perceived brightness is roughly logarithmic and
+  /// lux spans five orders of magnitude, so a linear rank would lump night together.
+  double? _layerValue(H3Tile tile) => switch (widget.mapLayer) {
+        MapLayer.quality => null,
+        MapLayer.light => tile.avgLux == null ? null : log(tile.avgLux! + 1) / ln10,
+        MapLayer.pressure => tile.avgHpa,
+        MapLayer.movement => tile.avgMovement,
+      };
+
+  /// Sorted layer values of the current tiles: intensity is a tile's rank among
+  /// them (its empirical CDF), so no threshold is hand-set and the scale adapts
+  /// to wherever the user maps.
+  List<double> _layerSorted = const [];
+
+  void _rebuildLayerRanks() {
+    _layerSorted = widget.tiles.map(_layerValue).whereType<double>().toList()..sort();
+  }
+
+  /// Colour, fill and border for a tile under a sensor layer.
+  ({String color, double fill, double stroke}) _layerStyle(H3Tile tile) {
+    final v = _layerValue(tile);
+    final hex = switch (widget.mapLayer) {
+      MapLayer.light => '#fbbf24',
+      MapLayer.pressure => '#0ea5e9',
+      _ => '#14b8a6',
+    };
+    if (v == null || _layerSorted.isEmpty) return (color: '#64748b', fill: 0.06, stroke: 0.0);
+    var lo = 0, hi = _layerSorted.length;
+    while (lo < hi) {
+      final mid = (lo + hi) >> 1;
+      if (_layerSorted[mid] < v) { lo = mid + 1; } else { hi = mid; }
+    }
+    final rank = _layerSorted.length == 1 ? 1.0 : lo / (_layerSorted.length - 1);
+    final f = _freshnessFactor(tile);
+    return (color: hex, fill: (0.12 + 0.5 * rank) * f, stroke: (0.3 + 0.5 * rank) * f);
+  }
+
   static String _colorHex(H3Tile tile) {
     final q = _qualityPct(tile);
     if (tile.isGlobal) {
@@ -599,10 +721,17 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> with WidgetsBindin
     // _refreshAllSources instead of hitting LAYER_NOT_FOUND errors.
     debugPrint('MapLibre: style loaded OK, adding GeoJSON sources + layers...');
 
+    // Band zoom ranges depend on latitude (Mercator scale); the area a user maps
+    // spans far less than a degree, so the latitude at load time is enough.
+    final lat = ctrl.cameraPosition?.target.latitude ?? _initialCenter.latitude;
+    _bandRanges = {for (final r in _kBandRes) r: _bandRange(r, lat)};
+    debugPrint('MapLibre: bands ${_bandRanges.entries.map((e) => 'r${e.key} ${e.value.from.toStringAsFixed(1)}..${e.value.to.toStringAsFixed(1)}').join(', ')}');
+
     // ── Add sources (empty, populated below) ──
     await Future.wait([
-      ctrl.addGeoJsonSource(_kSourceGrid, _kEmptyFC),
-      ctrl.addGeoJsonSource(_kSourceTiles, _kEmptyFC),
+      for (final r in _kBandRes) ctrl.addGeoJsonSource(_gridSource(r), _kEmptyFC),
+      for (final r in _kDataBands) ctrl.addGeoJsonSource(_tileSource(r), _kEmptyFC),
+      ctrl.addGeoJsonSource(_kSourceHeat, _kEmptyFC),
       ctrl.addGeoJsonSource(_kSourcePending, _kEmptyFC),
       ctrl.addGeoJsonSource(_kSourceLiveCell, _kEmptyFC),
       ctrl.addGeoJsonSource(_kSourceUserDot, _kEmptyFC),
@@ -614,55 +743,52 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> with WidgetsBindin
     // Added BEFORE the tiles fill layer in the call sequence — that's what
     // controls Z-order. Do NOT pass belowLayerId here because _kLayerTilesFill
     // doesn't exist yet at this point; MapLibre would silently drop this layer.
-    // Grid fill and lines both start at zoom 11 — below that cells are
-    // city-sized and a mosaic makes no visual sense (matching _gridRes logic).
-    // Ghost grid starts at zoom 9 (neighbourhood scale) so the hex mosaic is
-    // visible in a wider context — unclaimed cells read as "territory to fill",
-    // not just empty map. Fog-of-war psychology kicks in earlier.
-    await ctrl.addFillLayer(
-      _kSourceGrid,
-      _kLayerGridFill,
-      const FillLayerProperties(
-        fillColor: '#1a3a52',  // dark blue-teal, clearly distinct from #111927 base
-        fillOpacity: 0.40,
-      ),
-      minzoom: 9.0,
-    );
-
-    await ctrl.addLineLayer(
-      _kSourceGrid,
-      _kLayerGridLines,
-      const LineLayerProperties(
-        lineColor: '#ffffff',
-        lineOpacity: 0.06,
-        lineWidth: 0.5,
-      ),
-      minzoom: 9.0,
-    );
-
-    // ── Data tiles fill ──
-    await ctrl.addFillLayer(
-      _kSourceTiles,
-      _kLayerTilesFill,
-      const FillLayerProperties(
-        fillColor: ['get', 'color'],
-        fillOpacity: ['get', 'fillOpacity'],
-      ),
-      enableInteraction: true,
-      minzoom: 9.0,
-    );
-
-    // ── Data tiles border ──
-    await ctrl.addLineLayer(
-      _kSourceTiles,
-      _kLayerTilesLine,
-      const LineLayerProperties(
-        lineColor: ['get', 'color'],
-        lineOpacity: ['get', 'borderOpacity'],
-        lineWidth: ['get', 'borderWidth'],
-      ),
-      minzoom: 9.0,
-    );
+    // One grid and one data layer pair per resolution band. Each band's opacity
+    // is a zoom expression, so the map engine cross-fades bands every frame
+    // while zooming; nothing is swapped in after the camera stops.
+    for (final r in _kBandRes) {
+      final range = _bandRanges[r]!;
+      await ctrl.addFillLayer(
+        _gridSource(r),
+        _gridFillLayer(r),
+        FillLayerProperties(
+          fillColor: '#1a3a52', // dark blue-teal, clearly distinct from #111927 base
+          fillOpacity: _bandOpacity(range, 0.40),
+        ),
+      );
+      await ctrl.addLineLayer(
+        _gridSource(r),
+        _gridLineLayer(r),
+        LineLayerProperties(
+          lineColor: '#ffffff',
+          lineOpacity: _bandOpacity(range, 0.06),
+          lineWidth: 0.5,
+        ),
+      );
+    }
+    // The heatmap layer is added by _refreshHeatmap once its radius is known
+    // (it depends on the data, and the plugin cannot update heatmap properties).
+    for (final r in _kDataBands) {
+      final range = _bandRanges[r]!;
+      await ctrl.addFillLayer(
+        _tileSource(r),
+        _tileFillLayer(r),
+        FillLayerProperties(
+          fillColor: ['get', 'color'],
+          fillOpacity: _bandOpacity(range, ['get', 'fillOpacity']),
+        ),
+        enableInteraction: true,
+      );
+      await ctrl.addLineLayer(
+        _tileSource(r),
+        _tileLineLayer(r),
+        LineLayerProperties(
+          lineColor: ['get', 'color'],
+          lineOpacity: _bandOpacity(range, ['get', 'borderOpacity']),
+          lineWidth: ['get', 'borderWidth'],
+        ),
+      );
+    }
 
     // ── Pending cells — session tiles not yet confirmed by backend ──
     // Slightly lower opacity than confirmed tiles; dashed border signals "in-flight".
@@ -673,7 +799,6 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> with WidgetsBindin
         fillColor: AppColors.primaryHex,
         fillOpacity: 0.18,
       ),
-      minzoom: 9.0,
     );
     await ctrl.addLineLayer(
       _kSourcePending,
@@ -684,7 +809,6 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> with WidgetsBindin
         lineWidth: 1.5,
         lineDasharray: [3.0, 2.0],
       ),
-      minzoom: 9.0,
     );
 
     // ── Live cell — primary green fill + glow halo + sharp inner outline ──
@@ -793,7 +917,7 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> with WidgetsBindin
         textAnchor: 'center',
         textLetterSpacing: 0.02,
       ),
-      minzoom: 11.0,
+      minzoom: _bandRanges[9]!.from,
     );
 
     debugPrint('MapLibre: all layers added — populating sources...');
@@ -814,8 +938,7 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> with WidgetsBindin
     final liveLineOpacity = widget.isTracking ? 0.90 : 0.30;
 
     await Future.wait([
-      ctrl.setGeoJsonSource(_kSourceTiles, _tilesToGeoJson()),
-      ctrl.setGeoJsonSource('gg-labels', _labelsGeoJson()),
+      ..._refreshTileSources(ctrl),
       ctrl.setGeoJsonSource(_kSourcePending, _pendingCellsGeoJson()),
       ctrl.setGeoJsonSource(_kSourceLiveCell, _liveCellGeoJson()),
       ctrl.setGeoJsonSource(_kSourceUserDot, _userDotGeoJson()),
@@ -863,33 +986,104 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> with WidgetsBindin
     debugPrint('MapLibre: fit to ${personal.length} personal tiles');
   }
 
+  /// Heatmap of the mapped cells. A Gaussian kernel density is the solution of
+  /// the diffusion (heat) equation started from the cell centres, with
+  /// bandwidth h² = 2Dt; h is not hand-set but estimated from the data with
+  /// Silverman's rule, h = 1.06·σ·n^(-1/5). The on-screen radius is the larger
+  /// of 3h (Gaussian support) and WeatherXM's display radius (2 px at zoom 0 to
+  /// 20 px at zoom 9), so a dense but tiny cluster still shows at world zoom.
+  List<Future<void>> _refreshHeatmap(MapLibreMapController ctrl) {
+    final pts = <(double, double)>[
+      for (final t in widget.tiles)
+        if (t.centroid != null) (t.centroid!.latitude, t.centroid!.longitude),
+    ];
+    final features = [
+      for (final (lat, lng) in pts)
+        {'type': 'Feature', 'properties': <String, dynamic>{}, 'geometry': {'type': 'Point', 'coordinates': [lng, lat]}},
+    ];
+    double hM = _kH3EdgeM[9]!; // one personal cell when there is too little data
+    double lat0 = _initialCenter.latitude;
+    if (pts.length >= 2) {
+      lat0 = pts.map((p) => p.$1).reduce((a, b) => a + b) / pts.length;
+      final lng0 = pts.map((p) => p.$2).reduce((a, b) => a + b) / pts.length;
+      final k = 111000 * cos(lat0 * pi / 180);
+      final vx = pts.map((p) => pow((p.$2 - lng0) * k, 2)).reduce((a, b) => a + b) / (pts.length - 1);
+      final vy = pts.map((p) => pow((p.$1 - lat0) * 111000, 2)).reduce((a, b) => a + b) / (pts.length - 1);
+      final sigma = sqrt((vx + vy) / 2);
+      if (sigma > 0) hM = 1.06 * sigma * pow(pts.length, -0.2);
+    }
+    final mpp0 = 40075016.686 * cos(lat0 * pi / 180) / 512; // metres per pixel at zoom 0
+    final stops = <dynamic>[];
+    for (var z = 0; z <= 12; z++) {
+      final kernelPx = 3 * hM * pow(2, z) / mpp0;
+      final displayPx = 2 + 18 * min(z, 9) / 9;
+      stops..add(z.toDouble())..add(max(kernelPx, displayPx));
+    }
+    return [
+      ctrl.setGeoJsonSource(_kSourceHeat, {'type': 'FeatureCollection', 'features': features}),
+      _placeHeatmapLayer(ctrl, stops),
+    ];
+  }
+
+  /// Radius stops the heatmap layer was last created with.
+  String? _heatStopsKey;
+
+  /// The maplibre_gl plugin cannot set heatmap properties after creation
+  /// (UNSUPPORTED_LAYER_TYPE on Android), so the layer is recreated, under the
+  /// data layers, whenever the data-derived radius changes.
+  Future<void> _placeHeatmapLayer(MapLibreMapController ctrl, List<dynamic> stops) async {
+    final key = stops.map((s) => (s as num).toStringAsFixed(2)).join(',');
+    if (key == _heatStopsKey) return;
+    if (_heatStopsKey != null) {
+      try {
+        await ctrl.removeLayer(_kLayerHeat);
+      } catch (_) {}
+    }
+    _heatStopsKey = key;
+    // Zoomed out past the data bands, density reads better than hexagons a few
+    // pixels wide: the heatmap takes over, cross-fading at the coarsest data band.
+    await ctrl.addHeatmapLayer(
+      _kSourceHeat,
+      _kLayerHeat,
+      HeatmapLayerProperties(
+        heatmapRadius: ['interpolate', ['linear'], ['zoom'], ...stops],
+        heatmapColor: [
+          'interpolate', ['linear'], ['heatmap-density'],
+          0, 'rgba(16,185,129,0)',
+          0.3, 'rgba(16,185,129,0.35)',
+          1, 'rgba(16,185,129,0.85)',
+        ],
+        heatmapOpacity: _bandOpacity((from: double.negativeInfinity, to: _bandRanges[_kDataMinRes]!.from), 1.0),
+      ),
+      belowLayerId: _tileFillLayer(_kDataMinRes),
+    );
+  }
+
+  /// Rebuilds every band's data tiles (cheap: aggregation of the tile list).
+  List<Future<void>> _refreshTileSources(MapLibreMapController ctrl) {
+    _tileById.clear();
+    _rebuildLayerRanks();
+    return [
+      for (final r in _kDataBands) ctrl.setGeoJsonSource(_tileSource(r), _tilesToGeoJson(r)),
+      ..._refreshHeatmap(ctrl),
+      ctrl.setGeoJsonSource('gg-labels', _labelsGeoJson()),
+    ];
+  }
+
+  /// Rebuilds the grid of the band shown at the current zoom and of the bands
+  /// next to it, so zooming in or out cross-fades into a grid that is already
+  /// there. Each band is a disk sized to the padded viewport: a few hundred cells.
   Future<void> _refreshGrid() async {
     final ctrl = _ctrl;
-    if (!_styleLoaded || ctrl == null) return;
+    if (!_styleLoaded || ctrl == null || _bandRanges.isEmpty) return;
 
-    final zoom = ctrl.cameraPosition?.zoom ?? 13.0;
-    final res = _gridRes(zoom);
-    if (res == null) return; // below neighborhood scale — clear grid and skip
+    // ctrl.cameraPosition is only kept current when trackCameraPosition is on
+    // (it is off), so it stayed at the start position: query the live camera.
+    final camera = await ctrl.queryCameraPosition();
+    if (camera == null) return;
+    final center = camera.target;
+    final zoom = camera.zoom;
 
-    final center = ctrl.cameraPosition?.target;
-    if (center == null) return;
-    final zoomInt = zoom.floor();
-
-    // Cheap center-cell dedup — gridDisk is centered on the center cell, so if
-    // the center hasn't moved to a new H3 cell and zoom hasn't changed, the
-    // computed disk is identical — skip the FFI call and GeoJSON rebuild.
-    final centerCell = _h3.geoToCell(
-      h3f.GeoCoord(lat: center.latitude, lon: center.longitude),
-      res,
-    );
-    final cellStr = centerCell.toRadixString(16);
-    if (cellStr == _lastGridCenterCell && zoomInt == _lastGridZoom) return;
-    _lastGridCenterCell = cellStr;
-    _lastGridZoom = zoomInt;
-
-    // Get the viewport bounds to compute the disk radius (k).
-    // 30% padding ensures edge cells are always included — gridDisk slightly
-    // overshoots the screen edges which is fine (clipped by the device).
     LatLngBounds region;
     try {
       region = await ctrl.getVisibleRegion();
@@ -897,29 +1091,60 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> with WidgetsBindin
       return;
     }
 
-    final latPad = (region.northeast.latitude  - region.southwest.latitude)  * 0.30;
-    final lngPad = (region.northeast.longitude - region.southwest.longitude) * 0.30;
+    // 50% padding: a pan of half a screen stays covered until the next refresh.
+    final latHalfM = (region.northeast.latitude - region.southwest.latitude) * 1.0 * 111000;
+    final lngHalfM = (region.northeast.longitude - region.southwest.longitude) * 1.0 *
+        111000 * cos(center.latitude * pi / 180);
+    final halfDiagonalM = sqrt(latHalfM * latHalfM + lngHalfM * lngHalfM);
+
+    // Bands within one zoom step of the current zoom. A finer band is reached by
+    // zooming in (view about halved), a coarser one by zooming out (about doubled).
+    final bands = <(int, int)>[];
+    for (final r in _kBandRes) {
+      final range = _bandRanges[r]!;
+      if (zoom < range.from - 1.0 || zoom > range.to + 1.0) continue;
+      final scale = zoom < range.from ? 0.5 : (zoom > range.to ? 2.0 : 1.0);
+      // Rebuild only when the view would leave the disk already on screen:
+      // every rebuild swaps the GeoJSON source, which MapLibre redraws visibly.
+      // The view's own half-diagonal is half the padded one computed above.
+      final cover = _gridCover[r];
+      if (cover != null) {
+        final dLat = (center.latitude - cover.lat) * 111000;
+        final dLng = (center.longitude - cover.lng) * 111000 * cos(center.latitude * pi / 180);
+        if (sqrt(dLat * dLat + dLng * dLng) + halfDiagonalM * scale / 2 < cover.radiusM) continue;
+      }
+      final k = _diskK(halfDiagonalM * scale, r);
+      _gridCover[r] = (lat: center.latitude, lng: center.longitude, radiusM: 1.5 * k * _kH3EdgeM[r]!);
+      bands.add((r, k));
+    }
+    if (bands.isEmpty) return;
 
     final gen = ++_gridGeneration;
-
-    Map<String, dynamic> geojson;
+    Map<int, Map<String, dynamic>> grids;
     try {
-      geojson = await compute(_buildGrid, (
-        minLat: region.southwest.latitude  - latPad,
-        maxLat: region.northeast.latitude  + latPad,
-        minLng: region.southwest.longitude - lngPad,
-        maxLng: region.northeast.longitude + lngPad,
-        resolution: res,
+      grids = await compute(_buildGrids, (
+        centerLat: center.latitude,
+        centerLng: center.longitude,
+        bands: bands,
       ));
     } catch (e) {
       debugPrint('MapLibre: grid compute error: $e');
       return;
     }
 
-    // Discard if camera moved again while compute() was running
-    if (gen != _gridGeneration || !_styleLoaded || _ctrl == null) return;
-    await ctrl.setGeoJsonSource(_kSourceGrid, geojson);
-    debugPrint('MapLibre: grid ${(geojson["features"] as List).length} cells at res $res (zoom ${zoom.toStringAsFixed(1)})');
+    // A newer refresh superseded this one: forget its centres so it rebuilds.
+    if (gen != _gridGeneration || !_styleLoaded || _ctrl == null) {
+      for (final (r, _) in bands) {
+        _gridCover.remove(r);
+      }
+      return;
+    }
+    await Future.wait([
+      for (final MapEntry(key: r, value: fc) in grids.entries)
+        ctrl.setGeoJsonSource(_gridSource(r), fc),
+    ]);
+    debugPrint('MapLibre: grid zoom ${zoom.toStringAsFixed(2)} built '
+        '${grids.entries.map((e) => 'r${e.key}:${(e.value['features'] as List).length}').join(' ')}');
   }
 
   void _onCameraIdle() {
@@ -967,7 +1192,34 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> with WidgetsBindin
     if (tile != null) {
       _dismissMapHint();
       widget.onTileTap?.call(tile);
+      return;
     }
+    // An aggregated hexagon stands for several finer tiles: zoom into it, the
+    // way Helium and WeatherXM expand a cluster, until the tiles are tappable.
+    final parent = await _hitTestParent(point);
+    final ctrl = _ctrl;
+    if (parent == null || ctrl == null) return;
+    final res = _h3.getResolution(parent);
+    final finer = _kBandRes.contains(res + 1) ? _bandRanges[res + 1] : null;
+    final c = _h3.cellToGeo(parent);
+    await ctrl.animateCamera(CameraUpdate.newLatLngZoom(
+      LatLng(c.lat, c.lon),
+      finer != null ? finer.from + 0.6 : 14.0,
+    ));
+  }
+
+  /// H3 index of an aggregated parent hexagon at [point], if any.
+  Future<BigInt?> _hitTestParent(Point<double> point) async {
+    final ctrl = _ctrl;
+    if (ctrl == null) return null;
+    final features = await ctrl.queryRenderedFeatures(
+        point, [for (final r in _kDataBands) _tileFillLayer(r)], null);
+    for (final f in features) {
+      final props = (f as Map<Object?, Object?>?)?['properties'] as Map<Object?, Object?>?;
+      final p = props?['parent'] as String?;
+      if (p != null && p.isNotEmpty) return BigInt.tryParse(p, radix: 16);
+    }
+    return null;
   }
 
   void _dismissMapHint() {
@@ -991,7 +1243,7 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> with WidgetsBindin
     final ctrl = _ctrl;
     if (ctrl == null) return null;
     final features =
-        await ctrl.queryRenderedFeatures(point, [_kLayerTilesFill], null);
+        await ctrl.queryRenderedFeatures(point, [for (final r in _kDataBands) _tileFillLayer(r)], null);
     if (features.isEmpty) return null;
     final props = (features.first as Map<Object?, Object?>?)
         ?['properties'] as Map<Object?, Object?>?;
@@ -1038,7 +1290,8 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> with WidgetsBindin
     }
     if (!_styleLoaded) return;
 
-    final tilesChanged = !identical(oldWidget.tiles, widget.tiles);
+    final tilesChanged = !identical(oldWidget.tiles, widget.tiles) ||
+        oldWidget.mapLayer != widget.mapLayer;
     final locationChanged = oldWidget.userLocation != widget.userLocation;
     final liveChanged = !identical(
           oldWidget.currentH3Boundary,
@@ -1636,25 +1889,18 @@ class _TileInfoSheetState extends State<TileInfoSheet> {
                             const SizedBox(height: AppTheme.spaceXxxs),
                             _TimeAgoLine(timestamp: tile.lastUpdate!, isDark: isDark),
                           ],
-                          if (isPersonal && tile.deviceCount == 1) ...[
-                            const SizedBox(height: AppTheme.spaceXs),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: AppTheme.spaceXs, vertical: 2),
-                              decoration: BoxDecoration(
-                                color: AppColors.primary.withValues(alpha: 0.12),
-                                borderRadius: BorderRadius.circular(AppTheme.radiusPill),
-                              ),
-                              child: Text(
-                                l10n.tileOnlyYouMapped,
-                                style: TextStyle(
-                                  color: AppColors.primary,
-                                  fontSize: AppTheme.fontSizeXs,
-                                  fontWeight: AppFontWeights.semibold,
-                                ),
-                              ),
+                          // Who and how much is behind this cell (WeatherXM's cell
+                          // screen lists its stations the same way).
+                          const SizedBox(height: AppTheme.spaceXxs),
+                          Text(
+                            isPersonal && tile.deviceCount <= 1
+                                ? '${l10n.tileOnlyYouMapped} · ${l10n.tileMeasurements(tile.sampleCount)}'
+                                : '${l10n.tileContributors(tile.deviceCount)} · ${l10n.tileMeasurements(tile.sampleCount)}',
+                            style: TextStyle(
+                              fontSize: AppTheme.fontSizeXs,
+                              color: AppColors.textSecondary(isDark),
                             ),
-                          ],
+                          ),
                         ],
                       ),
                     ),

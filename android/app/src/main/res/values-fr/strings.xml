@@ -72,7 +72,11 @@
     <string name="notif_motion_light">Légère activité</string>
     <string name="notif_motion_active">En mouvement</string>
     <string name="notif_body_measuring">À l\'écoute de votre environnement</string>
-    <string name="notif_uploaded_ago">· envoyé %1$s</string>
+    <string name="notif_uploaded_ago">envoyé %1$s</string>
+    <plurals name="notif_upload_pending">
+        <item quantity="one">1 lot en attente d\'envoi</item>
+        <item quantity="other">%1$d lots en attente d\'envoi</item>
+    </plurals>
     <string name="notif_session_zones">+%1$d zones</string>
 
     <!-- Notification de fin de session — résumé passif -->

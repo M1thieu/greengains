@@ -86,6 +86,8 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
       extendBody: true,
       body: PageView(
         controller: _pageController,
+        // Material 3 navigation bar: swiping does not navigate between
+        // destinations; tabs change on tap only.
         physics: const NeverScrollableScrollPhysics(),
         onPageChanged: (index) => setState(() => _currentIndex = index),
         children: [

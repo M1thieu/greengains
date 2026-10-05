@@ -27,6 +27,11 @@
 -keep class com.eremat.greengains.service.GyroscopeData { *; }
 -keep class com.eremat.greengains.service.SensorSnapshot { *; }
 
+# Sensor models now live in .models; the upload queue on disk is Gson-serialised.
+-keep class com.eremat.greengains.models.** { *; }
+-keep,allowobfuscation,allowshrinking class com.google.gson.reflect.TypeToken
+-keep,allowobfuscation,allowshrinking class * extends com.google.gson.reflect.TypeToken
+
 # Generic Gson rules
 -keep class * implements com.google.gson.TypeAdapter
 -keep class * implements com.google.gson.TypeAdapterFactory
