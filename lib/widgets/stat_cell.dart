@@ -3,20 +3,19 @@ import '../core/extensions/context_extensions.dart';
 import '../core/themes.dart';
 import '../widgets/press_scale_detector.dart';
 
-/// Reusable stat cell: big value + small label, optional tap.
-/// Replaces duplicated number+label patterns across profile, stats, and sheet widgets.
+/// Value + label pair, placed inside its module's single surface. No card of
+/// its own: spacing groups cells as well as borders do (Han, Humphreys & Chen
+/// 1999), and each extra container lowers apparent usability (Tractinsky 1997).
 class StatCell extends StatelessWidget {
   const StatCell({
     super.key,
     required this.value,
     required this.label,
-    this.color,
     this.onTap,
   });
 
   final String value;
   final String label;
-  final Color? color;
   final VoidCallback? onTap;
 
   @override
@@ -24,9 +23,8 @@ class StatCell extends StatelessWidget {
     final isDark = context.isDarkMode;
     final theme = Theme.of(context);
 
-    final content = Container(
-      padding: const EdgeInsets.all(AppTheme.spaceMd),
-      decoration: AppTheme.contentCard(isDark: isDark),
+    final content = Padding(
+      padding: const EdgeInsets.symmetric(vertical: AppTheme.spaceSm),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
@@ -35,7 +33,7 @@ class StatCell extends StatelessWidget {
             value,
             style: theme.textTheme.titleLarge?.copyWith(
               fontWeight: AppFontWeights.bold,
-              color: color ?? AppColors.textPrimary(isDark),
+              color: AppColors.textPrimary(isDark),
               letterSpacing: AppTheme.letterSpacingSubtle,
               height: AppLineHeights.tight,
             ),

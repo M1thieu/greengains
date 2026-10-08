@@ -213,20 +213,6 @@ class DatabaseHelper {
     return Sqflite.firstIntValue(result) ?? 0;
   }
 
-  /// Get the first time the user contributed in a geohash area (7-char prefix ≈ 152m).
-  /// Used to show "First mapped [date]" in tile info for personal tiles.
-  Future<DateTime?> getFirstContributionNearGeohash(String geohashPrefix) async {
-    final db = await database;
-    final prefix = geohashPrefix.length > 7 ? geohashPrefix.substring(0, 7) : geohashPrefix;
-    final result = await db.rawQuery(
-      'SELECT MIN(timestamp) as first FROM contributions WHERE success = 1 AND geohash LIKE ?',
-      ['$prefix%'],
-    );
-    final raw = Sqflite.firstIntValue(result);
-    if (raw == null || raw == 0) return null;
-    return DateTime.fromMillisecondsSinceEpoch(raw);
-  }
-
   /// Get the date of the user's first successful contribution (null if none)
   Future<DateTime?> getFirstContributionDate() async {
     final db = await database;

@@ -5,14 +5,15 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:h3_flutter/h3_flutter.dart' as h3f;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:in_app_review/in_app_review.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:share_plus/share_plus.dart';
 import '../core/constants.dart';
+import '../core/utils/area_format.dart';
 import '../core/extensions/context_extensions.dart';
-import '../core/sensor_insights.dart';
 import '../l10n/app_localizations.dart';
 import '../core/themes.dart';
 import '../services/location/foreground_location_service.dart';
@@ -31,6 +32,8 @@ import '../data/repositories/contribution_repository.dart';
 
 // My Location button: 48×48 standard touch target.
 const _kLocationBtnSize = AppTheme.minTouchTarget; // 48
+/// Keeps the labelled layer button clear of the area pill on the right.
+const double _kLayerButtonMaxWidth = 168;
 
 const _kMilestones = [5, 10, 25, 50, 100, 250, 500, 1000];
 
@@ -85,6 +88,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   int _globalRetryCount = 0;
   /// Flips true after 8s of loading with no response — shows "Starting up…" hint.
   bool _showSlowLoadHint = false;
+  DateTime _tilesLoadStartedAt = DateTime.now();
   Timer? _slowLoadTimer;
   /// Largest contiguous H3 hex cluster — computed off-thread after tiles load.
 
@@ -114,17 +118,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   /// Whether community tiles are visible on the map.
   bool _showCommunity = true;
   MapLayer _mapLayer = MapLayer.quality;
-  /// Running averages for session sensor data — each accumulates as liveConditions fires.
-  final _luxAcc = _RunningAverage();
-  final _hpaAcc = _RunningAverage();
-  final _rmsAcc = _RunningAverage();
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _locationService.isRunning.addListener(_handleServiceRunningChange);
-    _locationService.liveConditions.addListener(_accumulateSessionSensors);
     _checkServiceStatus();
     _setupUploadSuccessListener();
     _checkBatteryOptimization();
@@ -161,15 +160,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     );
   }
 
-  /// Accumulates live sensor readings into running totals for the session summary.
-  void _accumulateSessionSensors() {
-    if (!_locationService.isRunning.value || _locationService.isPaused.value) return;
-    final cond = _locationService.liveConditions.value;
-    if (cond.lux != null) _luxAcc.add(cond.lux!.toDouble());
-    if (cond.hpa != null) _hpaAcc.add(cond.hpa!);
-    if (cond.rms != null) _rmsAcc.add(cond.rms!);
-  }
-
   void _handleServiceRunningChange() {
     unawaited(_updateHomeWidget());
     if (_locationService.isRunning.value) {
@@ -178,7 +168,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       _sessionUploadCount = 0;
       _sessionVisitedCells.clear();
       _pendingCellBoundaries = [];
-      _luxAcc.reset(); _hpaAcc.reset(); _rmsAcc.reset();
       _checkBatteryOptimization();
     } else {
       // Tracking stopped — persist session data for return hint.
@@ -196,10 +185,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         final uploads = _sessionUploadCount;
         Future.delayed(AppDurations.fast, () {
           if (!mounted || !context.mounted) return;
-          // Fall back to last cached sensor readings if the live stream
-          // didn't accumulate enough data (e.g. very short session or sensors slow to start).
-          final lux = _luxAcc.value ?? _prefs.lastLux;
-          final hpa = _hpaAcc.value ?? _prefs.lastHpa;
           showModalBottomSheet(
             context: context,
             backgroundColor: Colors.transparent,
@@ -212,9 +197,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               isPersonalBest: isPersonalBest,
               uploadsInSession: uploads,
               onViewStats: widget.onGoToStats,
-              sessionAvgLux: lux,
-              sessionAvgHpa: hpa,
-              sessionAvgVibration: _rmsAcc.value,
             ),
           );
         });
@@ -422,7 +404,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     _subs.cancelAll();
     _slowLoadTimer?.cancel();
     _locationService.isRunning.removeListener(_handleServiceRunningChange);
-    _locationService.liveConditions.removeListener(_accumulateSessionSensors);
     _recenterTrigger.dispose();
     _userLocationNotifier.dispose();
     _userAccuracyNotifier.dispose();
@@ -539,6 +520,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     // fetching fresh data in background — no spinner, no blank map on resume.
     // Only show spinner on true cold open (never had tiles yet).
     if (_h3Tiles.isEmpty) {
+      _tilesLoadStartedAt = DateTime.now();
       setState(() => _h3TilesLoading = true);
       // After 8s with no response, show "Starting up…" hint so user knows
       // it's not frozen (Render free cold start can take 30-60s).
@@ -834,11 +816,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                       color: AppColors.mapOverlayMid,
                       borderRadius: BorderRadius.circular(AppTheme.radiusPill),
                     ),
-                    child: Text(
-                      context.l10n.serverWakingUp,
+                    child: _ElapsedWaitText(
+                      since: _tilesLoadStartedAt,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: AppColors.darkTextSecondary,
                         fontWeight: AppFontWeights.medium,
+                        fontFeatures: const [FontFeature.tabularFigures()],
                       ),
                     ),
                   ),
@@ -880,13 +863,24 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                           ),
                           const Spacer(),
                           // Stats pills stacked top-right — tap navigates to Stats
-                          _StatPillStack(
-                            claimedTileCount: _claimedTileCount,
-                            territoryLabel: _prefs.territoryLabel,
-                            lastSessionEndAt: _prefs.lastSessionEndAt,
-                            lastSessionZonesGained: _prefs.lastSessionZonesGained,
-                            isTracking: _locationService.isRunning.value,
-                            onTap: () => widget.onGoToStats?.call(),
+                          ListenableBuilder(
+                            listenable: Listenable.merge([
+                              _locationService.isRunning,
+                              _locationService.isPaused,
+                            ]),
+                            builder: (context, _) => _StatPillStack(
+                              claimedTileCount: _claimedTileCount,
+                              territoryLabel: _prefs.territoryLabel,
+                              lastSessionEndAt: _prefs.lastSessionEndAt,
+                              lastSessionZonesGained: _prefs.lastSessionZonesGained,
+                              isTracking: _locationService.isRunning.value,
+                              isPaused: _locationService.isPaused.value,
+                              // Confirmed new cells plus the pending ones drawn
+                              // dashed on the map, so the count matches it.
+                              sessionGained: (_claimedTileCount - _sessionStartZoneCount).clamp(0, 1 << 30) +
+                                  _sessionVisitedCells.length,
+                              onTap: () => widget.onGoToStats?.call(),
+                            ),
                           ),
                         ],
                       ),
@@ -930,7 +924,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                           final hasLoc    = _userLocationNotifier.value != null;
                           return Row(
                             children: [
-                              _InfoButton(onTap: _openSensorSheet),
+                              _ThumbTarget(
+                                onTap: _openSensorSheet,
+                                child: _InfoButton(onTap: _openSensorSheet),
+                              ),
                               Expanded(
                                 child: Center(
                                   child: _HomeActionBar(
@@ -947,13 +944,16 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                 Semantics(
                                   button: true,
                                   label: context.l10n.semanticsCenterOnMe,
-                                  child: _MyLocationButton(
-                                    onPressed: () => _recenterTrigger.value++,
-                                    followModeNotifier: _followModeNotifier,
+                                  child: _ThumbTarget(
+                                    onTap: () => _recenterTrigger.value++,
+                                    child: _MyLocationButton(
+                                      onPressed: () => _recenterTrigger.value++,
+                                      followModeNotifier: _followModeNotifier,
+                                    ),
                                   ),
                                 )
                               else
-                                const SizedBox(width: _kLocationBtnSize),
+                                const SizedBox(width: AppTheme.thumbTarget),
                             ],
                           );
                         },
@@ -982,6 +982,8 @@ class _StatPillStack extends StatelessWidget {
     required this.lastSessionEndAt,
     required this.lastSessionZonesGained,
     required this.isTracking,
+    required this.isPaused,
+    required this.sessionGained,
     required this.onTap,
   });
 
@@ -990,14 +992,12 @@ class _StatPillStack extends StatelessWidget {
   final DateTime? lastSessionEndAt;
   final int lastSessionZonesGained;
   final bool isTracking;
+  final bool isPaused;
+  final int sessionGained;
   final VoidCallback onTap;
 
   String _areaLabel(BuildContext context) {
-    final km2 = claimedTileCount * kKm2PerCell;
-    final area = km2 < 1.0
-        ? '${km2.toStringAsFixed(2)} km²'
-        : '${km2.toStringAsFixed(1)} km²';
-    return context.l10n.homeStatArea(area);
+    return context.l10n.homeStatArea(formatCellArea(context, claimedTileCount));
   }
 
   /// Today's gain shows only after a session ended within 20h, while idle.
@@ -1009,7 +1009,7 @@ class _StatPillStack extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (claimedTileCount == 0) return const SizedBox.shrink();
+    if (claimedTileCount == 0 && !isTracking) return const SizedBox.shrink();
     final textTheme = Theme.of(context).textTheme;
     // One surface with plain lines, the way activity apps overlay key figures
     // on the map; no stack of pills. The streak lives in Profile only.
@@ -1029,13 +1029,27 @@ class _StatPillStack extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.end,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
-              _areaLabel(context),
-              style: textTheme.labelLarge?.copyWith(
-                fontWeight: AppFontWeights.semibold,
-                color: AppColors.darkTextPrimary,
+            // While recording, the session's own result comes first: users
+            // judge an action by its effect in their terms (Hutchins, Hollan
+            // & Norman 1985), and state must stay perceivable (Bellotti 2002).
+            if (isTracking)
+              Text(
+                isPaused
+                    ? context.l10n.chipPaused
+                    : context.l10n.homeSessionZones(sessionGained),
+                style: textTheme.labelLarge?.copyWith(
+                  fontWeight: AppFontWeights.semibold,
+                  color: isPaused ? AppColors.darkTextSecondary : AppColors.primary,
+                ),
               ),
-            ),
+            if (claimedTileCount > 0)
+              Text(
+                _areaLabel(context),
+                style: textTheme.labelLarge?.copyWith(
+                  fontWeight: AppFontWeights.semibold,
+                  color: AppColors.darkTextPrimary,
+                ),
+              ),
             if (territoryLabel != null)
               Text(
                 territoryLabel!,
@@ -1134,21 +1148,18 @@ class _MapLayerButton extends StatelessWidget {
   static IconData iconFor(MapLayer l) => switch (l) {
         MapLayer.quality => Icons.layers_outlined,
         MapLayer.light => Icons.wb_sunny_outlined,
-        MapLayer.pressure => Icons.compress_rounded,
         MapLayer.movement => Icons.directions_walk_rounded,
       };
 
   static Color colorFor(MapLayer l) => switch (l) {
         MapLayer.quality => AppColors.quality,
         MapLayer.light => AppColors.light,
-        MapLayer.pressure => AppColors.pressure,
         MapLayer.movement => AppColors.movement,
       };
 
   static String labelFor(AppLocalizations l10n, MapLayer l) => switch (l) {
         MapLayer.quality => l10n.mapLayerQuality,
         MapLayer.light => l10n.sensorLight,
-        MapLayer.pressure => l10n.sensorAirPressure,
         MapLayer.movement => l10n.sensorMovement,
       };
 
@@ -1194,21 +1205,47 @@ class _MapLayerButton extends StatelessWidget {
     );
   }
 
+  // Names the active layer: icon-only controls were understood 45% of the
+  // time vs 78% with a label (Leung, McGrenere & Graf 2011).
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final label = labelFor(l10n, layer);
     return Semantics(
       button: true,
-      label: context.l10n.mapLayerTitle,
+      label: '${l10n.mapLayerTitle}: $label',
+      excludeSemantics: true,
       child: Material(
         color: AppColors.mapOverlayDark,
-        shape: const CircleBorder(),
+        shape: const StadiumBorder(),
         child: InkWell(
-          customBorder: const CircleBorder(),
+          customBorder: const StadiumBorder(),
           onTap: () => _open(context),
-          child: SizedBox(
-            width: AppTheme.minTouchTarget,
-            height: AppTheme.minTouchTarget,
-            child: Icon(iconFor(layer), size: AppIconSizes.sm, color: colorFor(layer)),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(
+              minHeight: AppTheme.minTouchTarget,
+              maxWidth: _kLayerButtonMaxWidth,
+            ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceSm),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(iconFor(layer), size: AppIconSizes.sm, color: colorFor(layer)),
+                  const SizedBox(width: AppTheme.spaceXs),
+                  Flexible(
+                    child: Text(
+                      label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                        color: AppColors.darkTextPrimary,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         ),
       ),
@@ -1489,7 +1526,7 @@ class _MyLocationButton extends StatelessWidget {
                   key: ValueKey(isFollowing),
                   color: isFollowing
                       ? AppColors.primary
-                      : Colors.white.withValues(alpha: 0.55),
+                      : AppColors.darkTextSecondary,
                   size: AppIconSizes.sm,
                 ),
               ),
@@ -1717,9 +1754,6 @@ class _SessionSummarySheet extends StatefulWidget {
     this.isPersonalBest = false,
     this.uploadsInSession = 0,
     this.onViewStats,
-    this.sessionAvgLux,
-    this.sessionAvgHpa,
-    this.sessionAvgVibration,
   });
 
   final int zonesGained;
@@ -1729,24 +1763,12 @@ class _SessionSummarySheet extends StatefulWidget {
   final bool isPersonalBest;
   final int uploadsInSession;
   final VoidCallback? onViewStats;
-  final double? sessionAvgLux;
-  final double? sessionAvgHpa;
-  final double? sessionAvgVibration;
 
   @override
   State<_SessionSummarySheet> createState() => _SessionSummarySheetState();
 }
 
 class _SessionSummarySheetState extends State<_SessionSummarySheet> {
-  Color _insightAccentColor({required bool isNight}) {
-    final lux = widget.sessionAvgLux;
-    final hpa = widget.sessionAvgHpa;
-    if (isNight && lux != null) return SensorInsights.lightPollutionLevel(lux).color;
-    if (!isNight && lux != null && hpa != null) return SensorInsights.heatLevel(lux, hpa).color;
-    if (lux != null) return SensorInsights.sunlightLevel(lux).color;
-    return AppColors.primary;
-  }
-
   int? _nextMilestone() {
     for (final m in _kMilestones) {
       if (m > widget.totalZones) return m;
@@ -1764,16 +1786,9 @@ class _SessionSummarySheetState extends State<_SessionSummarySheet> {
   }
 
   Future<void> _share(AppLocalizations l10n, String km2Display) async {
-    final isNight = DateTime.now().hour < 6 || DateTime.now().hour >= 20;
-    final lux = widget.sessionAvgLux;
-    final isDarkSky = isNight && lux != null &&
-        (SensorInsights.lightPollutionLevel(lux) == LightPollutionLevel.pristine ||
-         SensorInsights.lightPollutionLevel(lux) == LightPollutionLevel.low);
-    final text = isDarkSky
-        ? l10n.sessionSummaryShareTextDarkSky(widget.totalZones, km2Display)
-        : widget.zonesGained > 0
-            ? l10n.sessionSummaryShareText(widget.zonesGained, widget.totalZones, km2Display)
-            : l10n.sessionSummaryShareTextEmpty(_fmtDuration(widget.sessionDuration), widget.totalZones, km2Display);
+    final text = widget.zonesGained > 0
+        ? l10n.sessionSummaryShareText(widget.zonesGained, widget.totalZones, km2Display)
+        : l10n.sessionSummaryShareTextEmpty(_fmtDuration(widget.sessionDuration), widget.totalZones, km2Display);
     await SharePlus.instance.share(ShareParams(text: text));
   }
 
@@ -1783,24 +1798,15 @@ class _SessionSummarySheetState extends State<_SessionSummarySheet> {
     return '$m:$s';
   }
 
-  String _nextHookCopy(AppLocalizations l10n) {
-    if (widget.zonesGained == 0) return l10n.sessionSummaryNextHookEmpty;
-    if (widget.streak >= 2) return l10n.sessionSummaryNextHookStreak;
-    if (widget.streak == 1) return l10n.sessionSummaryNextHookFirst;
-    return l10n.sessionSummaryNextHook;
-  }
-
-  String _fmtDate() {
-    final now = DateTime.now();
-    return '${now.month.toString().padLeft(2, '0')}·${now.day.toString().padLeft(2, '0')}·${now.year.toString().substring(2)}';
-  }
+  String _fmtDate() =>
+      DateFormat.yMd(Localizations.localeOf(context).toString()).format(DateTime.now());
 
   @override
   Widget build(BuildContext context) {
     final isDark = context.isDarkMode;
     final l10n = context.l10n;
     final km2 = widget.totalZones * kKm2PerCell;
-    final km2Display = km2 < 1.0 ? km2.toStringAsFixed(2) : km2.toStringAsFixed(1);
+    final km2Display = formatAreaText(context, km2);
     final next = _nextMilestone();
     final hit = _hitMilestone();
 
@@ -1846,60 +1852,7 @@ class _SessionSummarySheetState extends State<_SessionSummarySheet> {
                   ),
                 ],
               ),
-              // ── Environmental insight — lead with what the route did to you ──
-              Builder(builder: (context) {
-                final hasEnv = widget.sessionAvgLux != null ||
-                    widget.sessionAvgHpa != null ||
-                    widget.sessionAvgVibration != null;
-                if (!hasEnv) return const SizedBox(height: AppTheme.spaceLg);
-                final isNight = DateTime.now().hour < 6 || DateTime.now().hour >= 20;
-                final accent = _insightAccentColor(isNight: isNight);
-                final character = SensorInsights.sessionCharacter(
-                  isNight: isNight,
-                  avgLux: widget.sessionAvgLux,
-                  avgHpa: widget.sessionAvgHpa,
-                  avgVibration: widget.sessionAvgVibration,
-                );
-                final insight = SensorInsights.sessionInsight(
-                  l10n,
-                  isNight: isNight,
-                  avgLux: widget.sessionAvgLux,
-                  avgHpa: widget.sessionAvgHpa,
-                  avgVibration: widget.sessionAvgVibration,
-                );
-                return Padding(
-                  padding: const EdgeInsets.only(top: AppTheme.spaceSm, bottom: AppTheme.spaceLg),
-                  child: Container(
-                    padding: const EdgeInsets.fromLTRB(AppTheme.spaceSm, AppTheme.spaceSm, AppTheme.spaceMd, AppTheme.spaceSm),
-                    decoration: BoxDecoration(
-                      color: accent.withValues(alpha: 0.07),
-                      borderRadius: BorderRadius.circular(AppTheme.radiusSm),
-                      border: Border(left: BorderSide(color: accent, width: 2)),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          SensorInsights.sessionCharacterLabel(l10n, character),
-                          style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                            color: accent.withValues(alpha: 0.85),
-                            fontWeight: AppFontWeights.semibold,
-                            letterSpacing: AppTheme.letterSpacingCaps,
-                          ),
-                        ),
-                        const SizedBox(height: AppTheme.spaceXxs),
-                        Text(
-                          insight,
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: Colors.white.withValues(alpha: 0.90),
-                            height: AppLineHeights.normal,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              }),
+              const SizedBox(height: AppTheme.spaceLg),
 
               // ── Hero ─────────────────────────────────────────────────────
               if (widget.zonesGained > 0) ...[
@@ -1939,14 +1892,6 @@ class _SessionSummarySheetState extends State<_SessionSummarySheet> {
                   count: widget.totalZones,
                   duration: AppDurations.shimmer,
                 ),
-                const SizedBox(height: AppTheme.spaceSm),
-                Text(
-                  l10n.sessionSummaryNoZonesSubline,
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    color: Colors.white.withValues(alpha: 0.72),
-                    letterSpacing: -0.1,
-                  ),
-                ),
               ],
 
               if (widget.isPersonalBest) ...[
@@ -1973,13 +1918,13 @@ class _SessionSummarySheetState extends State<_SessionSummarySheet> {
                 Row(
                   children: [
                     Icon(Icons.local_fire_department_rounded,
-                        size: AppIconSizes.xs, color: const Color(0xFFF97316)),
+                        size: AppIconSizes.xs, color: AppColors.streakFlame),
                     const SizedBox(width: AppTheme.spaceXxs),
                     Text(
                       l10n.statsStreakDays(widget.streak),
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         fontWeight: AppFontWeights.semibold,
-                        color: const Color(0xFFF97316),
+                        color: AppColors.streakFlame,
                         letterSpacing: -0.1,
                       ),
                     ),
@@ -2000,7 +1945,7 @@ class _SessionSummarySheetState extends State<_SessionSummarySheet> {
                   children: [
                     _SummaryStatCell(
                       label: l10n.sessionStatArea,
-                      value: '$km2Display km²',
+                      value: km2Display,
                       subValue: l10n.statsCityBlocks((km2 / kKm2PerCityBlock).round()),
                     ),
                     VerticalDivider(width: 1, thickness: 1, color: Colors.white.withValues(alpha: 0.14)),
@@ -2049,17 +1994,6 @@ class _SessionSummarySheetState extends State<_SessionSummarySheet> {
                     ),
                   ),
                 ],
-              ),
-
-              const SizedBox(height: AppTheme.spaceSm),
-
-              // ── Next-session hook — contextual, never commanding ──────────
-              Text(
-                _nextHookCopy(l10n),
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Colors.white.withValues(alpha: 0.65),
-                  letterSpacing: -0.1,
-                ),
               ),
 
               const SizedBox(height: AppTheme.spaceMd),
@@ -2177,37 +2111,23 @@ class _MilestoneBannerState extends State<_MilestoneBanner>
                 ),
               ],
             ),
-            if (_milestoneFlavor() != null) ...[
-              const SizedBox(height: AppTheme.spaceXxxs + 1),
-              Padding(
-                padding: const EdgeInsets.only(left: 16 + AppTheme.spaceXs),
-                child: Text(
-                  _milestoneFlavor()!,
-                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    color: AppColors.primary.withValues(alpha: 0.70),
-                    letterSpacing: -0.1,
-                  ),
+            // The real area of the milestone instead of a comparison phrase:
+            // the old "a small park" for 25 places was ~2.6 km².
+            const SizedBox(height: AppTheme.spaceXxxs + 1),
+            Padding(
+              padding: const EdgeInsets.only(left: 16 + AppTheme.spaceXs),
+              child: Text(
+                '≈ ${formatCellArea(context, widget.milestone)}',
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  color: AppColors.primary,
+                  letterSpacing: -0.1,
                 ),
               ),
-            ],
+            ),
           ],
         ),
       ),
     );
-  }
-
-  String? _milestoneFlavor() {
-    switch (widget.milestone) {
-      case 5:    return widget.l10n.sessionMilestone5Flavor;
-      case 10:   return widget.l10n.sessionMilestone10Flavor;
-      case 25:   return widget.l10n.sessionMilestone25Flavor;
-      case 50:   return widget.l10n.sessionMilestone50Flavor;
-      case 100:  return widget.l10n.sessionMilestone100Flavor;
-      case 250:  return widget.l10n.sessionMilestone250Flavor;
-      case 500:  return widget.l10n.sessionMilestone500Flavor;
-      case 1000: return widget.l10n.sessionMilestone1000Flavor;
-      default:   return null;
-    }
   }
 }
 
@@ -2322,23 +2242,87 @@ class _GhostSensorChip extends StatelessWidget {
 
 
 /// Small circular info button — opens sensor sheet.
+/// Server wake-up hint with elapsed seconds. A wait with no time shown felt
+/// longest and was read as a fault, and a remaining-time countdown raised
+/// frustration vs elapsed time (Tan & Nov 2026, N=425); the wake time is
+/// unknown anyway. Ticks itself so the home screen is not rebuilt each second.
+class _ElapsedWaitText extends StatefulWidget {
+  const _ElapsedWaitText({required this.since, this.style});
+  final DateTime since;
+  final TextStyle? style;
+
+  @override
+  State<_ElapsedWaitText> createState() => _ElapsedWaitTextState();
+}
+
+class _ElapsedWaitTextState extends State<_ElapsedWaitText> {
+  late final Timer _ticker;
+
+  @override
+  void initState() {
+    super.initState();
+    _ticker = Timer.periodic(const Duration(seconds: 1), (_) => setState(() {}));
+  }
+
+  @override
+  void dispose() {
+    _ticker.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final seconds = DateTime.now().difference(widget.since).inSeconds;
+    return Text(context.l10n.serverWakingUp(seconds), style: widget.style);
+  }
+}
+
+/// Grows the hit area of a 48 dp map control to [AppTheme.thumbTarget]
+/// without enlarging the visual. Taps on the control itself go to its own
+/// handler; taps in the surrounding ring go to [onTap].
+class _ThumbTarget extends StatelessWidget {
+  const _ThumbTarget({required this.onTap, required this.child});
+  final VoidCallback onTap;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: SizedBox.square(
+        dimension: AppTheme.thumbTarget,
+        child: Center(child: child),
+      ),
+    );
+  }
+}
+
 class _InfoButton extends StatelessWidget {
   const _InfoButton({required this.onTap});
   final VoidCallback onTap;
 
+  // Opens the live sensor readings, so a sensor glyph rather than "i":
+  // semantically close icons were read correctly 84% vs 51% for distant
+  // ones (Leung, McGrenere & Graf 2011).
   @override
   Widget build(BuildContext context) {
-    return PressScaleDetector(
-      onTap: onTap,
-      child: Container(
-        width: _kLocationBtnSize,
-        height: _kLocationBtnSize,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: AppColors.shadowDark(0.6),
+    return Semantics(
+      button: true,
+      label: context.l10n.sensorLiveSheetTitle,
+      excludeSemantics: true,
+      child: PressScaleDetector(
+        onTap: onTap,
+        child: Container(
+          width: _kLocationBtnSize,
+          height: _kLocationBtnSize,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: AppColors.shadowDark(0.6),
+          ),
+          child: const Icon(Icons.sensors_rounded,
+              color: AppColors.darkTextSecondary, size: AppIconSizes.sm),
         ),
-        child: const Icon(Icons.info_outline_rounded,
-            color: AppColors.darkTextSecondary, size: AppIconSizes.sm),
       ),
     );
   }
@@ -2466,11 +2450,4 @@ class _SummaryStatCell extends StatelessWidget {
 }
 
 /// Incremental running average — add samples one at a time, read [value] at any point.
-class _RunningAverage {
-  int _n = 0;
-  double _sum = 0;
-  double? get value => _n > 0 ? _sum / _n : null;
-  void add(double v) { _sum += v; _n++; }
-  void reset() { _n = 0; _sum = 0; }
-}
 

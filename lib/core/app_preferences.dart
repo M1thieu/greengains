@@ -425,8 +425,6 @@ class AppPreferences {
     return {'hPa': hPa, 'timestamp': timestamp};
   }
 
-  double? get lastLux => _sp.getDouble(PreferenceKeys.lastLightLux);
-  double? get lastHpa => _sp.getDouble(PreferenceKeys.lastPressureHPa);
 
   /// Save last known magnetometer reading (magnitude only — orientation-independent)
   Future<void> saveLastMagnetic(double magnitude, int timestampMs) async {

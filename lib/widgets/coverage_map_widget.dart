@@ -8,21 +8,19 @@ import 'package:flutter/services.dart';
 import 'package:maplibre_gl/maplibre_gl.dart';
 import 'package:h3_flutter/h3_flutter.dart' as h3f;
 import 'package:latlong2/latlong.dart' as ll;
-import 'package:dart_geohash/dart_geohash.dart';
-import 'package:intl/intl.dart';
 import '../core/extensions/context_extensions.dart';
 import '../core/themes.dart';
-import '../data/local/database_helper.dart';
 import '../data/models/h3_tile.dart';
 import '../core/app_preferences.dart';
-import '../core/sensor_insights.dart';
 import '../l10n/app_localizations.dart';
 import 'time_ago_text.dart';
 
 export '../data/models/h3_tile.dart';
 
 /// What colours the data tiles: overall quality, or one sensor.
-enum MapLayer { quality, light, pressure, movement }
+// No pressure layer: absolute pressure per cell depends on altitude and on each
+// phone's 1-2 hPa offset, so colouring cells by it would not be a measurement.
+enum MapLayer { quality, light, movement }
 
 // ── Background isolate grid computation ──────────────────────────────────────
 
@@ -100,6 +98,14 @@ const _kLayerPendingLine = 'gg-pending-line';
 const _kLayerUserHalo    = 'gg-user-halo';
 const _kLayerUserDot     = 'gg-user-dot';
 const _kSourceAccuracy   = 'gg-accuracy';
+const _kSourceNewCells   = 'gg-new';
+const _kLayerNewCells    = 'gg-new-line';
+
+/// How long newly confirmed cells stay outlined. A redraw of the whole layer
+/// hides which cells changed (Rensink, O'Regan & Clark 1997); a local trace
+/// fixes it (Baudisch et al. 2006, where 2 s traces were disliked), and
+/// ~1 s transitions are recommended (Heer & Robertson 2007).
+const _kNewCellGlow = Duration(seconds: 1);
 const _kLayerAccuracyRing = 'gg-accuracy-ring';
 
 /// Average H3 hexagon edge length in metres per resolution (H3 resolution table).
@@ -266,6 +272,10 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> with WidgetsBindin
   bool _hasFitTiles = false;       // true after first fit-to-tiles (no GPS case)
   final Map<String, H3Tile> _tileById = {};
   Timer? _gridTimer;
+  Timer? _newCellTimer;
+  /// Personal cell ids last shown; null until the first tile list arrives so
+  /// the initial load is not outlined as "new".
+  Set<String>? _knownCellIds;
   Timer? _haloTimer;
   double _haloPhase = 0.0; // 0..2π, drives sine-wave pulse
   int _gridGeneration = 0;   // incremented on each refresh; stale results are discarded
@@ -429,8 +439,7 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> with WidgetsBindin
       features.add({
         'type': 'Feature',
         'properties': {
-          'h3Index': '', // no single tile behind it: a tap zooms in instead
-          'parent': parent.toRadixString(16),
+          'h3Index': '', // no single tile behind it: taps summarise the cell instead
           'color': agg?.color ?? _colorHex(tile),
           'fillOpacity': agg?.fill ?? _fillOpacity(tile),
           'borderOpacity': agg?.stroke ?? _strokeOpacity(tile),
@@ -602,7 +611,6 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> with WidgetsBindin
   double? _layerValue(H3Tile tile) => switch (widget.mapLayer) {
         MapLayer.quality => null,
         MapLayer.light => tile.avgLux == null ? null : log(tile.avgLux! + 1) / ln10,
-        MapLayer.pressure => tile.avgHpa,
         MapLayer.movement => tile.avgMovement,
       };
 
@@ -619,9 +627,8 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> with WidgetsBindin
   ({String color, double fill, double stroke}) _layerStyle(H3Tile tile) {
     final v = _layerValue(tile);
     final hex = switch (widget.mapLayer) {
-      MapLayer.light => '#fbbf24',
-      MapLayer.pressure => '#0ea5e9',
-      _ => '#14b8a6',
+      MapLayer.light => AppColors.lightHex,
+      _ => AppColors.movementHex,
     };
     if (v == null || _layerSorted.isEmpty) return (color: '#64748b', fill: 0.06, stroke: 0.0);
     var lo = 0, hi = _layerSorted.length;
@@ -634,26 +641,15 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> with WidgetsBindin
     return (color: hex, fill: (0.12 + 0.5 * rank) * f, stroke: (0.3 + 0.5 * rank) * f);
   }
 
-  static String _colorHex(H3Tile tile) {
-    final q = _qualityPct(tile);
-    if (tile.isGlobal) {
-      // Muted versions — community context, not personal territory
-      if (q >= 75) return '#059669'; // emerald-600
-      if (q >= 50) return '#b45309'; // amber-700
-      return '#b91c1c';              // red-700
-    }
-    if (q >= 75) return '#10b981';   // emerald-500 — high quality
-    if (q >= 50) return '#fbbf24';   // amber-400   — medium
-    return '#ef4444';                // red-400     — poor
-  }
+  /// One hue per category (own readings vs community); quality is carried by
+  /// transparency in [_fillOpacity], not by a green/amber/red hue, which
+  /// readers misjudge for uncertainty (MacEachren et al. 2012; Kinkeldey et
+  /// al. 2014 review of 44 studies) and which breaks hue-as-category (Brewer).
+  static String _colorHex(H3Tile tile) =>
+      tile.isGlobal ? '#059669' /* emerald-600, muted */ : AppColors.primaryHex;
 
-  /// Brighter color for community tiles new since last session.
-  static String _newColorHex(H3Tile tile) {
-    final q = _qualityPct(tile);
-    if (q >= 75) return '#10b981'; // full emerald — matches personal quality
-    if (q >= 50) return '#f59e0b'; // amber-400
-    return '#f87171';              // red-400
-  }
+  /// Community tiles new since last session: full emerald so they stand out.
+  static String _newColorHex(H3Tile tile) => AppColors.primaryHex;
 
   /// Continuous exponential freshness decay — the time term of a
   /// spatiotemporal covariance kernel (Gneiting/Cressie-Huang class), used
@@ -733,6 +729,7 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> with WidgetsBindin
       for (final r in _kDataBands) ctrl.addGeoJsonSource(_tileSource(r), _kEmptyFC),
       ctrl.addGeoJsonSource(_kSourceHeat, _kEmptyFC),
       ctrl.addGeoJsonSource(_kSourcePending, _kEmptyFC),
+      ctrl.addGeoJsonSource(_kSourceNewCells, _kEmptyFC),
       ctrl.addGeoJsonSource(_kSourceLiveCell, _kEmptyFC),
       ctrl.addGeoJsonSource(_kSourceUserDot, _kEmptyFC),
       ctrl.addGeoJsonSource(_kSourceAccuracy, _kEmptyFC),
@@ -766,8 +763,6 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> with WidgetsBindin
         ),
       );
     }
-    // The heatmap layer is added by _refreshHeatmap once its radius is known
-    // (it depends on the data, and the plugin cannot update heatmap properties).
     for (final r in _kDataBands) {
       final range = _bandRanges[r]!;
       await ctrl.addFillLayer(
@@ -790,6 +785,36 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> with WidgetsBindin
       );
     }
 
+    // Zoomed out past the data bands, density reads better than hexagons a few
+    // pixels wide: a heatmap takes over, cross-fading at the coarsest data band.
+    // Radius is zoom-only (2 px at zoom 0 to 20 px at zoom 9), not data-driven —
+    // the exact interpolation WeatherXM's own app ships (ExplorerViewModel.kt,
+    // heatmapRadius). The maplibre_gl Android plugin has no case for HeatmapLayer
+    // in its layer#setProperties switch (MapLibreMapController.java), so any
+    // later property change needs removeLayer+addHeatmapLayer, which flashes the
+    // layer blank for a frame — a fixed expression means that never has to
+    // happen: the layer is created exactly once, here, and only its GeoJSON
+    // source data is ever touched again (_refreshHeatmap), which does not flash.
+    await ctrl.addHeatmapLayer(
+      _kSourceHeat,
+      _kLayerHeat,
+      HeatmapLayerProperties(
+        heatmapRadius: [
+          'interpolate', ['linear'], ['zoom'],
+          0, 2,
+          9, 20,
+        ],
+        heatmapColor: [
+          'interpolate', ['linear'], ['heatmap-density'],
+          0, 'rgba(16,185,129,0)',
+          0.3, 'rgba(16,185,129,0.35)',
+          1, 'rgba(16,185,129,0.85)',
+        ],
+        heatmapOpacity: _bandOpacity((from: double.negativeInfinity, to: _bandRanges[_kDataMinRes]!.from), 1.0),
+      ),
+      belowLayerId: _tileFillLayer(_kDataMinRes),
+    );
+
     // ── Pending cells — session tiles not yet confirmed by backend ──
     // Slightly lower opacity than confirmed tiles; dashed border signals "in-flight".
     await ctrl.addFillLayer(
@@ -808,6 +833,17 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> with WidgetsBindin
         lineOpacity: 0.55,
         lineWidth: 1.5,
         lineDasharray: [3.0, 2.0],
+      ),
+    );
+
+    // ── Newly confirmed cells — brief outline so the change is seen ──
+    await ctrl.addLineLayer(
+      _kSourceNewCells,
+      _kLayerNewCells,
+      const LineLayerProperties(
+        lineColor: AppColors.primaryHex,
+        lineOpacity: 0.9,
+        lineWidth: 3.0,
       ),
     );
 
@@ -922,6 +958,9 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> with WidgetsBindin
 
     debugPrint('MapLibre: all layers added — populating sources...');
     _styleLoaded = true;
+    if (widget.tiles.isNotEmpty) {
+      _knownCellIds ??= {for (final t in widget.tiles) if (!t.isGlobal) t.h3Index};
+    }
     await _refreshAllSources();
     await Future<void>.delayed(AppDurations.medium);
     await _refreshGrid();
@@ -986,77 +1025,21 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> with WidgetsBindin
     debugPrint('MapLibre: fit to ${personal.length} personal tiles');
   }
 
-  /// Heatmap of the mapped cells. A Gaussian kernel density is the solution of
-  /// the diffusion (heat) equation started from the cell centres, with
-  /// bandwidth h² = 2Dt; h is not hand-set but estimated from the data with
-  /// Silverman's rule, h = 1.06·σ·n^(-1/5). The on-screen radius is the larger
-  /// of 3h (Gaussian support) and WeatherXM's display radius (2 px at zoom 0 to
-  /// 20 px at zoom 9), so a dense but tiny cluster still shows at world zoom.
-  List<Future<void>> _refreshHeatmap(MapLibreMapController ctrl) {
-    final pts = <(double, double)>[
-      for (final t in widget.tiles)
-        if (t.centroid != null) (t.centroid!.latitude, t.centroid!.longitude),
-    ];
+  /// Heatmap source data: the mapped cells' centroids. The layer itself (radius,
+  /// colour, opacity) is created once at style load and never touched again —
+  /// see the comment there for why. Only the point data changes here, a plain
+  /// GeoJSON source update, which does not flash.
+  Future<void> _refreshHeatmap(MapLibreMapController ctrl) {
     final features = [
-      for (final (lat, lng) in pts)
-        {'type': 'Feature', 'properties': <String, dynamic>{}, 'geometry': {'type': 'Point', 'coordinates': [lng, lat]}},
+      for (final t in widget.tiles)
+        if (t.centroid != null)
+          {
+            'type': 'Feature',
+            'properties': <String, dynamic>{},
+            'geometry': {'type': 'Point', 'coordinates': [t.centroid!.longitude, t.centroid!.latitude]},
+          },
     ];
-    double hM = _kH3EdgeM[9]!; // one personal cell when there is too little data
-    double lat0 = _initialCenter.latitude;
-    if (pts.length >= 2) {
-      lat0 = pts.map((p) => p.$1).reduce((a, b) => a + b) / pts.length;
-      final lng0 = pts.map((p) => p.$2).reduce((a, b) => a + b) / pts.length;
-      final k = 111000 * cos(lat0 * pi / 180);
-      final vx = pts.map((p) => pow((p.$2 - lng0) * k, 2)).reduce((a, b) => a + b) / (pts.length - 1);
-      final vy = pts.map((p) => pow((p.$1 - lat0) * 111000, 2)).reduce((a, b) => a + b) / (pts.length - 1);
-      final sigma = sqrt((vx + vy) / 2);
-      if (sigma > 0) hM = 1.06 * sigma * pow(pts.length, -0.2);
-    }
-    final mpp0 = 40075016.686 * cos(lat0 * pi / 180) / 512; // metres per pixel at zoom 0
-    final stops = <dynamic>[];
-    for (var z = 0; z <= 12; z++) {
-      final kernelPx = 3 * hM * pow(2, z) / mpp0;
-      final displayPx = 2 + 18 * min(z, 9) / 9;
-      stops..add(z.toDouble())..add(max(kernelPx, displayPx));
-    }
-    return [
-      ctrl.setGeoJsonSource(_kSourceHeat, {'type': 'FeatureCollection', 'features': features}),
-      _placeHeatmapLayer(ctrl, stops),
-    ];
-  }
-
-  /// Radius stops the heatmap layer was last created with.
-  String? _heatStopsKey;
-
-  /// The maplibre_gl plugin cannot set heatmap properties after creation
-  /// (UNSUPPORTED_LAYER_TYPE on Android), so the layer is recreated, under the
-  /// data layers, whenever the data-derived radius changes.
-  Future<void> _placeHeatmapLayer(MapLibreMapController ctrl, List<dynamic> stops) async {
-    final key = stops.map((s) => (s as num).toStringAsFixed(2)).join(',');
-    if (key == _heatStopsKey) return;
-    if (_heatStopsKey != null) {
-      try {
-        await ctrl.removeLayer(_kLayerHeat);
-      } catch (_) {}
-    }
-    _heatStopsKey = key;
-    // Zoomed out past the data bands, density reads better than hexagons a few
-    // pixels wide: the heatmap takes over, cross-fading at the coarsest data band.
-    await ctrl.addHeatmapLayer(
-      _kSourceHeat,
-      _kLayerHeat,
-      HeatmapLayerProperties(
-        heatmapRadius: ['interpolate', ['linear'], ['zoom'], ...stops],
-        heatmapColor: [
-          'interpolate', ['linear'], ['heatmap-density'],
-          0, 'rgba(16,185,129,0)',
-          0.3, 'rgba(16,185,129,0.35)',
-          1, 'rgba(16,185,129,0.85)',
-        ],
-        heatmapOpacity: _bandOpacity((from: double.negativeInfinity, to: _bandRanges[_kDataMinRes]!.from), 1.0),
-      ),
-      belowLayerId: _tileFillLayer(_kDataMinRes),
-    );
+    return ctrl.setGeoJsonSource(_kSourceHeat, {'type': 'FeatureCollection', 'features': features});
   }
 
   /// Rebuilds every band's data tiles (cheap: aggregation of the tile list).
@@ -1065,7 +1048,7 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> with WidgetsBindin
     _rebuildLayerRanks();
     return [
       for (final r in _kDataBands) ctrl.setGeoJsonSource(_tileSource(r), _tilesToGeoJson(r)),
-      ..._refreshHeatmap(ctrl),
+      _refreshHeatmap(ctrl),
       ctrl.setGeoJsonSource('gg-labels', _labelsGeoJson()),
     ];
   }
@@ -1097,23 +1080,27 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> with WidgetsBindin
         111000 * cos(center.latitude * pi / 180);
     final halfDiagonalM = sqrt(latHalfM * latHalfM + lngHalfM * lngHalfM);
 
-    // Bands within one zoom step of the current zoom. A finer band is reached by
-    // zooming in (view about halved), a coarser one by zooming out (about doubled).
-    final bands = <(int, int)>[];
-    for (final r in _kBandRes) {
+    // Only the band shown at this zoom and its two neighbours. Building every
+    // band sent ~17k off-screen polygons per rebuild at low zoom (measured:
+    // 2,791 cells x 6 bands at zoom 2.4). One H3 step is ~1.4 zoom levels
+    // (edge ratio sqrt 7), so neighbours cover a pinch until the next idle.
+    final current = _kBandRes.indexWhere((r) {
       final range = _bandRanges[r]!;
-      if (zoom < range.from - 1.0 || zoom > range.to + 1.0) continue;
-      final scale = zoom < range.from ? 0.5 : (zoom > range.to ? 2.0 : 1.0);
+      return zoom >= range.from && zoom < range.to;
+    });
+    if (current < 0) return;
+    final bands = <(int, int)>[];
+    for (var i = max(0, current - 1); i <= min(_kBandRes.length - 1, current + 1); i++) {
+      final r = _kBandRes[i];
       // Rebuild only when the view would leave the disk already on screen:
       // every rebuild swaps the GeoJSON source, which MapLibre redraws visibly.
-      // The view's own half-diagonal is half the padded one computed above.
       final cover = _gridCover[r];
       if (cover != null) {
         final dLat = (center.latitude - cover.lat) * 111000;
         final dLng = (center.longitude - cover.lng) * 111000 * cos(center.latitude * pi / 180);
-        if (sqrt(dLat * dLat + dLng * dLng) + halfDiagonalM * scale / 2 < cover.radiusM) continue;
+        if (sqrt(dLat * dLat + dLng * dLng) + halfDiagonalM / 2 < cover.radiusM) continue;
       }
-      final k = _diskK(halfDiagonalM * scale, r);
+      final k = _diskK(halfDiagonalM, r);
       _gridCover[r] = (lat: center.latitude, lng: center.longitude, radiusM: 1.5 * k * _kH3EdgeM[r]!);
       bands.add((r, k));
     }
@@ -1151,6 +1138,45 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> with WidgetsBindin
     _scheduleGridRefresh();
   }
 
+  /// Outlines personal cells that were not in the previous tile list for
+  /// [_kNewCellGlow], then clears them.
+  void _outlineNewCells() {
+    final ctrl = _ctrl;
+    if (ctrl == null) return;
+    final personal = [
+      for (final t in widget.tiles)
+        if (!t.isGlobal && t.boundary != null && t.boundary!.isNotEmpty) t,
+    ];
+    final known = _knownCellIds;
+    _knownCellIds = {for (final t in personal) t.h3Index};
+    if (known == null) return;
+    final fresh = [for (final t in personal) if (!known.contains(t.h3Index)) t];
+    if (fresh.isEmpty) return;
+    ctrl.setGeoJsonSource(_kSourceNewCells, {
+      'type': 'FeatureCollection',
+      'features': [
+        for (final t in fresh)
+          {
+            'type': 'Feature',
+            'properties': <String, dynamic>{},
+            'geometry': {
+              'type': 'Polygon',
+              'coordinates': [
+                [
+                  for (final p in t.boundary!) [p.longitude, p.latitude],
+                  [t.boundary!.first.longitude, t.boundary!.first.latitude],
+                ],
+              ],
+            },
+          },
+      ],
+    });
+    _newCellTimer?.cancel();
+    _newCellTimer = Timer(_kNewCellGlow, () {
+      if (mounted && _styleLoaded) _ctrl?.setGeoJsonSource(_kSourceNewCells, _kEmptyFC);
+    });
+  }
+
   void _scheduleGridRefresh() {
     _gridTimer?.cancel();
     _gridTimer = Timer(_kGridDebounce, _refreshGrid);
@@ -1184,42 +1210,17 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> with WidgetsBindin
     });
   }
 
+  /// Tap and hold give the same answer (same gesture, same kind of result):
+  /// what is known about the cell under the finger at the scale drawn.
+  /// Zooming stays on pinch and double-tap.
   void _onMapTap(Point<double> point, LatLng coords) async {
     // Suppress tap if it follows a long press — MapLibre fires onMapClick when
     // the finger lifts after a long press, which would open a duplicate sheet.
     if (DateTime.now().millisecondsSinceEpoch - _lastLongPressMs < 600) return;
-    final tile = await _hitTestTile(point);
-    if (tile != null) {
-      _dismissMapHint();
-      widget.onTileTap?.call(tile);
-      return;
-    }
-    // An aggregated hexagon stands for several finer tiles: zoom into it, the
-    // way Helium and WeatherXM expand a cluster, until the tiles are tappable.
-    final parent = await _hitTestParent(point);
-    final ctrl = _ctrl;
-    if (parent == null || ctrl == null) return;
-    final res = _h3.getResolution(parent);
-    final finer = _kBandRes.contains(res + 1) ? _bandRanges[res + 1] : null;
-    final c = _h3.cellToGeo(parent);
-    await ctrl.animateCamera(CameraUpdate.newLatLngZoom(
-      LatLng(c.lat, c.lon),
-      finer != null ? finer.from + 0.6 : 14.0,
-    ));
-  }
-
-  /// H3 index of an aggregated parent hexagon at [point], if any.
-  Future<BigInt?> _hitTestParent(Point<double> point) async {
-    final ctrl = _ctrl;
-    if (ctrl == null) return null;
-    final features = await ctrl.queryRenderedFeatures(
-        point, [for (final r in _kDataBands) _tileFillLayer(r)], null);
-    for (final f in features) {
-      final props = (f as Map<Object?, Object?>?)?['properties'] as Map<Object?, Object?>?;
-      final p = props?['parent'] as String?;
-      if (p != null && p.isNotEmpty) return BigInt.tryParse(p, radix: 16);
-    }
-    return null;
+    final tile = await _cellInfoAt(point, coords);
+    if (tile == null) return;
+    _dismissMapHint();
+    widget.onTileTap?.call(tile);
   }
 
   void _dismissMapHint() {
@@ -1230,12 +1231,99 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> with WidgetsBindin
 
   void _onMapLongPress(Point<double> point, LatLng coords) async {
     _lastLongPressMs = DateTime.now().millisecondsSinceEpoch;
-    final tile = await _hitTestTile(point);
-    if (tile != null) {
-      _dismissMapHint();
-      HapticFeedback.mediumImpact();
-      (widget.onTileLongPress ?? widget.onTileTap)?.call(tile);
+    final tile = await _cellInfoAt(point, coords);
+    if (tile == null) return;
+    _dismissMapHint();
+    HapticFeedback.mediumImpact();
+    (widget.onTileLongPress ?? widget.onTileTap)?.call(tile);
+  }
+
+  /// The mapped cell under [point] at the band drawn now: the tile itself at
+  /// the finest band, otherwise a summary of the cells it contains, so
+  /// information is reachable at every zoom.
+  Future<H3Tile?> _cellInfoAt(Point<double> point, LatLng coords) async {
+    final ctrl = _ctrl;
+    if (ctrl == null) return null;
+    final camera = await ctrl.queryCameraPosition();
+    final res = camera == null ? _kBandRes.first : _bandResAt(camera.zoom);
+    if (res >= _kBandRes.first) return _hitTestTile(point);
+    return _aggregateCell(
+        _h3.geoToCell(h3f.GeoCoord(lat: coords.latitude, lon: coords.longitude), res), res);
+  }
+
+  /// Resolution of the band drawn at [zoom].
+  int _bandResAt(double zoom) {
+    for (final r in _kBandRes) {
+      final range = _bandRanges[r];
+      if (range != null && zoom >= range.from && zoom < range.to) return r;
     }
+    return _kBandRes.first;
+  }
+
+  /// Summary of every mapped cell inside [cell]: counts summed, sensor means
+  /// weighted by sample count (as the backend weights personal tiles) so a
+  /// sparse cell does not dilute a dense one. Community tiles already covered
+  /// by the user's own cells are skipped, as on the map, to avoid counting the
+  /// user's readings twice. Null when nothing was mapped there.
+  H3Tile? _aggregateCell(BigInt cell, int res) {
+    BigInt? within(H3Tile t) {
+      final idx = BigInt.tryParse(t.h3Index, radix: 16);
+      if (idx == null) return null;
+      final r = _h3.getResolution(idx);
+      if (r < res) return null;
+      return (r == res ? idx : _h3.cellToParent(idx, res)) == cell ? idx : null;
+    }
+
+    final personal = <H3Tile>[];
+    final personalRes8 = <BigInt>{};
+    for (final t in widget.tiles) {
+      if (t.isGlobal) continue;
+      final idx = within(t);
+      if (idx == null) continue;
+      personal.add(t);
+      if (_h3.getResolution(idx) >= 8) personalRes8.add(_h3.cellToParent(idx, 8));
+    }
+    final children = [
+      ...personal,
+      for (final t in widget.tiles)
+        if (t.isGlobal && within(t) != null && !personalRes8.contains(within(t))) t,
+    ];
+    if (children.isEmpty) return null;
+
+    double? mean(num? Function(H3Tile) value) {
+      var sum = 0.0, weight = 0.0;
+      for (final t in children) {
+        final v = value(t);
+        if (v == null) continue;
+        final w = max(t.sampleCount, 1).toDouble();
+        sum += v * w;
+        weight += w;
+      }
+      return weight == 0 ? null : sum / weight;
+    }
+
+    final centre = _h3.cellToGeo(cell);
+    final lux = mean((t) => t.avgLux);
+    return H3Tile(
+      h3Index: cell.toRadixString(16),
+      confidence: mean((t) => t.confidence) ?? 0,
+      qualityScore: mean((t) => t.qualityScore),
+      sampleCount: children.fold(0, (s, t) => s + t.sampleCount),
+      deviceCount: children.fold(0, (m, t) => max(m, t.deviceCount)),
+      boundary: [for (final c in _h3.cellToBoundary(cell)) ll.LatLng(c.lat, c.lon)],
+      lastUpdate: children
+          .map((t) => t.lastUpdate)
+          .whereType<DateTime>()
+          .fold<DateTime?>(null, (a, b) => a == null || b.isAfter(a) ? b : a),
+      centroid: ll.LatLng(centre.lat, centre.lon),
+      isGlobal: personal.isEmpty,
+      avgLux: lux?.round(),
+      avgHpa: mean((t) => t.avgHpa),
+      avgMovement: mean((t) => t.avgMovement),
+      avgVibration: mean((t) => t.avgVibration),
+      qualityRatio: mean((t) => t.qualityRatio),
+      placeCount: children.length,
+    );
   }
 
   /// Hit-test the tile fill layer at [point] and return the matching [H3Tile].
@@ -1302,6 +1390,7 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> with WidgetsBindin
     if (tilesChanged || locationChanged || liveChanged) {
       _refreshAllSources();
     }
+    if (!identical(oldWidget.tiles, widget.tiles)) _outlineNewCells();
     // Tracking just started → enable follow mode so the map feels alive.
     // Must be deferred — didUpdateWidget runs during build, and setting the
     // ValueNotifier here would trigger markNeedsBuild on another widget mid-frame.
@@ -1348,6 +1437,7 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> with WidgetsBindin
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _gridTimer?.cancel();
+    _newCellTimer?.cancel();
     _haloTimer?.cancel();
     widget.recenterTrigger?.removeListener(_onRecenter);
     super.dispose();
@@ -1582,189 +1672,9 @@ class _MapTapHintState extends State<_MapTapHint> {
 
 // ── Map legend ────────────────────────────────────────────────────────────────
 
-/// Compact inline legend — three quality dots + optional community dot.
-/// Tap to open an explanation sheet.
-class MapHeatmapLegend extends StatelessWidget {
-  const MapHeatmapLegend({super.key, required this.hasCommunityTiles});
-  final bool hasCommunityTiles;
 
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        HapticFeedback.lightImpact();
-        showModalBottomSheet(
-          context: context,
-          backgroundColor: Colors.transparent,
-          builder: (_) => _LegendInfoSheet(hasCommunityTiles: hasCommunityTiles),
-        );
-      },
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(AppTheme.radiusPill),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(
-              sigmaX: AppTheme.glassBlurSigma,
-              sigmaY: AppTheme.glassBlurSigma),
-          child: Container(
-            padding: const EdgeInsets.symmetric(
-                horizontal: AppTheme.spaceXs, vertical: AppTheme.spaceTiny + 1),
-            decoration: AppColors.glassDecoration(
-                isDark: true, backgroundAlpha: 0.50, borderAlpha: 0.12),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _LegendDot(color: AppColors.quality),
-                const SizedBox(width: AppTheme.spaceTiny),
-                _LegendDot(color: AppColors.light),
-                const SizedBox(width: AppTheme.spaceTiny),
-                _LegendDot(color: AppColors.heatmapHot),
-                if (hasCommunityTiles) ...[
-                  Container(
-                      width: AppBorderWidths.hairline + 0.5,
-                      height: AppTheme.spaceXs,
-                      color: AppColors.shadowLight(0.24),
-                      margin: const EdgeInsets.symmetric(horizontal: AppTheme.spaceXs - 2)),
-                  _LegendDot(
-                      color: AppColors.community.withValues(alpha: 0.7)),
-                ],
-                const SizedBox(width: AppTheme.spaceTiny),
-                Icon(Icons.info_outline,
-                    size: AppIconSizes.xxs,
-                    color: AppColors.shadowLight(0.38)),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
 
-class _LegendDot extends StatelessWidget {
-  const _LegendDot({required this.color});
-  final Color color;
 
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: AppTheme.dotSizeLg,
-      height: AppTheme.dotSizeLg,
-      decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-    );
-  }
-}
-
-/// Bottom sheet explaining what the legend colors mean.
-class _LegendInfoSheet extends StatelessWidget {
-  const _LegendInfoSheet({required this.hasCommunityTiles});
-  final bool hasCommunityTiles;
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = context.isDarkMode;
-    final l10n = context.l10n;
-    return Container(
-      margin: const EdgeInsets.symmetric(
-          horizontal: AppTheme.spaceMd, vertical: AppTheme.spaceSm),
-      decoration: BoxDecoration(
-        color: AppColors.surface(isDark),
-        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
-        border: Border.all(color: AppColors.border(isDark)),
-      ),
-      child: SafeArea(
-        top: false,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            AppTheme.dragHandle(isDark),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(
-                  AppTheme.spaceMd, 0, AppTheme.spaceMd, AppTheme.spaceSm),
-              child: Text(l10n.infoTileQualityTitle,
-                  style: TextStyle(
-                    fontSize: AppTheme.fontSizeMd,
-                    fontWeight: AppFontWeights.semibold,
-                    color: AppColors.textPrimary(isDark),
-                    letterSpacing: -0.2,
-                  )),
-            ),
-            _LegendRow(
-                color: AppColors.quality,
-                label: l10n.legendHighLabel,
-                sub: l10n.legendHighSub,
-                isDark: isDark),
-            _LegendRow(
-                color: AppColors.light,
-                label: l10n.legendMidLabel,
-                sub: l10n.legendMidSub,
-                isDark: isDark),
-            _LegendRow(
-                color: AppColors.heatmapHot,
-                label: l10n.legendLowLabel,
-                sub: l10n.legendLowSub,
-                isDark: isDark),
-            if (hasCommunityTiles)
-              _LegendRow(
-                  color: AppColors.community.withValues(alpha: 0.8),
-                  label: l10n.tileInfoCommunity,
-                  sub: l10n.legendCommunitySub,
-                  isDark: isDark),
-            const SizedBox(height: AppTheme.spaceMd),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _LegendRow extends StatelessWidget {
-  const _LegendRow(
-      {required this.color,
-      required this.label,
-      required this.sub,
-      required this.isDark});
-  final Color color;
-  final String label;
-  final String sub;
-  final bool isDark;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(
-          AppTheme.spaceMd, 0, AppTheme.spaceMd, AppTheme.spaceSm),
-      child: Row(
-        children: [
-          Container(
-            width: AppTheme.spaceXs + 2,
-            height: AppTheme.spaceXs + 2,
-            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-          ),
-          const SizedBox(width: AppTheme.spaceSm),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(label,
-                    maxLines: 1, overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                        fontSize: AppTheme.fontSizeSm,
-                        fontWeight: AppFontWeights.semibold,
-                        color: AppColors.textPrimary(isDark))),
-                Text(sub,
-                    maxLines: 2, overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                        fontSize: AppTheme.fontSizeXs,
-                        color: AppColors.textSecondary(isDark))),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
 
 // ── Tile info bottom sheet ────────────────────────────────────────────────────
 
@@ -1783,26 +1693,6 @@ class TileInfoSheet extends StatefulWidget {
 }
 
 class _TileInfoSheetState extends State<TileInfoSheet> {
-  DateTime? _firstMappedAt;
-
-  @override
-  void initState() {
-    super.initState();
-    if (!widget.tile.isGlobal && widget.tile.centroid != null) {
-      _loadFirstMappedDate();
-    }
-  }
-
-  Future<void> _loadFirstMappedDate() async {
-    final centroid = widget.tile.centroid!;
-    // Compute 7-char geohash from centroid to query local DB
-    final geohash = GeoHasher().encode(centroid.longitude, centroid.latitude, precision: 7);
-    final date = await DatabaseHelper.instance.getFirstContributionNearGeohash(geohash);
-    if (mounted && date != null) {
-      setState(() => _firstMappedAt = date);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final isPersonal = !widget.tile.isGlobal;
@@ -1814,7 +1704,6 @@ class _TileInfoSheetState extends State<TileInfoSheet> {
         ? DateTime.now().difference(tile.lastUpdate!).inDays
         : null;
     final isStaling = ageDays != null && ageDays > 21;
-    final isAging  = ageDays != null && ageDays > 7 && !isStaling;
 
     // Priority: personal quality ratio (weighted composite) > global quality score > confidence
     final qualityPct = tile.qualityRatio != null
@@ -1875,27 +1764,23 @@ class _TileInfoSheetState extends State<TileInfoSheet> {
                               letterSpacing: -0.2,
                             ),
                           ),
-                          if (isPersonal && _firstMappedAt != null) ...[
+                          // Freshness, not a first-mapped date: how recent the
+                          // readings are is what tells how far to trust them.
+                          if (tile.lastUpdate != null) ...[
                             const SizedBox(height: AppTheme.spaceXxxs),
-                            Text(
-                              l10n.tileFirstMapped(DateFormat('MMM d, yyyy', Localizations.localeOf(context).toString()).format(_firstMappedAt!)),
-                              style: TextStyle(
-                                fontSize: AppTheme.fontSizeBody,
-                                color: AppColors.primary.withValues(alpha: 0.85),
-                                fontWeight: AppFontWeights.medium,
-                              ),
-                            ),
-                          ] else if (tile.lastUpdate != null) ...[
-                            const SizedBox(height: AppTheme.spaceXxxs),
-                            _TimeAgoLine(timestamp: tile.lastUpdate!, isDark: isDark),
+                            _TimeAgoLine(timestamp: tile.lastUpdate!, isDark: isDark, stale: isStaling),
                           ],
                           // Who and how much is behind this cell (WeatherXM's cell
                           // screen lists its stations the same way).
                           const SizedBox(height: AppTheme.spaceXxs),
+                          // A summarised cell names its place count instead: the
+                          // distinct contributors across places are not known.
                           Text(
-                            isPersonal && tile.deviceCount <= 1
-                                ? '${l10n.tileOnlyYouMapped} · ${l10n.tileMeasurements(tile.sampleCount)}'
-                                : '${l10n.tileContributors(tile.deviceCount)} · ${l10n.tileMeasurements(tile.sampleCount)}',
+                            tile.placeCount != null
+                                ? '${l10n.statsTerritoryZones(tile.placeCount!)} · ${l10n.tileMeasurements(tile.sampleCount)}'
+                                : isPersonal && tile.deviceCount <= 1
+                                    ? '${l10n.tileOnlyYouMapped} · ${l10n.tileMeasurements(tile.sampleCount)}'
+                                    : '${l10n.tileContributors(tile.deviceCount)} · ${l10n.tileMeasurements(tile.sampleCount)}',
                             style: TextStyle(
                               fontSize: AppTheme.fontSizeXs,
                               color: AppColors.textSecondary(isDark),
@@ -1980,40 +1865,21 @@ class _TileInfoSheetState extends State<TileInfoSheet> {
                         ),
                       ),
                     ),
-                    if (isStaling) ...[
-                      const SizedBox(height: AppTheme.spaceXs),
-                      Text(
-                        l10n.tileDecayWarning(ageDays),
-                        style: TextStyle(
-                          fontSize: AppTheme.fontSizeXs,
-                          color: AppColors.warning,
-                          fontWeight: AppFontWeights.medium,
-                        ),
-                      ),
-                    ] else if (isAging) ...[
-                      const SizedBox(height: AppTheme.spaceXs),
-                      Text(
-                        l10n.tileDecayHint(ageDays),
-                        style: TextStyle(
-                          fontSize: AppTheme.fontSizeXs,
-                          color: AppColors.textTertiary(isDark),
-                        ),
-                      ),
-                    ],
                   ],
                 ),
               ),
               // Sensor cards — data-driven, handles 1–N sensors gracefully
               Builder(builder: (context) {
-                final cards = <({IconData icon, Color color, String title, String label, String raw})>[
+                // Only what a place-level average can honestly say. Absolute
+                // pressure per cell depends on altitude and each phone's offset,
+                // and at ~5 Hz the vibration score repeats the movement one, so
+                // neither is shown (tmp/papers/reports/Capteurs telephone mesure
+                // environnement.md).
+                final cards = <({IconData icon, Color color, String label})>[
                   if (tile.avgLux != null)
-                    (icon: Icons.light_mode_rounded, color: AppColors.light, title: l10n.sensorLight, label: _luxContext(tile.avgLux!, l10n), raw: '${tile.avgLux} ${l10n.sensorUnitLux}'),
-                  if (tile.avgHpa != null)
-                    (icon: Icons.compress_rounded, color: AppColors.pressure, title: l10n.sensorAirPressure, label: _hpaContext(tile.avgHpa!, l10n), raw: '${tile.avgHpa!.toStringAsFixed(0)} ${l10n.sensorUnitHpa}'),
+                    (icon: Icons.light_mode_rounded, color: AppColors.light, label: _luxContext(tile.avgLux!, l10n)),
                   if (tile.avgMovement != null)
-                    (icon: Icons.directions_walk_rounded, color: AppColors.movement, title: l10n.sensorMovement, label: _movementContext(tile.avgMovement!, l10n), raw: '${tile.avgMovement!.toStringAsFixed(1)} ${l10n.sensorUnitMovement}'),
-                  if (tile.avgVibration != null)
-                    (icon: Icons.vibration_rounded, color: AppColors.movement.withValues(alpha: 0.75), title: l10n.sensorAcceleration, label: _vibrationContext(tile.avgVibration!, l10n), raw: '${(tile.avgVibration! * 100).round()}${l10n.sensorUnitVibration}'),
+                    (icon: Icons.directions_walk_rounded, color: AppColors.movement, label: _movementContext(tile.avgMovement!, l10n)),
                 ];
                 if (cards.isEmpty) {
                   return Column(
@@ -2056,9 +1922,7 @@ class _TileInfoSheetState extends State<TileInfoSheet> {
                               child: _SensorCard(
                                 icon: cards[i].icon,
                                 color: cards[i].color,
-                                title: cards[i].title,
                                 label: cards[i].label,
-                                rawValue: cards[i].raw,
                                 isDark: isDark,
                               ),
                             ),
@@ -2069,103 +1933,9 @@ class _TileInfoSheetState extends State<TileInfoSheet> {
                   ],
                 );
               }),
-              // Compact condition line — what is this place normally like
-              Builder(builder: (context) {
-                final isNight = DateTime.now().hour < 6 || DateTime.now().hour >= 20;
-                final conditionLine = SensorInsights.tileConditionLine(
-                  l10n,
-                  isNight: isNight,
-                  avgLux: tile.avgLux?.toDouble(),
-                  avgMovement: tile.avgMovement,
-                  avgVibration: tile.avgVibration,
-                );
-                return Padding(
-                  padding: const EdgeInsets.fromLTRB(
-                      AppTheme.spaceMd, 0, AppTheme.spaceMd, AppTheme.spaceMd),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Icon(Icons.eco_rounded,
-                          size: AppIconSizes.xs, color: AppColors.primary.withValues(alpha: 0.7)),
-                      const SizedBox(width: AppTheme.spaceXs),
-                      Expanded(
-                        child: Text(
-                          conditionLine,
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: AppColors.textSecondary(isDark),
-                            height: AppLineHeights.normal,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              }),
-              // Divider
-              Divider(height: 1, thickness: 1, color: AppColors.border(isDark)),
-              // Stats row
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: AppTheme.spaceMd, vertical: AppTheme.spaceMd),
-                child: Row(
-                  children: [
-                    _StatItem(
-                      icon: Icons.dataset_outlined,
-                      value: _formatCount(tile.sampleCount),
-                      label: l10n.tileInfoSamplesLabel,
-                      isDark: isDark,
-                    ),
-                    _VerticalDivider(isDark: isDark),
-                    _StatItem(
-                      icon: Icons.devices_outlined,
-                      value: '${tile.deviceCount}',
-                      label: l10n.tileInfoDevicesLabel,
-                      isDark: isDark,
-                    ),
-                    if (isPersonal) ...[
-                      _VerticalDivider(isDark: isDark),
-                      _StatItem(
-                        icon: Icons.place_outlined,
-                        value: '~${_areaMDisplay(tile)}',
-                        label: l10n.tileInfoAreaLabel,
-                        isDark: isDark,
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-
-              // Community tile: subtle claim CTA
-              if (!isPersonal) ...[
-                Divider(height: 1, thickness: 1, color: AppColors.border(isDark)),
-                InkWell(
-                  onTap: () {
-                    Navigator.of(context).pop();
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: AppTheme.spaceMd, vertical: AppTheme.spaceMd),
-                    child: Row(
-                      children: [
-                        Icon(Icons.add_location_alt_outlined,
-                            size: AppIconSizes.xs, color: AppColors.primary),
-                        const SizedBox(width: AppTheme.spaceXs),
-                        Expanded(
-                          child: Text(
-                            l10n.tileCommunityClaimCta,
-                            style: TextStyle(
-                              fontSize: AppTheme.fontSizeBody,
-                              color: AppColors.primary,
-                              fontWeight: AppFontWeights.medium,
-                            ),
-                          ),
-                        ),
-                        Icon(Icons.chevron_right, size: AppIconSizes.xs, color: AppColors.primary),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
+              // No separate condition-line sentence: the sensor cards above
+              // already say the same thing (e.g. "Dark" for light) — one
+              // representation per fact, not a prose restatement of it.
             ],
           ),
         ),
@@ -2173,13 +1943,7 @@ class _TileInfoSheetState extends State<TileInfoSheet> {
     );
   }
 
-  static String _formatCount(int n) {
-    if (n >= 1000) return '${(n / 1000).toStringAsFixed(1)}k';
-    return '$n';
-  }
 
-  /// H3 res 9 cell area — fixed ≈ 0.1 km² per cell.
-  static String _areaMDisplay(H3Tile tile) => '0.1 km²';
 
   static String _luxContext(int lux, AppLocalizations l10n) {
     if (lux < 50) return l10n.sensorLuxDark;
@@ -2188,11 +1952,6 @@ class _TileInfoSheetState extends State<TileInfoSheet> {
     return l10n.sensorLuxDirect;
   }
 
-  static String _hpaContext(double hpa, AppLocalizations l10n) {
-    if (hpa > 1010) return l10n.sensorHpaLow;
-    if (hpa > 990) return l10n.sensorHpaMid;
-    return l10n.sensorHpaHigh;
-  }
 
   static String _movementContext(double rms, AppLocalizations l10n) {
     if (rms < 0.5) return l10n.sensorMovementLow;
@@ -2201,142 +1960,64 @@ class _TileInfoSheetState extends State<TileInfoSheet> {
     return l10n.sensorMovementIntense;
   }
 
-  // vibration: normalized 0–1 (accel std-dev / 5 m/s²)
-  static String _vibrationContext(double v, AppLocalizations l10n) {
-    if (v < 0.15) return l10n.tileVibrationCalm;
-    if (v < 0.40) return l10n.tileVibrationLight;
-    if (v < 0.70) return l10n.tileVibrationActive;
-    return l10n.tileVibrationHeavy;
-  }
 }
 
-class _StatItem extends StatelessWidget {
-  const _StatItem({
-    required this.icon,
-    required this.value,
-    required this.label,
-    required this.isDark,
-  });
-  final IconData icon;
-  final String value;
-  final String label;
-  final bool isDark;
 
-  @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: AppIconSizes.xs, color: AppColors.textSecondary(isDark)),
-          const SizedBox(height: AppTheme.spaceTiny),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: AppTheme.fontSizeSm,
-              color: AppColors.textPrimary(isDark),
-              fontWeight: AppFontWeights.semibold,
-              letterSpacing: -0.3,
-            ),
-          ),
-          const SizedBox(height: AppTheme.spaceXxxs),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: AppTheme.fontSizeXs,
-              color: AppColors.textSecondary(isDark),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _VerticalDivider extends StatelessWidget {
-  const _VerticalDivider({required this.isDark});
-  final bool isDark;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: AppBorderWidths.thin,
-      height: AppTheme.iconBoxSm,
-      color: AppColors.border(isDark),
-    );
-  }
-}
 
 /// "Last seen X ago" line — uses TimeAgoText for locale-aware, live-updating relative time.
 class _TimeAgoLine extends StatelessWidget {
-  const _TimeAgoLine({required this.timestamp, required this.isDark});
+  const _TimeAgoLine({required this.timestamp, required this.isDark, this.stale = false});
   final DateTime timestamp;
   final bool isDark;
+  /// Old enough that the readings may no longer describe the place.
+  final bool stale;
 
   @override
   Widget build(BuildContext context) {
+    final color = stale ? AppColors.warning : AppColors.textSecondary(isDark);
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(Icons.schedule, size: AppIconSizes.xxs, color: AppColors.textSecondary(isDark)),
+        Icon(Icons.schedule, size: AppIconSizes.xxs, color: color),
         const SizedBox(width: AppTheme.spaceTiny),
         TimeAgoText(
           timestamp: timestamp,
-          style: TextStyle(
-            fontSize: AppTheme.fontSizeXs,
-            color: AppColors.textSecondary(isDark),
-          ),
+          style: TextStyle(fontSize: AppTheme.fontSizeXs, color: color),
         ),
       ],
     );
   }
 }
 
-/// Tiny sensor icon pill used in TileInfoSheet to show which sensors contributed.
-/// One sensor insight row: plain label PRIMARY · raw value small/secondary.
+/// Tiny sensor card in TileInfoSheet: icon (colour identifies the sensor,
+/// same colour used everywhere else in the app) + one plain-language line.
 class _SensorCard extends StatelessWidget {
   const _SensorCard({
     required this.icon,
     required this.color,
     required this.label,
     required this.isDark,
-    this.title,
-    this.rawValue,
   });
   final IconData icon;
   final Color color;
   final String label;
   final bool isDark;
-  final String? title;
-  final String? rawValue;
 
   @override
+  // No tinted box per reading: spacing alone groups the row (Han, Humphreys
+  // & Chen 1999), and extra containers lower apparent usability (Tractinsky 1997).
   Widget build(BuildContext context) {
-    return Container(
+    return Padding(
       padding: const EdgeInsets.symmetric(vertical: AppTheme.spaceSm, horizontal: AppTheme.spaceXs),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.10),
-        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-      ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(icon, size: AppIconSizes.sm, color: color),
-          if (title != null) ...[
-            const SizedBox(height: AppTheme.spaceTiny),
-            Text(
-              title!.toUpperCase(),
-              textAlign: TextAlign.center,
-              maxLines: 1, overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontSize: AppTheme.fontSizeXxs,
-                color: color.withValues(alpha: 0.75),
-                fontWeight: AppFontWeights.semibold,
-                letterSpacing: 0.6,
-              ),
-            ),
-          ],
           const SizedBox(height: AppTheme.spaceTiny),
+          // One line, the plain-language state (e.g. "Dark") — the icon's
+          // colour already identifies which sensor, matching that colour
+          // everywhere else in the app (map layer picker, Settings). No caps
+          // title, no raw unit value: one fact, one line.
           Text(
             label,
             textAlign: TextAlign.center,
@@ -2349,19 +2030,6 @@ class _SensorCard extends StatelessWidget {
               height: AppLineHeights.snug,
             ),
           ),
-          if (rawValue != null) ...[
-            const SizedBox(height: AppTheme.spaceXxxs),
-            Text(
-              rawValue!,
-              textAlign: TextAlign.center,
-              maxLines: 1, overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontSize: AppTheme.fontSizeXxs,
-                color: AppColors.textTertiary(isDark),
-                height: AppLineHeights.snug,
-              ),
-            ),
-          ],
         ],
       ),
     );

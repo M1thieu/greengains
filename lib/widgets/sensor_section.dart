@@ -59,12 +59,6 @@ class _SensorSectionState extends State<SensorSection> {
     return l10n.magnetHighNearMetal;
   }
 
-  String _getMagneticHint(double microtesla, AppLocalizations l10n) {
-    if (microtesla < 25) return l10n.magnetVeryLowHint;
-    if (microtesla < 65) return l10n.magnetNormalHint;
-    if (microtesla < 100) return l10n.magnetElevatedHint;
-    return l10n.magnetHighHint;
-  }
 
   String _getAccelDescription(double ms2, AppLocalizations l10n) {
     if (ms2 < 0.5)  return l10n.sensorAccelStill;
@@ -73,12 +67,6 @@ class _SensorSectionState extends State<SensorSection> {
     return l10n.sensorAccelHeavy;
   }
 
-  String _getMovementHint(double rms, AppLocalizations l10n) {
-    if (rms < 0.5) return l10n.sensorMovementLowHint;
-    if (rms < 2.0) return l10n.sensorMovementMidHint;
-    if (rms < 5.0) return l10n.sensorMovementHighHint;
-    return l10n.sensorMovementIntenseHint;
-  }
 
   String _getGyroDescription(double rads, AppLocalizations l10n) {
     if (rads < 0.2) return l10n.sensorGyroStill;
@@ -86,17 +74,7 @@ class _SensorSectionState extends State<SensorSection> {
     return l10n.sensorGyroFast;
   }
 
-  String _getPressureDescription(double hpa, AppLocalizations l10n) {
-    if (hpa > 1010) return l10n.sensorHpaLow;
-    if (hpa > 1000) return l10n.sensorHpaMid;
-    return l10n.sensorHpaHigh;
-  }
 
-  String _getPressureHint(double hpa, AppLocalizations l10n) {
-    if (hpa > 1010) return l10n.sensorHpaLowHint;
-    if (hpa > 1000) return l10n.sensorHpaMidHint;
-    return l10n.sensorHpaHighHint;
-  }
 
   String _sensorStatus({
     required bool isLive,
@@ -201,7 +179,6 @@ class _SensorSectionState extends State<SensorSection> {
                 title: l10n.sensorMagneticField,
                 value: mag != null ? _getMagneticDescription(mag.magnitude, l10n) : null,
                 rawValue: mag != null ? '${mag.magnitude.toStringAsFixed(1)} µT' : null,
-                hint: mag != null ? _getMagneticHint(mag.magnitude, l10n) : null,
                 unit: '',
                 enabled: isLive,
                 statusLabel: _sensorStatus(isLive: isLive, isPaused: isPaused, hasData: mag != null, l10n: l10n),
@@ -231,7 +208,6 @@ class _SensorSectionState extends State<SensorSection> {
                 title: l10n.sensorAcceleration,
                 value: accel != null ? _getAccelDescription(accel.magnitude, l10n) : null,
                 rawValue: accel != null ? '${accel.magnitude.toStringAsFixed(1)} m/s²' : null,
-                hint: accel != null ? _getMovementHint(accel.magnitude, l10n) : null,
                 unit: '',
                 enabled: isLive,
                 statusLabel: _sensorStatus(isLive: isLive, isPaused: isPaused, hasData: accel != null, l10n: l10n),
@@ -279,9 +255,9 @@ class _SensorSectionState extends State<SensorSection> {
               return SensorDataCard(
                 icon: Icons.compress,
                 title: l10n.sensorAirPressure,
-                value: data != null ? _getPressureDescription(data.hPa, l10n) : null,
-                rawValue: data != null ? '${data.hPa.toStringAsFixed(1)} hPa' : null,
-                hint: data != null ? _getPressureHint(data.hPa, l10n) : null,
+                // Raw value only: absolute pressure depends on altitude and on each
+                // phone's offset (1-2 hPa), so no weather reading is drawn from it.
+                value: data != null ? '${data.hPa.toStringAsFixed(1)} hPa' : null,
                 unit: '',
                 enabled: isLive,
                 statusLabel: _sensorStatus(isLive: isLive, isPaused: isPaused, hasData: data != null, l10n: l10n),

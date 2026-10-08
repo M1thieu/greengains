@@ -30,6 +30,10 @@ class H3Tile {
   /// Only populated for personal tiles; global tiles use qualityScore instead.
   final double? qualityRatio;
 
+  /// Set when this tile summarises a coarser cell: how many mapped cells it
+  /// contains. Null for a single mapped cell.
+  final int? placeCount;
+
   const H3Tile({
     required this.h3Index,
     required this.confidence,
@@ -45,6 +49,7 @@ class H3Tile {
     this.avgMovement,
     this.avgVibration,
     this.qualityRatio,
+    this.placeCount,
   });
 
   /// Parses a tile from the backend API JSON.

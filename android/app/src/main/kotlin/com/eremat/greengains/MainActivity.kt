@@ -149,6 +149,20 @@ class MainActivity : FlutterActivity() {
                         // Flush FIFO buffers to get fresh data in UI
                         result.success(sendServiceAction(ForegroundService.ACTION_FLUSH_FIFO))
                     }
+                    "getSensorCapabilities" -> {
+                        // Which sensors this phone has, so the UI only lists those.
+                        val sm = getSystemService(Context.SENSOR_SERVICE) as android.hardware.SensorManager
+                        fun has(type: Int) = sm.getDefaultSensor(type) != null
+                        result.success(mapOf(
+                            "light" to has(android.hardware.Sensor.TYPE_LIGHT),
+                            "pressure" to has(android.hardware.Sensor.TYPE_PRESSURE),
+                            "motion" to has(android.hardware.Sensor.TYPE_ACCELEROMETER),
+                            "magnetic" to has(android.hardware.Sensor.TYPE_MAGNETIC_FIELD),
+                            "temperature" to has(android.hardware.Sensor.TYPE_AMBIENT_TEMPERATURE),
+                            "humidity" to has(android.hardware.Sensor.TYPE_RELATIVE_HUMIDITY),
+                            "wifi" to packageManager.hasSystemFeature(PackageManager.FEATURE_WIFI),
+                        ))
+                    }
                     else -> result.notImplemented()
                 }
             }

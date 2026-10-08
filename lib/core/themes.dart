@@ -38,8 +38,10 @@ class AppColors {
   static const Color darkSurfaceActive = Color(0xFF2C3A52);    // pressed state
 
   static const Color darkTextPrimary = Color(0xFFF0F0F0);      // near-white
-  static const Color darkTextSecondary = Color(0xFFA0A0A0);    // readable mid-gray
-  static const Color darkTextTertiary = Color(0xFF8E8E8E);     // hints/placeholders — 4.5:1 on darkSurface
+  // Outdoor floors from Chen et al. 2018 (4.4% screen reflectance, 1,000 nit,
+  // 10,000 lx): #C6C6C6 keeps ~4.5:1 and #9C9C9C ~3:1; #A0A0A0 fell to 3.1:1.
+  static const Color darkTextSecondary = Color(0xFFC6C6C6);
+  static const Color darkTextTertiary = Color(0xFF9C9C9C);     // non-essential hints only
   static const Color darkBorder = Color(0xFF525252);           // clearly visible (82, +44 from surface)
   static const Color darkDivider = Color(0xFF3A3A3A);          // separator (58)
 
@@ -80,6 +82,10 @@ class AppColors {
   static const Color tileLowCoverage = Color(0xFF81C784); // Light green (1-2 visits)
   static const Color tileMediumCoverage = Color(0xFF66BB6A); // Medium green (3-5 visits)
   static const Color tileHighCoverage = Color(0xFF4CAF50); // Dark green (6+ visits)
+
+  // Streak flame accent (Orange-500) — coincides with the movement sensor hue
+  // but is a separate constant so the two don't drift together by accident.
+  static const Color streakFlame = Color(0xFFF97316);
 
   // Achievement/reward tier colors
   static const Color tierBronze = Color(0xFFCD7F32);
@@ -171,7 +177,13 @@ class AppColors {
   // Sensor data visualization colors (used in charts, map tiles, sensor cards)
   static const Color light     = Color(0xFFFBBF24); // Amber-400   — light sensor (sun = yellow)
   static const Color movement  = Color(0xFFF97316); // Orange-500  — movement/accel (heat/activity)
-  static const Color pressure  = Color(0xFF818CF8); // Indigo-400  — air pressure (meteorology conv.)
+  // Cyan-400 (Tailwind, oklch(78.9% 0.154 211.53) -> #00D3F2), not the former
+  // indigo: this app is read outdoors. Industrial/sunlight-UI guidance names
+  // yellow, green and cyan as the highest-luminance hues on LCDs and explicitly
+  // warns against blue on a black/near-black surface (reflections, glare) —
+  // light and quality already sit in that same high-luminance set.
+  // Contrast vs darkBackground #111927: 9.73:1 (was 5.91:1 for indigo), AAA.
+  static const Color pressure  = Color(0xFF00D3F2); // Cyan-400 — air pressure
   static const Color quality   = Color(0xFF10B981); // Emerald-500 — data quality / air (AQI green)
   static const Color community = Color(0xFF6366F1); // Indigo-500  — community/global tiles
 
@@ -179,7 +191,7 @@ class AppColors {
   // MapLibre layer paint properties require '#rrggbb' strings, not Color objects.
   static const String lightHex     = '#fbbf24';
   static const String movementHex  = '#f97316';
-  static const String pressureHex  = '#818cf8';
+  static const String pressureHex  = '#00d3f2';
   static const String qualityHex   = '#10b981';
   static const String communityHex = '#6366f1';
   static const String primaryHex   = '#10b981';
@@ -423,10 +435,13 @@ class AppTheme {
 
   // Touch targets (accessibility)
   static const double minTouchTarget = 48;
+  /// Hit area for controls used one-handed while walking: ~9.2 mm thumb
+  /// targets (Parhi, Karlson & Bederson 2006), 1 dp ≈ 0.16 mm.
+  static const double thumbTarget = 58;
 
   // Floating nav bar
   static const double floatingNavHeight = 64;
-  static const double fontSizeNavLabel  = 10.0; // sub-caption, below bodySmall(12)
+  static const double fontSizeNavLabel  = 12.0; // M3 navigation bar label (labelMedium)
 
   // Typography behaviour
   static const double letterSpacingSubtle  = -0.5; // large titles, section headings
@@ -510,7 +525,7 @@ class AppTheme {
     return theme.textTheme.labelLarge!.copyWith(
       fontWeight: AppFontWeights.semibold,
       letterSpacing: 0.6,
-      color: AppColors.textSecondary(isDark).withValues(alpha: 0.85),
+      color: AppColors.textSecondary(isDark),
     );
   }
 
@@ -592,7 +607,7 @@ class AppTheme {
   /// Label below a big stat number — consistent across all stat cells.
   static TextStyle statLabel(bool isDark) => TextStyle(
         fontSize: fontSizeXs,
-        color: AppColors.textSecondary(isDark).withValues(alpha: 0.75),
+        color: AppColors.textSecondary(isDark),
         fontWeight: AppFontWeights.medium,
         height: AppLineHeights.snug,
       );
@@ -679,7 +694,8 @@ class AppTheme {
       ),
       bodyLarge: body.bodyLarge?.copyWith(fontSize: 16, color: textColor),
       bodyMedium: body.bodyMedium?.copyWith(fontSize: 14, color: textColor), // M3 spec: 14
-      bodySmall: body.bodySmall?.copyWith(fontSize: 12, color: secondary),   // M3 spec: 12
+      // 14 sp: 0.2° x-height (Legge & Bigelow 2011 critical print size) up to ~35 cm.
+      bodySmall: body.bodySmall?.copyWith(fontSize: 14, color: secondary),
       labelLarge: body.labelLarge?.copyWith(fontWeight: AppFontWeights.semibold, color: textColor),
       labelMedium: body.labelMedium?.copyWith(fontWeight: AppFontWeights.medium, color: textColor),
     );

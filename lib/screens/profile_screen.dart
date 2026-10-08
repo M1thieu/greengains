@@ -11,6 +11,7 @@ import '../core/events/app_events.dart';
 import '../core/utils/composite_subscription.dart';
 import '../services/network/backend_client.dart';
 import '../core/constants.dart';
+import '../core/utils/area_format.dart';
 import '../core/themes.dart';
 import '../l10n/app_localizations.dart';
 import '../core/app_preferences.dart';
@@ -488,7 +489,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   /// 3-column impact stats on one neutral card, below the user header.
   Widget _buildImpactRow(ThemeData theme, bool isDark, AppLocalizations l10n) {
     final km2 = _coverageCells != null ? (_coverageCells! * kKm2PerCell) : null;
-    final kmDisplay = (km2 == null || km2 == 0.0) ? '—' : (km2 < 1.0 ? km2.toStringAsFixed(2) : km2.toStringAsFixed(1));
+    final kmDisplay = (km2 == null || km2 == 0.0) ? '—' : formatAreaText(context, km2);
     final tiles = [
       (value: _totalUploads != null ? '$_totalUploads' : '—', label: l10n.statsDataPtsLabel),
       (value: _daysActive != null ? '$_daysActive' : '—', label: l10n.statsDaysActive),
@@ -529,7 +530,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               else { _prevKm2 = numeric; }
             },
             builder: (_, v, __) => Text(
-              i == 2 ? (v < 1.0 ? v.toStringAsFixed(2) : v.toStringAsFixed(1)) : v.round().toString(),
+              i == 2 ? formatAreaText(context, v) : v.round().toString(),
               style: valueStyle,
             ),
           );

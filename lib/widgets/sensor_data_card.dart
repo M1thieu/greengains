@@ -207,7 +207,7 @@ class _SensorDataCardState extends State<SensorDataCard>
                       Text(
                         widget.hint!,
                         style: theme.textTheme.bodySmall?.copyWith(
-                          color: AppColors.textTertiary(isDark).withValues(alpha: 0.75),
+                          color: AppColors.textTertiary(isDark),
                           height: _kSensorUnitLineH,
                           fontStyle: FontStyle.italic,
                         ),
