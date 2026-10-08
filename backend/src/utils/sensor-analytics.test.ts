@@ -44,7 +44,7 @@ const at = (min: number) => new Date(Date.UTC(2026, 9, 5, 12, 0) + min * 60_000)
 const still = { motion_state: 'stationary' };
 const moving = { motion_state: 'active' };
 
-test('QoD jump: a >0.5 hPa jump between two stationary readings is dropped', () => {
+test('QoD jump: a 1.9 hPa jump within one minute between stationary readings is dropped', () => {
   const r = [
     { t: at(0), pressure: 1013.0, quality: still },
     { t: at(1), pressure: 1013.1, quality: still },
@@ -52,6 +52,19 @@ test('QoD jump: a >0.5 hPa jump between two stationary readings is dropped', () 
     { t: at(3), pressure: 1013.2, quality: still },
   ];
   assert.deepEqual(qodPressureSeries(r).map(x => x.pressure), [1013.0, 1013.1, 1013.2]);
+});
+
+test('QoD jump: the bound grows with the gap (slow weather change kept) and is capped at 15 hPa', () => {
+  const slow = [
+    { t: at(0), pressure: 1013.0, quality: still },
+    { t: at(10), pressure: 1014.5, quality: still }, // 1.5 hPa over 10 min, bound 8 hPa
+  ];
+  assert.equal(qodPressureSeries(slow).length, 2);
+  const tooFast = [
+    { t: at(0), pressure: 1013.0, quality: still },
+    { t: at(60), pressure: 1033.0, quality: still }, // 20 hPa in an hour, above the 15 hPa cap
+  ];
+  assert.equal(qodPressureSeries(tooFast).length, 1);
 });
 
 test('QoD jump: the same change while moving is kept (hydrostatic, ~0.12 hPa per metre climbed)', () => {

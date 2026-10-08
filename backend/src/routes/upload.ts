@@ -17,6 +17,7 @@ import {
   Summary,
   qodPressureSeries,
   qodFrozen,
+  lightOccluded,
   QOD_PRESSURE_CONSTANT_MS,
   QOD_LIGHT_CONSTANT_MS,
 } from '../utils/sensor-analytics';
@@ -152,7 +153,7 @@ export function summarizeBatch(readings: SensorReading[], batchAccuracyM?: numbe
   // WeatherXM QoD constancy: non-zero light frozen for 120 min is a stuck sensor.
   const lightRaw = qodFrozen(readings, 'light', QOD_LIGHT_CONSTANT_MS)
     ? []
-    : readings.filter(r => r.light !== undefined).map(r => r.light!);
+    : readings.filter(r => r.light !== undefined && !lightOccluded(r.quality)).map(r => r.light!);
   const lightReadings = filterOutliersMad(lightRaw);
   const lightSummary = lightReadings.length > 0
     ? {

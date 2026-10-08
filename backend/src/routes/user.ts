@@ -7,6 +7,7 @@ import { decodeGeohash } from '../utils/geo';
 import { rowsToCsv } from '../utils/csv';
 import {
   H3_RES_GLOBAL,
+  H3_RES9_AVG_KM2,
   MAX_USER_TILES,
   MAX_GLOBAL_TILES,
   MAX_USER_EXPORT_ROWS,
@@ -681,8 +682,10 @@ export async function userRoutes(fastify: FastifyInstance) {
             last_updated: Date | null;
             total_samples: string;
           }>(
-            `SELECT
-               COUNT(DISTINCT geohash)::text       AS cell_count,
+            // Cells are counted by h3_index (res 9). geohash precision varies
+          // from 4 to 6 with GPS accuracy, so a geohash count has no fixed area.
+          `SELECT
+               COUNT(DISTINCT h3_index)::text      AS cell_count,
                AVG(quality_valid_ratio)::float      AS avg_quality,
                MAX(day)                             AS last_updated,
                SUM(samples_count)::text             AS total_samples
@@ -693,9 +696,9 @@ export async function userRoutes(fastify: FastifyInstance) {
           // Sensor coverage: what fraction of cells have light / pressure data
           pool.query<{ total: string; with_light: string; with_pressure: string }>(
             `SELECT
-               COUNT(DISTINCT geohash)::text                                                         AS total,
-               COUNT(DISTINCT geohash) FILTER (WHERE avg_light IS NOT NULL)::text                    AS with_light,
-               COUNT(DISTINCT geohash) FILTER (WHERE avg_pressure IS NOT NULL AND avg_pressure > 0)::text AS with_pressure
+               COUNT(DISTINCT h3_index)::text                                                         AS total,
+               COUNT(DISTINCT h3_index) FILTER (WHERE avg_light IS NOT NULL)::text                    AS with_light,
+               COUNT(DISTINCT h3_index) FILTER (WHERE avg_pressure IS NOT NULL AND avg_pressure > 0)::text AS with_pressure
              FROM sensor_aggregates_daily
              WHERE day > CURRENT_DATE - ($1 * INTERVAL '1 day')`,
             [windowDays],
@@ -712,7 +715,6 @@ export async function userRoutes(fastify: FastifyInstance) {
         const cov = coverageResult.rows[0];
         const cellCount = parseInt(row?.cell_count ?? '0', 10);
         const totalCells = parseInt(cov?.total ?? '0', 10);
-        const H3_RES9_KM2 = 0.000853; // average area of an H3 res-9 hex in km²
         const lightCoveragePct = totalCells > 0
           ? Math.round((parseInt(cov.with_light, 10) / totalCells) * 100)
           : null;
@@ -721,7 +723,7 @@ export async function userRoutes(fastify: FastifyInstance) {
           : null;
         return reply.send({
           cellCount,
-          coverageKm2: Math.round(cellCount * H3_RES9_KM2 * 10) / 10,
+          coverageKm2: Math.round(cellCount * H3_RES9_AVG_KM2 * 10) / 10,
           avgQualityScore: row?.avg_quality != null ? Math.round(parseFloat(String(row.avg_quality)) * 100) : null,
           lastUpdated: row?.last_updated ?? null,
           totalSamples: parseInt(row?.total_samples ?? '0', 10),

@@ -173,6 +173,18 @@ function readingQualityScore(
   return locScore * 0.45 + motionScore * 0.35 + exposureScore * 0.20;
 }
 
+/**
+ * True when the light sensor was covered (pocket, proximity sensor near, or
+ * screen face down), so its value says nothing about ambient light. Light
+ * gated by proximity is how IODetector (Li et al. 2014) gets usable readings.
+ */
+export function lightOccluded(quality: SensorReading['quality']): boolean {
+  if (!quality) return false;
+  return String(quality.pocket ?? '').toLowerCase() === 'likely' ||
+    quality.proximity_near === true ||
+    String(quality.orientation ?? '').toLowerCase() === 'face_down';
+}
+
 export function analyzeQuality(readings: SensorReading[], batchAccuracyM?: number): QualityCounters {
   const counters: QualityCounters = { total: 0, valid: 0, pocketLikely: 0 };
 
@@ -218,14 +230,29 @@ export function calculateUptimeSeconds(summary: Summary): number {
 // ── WeatherXM Quality-of-Data checks (github.com/weatherxm-network/qod, README) ──
 
 /**
- * QoD "suspicious jump" bound for pressure between consecutive raw readings
- * (WeatherXM QoD Table 7: ≤ 0.5 hPa). It is a station bound: a station does not
- * move. A phone does, and the hydrostatic equation dp/dz = -ρg gives about
- * 0.12 hPa per metre, so one flight of stairs already exceeds it. It is therefore
- * applied only between two readings both taken while the phone is stationary,
- * the condition the bound was set for.
+ * QoD "suspicious jump" bound for pressure, ported from WeatherXM's code
+ * (qod `initial_params.py`), not its README, which lists the 1-min-average
+ * value (0.5) for raw data: 0.8 hPa for one raw step, growing 0.8 hPa per
+ * minute of gap (their slower-station scaling), capped at the 15 hPa hourly
+ * limit they take from the European Commission.
+ *
+ * Applied only between two stationary readings. Hydrostatic balance,
+ * dp/dz = -ρg, gives ~0.12 hPa per metre, so a moving phone changes pressure by
+ * climbing alone; a still one can only see the weather's tendency, which is
+ * what the bound limits. The values themselves are empirical: no equation
+ * fixes the largest real tendency.
  */
-export const QOD_PRESSURE_JUMP_HPA = 0.5;
+export const QOD_PRESSURE_JUMP_STEP_HPA = 0.8;
+export const QOD_PRESSURE_JUMP_HPA_PER_MIN = 0.8;
+export const QOD_PRESSURE_JUMP_CAP_HPA = 15;
+
+/** Largest credible pressure change between two stationary readings [dtMs] apart. */
+export function qodPressureJumpBound(dtMs: number): number {
+  return Math.min(
+    QOD_PRESSURE_JUMP_CAP_HPA,
+    Math.max(QOD_PRESSURE_JUMP_STEP_HPA, QOD_PRESSURE_JUMP_HPA_PER_MIN * (dtMs / 60_000)),
+  );
+}
 
 /** QoD constancy thresholds (WeatherXM QoD Table 6), in milliseconds. */
 export const QOD_PRESSURE_CONSTANT_MS = 120 * 60_000;
@@ -246,7 +273,8 @@ export function qodPressureSeries(readings: TimedReading[]): TimedReading[] {
   for (const r of seq) {
     const prev = kept[kept.length - 1];
     const bothStill = prev?.quality?.motion_state === 'stationary' && r.quality?.motion_state === 'stationary';
-    if (prev && bothStill && Math.abs(r.pressure! - prev.pressure!) > QOD_PRESSURE_JUMP_HPA) continue;
+    if (prev && bothStill &&
+        Math.abs(r.pressure! - prev.pressure!) > qodPressureJumpBound(r.t.getTime() - prev.t.getTime())) continue;
     kept.push(r);
   }
   return kept;

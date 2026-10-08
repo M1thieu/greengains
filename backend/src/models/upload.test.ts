@@ -64,3 +64,18 @@ test('summary carries a per-key aux summary, and none for old clients', () => {
   const old = UploadBatchSchema.parse({ device_id: 'd', timestamp: T, batch: [{ t: T, light: 5 }] });
   assert.equal(summarizeBatch(old.batch).aux, undefined);
 });
+
+test('light read with the sensor covered (pocket, proximity, face down) is left out of the average', () => {
+  const b = UploadBatchSchema.parse({
+    device_id: 'd',
+    timestamp: T,
+    batch: [
+      { t: T, light: 800, quality: { pocket: 'unlikely' } },
+      { t: T + 1000, light: 2, quality: { pocket: 'likely' } },
+      { t: T + 2000, light: 3, quality: { proximity_near: true } },
+      { t: T + 3000, light: 1, quality: { orientation: 'face_down' } },
+      { t: T + 4000, light: 820 },
+    ],
+  });
+  assert.deepEqual(summarizeBatch(b.batch).light, { avg: 810, min: 800, max: 820 });
+});

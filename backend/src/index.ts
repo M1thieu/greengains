@@ -17,7 +17,7 @@ Sentry.init({
   profilesSampleRate: SENTRY_PROFILES_SAMPLE_RATE,
 });
 
-import Fastify from 'fastify';
+import Fastify, { FastifyError } from 'fastify';
 import crypto from 'crypto';
 import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
@@ -54,7 +54,7 @@ const fastify = Fastify({
 });
 
 // Add Sentry error handler - catches all uncaught errors
-fastify.setErrorHandler((error, request, reply) => {
+fastify.setErrorHandler((error: FastifyError, request, reply) => {
   // Log to Sentry
   Sentry.captureException(error, {
     contexts: {

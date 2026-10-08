@@ -8,6 +8,8 @@
 export const H3_RES_PERSONAL = 9;
 /** Global tile H3 resolution — ~461m edge length (neighbourhood scale). */
 export const H3_RES_GLOBAL = 8;
+/** Average area of an H3 res-9 cell in km² (H3 resolution table). */
+export const H3_RES9_AVG_KM2 = 0.1053;
 
 // ─── Tile Query Limits ────────────────────────────────────────────────────────
 /** Max H3 tiles returned for a single user's coverage map. */
