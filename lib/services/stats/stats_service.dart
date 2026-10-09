@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 import '../network/backend_client.dart';
 import '../../core/constants.dart';
 
-export '../network/api_models.dart' show UserProfileResponse, GlobalStatsResponse, WeeklyTargetResponse, ImpactResponse, WeeklyInsightResponse;
+export '../network/api_models.dart' show UserProfileResponse, GlobalStatsResponse, WeeklyTargetResponse, ImpactResponse;
 
 /// Centralizes all backend calls related to user stats and weekly targets.
 /// Screens should call this instead of BackendClient directly.
@@ -42,15 +42,4 @@ class StatsService {
     }
   }
 
-  /// Fetches the weekly street-level insight — roughest route, new zones,
-  /// brightest street, solo territory. Powers the civic intelligence card.
-  Future<WeeklyInsightResponse?> fetchWeeklyInsight() async {
-    try {
-      final data = await BackendClient.get(kApiWeeklyInsight);
-      return WeeklyInsightResponse.fromJson(data);
-    } catch (e) {
-      debugPrint('Weekly insight fetch failed: $e');
-      return null;
-    }
-  }
 }

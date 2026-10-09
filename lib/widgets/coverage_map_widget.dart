@@ -287,6 +287,10 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> with WidgetsBindin
   // MapLibre fires onMapClick when the finger lifts after a long press — suppress
   // taps that arrive within 600 ms of a long press to avoid double-open sheets.
   int _lastLongPressMs = 0;
+  /// Cell shown in the on-map preview after a tap, anchored at the tap point.
+  ({Offset at, H3Tile tile})? _callout;
+  /// Zoom and latitude at the last camera stop, for the scale bar.
+  final ValueNotifier<({double zoom, double lat})?> _scaleCamera = ValueNotifier(null);
   bool _showMapHint = false;
 
   // ── Follow mode ─────────────────────────────────────────────────────────────
@@ -631,13 +635,20 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> with WidgetsBindin
       _ => AppColors.movementHex,
     };
     if (v == null || _layerSorted.isEmpty) return (color: '#64748b', fill: 0.06, stroke: 0.0);
+    final f = _freshnessFactor(tile);
+    if (widget.mapLayer == MapLayer.light) {
+      // Order of magnitude only (decades of lux, 0-4): phones disagree by 1-99%
+      // on the same light (Vujica Herzog et al. 2022), so a finer rank would
+      // show differences the sensors cannot measure.
+      final decade = v.floorToDouble().clamp(0.0, 4.0) / 4.0;
+      return (color: hex, fill: (0.12 + 0.5 * decade) * f, stroke: (0.3 + 0.5 * decade) * f);
+    }
     var lo = 0, hi = _layerSorted.length;
     while (lo < hi) {
       final mid = (lo + hi) >> 1;
       if (_layerSorted[mid] < v) { lo = mid + 1; } else { hi = mid; }
     }
     final rank = _layerSorted.length == 1 ? 1.0 : lo / (_layerSorted.length - 1);
-    final f = _freshnessFactor(tile);
     return (color: hex, fill: (0.12 + 0.5 * rank) * f, stroke: (0.3 + 0.5 * rank) * f);
   }
 
@@ -703,7 +714,9 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> with WidgetsBindin
     );
   }
 
-  void _onCameraMove(CameraPosition _) {}
+  void _onCameraMove(CameraPosition _) {
+    if (_callout != null) setState(() => _callout = null);
+  }
 
   Future<void> _onStyleLoaded() async {
     final ctrl = _ctrl;
@@ -965,6 +978,7 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> with WidgetsBindin
     await Future<void>.delayed(AppDurations.medium);
     await _refreshGrid();
     debugPrint('MapLibre: initial grid + sources populated');
+    unawaited(_updateScaleCamera());
   }
 
   Future<void> _refreshAllSources() async {
@@ -1136,6 +1150,19 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> with WidgetsBindin
 
   void _onCameraIdle() {
     _scheduleGridRefresh();
+    unawaited(_updateScaleCamera());
+  }
+
+  Future<void> _updateScaleCamera() async {
+    final camera = await _ctrl?.queryCameraPosition();
+    if (camera != null && mounted) {
+      _scaleCamera.value = (zoom: camera.zoom, lat: camera.target.latitude);
+    }
+  }
+
+  void _zoomBy(bool zoomIn) {
+    HapticFeedback.selectionClick();
+    _ctrl?.animateCamera(zoomIn ? CameraUpdate.zoomIn() : CameraUpdate.zoomOut());
   }
 
   /// Outlines personal cells that were not in the previous tile list for
@@ -1210,17 +1237,29 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> with WidgetsBindin
     });
   }
 
-  /// Tap and hold give the same answer (same gesture, same kind of result):
-  /// what is known about the cell under the finger at the scale drawn.
-  /// Zooming stays on pinch and double-tap.
+  /// Tap previews the cell under the finger on the map itself (the essentials);
+  /// hold, or a tap on the preview, opens the full sheet. Zoom stays on pinch
+  /// and double-tap.
   void _onMapTap(Point<double> point, LatLng coords) async {
     // Suppress tap if it follows a long press — MapLibre fires onMapClick when
     // the finger lifts after a long press, which would open a duplicate sheet.
     if (DateTime.now().millisecondsSinceEpoch - _lastLongPressMs < 600) return;
     final tile = await _cellInfoAt(point, coords);
-    if (tile == null) return;
+    if (!mounted) return;
+    if (tile == null) {
+      if (_callout != null) setState(() => _callout = null);
+      return;
+    }
     _dismissMapHint();
-    widget.onTileTap?.call(tile);
+    HapticFeedback.selectionClick();
+    // The platform reports the tap in physical pixels.
+    final dpr = MediaQuery.devicePixelRatioOf(context);
+    setState(() => _callout = (at: Offset(point.x / dpr, point.y / dpr), tile: tile));
+  }
+
+  void _openSheet(H3Tile tile) {
+    if (_callout != null) setState(() => _callout = null);
+    (widget.onTileLongPress ?? widget.onTileTap)?.call(tile);
   }
 
   void _dismissMapHint() {
@@ -1235,7 +1274,7 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> with WidgetsBindin
     if (tile == null) return;
     _dismissMapHint();
     HapticFeedback.mediumImpact();
-    (widget.onTileLongPress ?? widget.onTileTap)?.call(tile);
+    _openSheet(tile);
   }
 
   /// The mapped cell under [point] at the band drawn now: the tile itself at
@@ -1438,6 +1477,7 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> with WidgetsBindin
     WidgetsBinding.instance.removeObserver(this);
     _gridTimer?.cancel();
     _newCellTimer?.cancel();
+    _scaleCamera.dispose();
     _haloTimer?.cancel();
     widget.recenterTrigger?.removeListener(_onRecenter);
     super.dispose();
@@ -1471,6 +1511,9 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> with WidgetsBindin
       onCameraIdle: _onCameraIdle,
       onCameraMove: _onCameraMove,
       onMapClick: widget.showControls ? _onMapTap : null,
+      // Since maplibre_gl 0.26 a tap on a drawn feature (our hexagons) no longer
+      // reaches onMapClick unless this is set.
+      featureTapsTriggersMapClick: true,
       onMapLongClick: widget.showControls ? _onMapLongPress : null,
       compassEnabled: widget.showControls && widget.fillScreen,
       compassViewPosition: CompassViewPosition.topRight,
@@ -1551,6 +1594,50 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> with WidgetsBindin
         if (widget.fillScreen && _showMapHint && widget.tiles.isNotEmpty)
           _MapTapHint(onDismiss: _dismissMapHint),
 
+        // ── Zoom buttons: single-pointer zoom (WCAG 2.2 SC 2.5.1), visible
+        // because people disagree on zoom gestures (Wobbrock et al. 2009) and
+        // pinching is awkward one-handed; Helium shows the same control.
+        if (widget.fillScreen && widget.showControls)
+          Positioned(
+            right: AppTheme.spaceSm,
+            top: 0,
+            bottom: 0,
+            child: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _MapRoundButton(icon: Icons.add_rounded, label: context.l10n.mapZoomIn, onTap: () => _zoomBy(true)),
+                  const SizedBox(height: AppTheme.spaceXs),
+                  _MapRoundButton(icon: Icons.remove_rounded, label: context.l10n.mapZoomOut, onTap: () => _zoomBy(false)),
+                ],
+              ),
+            ),
+          ),
+
+        // ── Distance scale, as Helium shows (ScaleControl) ────────────────
+        if (widget.fillScreen)
+          Positioned(
+            left: AppTheme.spaceMd,
+            bottom: widget.controlsPadding.bottom + AppTheme.thumbTarget + AppTheme.spaceSm,
+            child: ValueListenableBuilder<({double zoom, double lat})?>(
+              valueListenable: _scaleCamera,
+              builder: (context, cam, _) => cam == null ? const SizedBox.shrink() : _ScaleBar(zoom: cam.zoom, latitude: cam.lat),
+            ),
+          ),
+
+        // ── Tap preview, anchored where the finger was ────────────────────
+        if (_callout != null)
+          Positioned.fill(
+            child: CustomSingleChildLayout(
+              delegate: _CalloutLayout(_callout!.at),
+              child: _CellCallout(
+                tile: _callout!.tile,
+                l10n: context.l10n,
+                onOpen: () => _openSheet(_callout!.tile),
+              ),
+            ),
+          ),
+
         // ── Tile count badge (card mode) ──────────────────────────────────
         if (!widget.fillScreen && widget.tiles.isNotEmpty)
           Positioned(
@@ -1602,6 +1689,167 @@ class CoverageMapWidgetState extends State<CoverageMapWidget> with WidgetsBindin
 }
 
 // ── First-time map hint ───────────────────────────────────────────────────────
+
+/// Round map control: 48 dp visual, 58 dp hit area (Parhi et al. 2006 thumb targets).
+class _MapRoundButton extends StatelessWidget {
+  const _MapRoundButton({required this.icon, required this.label, required this.onTap});
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: label,
+      excludeSemantics: true,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: SizedBox.square(
+          dimension: AppTheme.thumbTarget,
+          child: Center(
+            child: Material(
+              color: AppColors.mapOverlayDark,
+              shape: const CircleBorder(),
+              child: InkWell(
+                customBorder: const CircleBorder(),
+                onTap: onTap,
+                child: SizedBox.square(
+                  dimension: AppTheme.minTouchTarget,
+                  child: Icon(icon, size: AppIconSizes.sm, color: AppColors.darkTextPrimary),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Distance scale for the current zoom and latitude, from the Web Mercator
+/// ground resolution: 40,075,016.686 m × cos(lat) / (512 × 2^zoom) per logical
+/// pixel (512 px MapLibre tiles). The length is the largest 1-2-5 step that
+/// fits in [_maxWidth], so the label is always a round number.
+class _ScaleBar extends StatelessWidget {
+  const _ScaleBar({required this.zoom, required this.latitude});
+  final double zoom;
+  final double latitude;
+  static const double _maxWidth = 96;
+
+  @override
+  Widget build(BuildContext context) {
+    final metresPerPx = 40075016.686 * cos(latitude * pi / 180) / (512 * pow(2, zoom));
+    final maxMetres = metresPerPx * _maxWidth;
+    final magnitude = pow(10, (log(maxMetres) / ln10).floor()).toDouble();
+    final step = [5.0, 2.0, 1.0].map((f) => f * magnitude).firstWhere((m) => m <= maxMetres, orElse: () => magnitude);
+    final width = step / metresPerPx;
+    final l10n = context.l10n;
+    final label = step >= 1000
+        ? l10n.mapScaleKilometers((step / 1000).round())
+        : l10n.mapScaleMeters(step.round());
+    const color = AppColors.darkTextPrimary;
+    return ExcludeSemantics(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(label, style: Theme.of(context).textTheme.labelMedium?.copyWith(
+            color: color,
+            shadows: const [Shadow(color: Colors.black, blurRadius: 3)],
+          )),
+          const SizedBox(height: AppTheme.spaceXxxs),
+          Container(
+            width: width,
+            height: AppTheme.spaceXs,
+            decoration: const BoxDecoration(
+              border: Border(
+                left: BorderSide(color: color, width: 1.5),
+                right: BorderSide(color: color, width: 1.5),
+                bottom: BorderSide(color: color, width: 1.5),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Places the preview centred above the tap point, kept inside the map.
+class _CalloutLayout extends SingleChildLayoutDelegate {
+  _CalloutLayout(this.at);
+  final Offset at;
+  static const double _gap = AppTheme.spaceSm;
+
+  @override
+  BoxConstraints getConstraintsForChild(BoxConstraints constraints) =>
+      constraints.loosen();
+
+  @override
+  Offset getPositionForChild(Size size, Size child) {
+    final x = (at.dx - child.width / 2).clamp(AppTheme.spaceSm, size.width - child.width - AppTheme.spaceSm);
+    var y = at.dy - child.height - _gap;
+    if (y < AppTheme.spaceSm) y = at.dy + _gap; // no room above: show below
+    return Offset(x.toDouble(), y);
+  }
+
+  @override
+  bool shouldRelayout(_CalloutLayout old) => old.at != at;
+}
+
+/// The essentials of a cell, icons and one word each, no sentences. Tapping it
+/// opens the full sheet.
+class _CellCallout extends StatelessWidget {
+  const _CellCallout({required this.tile, required this.l10n, required this.onOpen});
+  final H3Tile tile;
+  final AppLocalizations l10n;
+  final VoidCallback onOpen;
+
+  @override
+  Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+    final values = [
+      if (tile.avgLux != null)
+        (icon: Icons.light_mode_rounded, color: AppColors.light,
+         label: _TileInfoSheetState._luxContext(tile.avgLux!, l10n)),
+      if (tile.avgMovement != null)
+        (icon: Icons.directions_walk_rounded, color: AppColors.movement,
+         label: _TileInfoSheetState._movementContext(tile.avgMovement!, l10n)),
+    ];
+    final count = tile.placeCount != null
+        ? l10n.statsTerritoryZones(tile.placeCount!)
+        : l10n.tileMeasurements(tile.sampleCount);
+    return GestureDetector(
+      onTap: onOpen,
+      child: Container(
+        constraints: const BoxConstraints(minHeight: AppTheme.minTouchTarget),
+        padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceSm, vertical: AppTheme.spaceXs),
+        decoration: BoxDecoration(
+          color: AppColors.mapOverlayDark,
+          borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            for (final v in values)
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(v.icon, size: AppIconSizes.xs, color: v.color),
+                  const SizedBox(width: AppTheme.spaceXxs),
+                  Text(v.label, style: text.labelLarge?.copyWith(color: AppColors.darkTextPrimary)),
+                ],
+              ),
+            Text(count, style: text.labelMedium?.copyWith(color: AppColors.darkTextSecondary)),
+          ],
+        ),
+      ),
+    );
+  }
+}
 
 class _MapTapHint extends StatefulWidget {
   const _MapTapHint({required this.onDismiss});

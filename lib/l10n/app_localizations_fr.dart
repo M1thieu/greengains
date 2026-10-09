@@ -182,12 +182,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get semanticsCenterOnMe => 'Centrer la carte sur ma position';
 
   @override
-  String get statsToday => 'Aujourd\'hui';
-
-  @override
-  String get statsThisWeek => 'Cette semaine';
-
-  @override
   String get statsDaysActive => 'Jours actifs';
 
   @override
@@ -198,12 +192,6 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get statsKmMapped => 'Surface couverte';
-
-  @override
-  String get statsBestDayLabel => 'Meilleur jour';
-
-  @override
-  String get statsAvgPerDay => 'Moy. / jour';
 
   @override
   String get statsWeeklyTargetComplete => 'Objectif atteint';
@@ -366,6 +354,22 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get mapLayerQuality => 'Qualité des données';
+
+  @override
+  String get mapZoomIn => 'Zoom avant';
+
+  @override
+  String get mapZoomOut => 'Zoom arrière';
+
+  @override
+  String mapScaleMeters(int value) {
+    return '$value m';
+  }
+
+  @override
+  String mapScaleKilometers(int value) {
+    return '$value km';
+  }
 
   @override
   String tileContributors(int count) {
@@ -762,10 +766,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get statsTerritoryPressureLabel => 'Pression';
 
   @override
-  String get statsTerritoryMapCta =>
-      'Touchez un endroit sur la carte pour voir ses mesures';
-
-  @override
   String sessionSummaryShareText(int gained, int total, String km2) {
     return 'J\'ai cartographié +$gained nouveaux endroits aujourd\'hui. $total au total · $km2';
   }
@@ -928,9 +928,6 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get statsActivitySection => 'VOTRE SEMAINE';
-
-  @override
   String statsVsPrevWeek(String delta) {
     return '$delta% vs sem. préc.';
   }
@@ -992,29 +989,4 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get mapZeroStateBody =>
       'Démarrez le suivi : la rue apparaît sur la carte dès le premier déplacement.';
-
-  @override
-  String get statsInsightLabel => 'CETTE SEMAINE';
-
-  @override
-  String statsInsightNewZones(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count nouveaux endroits cartographiés cette semaine',
-      one: '1 nouvel endroit cartographié cette semaine',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String statsInsightSolo(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count endroits que personne d\'autre n\'a mesurés',
-      one: '1 endroit que personne d\'autre n\'a mesuré',
-    );
-    return '$_temp0';
-  }
 }

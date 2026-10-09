@@ -91,14 +91,10 @@
   },
   "semanticsCenterOnMe": "Center map on my location",
 
-  "statsToday": "Today",
-  "statsThisWeek": "This week",
   "statsDaysActive": "Days Active",
   "statsAreasLabel": "places covered",
   "statsDataPtsLabel": "data points",
   "statsKmMapped": "Area covered",
-  "statsBestDayLabel": "Best day",
-  "statsAvgPerDay": "Avg. per day",
   "statsWeeklyTargetComplete": "Goal reached",
 
 
@@ -167,6 +163,12 @@
   "tileOnlyYouMapped": "Only you've been here",
   "mapLayerTitle": "Map layer",
   "mapLayerQuality": "Data quality",
+  "mapZoomIn": "Zoom in",
+  "mapZoomOut": "Zoom out",
+  "mapScaleMeters": "{value} m",
+  "@mapScaleMeters": {"placeholders":{"value":{"type":"int"}}},
+  "mapScaleKilometers": "{value} km",
+  "@mapScaleKilometers": {"placeholders":{"value":{"type":"int"}}},
   "tileContributors": "{count, plural, =1{1 contributor} other{{count} contributors}}",
   "@tileContributors": { "placeholders": { "count": { "type": "int" } } },
   "tileMeasurements": "{count, plural, =1{1 measurement} other{{count} measurements}}",
@@ -342,7 +344,6 @@
   "statsTerritoryLightLabel": "Light",
   "statsTerritoryMotionLabel": "Movement",
   "statsTerritoryPressureLabel": "Pressure",
-  "statsTerritoryMapCta": "Tap any place on the map to see its readings",
 
   "sessionSummaryShareText": "I mapped +{gained} new places today. {total} total · {km2}",
   "@sessionSummaryShareText": {
@@ -446,7 +447,6 @@
   "@statsMilestoneTarget": {
     "placeholders": { "target": { "type": "int" } }
   },
-  "statsActivitySection": "YOUR WEEK",
   "statsVsPrevWeek": "{delta}% vs prev week",
   "@statsVsPrevWeek": { "placeholders": { "delta": { "type": "String" } } },
   "statsTerritorySection": "YOUR CONTRIBUTION",
@@ -482,7 +482,7 @@
   "profileUnlockBody": "Sign in to keep them across devices.",
 
   "mapZeroStateTitle": "The first place is a few steps away",
-  "mapZeroStateBody": "Start tracking: the street appears on the map as soon as you move.",
+  "mapZeroStateBody": "Start tracking: the street appears on the map as soon as you move."
 
 
 
@@ -491,9 +491,4 @@
 
 
 
-  "statsInsightLabel": "THIS WEEK",
-  "statsInsightNewZones": "{count, plural, =1{1 new place mapped this week} other{{count} new places mapped this week}}",
-  "@statsInsightNewZones": { "placeholders": { "count": { "type": "int" } } },
-  "statsInsightSolo": "{count, plural, =1{1 place nobody else has measured} other{{count} places nobody else has measured}}",
-  "@statsInsightSolo": { "placeholders": { "count": { "type": "int" } } }
 }

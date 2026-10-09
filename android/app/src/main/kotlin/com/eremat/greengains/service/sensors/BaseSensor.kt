@@ -58,8 +58,12 @@ abstract class BaseSensor<T>(
                 FIFO_MAX_REPORT_LATENCY_US // 60 second batching
             )
             Log.d(tag, "Listener registered: success=$success, sensor=${it.name}, type=${it.type}, batching=${FIFO_MAX_REPORT_LATENCY_US}us")
+            if (success) onStarted()
         } ?: Log.w(tag, "Cannot start: sensor is null")
     }
+
+    /** Called after the listener is registered; subclasses reset per-run state here. */
+    protected open fun onStarted() = Unit
 
     /**
      * Flush the sensor FIFO buffer immediately.

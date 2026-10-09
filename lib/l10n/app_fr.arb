@@ -91,14 +91,10 @@
   },
   "semanticsCenterOnMe": "Centrer la carte sur ma position",
 
-  "statsToday": "Aujourd'hui",
-  "statsThisWeek": "Cette semaine",
   "statsDaysActive": "Jours actifs",
   "statsAreasLabel": "endroits couverts",
   "statsDataPtsLabel": "données collectées",
   "statsKmMapped": "Surface couverte",
-  "statsBestDayLabel": "Meilleur jour",
-  "statsAvgPerDay": "Moy. / jour",
   "statsWeeklyTargetComplete": "Objectif atteint",
 
 
@@ -167,6 +163,12 @@
   "tileOnlyYouMapped": "Personne d'autre n'est passé ici",
   "mapLayerTitle": "Couche de la carte",
   "mapLayerQuality": "Qualité des données",
+  "mapZoomIn": "Zoom avant",
+  "mapZoomOut": "Zoom arrière",
+  "mapScaleMeters": "{value} m",
+  "@mapScaleMeters": {"placeholders":{"value":{"type":"int"}}},
+  "mapScaleKilometers": "{value} km",
+  "@mapScaleKilometers": {"placeholders":{"value":{"type":"int"}}},
   "tileContributors": "{count, plural, =1{1 contributeur} other{{count} contributeurs}}",
   "@tileContributors": { "placeholders": { "count": { "type": "int" } } },
   "tileMeasurements": "{count, plural, =1{1 mesure} other{{count} mesures}}",
@@ -342,7 +344,6 @@
   "statsTerritoryLightLabel": "Lumière",
   "statsTerritoryMotionLabel": "Mouvement",
   "statsTerritoryPressureLabel": "Pression",
-  "statsTerritoryMapCta": "Touchez un endroit sur la carte pour voir ses mesures",
 
   "sessionSummaryShareText": "J'ai cartographié +{gained} nouveaux endroits aujourd'hui. {total} au total · {km2}",
   "@sessionSummaryShareText": {
@@ -446,7 +447,6 @@
   "@statsMilestoneTarget": {
     "placeholders": { "target": { "type": "int" } }
   },
-  "statsActivitySection": "VOTRE SEMAINE",
   "statsVsPrevWeek": "{delta}% vs sem. préc.",
   "@statsVsPrevWeek": { "placeholders": { "delta": { "type": "String" } } },
   "statsTerritorySection": "VOTRE CONTRIBUTION",
@@ -482,7 +482,7 @@
   "profileUnlockBody": "Connectez-vous pour les conserver sur tous vos appareils.",
 
   "mapZeroStateTitle": "Le premier endroit est à quelques pas",
-  "mapZeroStateBody": "Démarrez le suivi : la rue apparaît sur la carte dès le premier déplacement.",
+  "mapZeroStateBody": "Démarrez le suivi : la rue apparaît sur la carte dès le premier déplacement."
 
 
 
@@ -491,9 +491,4 @@
 
 
 
-  "statsInsightLabel": "CETTE SEMAINE",
-  "statsInsightNewZones": "{count, plural, =1{1 nouvel endroit cartographié cette semaine} other{{count} nouveaux endroits cartographiés cette semaine}}",
-  "@statsInsightNewZones": { "placeholders": { "count": { "type": "int" } } },
-  "statsInsightSolo": "{count, plural, =1{1 endroit que personne d'autre n'a mesuré} other{{count} endroits que personne d'autre n'a mesurés}}",
-  "@statsInsightSolo": { "placeholders": { "count": { "type": "int" } } }
 }

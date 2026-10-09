@@ -36,6 +36,8 @@ import com.eremat.greengains.notification.NotificationsHelper
 import com.eremat.greengains.util.AppPrefs
 import com.eremat.greengains.service.sensors.AuxSensors
 import com.eremat.greengains.service.sensors.Barometer
+import com.eremat.greengains.service.sensors.DeviceChannels
+import com.eremat.greengains.service.sensors.GnssChannels
 import com.eremat.greengains.service.sensors.LightSensor
 import com.eremat.greengains.service.sensors.Magnetometer
 import com.eremat.greengains.service.sensors.MotionSensors
@@ -89,6 +91,10 @@ class ForegroundService : Service() {
     private lateinit var magnetometer: Magnetometer
     /** Optional channels only some phones have. Runs only while the sampler runs. */
     private lateinit var auxSensors: AuxSensors
+    /** Battery and cellular readings sent as extra aux channels. */
+    private lateinit var deviceChannels: DeviceChannels
+    /** Satellite signal statistics, raw, for an experimental sky-obstruction index. */
+    private lateinit var gnssChannels: GnssChannels
 
     // Monitors
     private lateinit var batteryMonitor: BatteryStateMonitor
@@ -224,6 +230,8 @@ class ForegroundService : Service() {
         proximitySensor = ProximitySensor(sensorManager)
         magnetometer = Magnetometer(sensorManager)
         auxSensors = AuxSensors(sensorManager)
+        deviceChannels = DeviceChannels(this)
+        gnssChannels = GnssChannels(this)
 
         // Create Notification Channel (Required for Android O+)
         NotificationsHelper.createNotificationChannel(this)
@@ -674,6 +682,7 @@ class ForegroundService : Service() {
         }
         nativeUploader?.start()
         auxSensors.start()
+        gnssChannels.start()
 
         if (nativeSamplerJob?.isActive == true) return
 
@@ -712,6 +721,7 @@ class ForegroundService : Service() {
         nativeSamplerJob?.cancel()
         nativeSamplerJob = null
         auxSensors.stop()
+        gnssChannels.stop()
         nativeUploader?.stop()
         nativeUploader = null
     }
@@ -745,8 +755,21 @@ class ForegroundService : Service() {
         val cleanGyro     = rejectOutliersVectors(rawGyro)
         val cleanMagnetic = rejectOutliersVectors(rawMagnetic)
 
-        // Optional channels: medians drained here, so they cover exactly this reading's window.
-        val aux = auxSensors.drain()
+        // Optional channels: medians drained here, so they cover exactly this reading's window,
+        // plus battery and cellular values read now.
+        // Barometer window size and spread: what later per-device pressure correction needs
+        // to weight each reading (McNicholas & Mass; Hintz et al. 2019).
+        val baroStats = HashMap<String, Float>()
+        if (cleanPressure.isNotEmpty()) {
+            baroStats["pressure_n"] = cleanPressure.size.toFloat()
+            if (cleanPressure.size >= 2) {
+                val mean = cleanPressure.average()
+                val variance = cleanPressure.sumOf { (it - mean) * (it - mean) } / (cleanPressure.size - 1)
+                baroStats["pressure_sd"] = kotlin.math.sqrt(variance).toFloat()
+            }
+        }
+        val aux = (auxSensors.drain().orEmpty() + deviceChannels.read() + gnssChannels.drain() + baroStats)
+            .takeIf { it.isNotEmpty() }
 
         val sampleCount = maxOf(cleanLight.size, cleanPressure.size, cleanAccel.size, 1)
 

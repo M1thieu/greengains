@@ -386,18 +386,6 @@ abstract class AppLocalizations {
   /// **'Center map on my location'**
   String get semanticsCenterOnMe;
 
-  /// No description provided for @statsToday.
-  ///
-  /// In en, this message translates to:
-  /// **'Today'**
-  String get statsToday;
-
-  /// No description provided for @statsThisWeek.
-  ///
-  /// In en, this message translates to:
-  /// **'This week'**
-  String get statsThisWeek;
-
   /// No description provided for @statsDaysActive.
   ///
   /// In en, this message translates to:
@@ -421,18 +409,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Area covered'**
   String get statsKmMapped;
-
-  /// No description provided for @statsBestDayLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Best day'**
-  String get statsBestDayLabel;
-
-  /// No description provided for @statsAvgPerDay.
-  ///
-  /// In en, this message translates to:
-  /// **'Avg. per day'**
-  String get statsAvgPerDay;
 
   /// No description provided for @statsWeeklyTargetComplete.
   ///
@@ -721,6 +697,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Data quality'**
   String get mapLayerQuality;
+
+  /// No description provided for @mapZoomIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Zoom in'**
+  String get mapZoomIn;
+
+  /// No description provided for @mapZoomOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Zoom out'**
+  String get mapZoomOut;
+
+  /// No description provided for @mapScaleMeters.
+  ///
+  /// In en, this message translates to:
+  /// **'{value} m'**
+  String mapScaleMeters(int value);
+
+  /// No description provided for @mapScaleKilometers.
+  ///
+  /// In en, this message translates to:
+  /// **'{value} km'**
+  String mapScaleKilometers(int value);
 
   /// No description provided for @tileContributors.
   ///
@@ -1322,12 +1322,6 @@ abstract class AppLocalizations {
   /// **'Pressure'**
   String get statsTerritoryPressureLabel;
 
-  /// No description provided for @statsTerritoryMapCta.
-  ///
-  /// In en, this message translates to:
-  /// **'Tap any place on the map to see its readings'**
-  String get statsTerritoryMapCta;
-
   /// No description provided for @sessionSummaryShareText.
   ///
   /// In en, this message translates to:
@@ -1616,12 +1610,6 @@ abstract class AppLocalizations {
   /// **'{target} places'**
   String statsMilestoneTarget(int target);
 
-  /// No description provided for @statsActivitySection.
-  ///
-  /// In en, this message translates to:
-  /// **'YOUR WEEK'**
-  String get statsActivitySection;
-
   /// No description provided for @statsVsPrevWeek.
   ///
   /// In en, this message translates to:
@@ -1735,24 +1723,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Start tracking: the street appears on the map as soon as you move.'**
   String get mapZeroStateBody;
-
-  /// No description provided for @statsInsightLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'THIS WEEK'**
-  String get statsInsightLabel;
-
-  /// No description provided for @statsInsightNewZones.
-  ///
-  /// In en, this message translates to:
-  /// **'{count, plural, =1{1 new place mapped this week} other{{count} new places mapped this week}}'**
-  String statsInsightNewZones(int count);
-
-  /// No description provided for @statsInsightSolo.
-  ///
-  /// In en, this message translates to:
-  /// **'{count, plural, =1{1 place nobody else has measured} other{{count} places nobody else has measured}}'**
-  String statsInsightSolo(int count);
 }
 
 class _AppLocalizationsDelegate

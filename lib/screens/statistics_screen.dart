@@ -67,7 +67,6 @@ class _StatisticsScreenState extends State<StatisticsScreen>
   List<int>? _weeklyData;
   // Backend lifetime stats — fallback when local SQLite is empty (fresh reinstall)
   int? _backendTotalUploads;
-  int? _backendUploadsToday; // backend-authoritative today count, survives reinstall
   int? _coverageCells; // distinct H3 res-9 cells ever contributed
   int? _daysActive;
   bool _isLoadingWeekly = true;
@@ -79,16 +78,10 @@ class _StatisticsScreenState extends State<StatisticsScreen>
   GlobalStatsResponse? _global;
   // Streak data from backend profile
   int? _longestStreak;
-  // All-time best single day upload count
-  int? _bestDayCount;
-  // Average uploads per active day
-  double? _avgPerDay;
   // Weekly new-territory target
   WeeklyTargetResponse? _weeklyTarget;
   // "Only you" impact — cells nobody else has ever mapped
   ImpactResponse? _impact;
-  // Weekly civic insight — roughest street, new zones, solo territory
-  WeeklyInsightResponse? _insight;
   // Data quality 0–100 from user_stats valid_samples/samples_count
   int? _qualityPct;
   // Week-over-week comparison: total uploads in the previous 7-day window
@@ -231,33 +224,22 @@ class _StatisticsScreenState extends State<StatisticsScreen>
       final profileFuture = StatsService.instance.fetchProfileAndGlobal();
       final targetFuture = StatsService.instance.fetchWeeklyTarget();
       final impactFuture = StatsService.instance.fetchImpact();
-      final insightFuture = StatsService.instance.fetchWeeklyInsight();
       final (:profile, :global) = await profileFuture;
       final weeklyTarget = await targetFuture;
       final impact = await impactFuture;
-      final insight = await insightFuture;
       if (mounted) {
         setState(() {
           if (global.activeMappers > 0) _global = global;
           _weeklyData = profile.weekly;
           unawaited(AppPreferences.instance.setCachedWeeklyData(profile.weekly));
           _backendTotalUploads = profile.totalUploads;
-          _backendUploadsToday = profile.uploadsToday;
           _coverageCells = profile.coverageCells;
           _daysActive = profile.daysActive;
           _longestStreak = profile.longestStreak;
-          if (profile.bestDayCount != null) _bestDayCount = profile.bestDayCount;
-          // Fallback: compute locally if backend field missing (pre-deploy).
-          final days = profile.daysActive > 0 ? profile.daysActive : null;
-          _avgPerDay = profile.avgPerDay ??
-              (days != null && profile.totalUploads > 0
-                  ? (profile.totalUploads / days * 10).round() / 10.0
-                  : 0.0);
           if (profile.qualityPct != null) _qualityPct = profile.qualityPct;
           if (profile.prevWeekTotal != null) _prevWeekTotal = profile.prevWeekTotal;
           if (weeklyTarget != null) _weeklyTarget = weeklyTarget;
           if (impact != null) _impact = impact;
-          if (insight != null) _insight = insight;
         });
         AppEventBus.instance.emit(ProfileUpdatedEvent(
           totalUploads: profile.totalUploads,
@@ -336,14 +318,10 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                 ..._optionalCard(_impact, 1,
                     (i) => _buildImpactCard(theme, isDark, l10n, i),
                     when: (i) => i.soloCells > 0),
-                ..._optionalCard(_insight, 1,
-                    (i) => _buildInsightCard(theme, isDark, l10n, i),
-                    when: (i) => i.hasActivity),
+                // No insight card (it repeated the weekly target and the
+                // impact card) and no today/week/best-day numbers (the chart
+                // below shows them): one representation per fact.
                 const SizedBox(height: AppTheme.spaceLg),
-                SectionHeader(l10n.statsActivitySection, bottom: 0),
-                const SizedBox(height: AppTheme.spaceXxs),
-                _withEntrance(_buildSupportingTrio(theme, isDark), 2),
-                const SizedBox(height: AppTheme.spaceMd),
                 SectionHeader(l10n.statsActivityTrend),
                 const SizedBox(height: AppTheme.spaceXs),
                 _withEntrance(_buildActivityChart(theme, isDark, l10n), 3),
@@ -553,17 +531,6 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                 height: AppLineHeights.numeric,
               ),
             ),
-          // City blocks context — makes km² tangible for non-technical users
-          if (showKm2 && zones > 0) ...[
-            const SizedBox(height: AppTheme.spaceXxxs),
-            Text(
-              l10n.statsCityBlocks((km2 / kKm2PerCityBlock).round()),
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: AppColors.textSecondary(isDark),
-                fontWeight: AppFontWeights.regular,
-              ),
-            ),
-          ],
           const SizedBox(height: AppTheme.spaceXxxs + 2),
           // Subtitle: upload count + map link
           Row(
@@ -601,60 +568,6 @@ class _StatisticsScreenState extends State<StatisticsScreen>
         ],
       ),
       ),
-    );
-  }
-
-  // ─── Stat grid (2×2) ─────────────────────────────────────────────────────────
-
-  Widget _buildSupportingTrio(ThemeData theme, bool isDark) {
-    final l10n = context.l10n;
-    final localToday = _stats?.uploadsToday ?? 0;
-    final uploadsToday = localToday > 0 ? localToday : (_backendUploadsToday ?? _weeklyData?.lastOrNull ?? 0);
-    final localWeek = _stats?.uploadsThisWeek ?? 0;
-    final uploadsThisWeek = localWeek > 0 ? localWeek : (_weeklyData?.fold(0, (a, b) => a + b) ?? 0);
-    final int? bestDay = _bestDayCount ?? _weeklyData?.fold<int>(0, max);
-    final avgPerDay = _avgPerDay;
-    // Show dash for zero (no history yet) — not a loading spinner.
-    final avgLabel = avgPerDay == null ? null
-        : avgPerDay == 0.0 ? '—'
-        : avgPerDay.toStringAsFixed(1);
-    final hairline = AppColors.textTertiary(isDark).withValues(alpha: 0.12);
-
-    // Week-over-week trend from daily counts (last 7 vs previous 7 days).
-    int? weekTrend;
-    if (_dailyCounts != null && _dailyCounts!.length >= 7) {
-      final today = DateTime.now();
-      int thisWeek = 0, prevWeek = 0;
-      for (int i = 1; i <= 7; i++) {
-        final key = today.subtract(Duration(days: i)).toIso8601String().substring(0, 10);
-        thisWeek += _dailyCounts![key] ?? 0;
-      }
-      for (int i = 8; i <= 14; i++) {
-        final key = today.subtract(Duration(days: i)).toIso8601String().substring(0, 10);
-        prevWeek += _dailyCounts![key] ?? 0;
-      }
-      if (prevWeek > 0 && thisWeek != prevWeek) {
-        weekTrend = ((thisWeek - prevWeek) / prevWeek * 100).round();
-      }
-    }
-
-    final todayColor = uploadsToday > 0 ? AppColors.primary : null;
-
-    return Container(
-      decoration: AppTheme.surfaceContainer(isDark: isDark),
-      child: Column(children: [
-        IntrinsicHeight(child: Row(children: [
-          Expanded(child: _KpiCell(label: l10n.statsToday, value: '$uploadsToday', isDark: isDark, theme: theme, valueColor: todayColor)),
-          Container(width: 1, color: hairline),
-          Expanded(child: _KpiCell(label: l10n.statsThisWeek, value: '$uploadsThisWeek', isDark: isDark, theme: theme, trend: weekTrend)),
-        ])),
-        Container(height: 1, color: hairline),
-        IntrinsicHeight(child: Row(children: [
-          Expanded(child: _KpiCell(label: l10n.statsBestDayLabel, value: bestDay != null ? '$bestDay' : null, isDark: isDark, theme: theme)),
-          Container(width: 1, color: hairline),
-          Expanded(child: _KpiCell(label: l10n.statsAvgPerDay, value: avgLabel, isDark: isDark, theme: theme)),
-        ])),
-      ]),
     );
   }
 
@@ -883,45 +796,6 @@ class _StatisticsScreenState extends State<StatisticsScreen>
               l10n.statsImpactSolo(impact.soloCells),
               style: theme.textTheme.bodySmall?.copyWith(color: AppColors.textSecondary(isDark)),
             ),
-          ]),
-        ),
-      ]),
-    );
-  }
-
-  // ─── Weekly civic insight card ───────────────────────────────────────────────
-
-  Widget _buildInsightCard(ThemeData theme, bool isDark, AppLocalizations l10n, WeeklyInsightResponse insight) {
-    final rows = <String>[];
-    // Roughest and brightest streets are not shown: surface roughness at ~5 Hz
-    // and absolute lux across phones are not measured reliably.
-    if (insight.newZonesThisWeek > 0) rows.add(l10n.statsInsightNewZones(insight.newZonesThisWeek));
-    if (insight.soloZones > 0) rows.add(l10n.statsInsightSolo(insight.soloZones));
-    if (rows.isEmpty) return const SizedBox.shrink();
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceMd, vertical: AppTheme.spaceXs + 2),
-      decoration: AppTheme.surfaceContainer(isDark: isDark),
-      child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Icon(Icons.place_rounded, size: AppIconSizes.xs, color: AppColors.primary),
-        const SizedBox(width: AppTheme.spaceXs),
-        Expanded(
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(
-              l10n.statsInsightLabel,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: theme.textTheme.labelSmall?.copyWith(
-                color: AppColors.textSecondary(isDark),
-                letterSpacing: _kLetterSpacingCaps,
-              ),
-            ),
-            const SizedBox(height: AppTheme.spaceXxxs + 1),
-            for (int i = 0; i < rows.length; i++) ...[
-              if (i > 0) const SizedBox(height: AppTheme.spaceXxxs + 1),
-              Text(rows[i], maxLines: 2,
-                  style: theme.textTheme.bodySmall?.copyWith(color: AppColors.textTertiary(isDark))),
-            ],
           ]),
         ),
       ]),
@@ -1261,14 +1135,6 @@ class _StatisticsScreenState extends State<StatisticsScreen>
             const SizedBox(height: AppTheme.spaceMd),
             // What was recorded in each zone
             _SensorTypesRow(isDark: isDark, l10n: l10n),
-            const SizedBox(height: AppTheme.spaceMd),
-            // Map CTA
-            Text(
-              l10n.statsTerritoryMapCta,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: AppColors.textSecondary(isDark),
-              ),
-            ),
             if (_stats?.firstContributionAt != null) ...[
               const SizedBox(height: AppTheme.spaceXxs),
               Text(
@@ -1846,77 +1712,6 @@ class _MilestoneBadge extends StatelessWidget {
 
 // ── KPI hairline grid cell ────────────────────────────────────────────────────
 
-class _KpiCell extends StatelessWidget {
-  const _KpiCell({required this.label, required this.value, required this.isDark, required this.theme, this.trend, this.valueColor});
-  final String label;
-  final String? value;
-  final bool isDark;
-  final ThemeData theme;
-  /// Week-over-week delta as integer percentage (e.g. 15 = +15%, -8 = -8%).
-  final int? trend;
-  /// Optional override for the value number color (e.g. green when mapped today).
-  final Color? valueColor;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceMd, vertical: AppTheme.spaceSm),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              AnimatedSwitcher(
-                duration: const Duration(milliseconds: 280),
-                switchInCurve: Curves.easeOut,
-                child: value != null
-                    ? Text(value!, key: ValueKey(value), style: theme.textTheme.headlineMedium?.copyWith(
-                        fontWeight: AppFontWeights.bold,
-                        height: AppLineHeights.numeric,
-                        letterSpacing: AppTheme.letterSpacingNumeric,
-                        color: valueColor,
-                      ))
-                    : SizedBox(key: const ValueKey('loading'), width: 36, height: 22, child: LinearProgressIndicator(
-                        borderRadius: BorderRadius.circular(AppTheme.radiusXxs),
-                        backgroundColor: AppColors.textTertiary(isDark).withValues(alpha: 0.12),
-                        color: AppColors.primary.withValues(alpha: 0.4),
-                      )),
-              ),
-              if (trend != null && trend != 0) ...[
-                const SizedBox(width: AppTheme.spaceXxs),
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 3),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        trend! > 0 ? Icons.arrow_upward_rounded : Icons.arrow_downward_rounded,
-                        size: 11,
-                        color: trend! > 0 ? AppColors.quality : AppColors.error,
-                      ),
-                      Text(
-                        '${trend!.abs()}%',
-                        style: TextStyle(
-                          fontSize: AppTheme.fontSizeXs,
-                          color: trend! > 0 ? AppColors.quality : AppColors.error,
-                          fontWeight: AppFontWeights.semibold,
-                          height: 1.2,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ],
-          ),
-          const SizedBox(height: AppTheme.spaceXxxs),
-          Text(label, style: AppTheme.statLabel(isDark)),
-        ],
-      ),
-    );
-  }
-}
 
 // ── Record row (dot + label + right-aligned value) ────────────────────────────
 

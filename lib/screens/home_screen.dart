@@ -1191,7 +1191,29 @@ class _MapLayerButton extends StatelessWidget {
                   contentPadding: EdgeInsets.zero,
                   leading: Icon(iconFor(l), color: colorFor(l)),
                   title: Text(labelFor(l10n, l)),
-                  trailing: l == layer ? const Icon(Icons.check_rounded, color: AppColors.primary) : null,
+                  // Wordless legend: on the map more opaque means more (more
+                  // readings, more light, more movement), as WeatherXM's map
+                  // legend shows its scale next to the layer.
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      for (final a in const [0.25, 0.5, 0.85])
+                        Container(
+                          width: AppTheme.spaceSm,
+                          height: AppTheme.spaceSm,
+                          margin: const EdgeInsets.only(left: AppTheme.spaceXxxs),
+                          decoration: BoxDecoration(
+                            color: colorFor(l).withValues(alpha: a),
+                            borderRadius: BorderRadius.circular(AppTheme.spaceXxxs),
+                          ),
+                        ),
+                      const SizedBox(width: AppTheme.spaceSm),
+                      SizedBox(
+                        width: AppIconSizes.sm,
+                        child: l == layer ? const Icon(Icons.check_rounded, color: AppColors.primary) : null,
+                      ),
+                    ],
+                  ),
                   onTap: () {
                     HapticFeedback.selectionClick();
                     Navigator.of(sheetContext).pop();
