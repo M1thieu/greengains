@@ -1,6 +1,6 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import type { Pool, PoolClient } from 'pg';
-import { latLngToCell } from 'h3-js';
+import { latLngToCell, cellToParent, cellToChildren } from 'h3-js';
 import { decompressPayload, UnsupportedEncodingError } from '../utils/compression';
 import { verifyApiKey, hashDeviceId } from '../utils/security';
 import { deviceOrFirebaseAuth } from '../middleware/auth';
@@ -18,6 +18,8 @@ import {
   qodPressureSeries,
   qodFrozen,
   lightOccluded,
+  buddyCheck,
+  BUDDY_AREA_RES,
   QOD_PRESSURE_CONSTANT_MS,
   QOD_LIGHT_CONSTANT_MS,
 } from '../utils/sensor-analytics';
@@ -29,105 +31,44 @@ import {
 } from '../utils/uploadValidation';
 
 
-// Neighborhood average cache keyed by geohash6 prefix — avoids a per-upload
-// 7-day LIKE scan when multiple devices map the same cell back-to-back.
-// Entries are geographically stable enough that 15-min staleness is acceptable.
-interface _NeighborEntry {
-  avgLight: number | null;
-  avgPressure: number | null;
-  count: number;
-  expiresAt: number;
-}
-const _neighborCache = new Map<string, _NeighborEntry>();
-const _NEIGHBOR_TTL_MS = 15 * 60 * 1000;
-
 /**
- * Co-location cross-validation (fire-and-forget quality signal).
- *
- * Compares this batch's sensor averages against recent batches from OTHER devices
- * at the same geohash prefix (geohash6 ≈ 1.2 km × 0.6 km cell).
- * If a reading diverges by >3 IQR from the neighborhood distribution, it's a spatial outlier.
- *
- * Logs the divergence for monitoring; a future device-reputation layer can use these
- * logs to downweight persistently divergent devices.
- *
- * Source: IEEE IoT Journal 2019 — co-located participant cross-validation pattern.
- * Also: PurpleAir dual-sensor agreement, openSenseMap spatial consistency checks.
+ * Cross-device pressure check (fire-and-forget), after TITAN's buddy check
+ * (Båserud et al. 2020): other distinct devices in the same H3 res-6 cell
+ * (~36 km², about TITAN's 3 km box) within ±30 min (CrowdQC works hourly),
+ * one median per device. The verdict is written onto the batch as
+ * qc.pressure_buddy so later per-device bias correction can use it; nothing
+ * is rejected, since a "fail" is most often a phone's own 1-2 hPa offset.
+ * Light is not checked: it legitimately changes from one street or room to the
+ * next, and no source validates a neighbour check for it.
  */
-async function checkCoLocationOutlier(
+async function checkPressureBuddies(
   pool: Pool,
-  geohash: string,
   deviceHash: string,
-  summary: Summary,
-  log: { warn: (obj: unknown, msg: string) => void },
+  timestamp: Date,
+  h3Res9: string,
+  pressure: number,
 ): Promise<void> {
-  // Use geohash6 prefix (≈1.2 km × 0.6 km) — enough neighbors, not too broad.
-  const geohashPrefix = geohash.slice(0, 6);
-
-  // Serve from cache if fresh — skip the 7-day scan on repeated uploads in the same cell.
-  let neighborCount: number;
-  let neighborLight: number | null;
-  let neighborPressure: number | null;
-
-  const cached = _neighborCache.get(geohashPrefix);
-  if (cached && cached.expiresAt > Date.now()) {
-    neighborCount = cached.count;
-    neighborLight = cached.avgLight;
-    neighborPressure = cached.avgPressure;
-  } else {
-    const result = await pool.query<{
-      avg_light: string | null;
-      avg_pressure: string | null;
-      batch_count: string;
-    }>(
-      `SELECT
-         AVG((batch_json->'summary'->'light'->>'avg')::numeric)    AS avg_light,
-         AVG((batch_json->'summary'->'pressure'->>'avg')::numeric) AS avg_pressure,
-         COUNT(*)::text                                            AS batch_count
+  const area = cellToChildren(cellToParent(h3Res9, BUDDY_AREA_RES), H3_RES_PERSONAL);
+  const windowMs = 30 * 60_000;
+  const rows = await pool.query<{ p: number }>(
+    `SELECT percentile_cont(0.5) WITHIN GROUP (
+              ORDER BY (batch_json->'summary'->'pressure'->>'avg')::float) AS p
        FROM sensor_batches
-       WHERE geohash LIKE $1
-         AND device_hash != $2
-         AND created_at > NOW() - INTERVAL '7 days'`,
-      [`${geohashPrefix}%`, deviceHash],
-    );
-    const row = result.rows[0];
-    neighborCount = parseInt(row?.batch_count ?? '0', 10);
-    neighborLight = row?.avg_light != null ? parseFloat(row.avg_light!) : null;
-    neighborPressure = row?.avg_pressure != null ? parseFloat(row.avg_pressure!) : null;
-    _neighborCache.set(geohashPrefix, {
-      avgLight: neighborLight,
-      avgPressure: neighborPressure,
-      count: neighborCount,
-      expiresAt: Date.now() + _NEIGHBOR_TTL_MS,
-    });
-  }
-
-  if (neighborCount < 3) return; // need at least 3 other devices to make a judgment
-
-  const outlierFlags: string[] = [];
-
-  // Light: divergence >10× (e.g., neighbors average 3000 lux outdoors, this batch = 0)
-  if (neighborLight != null && summary.light != null) {
-    const lightRatio = Math.max(summary.light.avg, 1) / Math.max(neighborLight, 1);
-    if (lightRatio > 10 || lightRatio < 0.1) {
-      outlierFlags.push(`light: batch=${summary.light.avg.toFixed(0)} neighbors=${neighborLight.toFixed(0)}`);
-    }
-  }
-
-  // Pressure: divergence >15 hPa (same city, different altitudes can explain ~5–10 hPa)
-  if (neighborPressure != null && summary.pressure != null) {
-    const pressureDiff = Math.abs(summary.pressure.avg - neighborPressure);
-    if (pressureDiff > 15) {
-      outlierFlags.push(`pressure: batch=${summary.pressure.avg.toFixed(1)} neighbors=${neighborPressure.toFixed(1)} diff=${pressureDiff.toFixed(1)}`);
-    }
-  }
-
-  if (outlierFlags.length > 0) {
-    log.warn(
-      { deviceHash, geohashPrefix, neighborCount, outlierFlags },
-      'Spatial outlier: batch diverges from co-located devices',
-    );
-  }
+      WHERE h3_res9 = ANY($1::text[])
+        AND device_hash <> $2
+        AND timestamp_utc BETWEEN $3 AND $4
+        AND batch_json->'summary'->'pressure'->>'avg' IS NOT NULL
+      GROUP BY device_hash`,
+    [area, deviceHash, new Date(timestamp.getTime() - windowMs), new Date(timestamp.getTime() + windowMs)],
+  );
+  const verdict = buddyCheck(pressure, rows.rows.map(r => Number(r.p)).filter(Number.isFinite));
+  await pool.query(
+    `UPDATE sensor_batches
+        SET batch_json = jsonb_set(batch_json, '{qc}',
+              COALESCE(batch_json->'qc', '{}'::jsonb) || jsonb_build_object('pressure_buddy', $3::jsonb))
+      WHERE device_hash = $1 AND timestamp_utc = $2`,
+    [deviceHash, timestamp, JSON.stringify(verdict)],
+  );
 }
 
 function inferTransportMode(accelRms: number, speedMps?: number): string {
@@ -529,13 +470,11 @@ export async function uploadRoutes(fastify: FastifyInstance) {
           );
         }
 
-        // Co-location cross-validation (fire-and-forget, does not affect 202 response).
-        // Compare this batch's sensor averages against recent batches at the same geohash
-        // from OTHER devices. Large divergence = spatial outlier flag.
-        // Source: IEEE IoT Journal 2019 — co-located participant cross-validation.
-        if (batch.geohash && sanitizedPayload.summary.count >= 10) {
-          checkCoLocationOutlier(pool, batch.geohash, deviceHash, sanitizedPayload.summary, fastify.log)
-            .catch((err: unknown) => fastify.log.error({ err }, 'Co-location check failed'));
+        // Cross-device pressure check, fire-and-forget: does not delay the 202.
+        const pressureAvg = sanitizedPayload.summary.pressure?.avg;
+        if (h3Res9 && pressureAvg !== undefined) {
+          checkPressureBuddies(pool, deviceHash, batch.timestamp, h3Res9, pressureAvg)
+            .catch((err: unknown) => fastify.log.error({ err }, 'Pressure buddy check failed'));
         }
 
         return reply.code(202).send({ accepted_records: readingsCount });

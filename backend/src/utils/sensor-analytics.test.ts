@@ -38,7 +38,7 @@ test('flat signal and tiny windows pass through unchanged', () => {
   assert.deepEqual(filterOutliersMad([1, 100, 2]), [1, 100, 2]);
 });
 
-import { qodPressureSeries, qodFrozen, QOD_PRESSURE_CONSTANT_MS } from './sensor-analytics';
+import { qodPressureSeries, qodFrozen, QOD_PRESSURE_CONSTANT_MS, buddyCheck } from './sensor-analytics';
 
 const at = (min: number) => new Date(Date.UTC(2026, 9, 5, 12, 0) + min * 60_000);
 const still = { motion_state: 'stationary' };
@@ -86,4 +86,19 @@ test('QoD constancy: constant darkness is not flagged, constant non-zero light i
   const lit = Array.from({ length: 13 }, (_, i) => ({ t: at(10 * i), light: 42 }));
   assert.equal(qodFrozen(dark, 'light', QOD_PRESSURE_CONSTANT_MS), false);
   assert.equal(qodFrozen(lit, 'light', QOD_PRESSURE_CONSTANT_MS), true);
+});
+
+test('buddy check: fewer than 4 neighbouring devices is "isolated"', () => {
+  assert.equal(buddyCheck(1013, [1013.1, 1012.9, 1013.0]).status, 'isolated');
+});
+
+test('buddy check: a phone 1.5 hPa off neighbours that agree within 0.2 hPa fails', () => {
+  const v = buddyCheck(1014.5, [1013.0, 1013.1, 1012.9, 1013.2, 1013.0]);
+  assert.equal(v.status, 'fail');
+});
+
+test('buddy check: a value inside 2 robust SD passes, and one bad neighbour does not widen the band', () => {
+  assert.equal(buddyCheck(1013.15, [1013.0, 1013.1, 1012.9, 1013.2, 1013.0]).status, 'pass');
+  const v = buddyCheck(1014.5, [1013.0, 1013.1, 1012.9, 1013.2, 1030.0]);
+  assert.equal(v.status, 'fail');
 });

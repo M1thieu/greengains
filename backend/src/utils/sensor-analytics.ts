@@ -296,3 +296,46 @@ export function qodFrozen(readings: TimedReading[], key: 'pressure' | 'light', m
   if (key === 'light' && first === 0) return false;
   return seq.every(r => r[key] === first);
 }
+
+// ── Cross-device buddy check (TITAN, Båserud et al. 2020) ──────────────────────
+
+/** Neighbourhood: H3 res-6 cell, ~36 km², about TITAN's 3 km box. */
+export const BUDDY_AREA_RES = 6;
+/** TITAN's buddy check needs at least this many neighbours; fewer means "isolated". */
+export const BUDDY_MIN_NEIGHBOURS = 4;
+/** TITAN flags a value beyond this many standard deviations from its neighbours. */
+export const BUDDY_SD_FACTOR = 2;
+/**
+ * Floor for the neighbours' spread: a phone barometer's relative accuracy is about
+ * 0.12 hPa (Hintz et al. 2019; McNicholas & Mass), so tighter agreement is chance.
+ */
+export const BUDDY_MIN_SD_HPA = 0.12;
+
+export type BuddyVerdict =
+  | { status: 'isolated'; neighbours: number }
+  | { status: 'pass' | 'fail'; neighbours: number; median: number; sd: number; deviation: number };
+
+/**
+ * Compares one device's value with other devices' values nearby. Spread is the
+ * robust SD (1.4826 × MAD, the normal-consistent scale), so one bad neighbour
+ * cannot widen the band. A "fail" usually means a per-device offset (1-2 hPa
+ * between phones, Muralidharan et al. 2014), so it annotates rather than rejects.
+ */
+export function buddyCheck(value: number, neighbours: number[]): BuddyVerdict {
+  const n = neighbours.length;
+  if (n < BUDDY_MIN_NEIGHBOURS) return { status: 'isolated', neighbours: n };
+  const median = medianOfNumbers(neighbours);
+  const mad = medianOfNumbers(neighbours.map(v => Math.abs(v - median)));
+  const sd = Math.max(1.4826 * mad, BUDDY_MIN_SD_HPA);
+  const deviation = value - median;
+  return {
+    status: Math.abs(deviation) > BUDDY_SD_FACTOR * sd ? 'fail' : 'pass',
+    neighbours: n, median, sd, deviation,
+  };
+}
+
+function medianOfNumbers(values: number[]): number {
+  const s = [...values].sort((a, b) => a - b);
+  const mid = s.length >> 1;
+  return s.length % 2 ? s[mid] : (s[mid - 1] + s[mid]) / 2;
+}
